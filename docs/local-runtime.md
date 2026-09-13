@@ -55,6 +55,13 @@ Source development remains ordinary:
 pnpm dev
 ```
 
+`pnpm dev` remains a foreground owner whose Terminal controls its lifetime.
+The market-monitor Mac helper may spawn the same source Guardian in an explicit
+detached process group. Only that launcher-owned mode advertises
+`runtime.stop`; ordinary foreground development remains protected from remote
+stop requests. Both modes keep Guardian's existing single-owner lock, child
+cascade and graceful shutdown behavior.
+
 An explicit `--app-dir`, AliceProject source setting, or
 `OPENALICE_APP_HOME` can select a checkout for development. Normal installed
 startup does not clone source, install dependencies, or reconstruct a

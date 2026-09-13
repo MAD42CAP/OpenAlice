@@ -52,7 +52,7 @@ import {
   buildTsxWatchArgs,
   isBackendHotReloadEnabled,
 } from './dev-hot-reload.js'
-import { parseDevGuardianOptions } from './dev-options.js'
+import { devGuardianOwnerMode, parseDevGuardianOptions } from './dev-options.js'
 
 let guardianRuntimeLock: RuntimeProcessLock | null = null
 let guardianControlServer: { endpoint: string; close: () => Promise<void> } | null = null
@@ -78,6 +78,8 @@ async function main(): Promise<void> {
   const explicitDataHome = options.home !== null || Boolean(process.env['OPENALICE_HOME'])
   const launcherRoot = process.env['AQ_LAUNCHER_ROOT'] ?? resolve(dataHome, 'workspaces')
   const takeover = takeoverRequested()
+  const ownerMode = devGuardianOwnerMode()
+  const allowControlStop = ownerMode === 'detached'
   const guardianStartedAt = currentProcessStartedAt()
   const guardianInstanceId = randomUUID()
   const aliceProject = resolveAliceProjectIdentity({
@@ -154,6 +156,8 @@ async function main(): Promise<void> {
   let alice: ChildProcess | null = null
   let uta: OptionalServiceController | null = null
   let connector: OptionalServiceController | null = null
+  let cascadeShutdown: (() => void) | null = null
+  let controlStopPending = false
   const connectorRecovery = new RestartBackoff({
     onScheduled: (delayMs, attempt) => {
       connectorStatus = 'offline'
@@ -201,7 +205,7 @@ async function main(): Promise<void> {
 
   guardianControlServer = await startGuardianControlServer({
     homeRoot: dataHome,
-    allowStop: false,
+    allowStop: allowControlStop,
     getStatus: () => buildGuardianRuntimeStatus({
       productVersion: runtimeVersion,
       state: aliceStatus === 'ready' ? 'running' : aliceStatus,
@@ -213,7 +217,7 @@ async function main(): Promise<void> {
         instanceId: guardianInstanceId,
         startedAt: guardianRuntimeLock?.owner.acquiredAt ?? new Date(guardianStartedAt).toISOString(),
         launchRoot: resolve(process.cwd()),
-        mode: 'foreground',
+        mode: ownerMode,
       },
       endpoints: { web: `http://127.0.0.1:${ports.uiPort}` },
       provider: { kind: 'source', root: resolve(process.cwd()) },
@@ -240,9 +244,14 @@ async function main(): Promise<void> {
           ...(connector?.process.pid ? { pid: connector.process.pid } : {}),
         },
       },
-      capabilities: [],
+      capabilities: allowControlStop ? ['runtime.stop'] : [],
     }),
-    onStop: () => undefined,
+    onStop: () => {
+      guardianStopping = true
+      connectorRecovery.stop()
+      if (cascadeShutdown) cascadeShutdown()
+      else controlStopPending = true
+    },
   })
   console.log(`[guardian] Control  →  ${guardianControlServer.endpoint} (read-only)`)
 
@@ -374,6 +383,8 @@ async function main(): Promise<void> {
     } : {}),
     onShutdown: releaseGuardianRuntimeLock,
   })
+  cascadeShutdown = cascade.shutdown
+  if (controlStopPending) cascade.shutdown()
 
   // UTA restart cooperates with cascade — old SIGTERM is "expected", new
   // child is tracked for unexpected exit + signal forwarding.

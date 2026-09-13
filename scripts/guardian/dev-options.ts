@@ -3,6 +3,13 @@ import { resolve } from 'node:path'
 export interface DevGuardianOptions {
   readonly home: string | null
 }
+
+export function devGuardianOwnerMode(
+  env: NodeJS.ProcessEnv = process.env,
+): 'foreground' | 'detached' {
+  return env['OPENALICE_DEV_DETACHED'] === '1' ? 'detached' : 'foreground'
+}
+
 export function parseDevGuardianOptions(
   argv: readonly string[],
   cwd = process.cwd(),

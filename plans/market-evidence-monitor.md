@@ -36,6 +36,9 @@ present the result as a responsive dashboard with deterministic demo data.
 - Fresh source installs link workspace packages before their distributable
   entry points exist. Real dev and demo launch therefore build the UI's
   connector protocol dependency before Vite resolves its `dist` export.
+- The Mac launcher defaults to a detached Guardian-owned source stack. Status,
+  browser open and graceful stop use Guardian's existing control/ownership
+  contract; helpers refuse foreground or foreign runtime owners.
 - Read recent journals backwards in bounded blocks rather than parsing whole
   archives on every 15-second poll. Keep append-only history intact.
 - Autonomous UI choice: a compact Operations section within the existing
@@ -112,6 +115,7 @@ present the result as a responsive dashboard with deterministic demo data.
 - [x] Add a checkpointed 24/72-hour observer for Mac/runtime acceptance.
 - [x] Add a Mac source launcher for environment checks, demo and real dashboard.
 - [x] Prepare UI workspace package exports automatically on a fresh clone.
+- [x] Add controllable Mac background start, status, open and stop lifecycle.
 - [ ] Check the updated dashboard visually on the Mac (cloud browser blocks localhost).
 - [ ] Verify decision-scale BTC fingerprinting with consecutive live scans.
 - [ ] Run the live command on macOS and observe scheduling for 24–72 hours.
@@ -224,7 +228,7 @@ Mac launcher increment verified in the managed Linux workspace on 2026-09-13:
   installed dependencies and the feature branch, then refused to launch on
   Linux because this entry point is Mac-specific.
 - The actual Finder double-click, default-browser open and Mac foreground
-  process shutdown remain part of the native Mac acceptance gate.
+  process shutdown were the previous native Mac acceptance gate.
 - The first real fresh-clone Mac attempt exposed a missing
   `@traderalice/connector-protocol` `dist` entry after `pnpm install`. Repeating
   that state locally now runs the automatic dependency build first; the full
@@ -234,6 +238,20 @@ Mac launcher increment verified in the managed Linux workspace on 2026-09-13:
 - Managed Linux could not run Guardian's `tsx` IPC pipe (`EPERM`) for the full
   source-dev stack. This is the previously recorded host restriction; the
   missing-package build and complete Vite import graph both passed.
+
+Mac background lifecycle increment verified in the managed Linux workspace on
+2026-09-13:
+
+- The focused Guardian/monitor closure passed 17 files and 87 tests. Root and
+  UI TypeScript, launcher help, Bash syntax, absent-runtime status/stop and diff
+  checks passed.
+- The complete hermetic suite reached 800 passing files and 6,938 passing
+  tests. Ten files remained blocked by the managed host: Unix socket `EPERM`,
+  unavailable node-pty native payload, missing dugite Git payload and installer
+  process-identity reads. The new launcher and Guardian option specs passed.
+- Native macOS acceptance still needs to prove that Finder start returns after
+  readiness, the detached process survives closing Terminal, Open reuses the
+  selected port, and Stop releases the Guardian owner and child tree.
 
 The branch is complete when BTC and TSLA can be scanned read-only, duplicate
 snapshots are suppressed, source failure is visible without erasing the last

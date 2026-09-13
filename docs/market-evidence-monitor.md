@@ -159,24 +159,46 @@ On the maintained feature branch, double-click
 Homebrew locations to `PATH`, installs workspace dependencies on first use,
 checks macOS, Node.js 22.19+, pnpm, Git and the current branch, then builds the
 UI's internal `@traderalice/connector-protocol` workspace dependency before it
-starts the real OpenAlice source stack in read-only Lite mode. It reads
-Guardian's actual Vite port, waits for the OpenAlice application shell and opens
-`/market/evidence` in the default browser.
+starts the real OpenAlice source stack in read-only Lite mode. The default
+launch is detached from Terminal: it writes output to
+`~/.openalice/state/market-monitor.log`, waits for Guardian's actual Vite port
+and the OpenAlice application shell, opens `/market/evidence`, and then exits
+the launching shell without stopping OpenAlice.
+
+Finder also has separate lifecycle entry points:
+
+- `scripts/market-monitor-open.command` reopens the running dashboard.
+- `scripts/market-monitor-stop.command` gracefully stops the background stack.
 
 The same entry point is available in Terminal:
 
 ```bash
 pnpm market-monitor:mac
+pnpm market-monitor:status
+pnpm market-monitor:open
+pnpm market-monitor:stop
 pnpm market-monitor:mac -- --check
 pnpm market-monitor:mac -- --demo
+pnpm market-monitor:mac -- --foreground
 ```
 
-`--check` performs no startup. `--demo` opens deterministic fixtures. `--full`
-starts the normal optional trading services, while the default skips them
-because the monitor only needs read-only market providers. `--no-open` leaves
-the browser closed, and `--home=<directory>` passes an isolated data root to
-Guardian. The launcher does not switch branches, take over an existing runtime
-or edit monitor settings. Stop the foreground source stack with Control-C.
+`--check` performs no startup. `--demo` opens deterministic fixtures and remains
+foreground-only. `--foreground` retains the original Terminal-attached real
+stack for debugging. `--full` starts the normal optional trading services,
+while the default skips them because the monitor only needs read-only market
+providers. `--no-open` leaves the browser closed, and `--home=<directory>`
+passes an isolated data root to Guardian.
+
+The background launcher reuses an already-running detached instance rather
+than starting a duplicate. Status, open and stop resolve the same data home and
+Guardian control socket. Stop is accepted only when the runtime identifies
+itself as a detached `dev` owner launched from this checkout; a foreground,
+packaged or differently sourced OpenAlice is never killed by the helper. The
+launcher does not switch branches, take over an existing runtime or edit
+monitor settings. Stop an explicitly foreground source stack with Control-C.
+`pnpm market-monitor:status` prints the exact log path; follow it with
+`tail -f ~/.openalice/state/market-monitor.log` when startup diagnostics are
+needed.
 
 Both plain `pnpm dev` and the deterministic monitor preview run the same
 workspace-package preparation automatically. This matters on a new clone:
@@ -193,7 +215,7 @@ pnpm --filter @traderalice/connector-protocol build
 
 Refresh the page afterward, or stop the old foreground stack with Control-C,
 pull the feature branch and start it again. Updated launch commands perform
-this step automatically.
+this step automatically and use background mode by default.
 
 For the first checkout from our repository:
 

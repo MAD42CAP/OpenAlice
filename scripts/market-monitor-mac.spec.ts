@@ -1,10 +1,42 @@
 import { expect, it } from 'vitest'
-import { assessMacEnvironment, dashboardUrlFromLine, parseMacLauncherOptions, versionAtLeast, waitForDashboard } from './market-monitor-mac.mjs'
+import {
+  assessMacEnvironment,
+  dashboardUrlFromLine,
+  dashboardUrlFromStatus,
+  isManageableBackgroundStatus,
+  parseMacLauncherOptions,
+  resolveMacRuntimePaths,
+  versionAtLeast,
+  waitForDashboard,
+} from './market-monitor-mac.mjs'
 
 it('parses safe Mac launch modes and rejects conflicting services', () => {
   expect(parseMacLauncherOptions(['--', '--check', '--no-open', '--home=./tmp'])).toMatchObject({ check: true, noOpen: true, home: expect.stringContaining('/tmp') })
+  expect(parseMacLauncherOptions(['--status'])).toMatchObject({ status: true })
+  expect(parseMacLauncherOptions(['--stop'])).toMatchObject({ stop: true })
   expect(() => parseMacLauncherOptions(['--demo', '--full'])).toThrow(/cannot be combined/)
+  expect(() => parseMacLauncherOptions(['--status', '--open'])).toThrow(/cannot be combined/)
+  expect(() => parseMacLauncherOptions(['--stop', '--full'])).toThrow(/lifecycle actions/)
   expect(() => parseMacLauncherOptions(['--takeover'])).toThrow(/unknown option/)
+})
+
+it('derives isolated background state and accepts only this checkout detached owner', () => {
+  expect(resolveMacRuntimePaths({ home: null }, { homeDir: '/Users/alice', env: {} })).toEqual({
+    home: '/Users/alice/.openalice',
+    log: '/Users/alice/.openalice/state/market-monitor.log',
+  })
+  const status = {
+    owner: { surface: 'dev', mode: 'detached', launchRoot: '/repo/OpenAlice' },
+    control: { capabilities: ['runtime.status', 'runtime.stop'] },
+    endpoints: { web: 'http://127.0.0.1:5184' },
+  }
+  expect(dashboardUrlFromStatus(status)).toBe('http://127.0.0.1:5184/market/evidence')
+  expect(isManageableBackgroundStatus(status, '/repo/OpenAlice')).toBe(true)
+  expect(isManageableBackgroundStatus({ ...status, owner: { ...status.owner, mode: 'foreground' } }, '/repo/OpenAlice')).toBe(false)
+  expect(isManageableBackgroundStatus({ ...status, control: { capabilities: ['runtime.status'] } }, '/repo/OpenAlice')).toBe(false)
+  expect(isManageableBackgroundStatus({ ...status, owner: { ...status.owner, surface: 'cli-server' } }, '/repo/OpenAlice')).toBe(false)
+  expect(isManageableBackgroundStatus(status, '/repo/Another')).toBe(false)
+  expect(dashboardUrlFromStatus({ endpoints: { web: 'https://example.com' } })).toBeNull()
 })
 
 it('requires the supported Mac toolchain and only warns about branch identity', () => {
