@@ -152,6 +152,41 @@ this increment adds no destructive retention or compaction.
 
 ## Preview and Verification
 
+### Mac one-click source launch
+
+On the maintained feature branch, double-click
+`scripts/market-monitor-mac.command` in Finder. The command adds the usual
+Homebrew locations to `PATH`, installs workspace dependencies on first use,
+checks macOS, Node.js 22.19+, pnpm, Git and the current branch, then starts the
+real OpenAlice source stack in read-only Lite mode. It reads Guardian's actual
+Vite port, waits for the OpenAlice application shell and opens
+`/market/evidence` in the default browser.
+
+The same entry point is available in Terminal:
+
+```bash
+pnpm market-monitor:mac
+pnpm market-monitor:mac -- --check
+pnpm market-monitor:mac -- --demo
+```
+
+`--check` performs no startup. `--demo` opens deterministic fixtures. `--full`
+starts the normal optional trading services, while the default skips them
+because the monitor only needs read-only market providers. `--no-open` leaves
+the browser closed, and `--home=<directory>` passes an isolated data root to
+Guardian. The launcher does not switch branches, take over an existing runtime
+or edit monitor settings. Stop the foreground source stack with Control-C.
+
+For the first checkout from our repository:
+
+```bash
+git clone https://github.com/MAD42CAP/OpenAlice.git
+cd OpenAlice
+git switch feature/market-evidence-monitor
+pnpm install
+pnpm market-monitor:mac
+```
+
 From the repository root:
 
 ```bash

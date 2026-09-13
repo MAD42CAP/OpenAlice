@@ -29,6 +29,10 @@ present the result as a responsive dashboard with deterministic demo data.
 - Sustained acceptance uses a separate read-only observer. It checkpoints every
   probe, does not mutate settings or dispatch scans, and only marks recovery
   after a successful probe observes the recovered state.
+- Mac source acceptance has one launcher that checks the toolchain, defaults to
+  Lite mode, adopts Guardian's selected UI port and opens the dashboard only
+  after verifying the OpenAlice shell. It does not switch branches or take over
+  an existing runtime.
 - Read recent journals backwards in bounded blocks rather than parsing whole
   archives on every 15-second poll. Keep append-only history intact.
 - Autonomous UI choice: a compact Operations section within the existing
@@ -103,6 +107,7 @@ present the result as a responsive dashboard with deterministic demo data.
 - [x] Connect health reports, export and deterministic demo/UI coverage.
 - [x] Verify the health increment against isolated runtime data.
 - [x] Add a checkpointed 24/72-hour observer for Mac/runtime acceptance.
+- [x] Add a Mac source launcher for environment checks, demo and real dashboard.
 - [ ] Check the updated dashboard visually on the Mac (cloud browser blocks localhost).
 - [ ] Verify decision-scale BTC fingerprinting with consecutive live scans.
 - [ ] Run the live command on macOS and observe scheduling for 24–72 hours.
@@ -203,6 +208,19 @@ Long-run observer increment verified in the managed Linux workspace on
   and TSLA calendar/news remained degraded. The short run labelled cadence
   evidence `insufficient-duration`; it did not claim 24/72-hour acceptance.
 - The isolated backend and temporary state were removed after the observation.
+
+Mac launcher increment verified in the managed Linux workspace on 2026-09-13:
+
+- The focused monitor closure passed 15 files and 79 tests. Root TypeScript,
+  launcher help, Bash syntax and diff checks passed.
+- Tests cover launch option safety, Node/pnpm version gates, branch warnings,
+  Guardian port parsing and refusal to treat an unrelated local page as the
+  OpenAlice dashboard.
+- The real environment check correctly reported Node 24.19, pnpm 11.19,
+  installed dependencies and the feature branch, then refused to launch on
+  Linux because this entry point is Mac-specific.
+- The actual Finder double-click, default-browser open and Mac foreground
+  process shutdown remain part of the native Mac acceptance gate.
 
 The branch is complete when BTC and TSLA can be scanned read-only, duplicate
 snapshots are suppressed, source failure is visible without erasing the last
