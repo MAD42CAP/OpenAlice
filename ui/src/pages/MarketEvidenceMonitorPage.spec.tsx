@@ -6,13 +6,14 @@ import { demoMonitorSnapshot } from '../demo/fixtures/market-monitor'
 import { MarketEvidenceMonitorPage } from './MarketEvidenceMonitorPage'
 
 const mocks = vi.hoisted(() => ({
-  settings: vi.fn(), strategies: vi.fn(), snapshots: vi.fn(), alerts: vi.fn(), evaluation: vi.fn(), scan: vi.fn(), saveSettings: vi.fn(),
+  status: vi.fn(), settings: vi.fn(), strategies: vi.fn(), snapshots: vi.fn(), alerts: vi.fn(), evaluation: vi.fn(), scan: vi.fn(), saveSettings: vi.fn(),
 }))
 vi.mock('../api', () => ({ api: { marketMonitor: mocks } }))
 
 beforeEach(() => {
   window.localStorage.clear()
-  const settings = { enabledAssets: ['BTC', 'TSLA'], strategyId: 'evidence-chain-v1', intervalMinutes: 15, notifications: false, alertConfidence: 68, abnormalVolumeRatio: 1.8, abnormalMovePercent: 1.5 }
+  const settings = { backgroundEnabled: false, enabledAssets: ['BTC', 'TSLA'], strategyId: 'evidence-chain-v1', intervalMinutes: 15, notifications: false, alertConfidence: 68, abnormalVolumeRatio: 1.8, abnormalMovePercent: 1.5 }
+  mocks.status.mockResolvedValue({ running: true, backgroundEnabled: false, intervalMinutes: 15, checkedAt: null, error: null, assets: ['BTC', 'TSLA'].map((asset) => ({ asset, enabled: true, scanning: false, nextScanAt: null, lastReceipt: null })) })
   mocks.settings.mockResolvedValue(settings)
   mocks.strategies.mockResolvedValue({ strategies: [{ id: 'evidence-chain-v1', label: 'Evidence chain', version: 1, description: 'fixture', requiredData: ['daily-bars', 'hourly-bars', 'asset-context'] }] })
   mocks.snapshots.mockImplementation(async (asset: 'BTC' | 'TSLA') => ({ snapshots: [demoMonitorSnapshot(asset)], count: 1 }))
@@ -57,4 +58,39 @@ it('renders the registered strategy in monitor settings', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Monitor settings' }))
   expect((screen.getByRole('combobox', { name: 'Strategy' }) as HTMLSelectElement).value).toBe('evidence-chain-v1')
   expect(screen.getByRole('option', { name: 'Evidence chain v1' })).toBeTruthy()
+})
+
+it('opens empty history without silently dispatching a scan', async () => {
+  mocks.snapshots.mockResolvedValue({ snapshots: [], count: 0 })
+  render(<MarketEvidenceMonitorPage />)
+  await screen.findByText('No observations yet')
+  expect(mocks.scan).not.toHaveBeenCalled()
+})
+
+it('saves explicit background consent and a selected asset', async () => {
+  render(<MarketEvidenceMonitorPage />)
+  await screen.findAllByText('Demand has provisional control')
+  fireEvent.click(screen.getByRole('button', { name: 'Monitor settings' }))
+  fireEvent.click(screen.getByRole('checkbox', { name: 'Background monitoring' }))
+  fireEvent.click(screen.getByRole('checkbox', { name: 'TSLA' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  await waitFor(() => expect(mocks.saveSettings).toHaveBeenCalledWith(expect.objectContaining({ backgroundEnabled: true, enabledAssets: ['BTC'] })))
+})
+
+it('keeps settings open and reports a failed save', async () => {
+  mocks.saveSettings.mockRejectedValueOnce(new Error('disk unavailable'))
+  render(<MarketEvidenceMonitorPage />)
+  await screen.findAllByText('Demand has provisional control')
+  fireEvent.click(screen.getByRole('button', { name: 'Monitor settings' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Settings were not saved. disk unavailable')
+  expect(screen.getByRole('form', { name: 'Monitor settings' })).toBeTruthy()
+})
+
+it('does not label a disconnected backend as active', async () => {
+  mocks.status.mockRejectedValueOnce(new Error('offline'))
+  render(<MarketEvidenceMonitorPage />)
+  await screen.findByText('Monitor connection unavailable')
+  expect(screen.getByRole('button', { name: 'Retry status' })).toBeTruthy()
+  expect(screen.queryByText('Background monitoring active')).toBeNull()
 })

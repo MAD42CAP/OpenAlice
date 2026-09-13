@@ -2,11 +2,13 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 import type { EngineContext } from '../../core/types.js'
 import { createMarketMonitorService, type MarketMonitorService } from '../../domain/market-monitor/service.js'
+import type { MarketMonitorScheduler } from '../../domain/market-monitor/scheduler.js'
 import { DEFAULT_MARKET_MONITOR_SETTINGS, MARKET_MONITOR_ASSETS, type MarketMonitorAsset } from '../../domain/market-monitor/types.js'
 
 const assetSchema = z.enum(MARKET_MONITOR_ASSETS)
 const settingsSchema = z.object({
-  enabledAssets: z.array(assetSchema).min(1),
+  backgroundEnabled: z.boolean().default(false),
+  enabledAssets: z.array(assetSchema).min(1).max(2).refine((assets) => new Set(assets).size === assets.length, 'Assets must be unique'),
   strategyId: z.string().trim().min(1).default(DEFAULT_MARKET_MONITOR_SETTINGS.strategyId),
   intervalMinutes: z.number().int().min(1).max(1440),
   notifications: z.boolean(),
@@ -25,7 +27,7 @@ function assetFrom(raw: string | undefined): MarketMonitorAsset | undefined {
   return parsed.success ? parsed.data : undefined
 }
 
-export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketMonitorService): Hono {
+export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketMonitorService, scheduler?: MarketMonitorScheduler): Hono {
   const app = new Hono()
   const service = provided ?? createMarketMonitorService({
     barService: ctx.barService,
@@ -35,6 +37,10 @@ export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketM
   })
 
   app.get('/settings', async (c) => c.json(await service.settings()))
+
+  app.get('/status', async (c) => scheduler
+    ? c.json(await scheduler.status())
+    : c.json({ error: 'Background monitor is not attached to this runtime' }, 503))
 
   app.get('/strategies', (c) => c.json({ strategies: service.strategies() }))
 

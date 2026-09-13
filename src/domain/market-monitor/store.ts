@@ -1,5 +1,6 @@
 import { appendFile, mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
+import { randomUUID } from 'node:crypto'
 import { dataPath } from '../../core/paths.js'
 import type {
   MarketMonitorAlert,
@@ -11,14 +12,10 @@ import type {
 import { DEFAULT_MARKET_MONITOR_SETTINGS, DEFAULT_MARKET_MONITOR_STRATEGY_ID } from './types.js'
 
 const ROOT = dataPath('market-monitor')
-const SETTINGS_FILE = `${ROOT}/settings.json`
-const SNAPSHOTS_FILE = `${ROOT}/observations.jsonl`
-const ALERTS_FILE = `${ROOT}/alerts.jsonl`
-const RECEIPTS_FILE = `${ROOT}/receipts.jsonl`
 
-function seriesFile(asset: MarketMonitorAsset, strategyId: string): string {
+function seriesFile(root: string, asset: MarketMonitorAsset, strategyId: string): string {
   const safeStrategy = strategyId.replace(/[^a-zA-Z0-9._-]/g, '_')
-  return `${ROOT}/series-${asset.toLowerCase()}-${safeStrategy}.json`
+  return `${root}/series-${asset.toLowerCase()}-${safeStrategy}.json`
 }
 
 async function readSeriesFile(file: string): Promise<MarketMonitorSnapshot['chart'] | null> {
@@ -63,7 +60,11 @@ export interface MarketMonitorStore {
   saveLatestSeries(asset: MarketMonitorAsset, chart: MarketMonitorSnapshot['chart'], strategyId?: string): Promise<void>
 }
 
-export function createMarketMonitorStore(): MarketMonitorStore {
+export function createMarketMonitorStore(root = ROOT): MarketMonitorStore {
+  const SETTINGS_FILE = `${root}/settings.json`
+  const SNAPSHOTS_FILE = `${root}/observations.jsonl`
+  const ALERTS_FILE = `${root}/alerts.jsonl`
+  const RECEIPTS_FILE = `${root}/receipts.jsonl`
   return {
     async settings() {
       try {
@@ -78,7 +79,7 @@ export function createMarketMonitorStore(): MarketMonitorStore {
     },
     async saveSettings(settings) {
       await ensureParent(SETTINGS_FILE)
-      const temp = `${SETTINGS_FILE}.${process.pid}.tmp`
+      const temp = `${SETTINGS_FILE}.${process.pid}.${randomUUID()}.tmp`
       await writeFile(temp, `${JSON.stringify(settings, null, 2)}\n`, 'utf8')
       await rename(temp, SETTINGS_FILE)
     },
@@ -98,12 +99,12 @@ export function createMarketMonitorStore(): MarketMonitorStore {
     },
     appendReceipt: (receipt) => appendJsonLine(RECEIPTS_FILE, receipt),
     async latestSeries(asset, strategyId = DEFAULT_MARKET_MONITOR_STRATEGY_ID) {
-      const current = await readSeriesFile(seriesFile(asset, strategyId))
+      const current = await readSeriesFile(seriesFile(root, asset, strategyId))
       if (current || strategyId !== DEFAULT_MARKET_MONITOR_STRATEGY_ID) return current
-      return readSeriesFile(`${ROOT}/series-${asset.toLowerCase()}.json`)
+      return readSeriesFile(`${root}/series-${asset.toLowerCase()}.json`)
     },
     async saveLatestSeries(asset, chart, strategyId = DEFAULT_MARKET_MONITOR_STRATEGY_ID) {
-      const file = seriesFile(asset, strategyId)
+      const file = seriesFile(root, asset, strategyId)
       await ensureParent(file)
       const temp = `${file}.${process.pid}.tmp`
       await writeFile(temp, `${JSON.stringify(chart)}\n`, 'utf8')

@@ -25,6 +25,8 @@ import { createOfficeRoutes } from './routes/office.js'
 import { createNewsRoutes } from './routes/news.js'
 import { createMarketRoutes } from './routes/market.js'
 import { createMarketMonitorRoutes } from './routes/market-monitor.js'
+import { createMarketMonitorService } from '../domain/market-monitor/service.js'
+import { createMarketMonitorScheduler, type MarketMonitorScheduler } from '../domain/market-monitor/scheduler.js'
 import { createBarsRoutes } from './routes/bars.js'
 import { createReferenceRoutes } from './routes/reference.js'
 import { createInboxRoutes } from './routes/inbox.js'
@@ -98,6 +100,7 @@ export class WebPlugin implements Plugin {
   private surfaceGatewayPort: number | null = null
   private surfaceWs: AttachedHarnessSurfaceWS | null = null
   private surfaceGatewayWs: AttachedHarnessSurfaceWS | null = null
+  private marketMonitorScheduler: MarketMonitorScheduler | null = null
 
   constructor(
     private config: WebConfig,
@@ -269,7 +272,14 @@ export class WebPlugin implements Plugin {
     app.route('/api/agent-status', createAgentStatusRoutes(ctx))
     app.route('/api/news', createNewsRoutes(ctx))
     app.route('/api/market', createMarketRoutes(ctx))
-    app.route('/api/market-monitor', createMarketMonitorRoutes(ctx))
+    const marketMonitor = createMarketMonitorService({
+      barService: ctx.barService,
+      equityClient: ctx.equityClient,
+      reference: ctx.reference,
+      ...(ctx.newsProvider ? { newsProvider: ctx.newsProvider } : {}),
+    })
+    this.marketMonitorScheduler = createMarketMonitorScheduler(marketMonitor)
+    app.route('/api/market-monitor', createMarketMonitorRoutes(ctx, marketMonitor, this.marketMonitorScheduler))
     app.route('/api/bars', createBarsRoutes(ctx))
     app.route('/api/reference', createReferenceRoutes(ctx))
     app.route('/api/inbox', createInboxRoutes({ inboxStore: ctx.inboxStore, resolveWorkspace: id => this.workspaceService?.registry.get(id) }))
@@ -398,6 +408,7 @@ export class WebPlugin implements Plugin {
     }
 
     if (this.config.listen === false) {
+      this.marketMonitorScheduler.start()
       console.log('web plugin listening over Electron IPC')
       return
     }
@@ -408,6 +419,7 @@ export class WebPlugin implements Plugin {
     // above + the auth middleware on every route).
     const hostname = (process.env['OPENALICE_BIND_HOST'] ?? '127.0.0.1').trim()
     this.server = serve({ fetch: app.fetch, port: this.config.port, hostname }, (info: { port: number }) => {
+      this.marketMonitorScheduler?.start()
       console.log(`web plugin listening on http://${hostname}:${info.port}`)
     })
 
@@ -419,6 +431,8 @@ export class WebPlugin implements Plugin {
   }
 
   async stop() {
+    await this.marketMonitorScheduler?.stop()
+    this.marketMonitorScheduler = null
     this.sseByChannel.clear()
     this.webIpc?.dispose()
     this.webIpc = null

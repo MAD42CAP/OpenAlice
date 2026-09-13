@@ -2,11 +2,16 @@ import { http, HttpResponse } from 'msw'
 import type { MonitorAlert, MonitorAsset, MonitorSettings } from '../../api/market-monitor'
 import { demoMonitorSnapshot } from '../fixtures/market-monitor'
 
-let settings: MonitorSettings = { enabledAssets: ['BTC', 'TSLA'], strategyId: 'evidence-chain-v1', intervalMinutes: 15, notifications: false, alertConfidence: 68, abnormalVolumeRatio: 1.8, abnormalMovePercent: 1.5 }
+let settings: MonitorSettings = { backgroundEnabled: false, enabledAssets: ['BTC', 'TSLA'], strategyId: 'evidence-chain-v1', intervalMinutes: 15, notifications: false, alertConfidence: 68, abnormalVolumeRatio: 1.8, abnormalMovePercent: 1.5 }
 const snapshots: Record<MonitorAsset, ReturnType<typeof demoMonitorSnapshot>[]> = { BTC: [demoMonitorSnapshot('BTC')], TSLA: [demoMonitorSnapshot('TSLA')] }
 const alerts: MonitorAlert[] = []
 
 export const marketMonitorHandlers = [
+  http.get('/api/market-monitor/status', () => HttpResponse.json({
+    running: false, backgroundEnabled: settings.backgroundEnabled, intervalMinutes: settings.intervalMinutes,
+    checkedAt: null, error: null,
+    assets: (['BTC', 'TSLA'] as const).map((asset) => ({ asset, enabled: settings.enabledAssets.includes(asset), scanning: false, nextScanAt: null, lastReceipt: null })),
+  })),
   http.get('/api/market-monitor/settings', () => HttpResponse.json(settings)),
   http.get('/api/market-monitor/strategies', () => HttpResponse.json({ strategies: [{ id: 'evidence-chain-v1', label: 'Evidence chain', version: 1, description: 'Location, structure, effort/result and confirmation.', requiredData: ['daily-bars', 'hourly-bars', 'asset-context'] }] })),
   http.get('/api/market-monitor/context-providers', () => HttpResponse.json({ providers: [

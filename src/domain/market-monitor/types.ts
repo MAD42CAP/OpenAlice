@@ -22,6 +22,7 @@ export const MARKET_MONITOR_ASSET_CONFIG: Record<MarketMonitorAsset, MarketMonit
 }
 
 export interface MarketMonitorSettings {
+  backgroundEnabled: boolean
   enabledAssets: MarketMonitorAsset[]
   strategyId: MarketMonitorStrategyId
   intervalMinutes: number
@@ -32,6 +33,7 @@ export interface MarketMonitorSettings {
 }
 
 export const DEFAULT_MARKET_MONITOR_SETTINGS: MarketMonitorSettings = {
+  backgroundEnabled: false,
   enabledAssets: ['BTC', 'TSLA'],
   strategyId: DEFAULT_MARKET_MONITOR_STRATEGY_ID,
   intervalMinutes: 15,
@@ -157,10 +159,26 @@ export interface MarketMonitorReceipt {
   id: string
   asset: MarketMonitorAsset
   requestedAt: string
+  completedAt?: string
   trigger: MarketMonitorTrigger
   outcome: 'stored' | 'duplicate' | 'failed'
   snapshotId?: string
   error?: string
+}
+
+export interface MarketMonitorSchedulerStatus {
+  running: boolean
+  backgroundEnabled: boolean
+  intervalMinutes: number
+  checkedAt: string | null
+  error: string | null
+  assets: Array<{
+    asset: MarketMonitorAsset
+    enabled: boolean
+    scanning: boolean
+    nextScanAt: string | null
+    lastReceipt: MarketMonitorReceipt | null
+  }>
 }
 
 export interface MarketMonitorScanResult {

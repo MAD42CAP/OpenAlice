@@ -1,10 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import type { BarService, OhlcvBar } from '../market-data/bars/index.js'
 import type { EquityClientLike } from '../market-data/client/types.js'
 import type { ReferenceDataService } from '../market-data/reference/types.js'
 import { MarketContextProviderRegistry } from './context.js'
 import { createMarketMonitorService } from './service.js'
-import type { MarketMonitorStore } from './store.js'
+import { createMarketMonitorStore, type MarketMonitorStore } from './store.js'
+import { createMarketMonitorScheduler } from './scheduler.js'
 import { createMarketMonitorStrategyRegistry, evidenceChainV1Strategy } from './strategy.js'
 import { DEFAULT_MARKET_MONITOR_SETTINGS, type MarketMonitorAlert, type MarketMonitorReceipt, type MarketMonitorSnapshot } from './types.js'
 
@@ -49,6 +53,71 @@ function dependencies(hourly = true) {
 }
 
 describe('market monitor service', () => {
+  it('runs browser-free with real persisted receipts and resumes cadence after restart', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'market-monitor-background-'))
+    let clock = Date.parse('2026-09-13T00:00:00Z')
+    const now = () => new Date(clock)
+    let scheduler: ReturnType<typeof createMarketMonitorScheduler> | undefined
+    try {
+      const store = createMarketMonitorStore(root)
+      expect((await store.settings()).backgroundEnabled).toBe(false)
+      await store.saveSettings({ ...DEFAULT_MARKET_MONITOR_SETTINGS, backgroundEnabled: true, enabledAssets: ['TSLA'], intervalMinutes: 1 })
+      scheduler = createMarketMonitorScheduler(createMarketMonitorService({ ...dependencies(), store, now }), { now })
+      scheduler.start()
+      await scheduler.tick()
+      await scheduler.stop()
+      const reopenedStore = createMarketMonitorStore(root)
+      expect(await reopenedStore.receipts('TSLA')).toHaveLength(1)
+      expect((await reopenedStore.settings()).backgroundEnabled).toBe(true)
+      scheduler = createMarketMonitorScheduler(createMarketMonitorService({ ...dependencies(), store: reopenedStore, now }), { now })
+      scheduler.start()
+      await scheduler.tick()
+      expect(await reopenedStore.receipts('TSLA')).toHaveLength(1)
+      clock += 60_000
+      await scheduler.tick()
+      expect((await reopenedStore.receipts('TSLA')).map((row) => [row.trigger, row.outcome])).toEqual([['scheduled', 'stored'], ['scheduled', 'duplicate']])
+      await reopenedStore.saveSettings({ ...await reopenedStore.settings(), backgroundEnabled: false })
+      clock += 60_000
+      await scheduler.tick()
+      expect(await reopenedStore.receipts('TSLA')).toHaveLength(2)
+      expect(await reopenedStore.receipts('BTC')).toHaveLength(0)
+    } finally {
+      await scheduler?.stop()
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  it('coalesces overlapping manual/scheduled requests into one attributed scan', async () => {
+    const store = memoryStore()
+    const deps = dependencies()
+    const service = createMarketMonitorService({ ...deps, store })
+    const manual = service.scan('TSLA', 'manual')
+    const scheduled = service.scan('TSLA', 'scheduled')
+    expect(service.isScanning('TSLA')).toBe(true)
+    expect(manual).toBe(scheduled)
+    const [a, b] = await Promise.all([manual, scheduled])
+    expect(a.receipt.id).toBe(b.receipt.id)
+    expect(a.receipt.trigger).toBe('manual')
+    expect(a.receipt.completedAt).toBeDefined()
+    expect(store.data.receipts).toHaveLength(1)
+    expect(store.data.snapshots).toHaveLength(1)
+    expect(deps.barService.getBars).toHaveBeenCalledTimes(2)
+    expect(service.isScanning('TSLA')).toBe(false)
+    await service.scan('TSLA', 'scheduled')
+    expect(store.data.receipts).toHaveLength(2)
+  })
+
+  it('releases its scan lock after failure so later attempts can recover', async () => {
+    const store = memoryStore()
+    const deps = dependencies()
+    vi.mocked(deps.barService.getBars).mockRejectedValueOnce(new Error('offline')).mockRejectedValueOnce(new Error('offline'))
+    const service = createMarketMonitorService({ ...deps, store })
+    await expect(service.scan('TSLA', 'scheduled')).rejects.toThrow('offline')
+    expect(service.isScanning('TSLA')).toBe(false)
+    expect(store.data.receipts[0]).toMatchObject({ outcome: 'failed', completedAt: expect.any(String) })
+    expect((await service.scan('TSLA', 'manual')).stored).toBe(true)
+  })
+
   it('stores one semantic observation and records duplicate scan receipts', async () => {
     const store = memoryStore()
     const service = createMarketMonitorService({ ...dependencies(), store, now: () => new Date('2026-04-01T00:00:00Z') })

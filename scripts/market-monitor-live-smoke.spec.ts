@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isLoopbackHost, parseOptions, validateScanPair, validateSnapshot } from './market-monitor-live-smoke.mjs'
+import { isLoopbackHost, parseOptions, runBackgroundProbe, validateScanPair, validateSnapshot } from './market-monitor-live-smoke.mjs'
 
 function snapshot(asset = 'BTC') {
   const intraday: Array<Record<string, unknown>> = []
@@ -19,9 +19,69 @@ function snapshot(asset = 'BTC') {
 
 describe('market monitor live acceptance', () => {
   it('defaults to a loopback, read-only acceptance run', () => {
-    expect(parseOptions([], {})).toMatchObject({ baseUrl: 'http://127.0.0.1:47331', scan: false, assets: ['BTC', 'TSLA'] })
+    expect(parseOptions([], {})).toMatchObject({ baseUrl: 'http://127.0.0.1:47331', scan: false, background: false, assets: ['BTC', 'TSLA'] })
     expect(isLoopbackHost('::1')).toBe(true)
     expect(() => parseOptions(['--base-url=https://example.com'], {})).toThrow(/allow-remote/)
+  })
+
+  it('requires explicit background acceptance and restores settings on success or failure', async () => {
+    const options = parseOptions(['--background', '--asset=TSLA'], {})
+    const original = { backgroundEnabled: false, enabledAssets: ['BTC', 'TSLA'], intervalMinutes: 15 }
+    for (const failed of [false, true]) {
+      let current = original
+      const methods: string[] = []
+      const fetcher = async (url: string, init?: RequestInit) => {
+        methods.push(init?.method ?? 'GET')
+        if (url.endsWith('/settings')) {
+          if (init?.method === 'PUT') current = JSON.parse(init.body as string)
+          return new Response(JSON.stringify(current))
+        }
+        const receipts = current.backgroundEnabled ? [{ id: 'scheduled-1', asset: 'TSLA', trigger: 'scheduled', outcome: failed ? 'failed' : 'stored', error: failed ? 'offline' : undefined }] : []
+        return new Response(JSON.stringify({ receipts }))
+      }
+      const probe = runBackgroundProbe(options, original, { fetcher })
+      if (failed) await expect(probe).rejects.toThrow('offline')
+      else expect(await probe).toMatchObject({ success: true })
+      expect(current).toEqual(original)
+      expect(methods).not.toContain('POST')
+    }
+  })
+
+  it('never interrupts an already enabled schedule', async () => {
+    await expect(runBackgroundProbe(parseOptions(['--background'], {}), { backgroundEnabled: true })).rejects.toThrow('Pause background monitoring')
+  })
+
+  it('restores settings after a timeout without dispatching scans', async () => {
+    const original = { backgroundEnabled: false, enabledAssets: ['BTC'], intervalMinutes: 15 }
+    let current = original
+    let clock = 0
+    const fetcher = async (url: string, init?: RequestInit) => {
+      if (url.endsWith('/settings')) {
+        if (init?.method === 'PUT') current = JSON.parse(init.body as string)
+        return new Response(JSON.stringify(current))
+      }
+      return new Response(JSON.stringify({ receipts: [] }))
+    }
+    await expect(runBackgroundProbe(parseOptions(['--background', '--asset=BTC'], {}), original, {
+      fetcher, now: () => clock, wait: async (ms: number) => { clock += ms },
+    })).rejects.toThrow('within 150 seconds')
+    expect(current).toEqual(original)
+  })
+
+  it('preserves settings changed by another operator during acceptance', async () => {
+    const original = { backgroundEnabled: false, enabledAssets: ['BTC'], intervalMinutes: 15 }
+    let current = original
+    const fetcher = async (url: string, init?: RequestInit) => {
+      if (url.endsWith('/settings')) {
+        if (init?.method === 'PUT') current = JSON.parse(init.body as string)
+        return new Response(JSON.stringify(current))
+      }
+      if (!current.backgroundEnabled) return new Response(JSON.stringify({ receipts: [] }))
+      current = { ...current, intervalMinutes: 5 }
+      return new Response(JSON.stringify({ receipts: [{ id: 'new', asset: 'BTC', trigger: 'scheduled', outcome: 'stored' }] }))
+    }
+    await expect(runBackgroundProbe(parseOptions(['--background', '--asset=BTC'], {}), original, { fetcher })).rejects.toThrow('preserved the newer settings')
+    expect(current.intervalMinutes).toBe(5)
   })
 
   it('requires explicit and valid asset selection', () => {
@@ -34,6 +94,12 @@ describe('market monitor live acceptance', () => {
     const invalid = snapshot()
     invalid.chart.intraday.push({})
     expect(() => validateSnapshot('BTC', invalid)).toThrow(/another timeframe/)
+  })
+
+  it('validates the selected strategy instead of hard-coding the first module', () => {
+    const custom = { ...snapshot(), strategyId: 'custom-v1' }
+    expect(() => validateSnapshot('BTC', custom, 'custom-v1')).not.toThrow()
+    expect(() => validateSnapshot('BTC', custom)).toThrow(/strategy identity/)
   })
 
   it('rejects duplicate semantic observations and inconsistent receipts', () => {

@@ -1,5 +1,14 @@
 # OpenAlice
 
+## This Checkout's Delivery Scope
+
+This checkout is developed independently in `MAD42CAP/OpenAlice`. Keep related
+work on `feature/market-evidence-monitor` until the owner requests integration.
+Do not open or update pull requests in other repositories, push to upstream,
+or use another team's deployments. The former upstream PR #1494 is closed,
+unmerged. The owner's repository-only instruction overrides the generic
+upstream delivery procedures below; no release or deployment is implied.
+
 OpenAlice is a local trading workspace for native coding-agent CLIs. Alice
 launches Workspaces and injects trading context; the separate UTA process owns
 broker credentials, connections, state, and every trading write. Persisted state

@@ -5,6 +5,7 @@ export type MonitorAsset = 'BTC' | 'TSLA'
 export type MonitorTrigger = 'manual' | 'scheduled'
 
 export interface MonitorSettings {
+  backgroundEnabled: boolean
   enabledAssets: MonitorAsset[]
   strategyId: string
   intervalMinutes: number
@@ -104,10 +105,26 @@ export interface MonitorReceipt {
   id: string
   asset: MonitorAsset
   requestedAt: string
+  completedAt?: string
   trigger: MonitorTrigger
   outcome: 'stored' | 'duplicate' | 'failed'
   snapshotId?: string
   error?: string
+}
+
+export interface MonitorSchedulerStatus {
+  running: boolean
+  backgroundEnabled: boolean
+  intervalMinutes: number
+  checkedAt: string | null
+  error: string | null
+  assets: Array<{
+    asset: MonitorAsset
+    enabled: boolean
+    scanning: boolean
+    nextScanAt: string | null
+    lastReceipt: MonitorReceipt | null
+  }>
 }
 
 export interface ScanResult {
@@ -141,6 +158,7 @@ function query(asset?: MonitorAsset, limit = 100, strategyId?: string): string {
 }
 
 export const marketMonitorApi = {
+  status: () => fetchJson<MonitorSchedulerStatus>('/api/market-monitor/status'),
   settings: () => fetchJson<MonitorSettings>('/api/market-monitor/settings'),
   strategies: () => fetchJson<{ strategies: MonitorStrategy[] }>('/api/market-monitor/strategies'),
   contextProviders: () => fetchJson<{ providers: MonitorContextProvider[] }>('/api/market-monitor/context-providers'),

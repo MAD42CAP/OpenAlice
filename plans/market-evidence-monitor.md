@@ -1,7 +1,7 @@
 # Market Evidence Monitor
 
-Status: active — implementation complete on `feature/market-evidence-monitor`;
-live Mac acceptance remains.
+Status: active — background monitoring increment on
+`MAD42CAP/OpenAlice:feature/market-evidence-monitor`; live Mac acceptance remains.
 
 Related issues: none.
 
@@ -17,6 +17,21 @@ intent, persist settings/observations/alerts under the OpenAlice data root, and
 present the result as a responsive dashboard with deterministic demo data.
 
 ## Decisions
+
+- Delivery is limited to `MAD42CAP/OpenAlice`. The former upstream PR #1494
+  is closed, unmerged; do not recreate it or use upstream deployments.
+- Background scan ownership moves from browser timers into the WebPlugin
+  lifecycle, sharing one monitor service with HTTP/IPC requests. This is a
+  read-only domain poller, not a Workspace/agent dispatch engine.
+- Autonomous UI choice: extend the existing settings disclosure and add one
+  compact wrapping status strip. Native labeled controls remain keyboard
+  accessible and use existing theme tokens; no modal or new navigation layer.
+- Background monitoring is explicit opt-in, persists through restart, and
+  respects enabled assets. Pause stops future dispatch, not an active read.
+  Browser closure does not stop scans; backend exit or machine sleep does.
+- Scheduled/manual overlap for one asset shares one in-flight scan. Cadence
+  resumes from persisted completion receipts, never replays missed intervals,
+  and retries failures no faster than the configured cadence.
 
 - This is a Market product surface, not a second trading engine or account
   service. It never submits, stages, approves, or cancels orders.
@@ -61,6 +76,11 @@ present the result as a responsive dashboard with deterministic demo data.
 - [x] Isolate chart persistence, history and evaluation by strategy ID.
 - [x] Re-run demo/live acceptance for the modularity increment.
 - [x] Publish the modularity increment to the draft pull request.
+- [x] Close the former upstream PR and restrict development to our own fork.
+- [x] Add lifecycle-owned background scheduling and concurrent scan protection.
+- [x] Add truthful status/settings UI and deterministic regression tests.
+- [x] Verify browser-free scheduling and persisted pause/restart behavior.
+- [ ] Check the updated dashboard visually on the Mac (cloud browser blocks localhost).
 - [ ] Verify decision-scale BTC fingerprinting with consecutive live scans.
 - [ ] Run the live command on macOS and observe scheduling for 24–72 hours.
 
@@ -99,6 +119,27 @@ Verified in the managed Linux workspace on 2026-09-12:
   interrupting BTC price evidence; TSLA fundamentals remained healthy.
 
 ## Completion
+
+Background monitoring verified in the managed Linux workspace on 2026-09-13:
+
+- Root and UI TypeScript checks passed; nine focused files passed 52 tests.
+- Demo and production UI builds passed (existing large-bundle warning remains).
+- The real isolated runtime passed `--background` for BTC and TSLA: both
+  receipts were `scheduled`/`stored` without any manual scan request or page.
+  Original paused settings and 15-minute cadence were confirmed restored.
+- A subsequent `--scan` pass succeeded for both assets. Price sources were
+  healthy, BTC Deribit remained unavailable, and TSLA calendar/news remained
+  degraded; these were visible source states, not synthetic replacements.
+- File-backed tests covered cadence after restart, duplicate suppression,
+  pause, asset selection and concurrent manual/scheduled callers. Probe tests
+  covered restoration after success, failure or timeout and preservation of
+  another operator's settings edits.
+- The complete `pnpm test` attempt encountered failures in untouched CLI,
+  Guardian, socket and temporary-Git suites and was interrupted; the whole
+  repository suite is not accepted. The market-monitor closure passed.
+- Cloud Browser refused `http://127.0.0.1:4173/market/evidence` with
+  `ERR_BLOCKED_BY_CLIENT`; no workaround or external deployment was attempted.
+  Browser visual/mobile and native Mac 24–72 hour acceptance remain open.
 
 The branch is complete when BTC and TSLA can be scanned read-only, duplicate
 snapshots are suppressed, source failure is visible without erasing the last

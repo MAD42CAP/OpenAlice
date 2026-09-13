@@ -12,6 +12,7 @@ export function parseOptions(argv, env = process.env) {
     baseUrl: env.OPENALICE_MARKET_MONITOR_BASE_URL?.trim() || DEFAULT_BASE_URL,
     output: DEFAULT_OUTPUT,
     scan: false,
+    background: false,
     allowRemote: false,
     assets: [...ASSETS],
     help: false,
@@ -19,6 +20,7 @@ export function parseOptions(argv, env = process.env) {
   for (const arg of argv) {
     if (arg === '--') continue
     if (arg === '--scan') options.scan = true
+    else if (arg === '--background') options.background = true
     else if (arg === '--allow-remote') options.allowRemote = true
     else if (arg === '--help' || arg === '-h') options.help = true
     else if (arg.startsWith('--base-url=')) options.baseUrl = arg.slice('--base-url='.length)
@@ -44,9 +46,9 @@ export function isLoopbackHost(hostname) {
   return value === 'localhost' || value === '::1' || /^127(?:\.\d{1,3}){3}$/.test(value)
 }
 
-export function validateSnapshot(asset, snapshot) {
+export function validateSnapshot(asset, snapshot, strategyId = 'evidence-chain-v1') {
   if (!snapshot || snapshot.asset !== asset) throw new Error(`${asset}: response has the wrong asset`)
-  if (snapshot.strategyId !== 'evidence-chain-v1') throw new Error(`${asset}: unexpected strategy identity`)
+  if (snapshot.strategyId !== strategyId) throw new Error(`${asset}: unexpected strategy identity`)
   if (!snapshot.fingerprint || !snapshot.hypothesis?.id) throw new Error(`${asset}: evidence identity is incomplete`)
   if (!Number.isFinite(snapshot.metrics?.lastPrice)) throw new Error(`${asset}: last price is unavailable`)
   if (!Array.isArray(snapshot.chart?.daily) || snapshot.chart.daily.length < 20) throw new Error(`${asset}: fewer than 20 daily bars were restored`)
@@ -62,9 +64,9 @@ export function validateSnapshot(asset, snapshot) {
   }
 }
 
-export function validateScanPair(asset, first, second) {
-  validateSnapshot(asset, first?.snapshot)
-  validateSnapshot(asset, second?.snapshot)
+export function validateScanPair(asset, first, second, strategyId = 'evidence-chain-v1') {
+  validateSnapshot(asset, first?.snapshot, strategyId)
+  validateSnapshot(asset, second?.snapshot, strategyId)
   for (const result of [first, second]) {
     const expected = result.stored ? 'stored' : 'duplicate'
     if (result.receipt?.asset !== asset || result.receipt?.outcome !== expected) {
@@ -95,6 +97,49 @@ async function json(fetcher, baseUrl, path, init) {
   return request(fetcher, baseUrl, path, init).then((response) => response.json())
 }
 
+/** Explicit opt-in only. No scan POST: prove the backend itself dispatches.
+ * Only a paused runtime is eligible; never interrupt an existing schedule. */
+export async function runBackgroundProbe(options, settings, dependencies = {}) {
+  if (settings.backgroundEnabled) throw new Error('Pause background monitoring before running --background acceptance')
+  const fetcher = dependencies.fetcher ?? fetch
+  const wait = dependencies.wait ?? ((ms) => new Promise((resolveWait) => setTimeout(resolveWait, ms)))
+  const now = dependencies.now ?? Date.now
+  const path = '/api/market-monitor/settings'
+  const temporary = { ...settings, backgroundEnabled: true, enabledAssets: options.assets, intervalMinutes: 1 }
+  const put = (body) => json(fetcher, options.baseUrl, path, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+  const before = new Map(await Promise.all(options.assets.map(async (asset) => {
+    const result = await json(fetcher, options.baseUrl, `/api/market-monitor/receipts?asset=${asset}&limit=1`)
+    return [asset, result.receipts?.at(-1)?.id ?? null]
+  })))
+  const receipts = new Map()
+  try {
+    // The finally also handles an ambiguous PUT response after a server write.
+    await put(temporary)
+    const deadline = now() + 150_000
+    while (now() < deadline) {
+      for (const asset of options.assets) {
+        const result = await json(fetcher, options.baseUrl, `/api/market-monitor/receipts?asset=${asset}&limit=1`)
+        const receipt = result.receipts?.at(-1)
+        if (!receipt || receipt.id === before.get(asset) || receipt.trigger !== 'scheduled') continue
+        if (receipt.outcome === 'failed') throw new Error(`${asset}: background scan failed: ${receipt.error ?? 'unknown error'}`)
+        if (!['stored', 'duplicate'].includes(receipt.outcome)) throw new Error(`${asset}: invalid background receipt`)
+        receipts.set(asset, receipt)
+      }
+      if (receipts.size === options.assets.length) return { success: true, receipts: [...receipts.values()] }
+      await wait(2000)
+    }
+    throw new Error('Background monitor did not produce scheduled receipts within 150 seconds')
+  } finally {
+    const current = await json(fetcher, options.baseUrl, path)
+    const unchanged = Object.keys(temporary).every((key) => JSON.stringify(current[key]) === JSON.stringify(temporary[key]))
+    if (unchanged) await put(settings)
+    else if (Object.keys(settings).some((key) => JSON.stringify(current[key]) !== JSON.stringify(settings[key]))) {
+      // Never overwrite changes made by another operator during acceptance.
+      throw new Error('Settings changed during background acceptance; preserved the newer settings. Check background monitoring in the dashboard.')
+    }
+  }
+}
+
 export async function runAcceptance(options, dependencies = {}) {
   const fetcher = dependencies.fetcher ?? fetch
   const startedAt = new Date().toISOString()
@@ -104,6 +149,10 @@ export async function runAcceptance(options, dependencies = {}) {
   const settings = await json(fetcher, options.baseUrl, '/api/market-monitor/settings')
   const strategies = await json(fetcher, options.baseUrl, '/api/market-monitor/strategies')
   const contextProviders = await json(fetcher, options.baseUrl, '/api/market-monitor/context-providers')
+  const runtime = await json(fetcher, options.baseUrl, '/api/market-monitor/status')
+  if (typeof runtime.running !== 'boolean' || typeof runtime.backgroundEnabled !== 'boolean' || !Array.isArray(runtime.assets)) {
+    throw new Error('background monitor status response is invalid')
+  }
   if (!Array.isArray(settings.enabledAssets) || !Number.isFinite(settings.intervalMinutes) || typeof settings.strategyId !== 'string') {
     throw new Error('monitor settings response is invalid')
   }
@@ -116,23 +165,27 @@ export async function runAcceptance(options, dependencies = {}) {
     }
   }
 
+  if (options.background && !runtime.running) throw new Error('Background monitor is not running in this backend')
+  const background = options.background ? await runBackgroundProbe(options, settings, dependencies) : null
+
   const assets = []
   for (const asset of options.assets) {
-    const before = await json(fetcher, options.baseUrl, `/api/market-monitor/snapshots?asset=${asset}&limit=1000`)
+    const historyPath = `/api/market-monitor/snapshots?asset=${asset}&limit=1000&strategyId=${encodeURIComponent(settings.strategyId)}`
+    const before = await json(fetcher, options.baseUrl, historyPath)
     let first = null
     let second = null
     if (options.scan) {
       const init = { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ asset, trigger: 'manual' }) }
       first = await json(fetcher, options.baseUrl, '/api/market-monitor/scan', init)
       second = await json(fetcher, options.baseUrl, '/api/market-monitor/scan', init)
-      validateScanPair(asset, first, second)
+      validateScanPair(asset, first, second, settings.strategyId)
     }
-    const snapshots = await json(fetcher, options.baseUrl, `/api/market-monitor/snapshots?asset=${asset}&limit=1000`)
+    const snapshots = await json(fetcher, options.baseUrl, historyPath)
     const receipts = await json(fetcher, options.baseUrl, `/api/market-monitor/receipts?asset=${asset}&limit=1000`)
     const alerts = await json(fetcher, options.baseUrl, `/api/market-monitor/alerts?asset=${asset}&limit=1000`)
     const evaluation = await json(fetcher, options.baseUrl, `/api/market-monitor/evaluation?asset=${asset}`)
     const latest = snapshots.snapshots?.at(-1)
-    if (latest) validateSnapshot(asset, latest)
+    if (latest) validateSnapshot(asset, latest, settings.strategyId)
     if (options.scan && (!latest || snapshots.count < before.count || receipts.count < 2)) {
       throw new Error(`${asset}: persisted histories did not reflect the acceptance scans`)
     }
@@ -152,7 +205,7 @@ export async function runAcceptance(options, dependencies = {}) {
   return {
     schemaVersion: 1,
     success: true,
-    mode: options.scan ? 'live-scan' : 'read-only',
+    mode: options.background ? 'background-scan' : options.scan ? 'live-scan' : 'read-only',
     baseUrl: options.baseUrl,
     startedAt,
     completedAt: new Date().toISOString(),
@@ -164,6 +217,8 @@ export async function runAcceptance(options, dependencies = {}) {
       strategies: strategies.strategies.map((strategy) => strategy.id),
       contextProviders: contextProviders.providers.map((provider) => provider.id),
     },
+    runtime,
+    background,
     assets,
   }
 }
@@ -175,6 +230,8 @@ Checks a running OpenAlice Market Evidence Monitor.
 
 Options:
   --scan                 Run two real read-only market scans per asset
+  --background           Test backend scheduling; temporarily enable a paused
+                         monitor at 1 minute, then restore its original settings
   --asset=BTC|TSLA       Limit acceptance to one asset
   --base-url=<url>       OpenAlice Web endpoint (default ${DEFAULT_BASE_URL})
   --output=<path>        Receipt path (default ${DEFAULT_OUTPUT})

@@ -9,6 +9,7 @@ function service(): MarketMonitorService {
     settings: vi.fn(async () => DEFAULT_MARKET_MONITOR_SETTINGS),
     saveSettings: vi.fn(async () => undefined),
     scan: vi.fn(async () => ({ snapshot: {} as never, stored: true, alert: null, receipt: {} as never })),
+    isScanning: vi.fn(() => false),
     snapshots: vi.fn(async () => []), alerts: vi.fn(async () => []), receipts: vi.fn(async () => []),
     evaluation: vi.fn(async (asset) => ({ asset, samples: 0, resolved: 0, directionalAccuracy: null, averageForwardChangePercent: null, rows: [] })),
     strategies: vi.fn((): MarketMonitorStrategyManifest[] => [{ id: 'evidence-chain-v1', label: 'Evidence chain', version: 1, description: 'fixture', requiredData: ['daily-bars', 'hourly-bars', 'asset-context'] }]),
@@ -51,5 +52,24 @@ describe('market monitor routes', () => {
     expect((await app.request('/snapshots?asset=BTC&strategyId=evidence-chain-v1')).status).toBe(200)
     expect(fake.snapshots).toHaveBeenCalledWith('BTC', 100, 'evidence-chain-v1')
     expect((await app.request('/evaluation?asset=BTC')).status).toBe(200)
+  })
+
+  it('reports missing scheduler honestly and exposes an attached runtime', async () => {
+    const fake = service()
+    expect((await createMarketMonitorRoutes({} as EngineContext, fake).request('/status')).status).toBe(503)
+    const { createMarketMonitorScheduler } = await import('../../domain/market-monitor/scheduler.js')
+    const scheduler = createMarketMonitorScheduler(fake)
+    const app = createMarketMonitorRoutes({} as EngineContext, fake, scheduler)
+    expect(await (await app.request('/status')).json()).toMatchObject({ running: false, backgroundEnabled: false, assets: [{ asset: 'BTC' }, { asset: 'TSLA' }] })
+  })
+
+  it('persists explicit background consent and rejects duplicate assets', async () => {
+    const fake = service()
+    const app = createMarketMonitorRoutes({} as EngineContext, fake)
+    const put = (body: unknown) => app.request('/settings', { method: 'PUT', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
+    expect((await put({ ...DEFAULT_MARKET_MONITOR_SETTINGS, backgroundEnabled: true, enabledAssets: ['BTC'] })).status).toBe(200)
+    expect(fake.saveSettings).toHaveBeenCalledWith(expect.objectContaining({ backgroundEnabled: true, enabledAssets: ['BTC'] }))
+    expect((await put({ ...DEFAULT_MARKET_MONITOR_SETTINGS, enabledAssets: ['BTC', 'BTC'] })).status).toBe(400)
+    expect((await put({ ...DEFAULT_MARKET_MONITOR_SETTINGS, backgroundEnabled: 'true' })).status).toBe(400)
   })
 })

@@ -8,15 +8,18 @@ import type {
   MonitorSettings,
   MonitorSnapshot,
   MonitorStrategy,
+  MonitorSchedulerStatus,
 } from '../api/market-monitor'
 import type { HistoricalBar } from '../api/market'
 import { PageHeader } from '../components/PageHeader'
 import { Button } from '../components/ui/button'
 import { EmptyState, Skeleton } from '../components/StateViews'
 import { cn } from '../lib/utils'
+import { useMarketMonitorStatus } from '../hooks/useMarketMonitorStatus'
 
 const ASSETS: MonitorAsset[] = ['BTC', 'TSLA']
 const DEFAULT_SETTINGS: MonitorSettings = {
+  backgroundEnabled: false,
   enabledAssets: ASSETS,
   strategyId: 'evidence-chain-v1',
   intervalMinutes: 15,
@@ -66,8 +69,9 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
   const [error, setError] = useState<string | null>(null)
   const [refreshError, setRefreshError] = useState<string | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const runtime = useMarketMonitorStatus(visible)
   const seenAlerts = useRef<Set<string> | null>(null)
-  const lastScheduledAt = useRef(Date.now())
+  const loadGeneration = useRef(0)
   const snapshots = history[asset]
   const snapshot = snapshots.at(-1) ?? null
 
@@ -83,6 +87,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
   }, [])
 
   const loadState = useCallback(async (initial = false) => {
+    const request = ++loadGeneration.current
     try {
       const [nextSettings, nextStrategies] = await Promise.all([
         api.marketMonitor.settings(),
@@ -93,6 +98,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
         api.marketMonitor.snapshots('TSLA', 120, nextSettings.strategyId),
         api.marketMonitor.alerts(undefined, 100),
       ])
+      if (request !== loadGeneration.current) return
       setSettings(nextSettings)
       setStrategies(nextStrategies.strategies)
       setHistory({ BTC: btc.snapshots, TSLA: tsla.snapshots })
@@ -101,11 +107,12 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
       setRefreshError(null)
       if (initial) setError(null)
     } catch (cause) {
+      if (request !== loadGeneration.current) return
       const message = cause instanceof Error ? cause.message : String(cause)
       if (initial) setError(message)
       else setRefreshError(message)
     } finally {
-      if (initial) setLoading(false)
+      if (request === loadGeneration.current) setLoading(false)
     }
   }, [notifyNewAlerts])
 
@@ -113,17 +120,9 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
     setScanning(true)
     try {
       const result = await api.marketMonitor.scan(target, trigger)
-      setHistory((current) => {
-        const rows = current[target]
-        const next = result.stored ? [...rows.filter((row) => row.id !== result.snapshot.id), result.snapshot].slice(-120) : rows.length ? rows : [result.snapshot]
-        return { ...current, [target]: next }
-      })
-      if (result.alert) {
-        setAlerts((current) => [...current.filter((item) => item.id !== result.alert!.id), result.alert!].slice(-100))
-        notifyNewAlerts([result.alert], settings.notifications)
-      }
+      // Reload persisted, active-strategy observations, including coalesced scans.
+      await Promise.all([loadState(false), runtime.refresh()])
       setError(null)
-      setRefreshError(null)
       return result
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : String(cause)
@@ -133,13 +132,9 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
     } finally {
       setScanning(false)
     }
-  }, [history, notifyNewAlerts, settings.notifications])
+  }, [history, loadState, runtime.refresh])
 
   useEffect(() => { void loadState(true) }, [loadState])
-
-  useEffect(() => {
-    if (!loading && !snapshot && visible && !error) void scan(asset, 'manual')
-  }, [asset, error, loading, scan, snapshot, visible])
 
   useEffect(() => {
     if (!visible) return
@@ -148,40 +143,25 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
 
   useEffect(() => {
     if (!visible) return
-    const refresh = window.setInterval(() => { if (document.visibilityState === 'visible') void loadState(false) }, 30_000)
-    return () => window.clearInterval(refresh)
+    const refresh = () => { if (document.visibilityState === 'visible') void loadState(false) }
+    const timer = window.setInterval(refresh, 30_000)
+    document.addEventListener('visibilitychange', refresh)
+    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', refresh) }
   }, [loadState, visible])
-
-  useEffect(() => {
-    if (!visible) return
-    const cadence = Math.max(1, settings.intervalMinutes) * 60_000
-    const scheduled = window.setInterval(() => {
-      if (document.visibilityState !== 'visible') return
-      lastScheduledAt.current = Date.now()
-      settings.enabledAssets.forEach((target) => { void scan(target, 'scheduled') })
-    }, cadence)
-    const catchUp = () => {
-      if (document.visibilityState === 'visible' && Date.now() - lastScheduledAt.current >= cadence) {
-        lastScheduledAt.current = Date.now()
-        settings.enabledAssets.forEach((target) => { void scan(target, 'scheduled') })
-        void loadState(false)
-      }
-    }
-    document.addEventListener('visibilitychange', catchUp)
-    return () => { window.clearInterval(scheduled); document.removeEventListener('visibilitychange', catchUp) }
-  }, [loadState, scan, settings.enabledAssets, settings.intervalMinutes, visible])
 
   const saveSettings = async (next: MonitorSettings) => {
     if (next.notifications && typeof Notification !== 'undefined' && Notification.permission === 'default') {
       const permission = await Notification.requestPermission()
       next = { ...next, notifications: permission === 'granted' }
     }
+    ++loadGeneration.current
     const saved = await api.marketMonitor.saveSettings(next)
     setSettings(saved)
     setHistory((current) => ({
       BTC: current.BTC.filter((row) => row.strategyId === saved.strategyId),
       TSLA: current.TSLA.filter((row) => row.strategyId === saved.strategyId),
     }))
+    await Promise.all([loadState(false), runtime.refresh()])
   }
 
   const exportData = (format: 'json' | 'csv') => {
@@ -214,6 +194,8 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
 
       {settingsOpen && <SettingsPanel settings={settings} strategies={strategies} onSave={saveSettings} onClose={() => setSettingsOpen(false)} />}
 
+      <RuntimeStatus asset={asset} status={runtime.status} error={runtime.error} onRetry={runtime.refresh} />
+
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border/60 px-4 py-3 md:px-6">
         <div role="tablist" aria-label="Monitored asset" className="inline-flex rounded-md border border-border bg-muted/35 p-0.5">
           {ASSETS.map((item) => <button key={item} role="tab" aria-selected={asset === item} onClick={() => setAsset(item)} className={cn('rounded-[5px] px-4 py-1.5 text-xs font-semibold transition-colors', asset === item ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground')}>{item}<span className="ml-1.5 font-normal text-muted-foreground">{item === 'BTC' ? 'Bitcoin' : 'Tesla'}</span></button>)}
@@ -241,10 +223,32 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
             </div>
             <HistoryPanel snapshots={snapshots} evaluation={evaluation} alerts={alerts.filter((item) => item.asset === asset)} />
           </div>
-        ) : null}
+        ) : <EmptyState title="No observations yet" description="Choose Scan now for a one-time check, or enable background monitoring in settings." />}
       </div>
     </div>
   )
+}
+
+function RuntimeStatus({ asset, status, error, onRetry }: { asset: MonitorAsset; status: MonitorSchedulerStatus | null; error: string | null; onRetry: () => Promise<void> }) {
+  const item = status?.assets.find((row) => row.asset === asset)
+  const label = error ? 'Monitor connection unavailable'
+    : import.meta.env.VITE_DEMO_MODE ? 'Demo · background scans are not running'
+    : !status ? 'Checking background monitor…'
+    : status.error ? 'Background monitor needs attention'
+    : !status.running ? 'Background monitor stopped'
+    : !status.backgroundEnabled ? 'Background monitoring paused'
+    : !item?.enabled ? `${asset} excluded from background monitoring`
+    : item.scanning ? `${asset} scan in progress`
+    : 'Background monitoring active'
+  return <section aria-label="Background monitor status" className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 border-b border-border/60 px-4 py-2 text-[11px] text-muted-foreground md:px-6">
+    <span role="status" className={cn('font-medium', (error || status?.error) && 'text-warning')}>{label}</span>
+    {error ? <><span>Last known state only. {error}</span><Button variant="ghost" size="sm" onClick={() => void onRetry()}>Retry status</Button></> : <>
+      {item?.lastReceipt && <span>Last attempt: {formatDate(item.lastReceipt.completedAt ?? item.lastReceipt.requestedAt)} · {item.lastReceipt.outcome}</span>}
+      {item?.nextScanAt && !import.meta.env.VITE_DEMO_MODE && <span>Next: {formatDate(item.nextScanAt)}</span>}
+      {item?.lastReceipt?.error && <span className="text-warning">{item.lastReceipt.error}</span>}
+      {status?.error && <span className="text-warning">{status.error}</span>}
+    </>}
+  </section>
 }
 
 function Panel({ title, trailing, children }: { title: string; trailing?: React.ReactNode; children: React.ReactNode }) {
@@ -323,8 +327,37 @@ function HistoryPanel({ snapshots, evaluation, alerts }: { snapshots: MonitorSna
 function SettingsPanel({ settings, strategies, onSave, onClose }: { settings: MonitorSettings; strategies: MonitorStrategy[]; onSave: (settings: MonitorSettings) => Promise<void>; onClose: () => void }) {
   const [draft, setDraft] = useState(settings)
   const [saving, setSaving] = useState(false)
-  const commit = async () => { setSaving(true); try { await onSave(draft); onClose() } finally { setSaving(false) } }
-  return <div className="shrink-0 border-b border-border bg-muted/20 px-4 py-3 md:px-6"><div className="mx-auto grid max-w-[1160px] gap-3 md:grid-cols-6"><label className="text-[11px] text-muted-foreground">Strategy<select className="mt-1 w-full rounded border border-border bg-background px-2 py-1.5 text-xs text-foreground" value={draft.strategyId} onChange={(event) => setDraft({ ...draft, strategyId: event.target.value })}>{strategies.map((strategy) => <option key={strategy.id} value={strategy.id}>{strategy.label} v{strategy.version}</option>)}</select></label><label className="text-[11px] text-muted-foreground">Scan interval (min)<input className="mt-1 w-full rounded border border-border bg-background px-2 py-1.5 text-xs text-foreground" type="number" min={1} max={1440} value={draft.intervalMinutes} onChange={(event) => setDraft({ ...draft, intervalMinutes: Number(event.target.value) })} /></label><label className="text-[11px] text-muted-foreground">Alert confidence<input className="mt-1 w-full rounded border border-border bg-background px-2 py-1.5 text-xs text-foreground" type="number" min={50} max={95} value={draft.alertConfidence} onChange={(event) => setDraft({ ...draft, alertConfidence: Number(event.target.value) })} /></label><label className="text-[11px] text-muted-foreground">Volume ratio<input className="mt-1 w-full rounded border border-border bg-background px-2 py-1.5 text-xs text-foreground" type="number" min={1} max={10} step={0.1} value={draft.abnormalVolumeRatio} onChange={(event) => setDraft({ ...draft, abnormalVolumeRatio: Number(event.target.value) })} /></label><label className="text-[11px] text-muted-foreground">Hourly move %<input className="mt-1 w-full rounded border border-border bg-background px-2 py-1.5 text-xs text-foreground" type="number" min={0.1} max={25} step={0.1} value={draft.abnormalMovePercent} onChange={(event) => setDraft({ ...draft, abnormalMovePercent: Number(event.target.value) })} /></label><div className="flex items-end justify-between gap-2"><label className="flex items-center gap-2 pb-1.5 text-xs"><input type="checkbox" checked={draft.notifications} onChange={(event) => setDraft({ ...draft, notifications: event.target.checked })} />Browser alerts</label><div className="flex gap-1"><Button variant="ghost" size="sm" onClick={onClose}>Cancel</Button><Button size="sm" onClick={() => void commit()} disabled={saving}>{saving ? 'Saving…' : 'Save'}</Button></div></div></div></div>
+  const [error, setError] = useState<string | null>(null)
+  const fieldClass = 'mt-1 w-full rounded border border-border bg-background px-2 py-1.5 text-xs text-foreground'
+  const commit = async () => {
+    setSaving(true)
+    setError(null)
+    try { await onSave(draft); onClose() }
+    catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)) }
+    finally { setSaving(false) }
+  }
+  return <form aria-label="Monitor settings" onSubmit={(event) => { event.preventDefault(); void commit() }} className="max-h-[60vh] shrink-0 overflow-y-auto border-b border-border bg-muted/20 px-4 py-3 md:px-6">
+    <fieldset disabled={saving} className="mx-auto max-w-[1160px] space-y-3">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
+        <label className="flex items-center gap-2 font-medium"><input type="checkbox" checked={draft.backgroundEnabled} onChange={(event) => setDraft({ ...draft, backgroundEnabled: event.target.checked })} />Background monitoring</label>
+        <fieldset className="flex items-center gap-3"><legend className="sr-only">Scheduled assets</legend>{ASSETS.map((item) => <label key={item} className="flex items-center gap-1.5"><input type="checkbox" checked={draft.enabledAssets.includes(item)} onChange={(event) => setDraft({ ...draft, enabledAssets: event.target.checked ? [...draft.enabledAssets, item] : draft.enabledAssets.filter((asset) => asset !== item) })} />{item}</label>)}</fieldset>
+      </div>
+      <p className="text-[11px] leading-5 text-muted-foreground">Runs with the OpenAlice backend, even after closing this page. Stops when the backend exits or the computer sleeps. Pause prevents new scans; an active scan finishes. Browser alerts require an open page.</p>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <label className="text-[11px] text-muted-foreground">Strategy<select className={fieldClass} value={draft.strategyId} onChange={(event) => setDraft({ ...draft, strategyId: event.target.value })}>{strategies.map((strategy) => <option key={strategy.id} value={strategy.id}>{strategy.label} v{strategy.version}</option>)}</select></label>
+        <label className="text-[11px] text-muted-foreground">Scan interval (min)<input className={fieldClass} type="number" required min={1} max={1440} value={draft.intervalMinutes} onChange={(event) => setDraft({ ...draft, intervalMinutes: Number(event.target.value) })} /></label>
+        <label className="text-[11px] text-muted-foreground">Alert confidence<input className={fieldClass} type="number" required min={50} max={95} value={draft.alertConfidence} onChange={(event) => setDraft({ ...draft, alertConfidence: Number(event.target.value) })} /></label>
+        <label className="text-[11px] text-muted-foreground">Volume ratio<input className={fieldClass} type="number" required min={1} max={10} step={0.1} value={draft.abnormalVolumeRatio} onChange={(event) => setDraft({ ...draft, abnormalVolumeRatio: Number(event.target.value) })} /></label>
+        <label className="text-[11px] text-muted-foreground">Hourly move %<input className={fieldClass} type="number" required min={0.1} max={25} step={0.1} value={draft.abnormalMovePercent} onChange={(event) => setDraft({ ...draft, abnormalMovePercent: Number(event.target.value) })} /></label>
+      </div>
+      {!draft.enabledAssets.length && <p role="alert" className="text-xs text-warning">Select at least one asset, or turn off background monitoring with your asset selection retained.</p>}
+      {error && <p role="alert" className="text-xs text-warning">Settings were not saved. {error}</p>}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={draft.notifications} onChange={(event) => setDraft({ ...draft, notifications: event.target.checked })} />Browser alerts</label>
+        <div className="flex gap-1"><Button type="button" variant="ghost" size="sm" onClick={onClose}>Cancel</Button><Button type="submit" size="sm" disabled={saving || !draft.enabledAssets.length}>{saving ? 'Saving…' : 'Save'}</Button></div>
+      </div>
+    </fieldset>
+  </form>
 }
 
 function MonitorSkeleton() {

@@ -46,6 +46,7 @@ export interface MarketMonitorService {
   settings(): Promise<MarketMonitorSettings>
   saveSettings(settings: MarketMonitorSettings): Promise<void>
   scan(asset: MarketMonitorAsset, trigger: MarketMonitorTrigger): Promise<MarketMonitorScanResult>
+  isScanning(asset: MarketMonitorAsset): boolean
   snapshots(asset?: MarketMonitorAsset, limit?: number, strategyId?: string): Promise<MarketMonitorSnapshot[]>
   alerts(asset?: MarketMonitorAsset, limit?: number): Promise<MarketMonitorAlert[]>
   receipts(asset?: MarketMonitorAsset, limit?: number): Promise<MarketMonitorReceipt[]>
@@ -100,6 +101,7 @@ async function loadBars(barService: BarService, asset: MarketMonitorAsset, inter
 export function createMarketMonitorService(deps: MarketMonitorServiceDeps): MarketMonitorService {
   const store = deps.store ?? createMarketMonitorStore()
   const now = deps.now ?? (() => new Date())
+  const inFlight = new Map<MarketMonitorAsset, Promise<MarketMonitorScanResult>>()
   const strategyRegistry = deps.strategyRegistry ?? createMarketMonitorStrategyRegistry()
   const contextProviderRegistry = deps.contextProviderRegistry ?? createDefaultMarketContextProviderRegistry({
     equityClient: deps.equityClient,
@@ -121,6 +123,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
     },
     strategies: () => strategyRegistry.list(),
     contextProviders: () => contextProviderRegistry.list(),
+    isScanning: (asset) => inFlight.has(asset),
     async snapshots(asset, limit, strategyId) {
       if (strategyId) strategyRegistry.get(strategyId)
       const boundedLimit = Math.max(1, Math.min(1000, limit ?? 100))
@@ -144,81 +147,89 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
       const rows = (await store.snapshots(asset, 1000)).filter((row) => row.strategyId === settings.strategyId)
       return evaluateSnapshots(asset, rows)
     },
-    async scan(asset, trigger) {
-      const requestedAt = now().toISOString()
-      const receiptBase = { id: randomUUID(), asset, requestedAt, trigger } as const
-      try {
-        const settings = await loadSettings()
-        const strategy = strategyRegistry.get(settings.strategyId)
-        const daily = await loadBars(deps.barService, asset, '1d', 260)
-        let intraday: { result: BarsResult; fallback: boolean } | null = null
-        let intradayError: unknown
-        try { intraday = await loadBars(deps.barService, asset, '1h', 180) } catch (error) { intradayError = error }
-        const analysis = strategy.analyze({
-          dailyBars: daily.result.bars, intradayBars: intraday?.result.bars ?? [],
-          abnormalMovePercent: settings.abnormalMovePercent,
-          abnormalVolumeRatio: settings.abnormalVolumeRatio,
-        })
-        const sourceHealth: SourceHealth[] = [
-          healthFromMeta('daily-bars', 'Daily OHLCV', daily.result.meta, daily.fallback),
-          intraday
-            ? healthFromMeta('intraday-bars', 'Hourly OHLCV', intraday.result.meta, intraday.fallback)
-            : { id: 'intraday-bars', label: 'Hourly OHLCV', status: 'unavailable', provider: 'OpenAlice BarService', asOf: null, detail: intradayError instanceof Error ? intradayError.message : 'Hourly source unavailable.' },
-        ]
-        const previous = (await store.snapshots(asset, 1000)).filter((row) => row.strategyId === strategy.manifest.id).at(-1)
-        const previousCapturedAt = previous?.capturedAt ?? 'an earlier scan'
-        const providers = contextProviderRegistry.forAsset(asset)
-        const contextResults = await Promise.all(providers.map(async (provider) => {
-          try {
-            return await provider.load({ asset, at: new Date(requestedAt) })
-          } catch (error) {
-            return {
-              context: {},
-              health: [{
-                id: `context-provider:${provider.manifest.id}`,
-                label: provider.manifest.label,
-                status: 'unavailable' as const,
-                provider: provider.manifest.id,
-                asOf: null,
-                detail: error instanceof Error ? error.message : String(error),
-              }],
+    scan(asset, trigger) {
+      // One writer per asset. Manual, scheduled and multiple browser requests
+      // share the active operation and its original trigger/receipt.
+      const pending = inFlight.get(asset)
+      if (pending) return pending
+      const task = (async () => {
+        const requestedAt = now().toISOString()
+        const receiptBase = { id: randomUUID(), asset, requestedAt, trigger } as const
+        try {
+          const settings = await loadSettings()
+          const strategy = strategyRegistry.get(settings.strategyId)
+          const daily = await loadBars(deps.barService, asset, '1d', 260)
+          let intraday: { result: BarsResult; fallback: boolean } | null = null
+          let intradayError: unknown
+          try { intraday = await loadBars(deps.barService, asset, '1h', 180) } catch (error) { intradayError = error }
+          const analysis = strategy.analyze({
+            dailyBars: daily.result.bars, intradayBars: intraday?.result.bars ?? [],
+            abnormalMovePercent: settings.abnormalMovePercent,
+            abnormalVolumeRatio: settings.abnormalVolumeRatio,
+          })
+          const sourceHealth: SourceHealth[] = [
+            healthFromMeta('daily-bars', 'Daily OHLCV', daily.result.meta, daily.fallback),
+            intraday
+              ? healthFromMeta('intraday-bars', 'Hourly OHLCV', intraday.result.meta, intraday.fallback)
+              : { id: 'intraday-bars', label: 'Hourly OHLCV', status: 'unavailable', provider: 'OpenAlice BarService', asOf: null, detail: intradayError instanceof Error ? intradayError.message : 'Hourly source unavailable.' },
+          ]
+          const previous = (await store.snapshots(asset, 1000)).filter((row) => row.strategyId === strategy.manifest.id).at(-1)
+          const previousCapturedAt = previous?.capturedAt ?? 'an earlier scan'
+          const providers = contextProviderRegistry.forAsset(asset)
+          const contextResults = await Promise.all(providers.map(async (provider) => {
+            try {
+              return await provider.load({ asset, at: new Date(requestedAt) })
+            } catch (error) {
+              return {
+                context: {},
+                health: [{
+                  id: `context-provider:${provider.manifest.id}`,
+                  label: provider.manifest.label,
+                  status: 'unavailable' as const,
+                  provider: provider.manifest.id,
+                  asOf: null,
+                  detail: error instanceof Error ? error.message : String(error),
+                }],
+              }
             }
+          }))
+          const contextResult = {
+            context: Object.assign({}, ...contextResults.map((result) => result.context)) as MarketContext,
+            health: contextResults.flatMap((result) => result.health),
           }
-        }))
-        const contextResult = {
-          context: Object.assign({}, ...contextResults.map((result) => result.context)) as MarketContext,
-          health: contextResults.flatMap((result) => result.health),
+          const fallback = contextResult.health.some((source) => source.status !== 'ok')
+            ? retainPreviousContext(contextResult.context, previous?.context)
+            : { context: contextResult.context, retained: false }
+          const context: MarketContext = fallback.context
+          sourceHealth.push(...contextResult.health.map((source) => fallback.retained && source.status !== 'ok'
+            ? { ...source, detail: `${source.detail} Last valid fields retained from ${previousCapturedAt}.` }
+            : source))
+          const fingerprint = strategy.fingerprint({ asset, ...analysis, context, sourceHealth })
+          const snapshot: MarketMonitorSnapshot = {
+            id: randomUUID(), asset, capturedAt: requestedAt, trigger,
+            strategyId: strategy.manifest.id, fingerprint, ...analysis, context, sourceHealth,
+            chart: {
+              daily: compactBars(daily.result.bars, 260), intraday: compactBars(intraday?.result.bars ?? [], 180),
+              dailyMeta: daily.result.meta, intradayMeta: intraday?.result.meta ?? null,
+            },
+          }
+          const stored = previous?.fingerprint !== fingerprint
+          await store.saveLatestSeries(asset, snapshot.chart, snapshot.strategyId)
+          if (stored) {
+            await store.appendSnapshot({ ...snapshot, chart: { ...snapshot.chart, daily: [], intraday: [] } })
+          }
+          const alert = stored ? await maybeAlert(store, snapshot, previous, settings) : null
+          const receipt: MarketMonitorReceipt = { ...receiptBase, completedAt: now().toISOString(), outcome: stored ? 'stored' : 'duplicate', snapshotId: stored ? snapshot.id : previous?.id }
+          await store.appendReceipt(receipt)
+          return { snapshot, stored, alert, receipt }
+        } catch (error) {
+          const receipt: MarketMonitorReceipt = { ...receiptBase, completedAt: now().toISOString(), outcome: 'failed', error: error instanceof Error ? error.message : String(error) }
+          await store.appendReceipt(receipt)
+          throw error
         }
-        const fallback = contextResult.health.some((source) => source.status !== 'ok')
-          ? retainPreviousContext(contextResult.context, previous?.context)
-          : { context: contextResult.context, retained: false }
-        const context: MarketContext = fallback.context
-        sourceHealth.push(...contextResult.health.map((source) => fallback.retained && source.status !== 'ok'
-          ? { ...source, detail: `${source.detail} Last valid fields retained from ${previousCapturedAt}.` }
-          : source))
-        const fingerprint = strategy.fingerprint({ asset, ...analysis, context, sourceHealth })
-        const snapshot: MarketMonitorSnapshot = {
-          id: randomUUID(), asset, capturedAt: requestedAt, trigger,
-          strategyId: strategy.manifest.id, fingerprint, ...analysis, context, sourceHealth,
-          chart: {
-            daily: compactBars(daily.result.bars, 260), intraday: compactBars(intraday?.result.bars ?? [], 180),
-            dailyMeta: daily.result.meta, intradayMeta: intraday?.result.meta ?? null,
-          },
-        }
-        const stored = previous?.fingerprint !== fingerprint
-        await store.saveLatestSeries(asset, snapshot.chart, snapshot.strategyId)
-        if (stored) {
-          await store.appendSnapshot({ ...snapshot, chart: { ...snapshot.chart, daily: [], intraday: [] } })
-        }
-        const alert = stored ? await maybeAlert(store, snapshot, previous, settings) : null
-        const receipt: MarketMonitorReceipt = { ...receiptBase, outcome: stored ? 'stored' : 'duplicate', snapshotId: stored ? snapshot.id : previous?.id }
-        await store.appendReceipt(receipt)
-        return { snapshot, stored, alert, receipt }
-      } catch (error) {
-        const receipt: MarketMonitorReceipt = { ...receiptBase, outcome: 'failed', error: error instanceof Error ? error.message : String(error) }
-        await store.appendReceipt(receipt)
-        throw error
-      }
+      })().finally(() => { inFlight.delete(asset) })
+      inFlight.set(asset, task)
+      return task
     },
   }
 }
