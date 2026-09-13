@@ -1,6 +1,6 @@
 # Market Evidence Monitor
 
-Status: active — background monitoring increment on
+Status: operational health and sustained-run performance increment verified on
 `MAD42CAP/OpenAlice:feature/market-evidence-monitor`; live Mac acceptance remains.
 
 Related issues: none.
@@ -17,6 +17,21 @@ intent, persist settings/observations/alerts under the OpenAlice data root, and
 present the result as a responsive dashboard with deterministic demo data.
 
 ## Decisions
+
+- A slow asset must not hold the scheduler's poll lock for other assets.
+  Poll exclusion and per-asset scan exclusion have separate lifetimes.
+- Every completed attempt records duration, strategy and compact source health,
+  including semantic duplicates. Historical receipts without this metadata
+  remain explicitly unknown; do not infer healthy sources from scan success.
+- Health reports cover requested 24/72-hour windows with actual first/last
+  samples and an explicit receipt cap. Success rates describe recorded
+  attempts, not continuous uptime, missing scheduled runs or strategy profit.
+- Read recent journals backwards in bounded blocks rather than parsing whole
+  archives on every 15-second poll. Keep append-only history intact.
+- Autonomous UI choice: a compact Operations section within the existing
+  dashboard, 24h/72h native buttons, an export button, source health table and
+  recent scan rows. Reuse existing primitives and typography; tables scroll
+  on narrow windows. No new route or navigation hierarchy is required.
 
 - Delivery is limited to `MAD42CAP/OpenAlice`. The former upstream PR #1494
   is closed, unmerged; do not recreate it or use upstream deployments.
@@ -80,6 +95,10 @@ present the result as a responsive dashboard with deterministic demo data.
 - [x] Add lifecycle-owned background scheduling and concurrent scan protection.
 - [x] Add truthful status/settings UI and deterministic regression tests.
 - [x] Verify browser-free scheduling and persisted pause/restart behavior.
+- [x] Isolate slow asset scans and bound recent journal reads.
+- [x] Add per-attempt telemetry and bounded operational reports.
+- [x] Connect health reports, export and deterministic demo/UI coverage.
+- [x] Verify the health increment against isolated runtime data.
 - [ ] Check the updated dashboard visually on the Mac (cloud browser blocks localhost).
 - [ ] Verify decision-scale BTC fingerprinting with consecutive live scans.
 - [ ] Run the live command on macOS and observe scheduling for 24–72 hours.
@@ -140,6 +159,33 @@ Background monitoring verified in the managed Linux workspace on 2026-09-13:
 - Cloud Browser refused `http://127.0.0.1:4173/market/evidence` with
   `ERR_BLOCKED_BY_CLIENT`; no workaround or external deployment was attempted.
   Browser visual/mobile and native Mac 24–72 hour acceptance remain open.
+
+Operational health increment verified in the managed Linux workspace on
+2026-09-13:
+
+- Root and UI TypeScript checks passed. Thirteen focused files passed 70 tests,
+  covering stalled-asset isolation, failed-receipt visibility/recovery, journal
+  tail reads, missing telemetry, capped windows, source recoveries, selection
+  races, refresh errors and exact exported JSON contents.
+- The slow-asset regression failed before the scheduler fix: a pending BTC
+  request held TSLA to one scan. After the fix TSLA completed three scans over
+  two simulated minutes while BTC remained pending.
+- A 20,000-record journal test fetched the latest three matching records by
+  reading one 64 KiB block, less than one tenth of the archive. Multi-block
+  UTF-8 and damaged-tail tests also passed. This is bounded-read evidence,
+  not a production throughput benchmark.
+- Demo and production UI builds passed; the pre-existing large-bundle warning
+  remains. Native/browser visual acceptance and the whole-repository suite
+  retain the environment gaps recorded above.
+- The actual isolated runtime passed both `--background` and `--scan` and
+  restored paused settings at a 15-minute cadence. Each asset's health report
+  contained one scheduled and two manual attempts with duration/source checks.
+- BTC recorded three changed observations. TSLA recorded two changed and one
+  unchanged observation. Both price timeframes were healthy; Deribit remained
+  unavailable and TSLA calendar/news degraded, counted on all three attempts.
+- The real 72-hour API selection returned the same three short-run samples per
+  asset with actual sample times. No 24/72-hour uptime claim is made. The test
+  backend and its isolated temporary state were removed after acceptance.
 
 The branch is complete when BTC and TSLA can be scanned read-only, duplicate
 snapshots are suppressed, source failure is visible without erasing the last

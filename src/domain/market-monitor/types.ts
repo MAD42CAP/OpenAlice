@@ -160,10 +160,61 @@ export interface MarketMonitorReceipt {
   asset: MarketMonitorAsset
   requestedAt: string
   completedAt?: string
+  strategyId?: string
+  durationMs?: number
+  sourceHealth?: Array<Pick<SourceHealth, 'id' | 'label' | 'provider' | 'status' | 'asOf'>>
   trigger: MarketMonitorTrigger
   outcome: 'stored' | 'duplicate' | 'failed'
   snapshotId?: string
   error?: string
+}
+
+export interface MarketMonitorHealthReport {
+  schemaVersion: 1
+  asset: MarketMonitorAsset
+  generatedAt: string
+  window: {
+    hours: 24 | 72
+    from: string
+    to: string
+    firstSampleAt: string | null
+    lastSampleAt: string | null
+    sampleLimit: number
+    truncated: boolean
+  }
+  summary: {
+    attempts: number
+    successful: number
+    failed: number
+    stored: number
+    duplicates: number
+    scheduled: number
+    manual: number
+    successRatePercent: number | null
+    consecutiveFailures: number
+    recoveries: number
+    lastSuccessAt: string | null
+    lastFailureAt: string | null
+    durationSamples: number
+    averageDurationMs: number | null
+    p95DurationMs: number | null
+    scansWithSourceChecks: number
+    scansWithSourceIssues: number
+  }
+  sources: Array<{
+    id: string
+    label: string
+    provider: string
+    samples: number
+    ok: number
+    degraded: number
+    unavailable: number
+    recoveries: number
+    latestStatus: SourceHealth['status']
+    lastCheckedAt: string
+    lastDataAt: string | null
+  }>
+  recent: MarketMonitorReceipt[]
 }
 
 export interface MarketMonitorSchedulerStatus {
@@ -178,6 +229,7 @@ export interface MarketMonitorSchedulerStatus {
     scanning: boolean
     nextScanAt: string | null
     lastReceipt: MarketMonitorReceipt | null
+    lastError: string | null
   }>
 }
 

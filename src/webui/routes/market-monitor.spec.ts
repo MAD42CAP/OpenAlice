@@ -3,6 +3,7 @@ import type { EngineContext } from '../../core/types.js'
 import type { MarketMonitorService } from '../../domain/market-monitor/service.js'
 import { DEFAULT_MARKET_MONITOR_SETTINGS, type MarketContextProviderManifest, type MarketMonitorStrategyManifest } from '../../domain/market-monitor/types.js'
 import { createMarketMonitorRoutes } from './market-monitor.js'
+import { summarizeMonitorHealth } from '../../domain/market-monitor/health.js'
 
 function service(): MarketMonitorService {
   return {
@@ -10,6 +11,7 @@ function service(): MarketMonitorService {
     saveSettings: vi.fn(async () => undefined),
     scan: vi.fn(async () => ({ snapshot: {} as never, stored: true, alert: null, receipt: {} as never })),
     isScanning: vi.fn(() => false),
+    health: vi.fn(async (asset, hours = 24) => summarizeMonitorHealth(asset, [], hours, new Date('2026-09-13T00:00:00Z'))),
     snapshots: vi.fn(async () => []), alerts: vi.fn(async () => []), receipts: vi.fn(async () => []),
     evaluation: vi.fn(async (asset) => ({ asset, samples: 0, resolved: 0, directionalAccuracy: null, averageForwardChangePercent: null, rows: [] })),
     strategies: vi.fn((): MarketMonitorStrategyManifest[] => [{ id: 'evidence-chain-v1', label: 'Evidence chain', version: 1, description: 'fixture', requiredData: ['daily-bars', 'hourly-bars', 'asset-context'] }]),
@@ -52,6 +54,16 @@ describe('market monitor routes', () => {
     expect((await app.request('/snapshots?asset=BTC&strategyId=evidence-chain-v1')).status).toBe(200)
     expect(fake.snapshots).toHaveBeenCalledWith('BTC', 100, 'evidence-chain-v1')
     expect((await app.request('/evaluation?asset=BTC')).status).toBe(200)
+  })
+
+  it('serves a read-only health report with a validated window', async () => {
+    const fake = service()
+    const app = createMarketMonitorRoutes({} as EngineContext, fake)
+    expect((await app.request('/health?asset=BTC&hours=72')).status).toBe(200)
+    expect(fake.health).toHaveBeenCalledWith('BTC', 72)
+    expect((await app.request('/health?asset=ETH&hours=72')).status).toBe(400)
+    expect((await app.request('/health?asset=BTC&hours=999')).status).toBe(400)
+    expect(fake.scan).not.toHaveBeenCalled()
   })
 
   it('reports missing scheduler honestly and exposes an attached runtime', async () => {

@@ -38,12 +38,18 @@ never relabelled as intraday data.
 - `src/domain/market-monitor/store.ts` owns append-only JSONL observations,
   alerts and scan receipts plus atomic settings writes under
   `data/market-monitor/`.
+- `src/domain/market-monitor/journal.ts` reads recent records backwards in
+  64 KiB blocks, preserving multi-byte text and skipping incomplete rows.
+- `src/domain/market-monitor/health.ts` summarizes recorded attempts and source
+  checks into bounded operational reports; it owns no trading evaluation.
 - `src/webui/routes/market-monitor.ts` exposes the read-only scan/history API
   and validated settings updates.
 - `ui/src/pages/MarketEvidenceMonitorPage.tsx` owns the responsive dashboard,
   1D/1H switch, export and opt-in browser alerts. The status hook at
   `ui/src/hooks/useMarketMonitorStatus.ts` reads backend state; no browser
   timer owns market scans.
+- `ui/src/hooks/useMarketMonitorHealth.ts` reads the selected asset/window;
+  `ui/src/components/market/MonitorOperations.tsx` presents and exports it.
 
 Adding another strategy now means implementing `MarketMonitorStrategy` and
 registering it. It automatically appears in `GET /api/market-monitor/strategies`
@@ -75,7 +81,11 @@ poll interval later. Source health remains the authority for data availability.
 Completion receipts anchor cadence across restart, including manual scans and
 failed attempts. Older receipts use their request time. Missed intervals are
 collapsed into one scan, never replayed as a burst. One failed asset does not
-stop the other. Requests overlapping on one asset share one result and one
+stop the other. A pending BTC scan does not block future TSLA dispatches (or
+vice versa): the short polling lock is separate from per-asset scan lifetime.
+If a scan cannot persist its failure receipt, runtime status retains its error
+in memory until a later attempt succeeds or supersedes it. Requests overlapping
+on one asset share one result and one
 receipt, with the initiating request's trigger retained. This exclusion is
 within one backend, not a distributed lock between multiple independent
 backends writing the same state directory.
@@ -99,6 +109,46 @@ Browser notifications are opt-in and work only while the dashboard is open.
 Recorded alerts survive closing the page; native/background push delivery is
 intentionally outside this increment. No trading or agent-execution endpoint
 is used by the scheduler.
+
+## Operational Reports
+
+The dashboard's **Monitor operations** section follows BTC/TSLA selection and
+offers **24 hours**, **72 hours**, refresh and **Export report** (JSON). It is
+available even when no valid market snapshot exists, so failed attempts remain
+inspectable. Reports refresh every 30 seconds while visible, after a manual
+scan, and when the observed latest receipt changes. Selection changes clear
+the prior report; a refresh failure explicitly labels retained facts.
+
+`GET /api/market-monitor/health?asset=BTC&hours=24` returns schema version 1:
+
+- Requested window and actual first/last recorded sample, with a 5,000-attempt
+  cap and a `truncated` flag if earlier samples in the window were excluded.
+- Successful, failed, new-evidence and unchanged-evidence attempts; scheduled
+  versus manual counts; consecutive failures and observed scan recoveries.
+- Average and 95th-percentile scan duration, with the number of measurements.
+- Per-provider healthy/degraded/unavailable check counts and observed recoveries,
+  plus the latest check time and underlying market-data time.
+- The latest 12 attempts, including errors and strategy identity when known.
+
+Receipts now include optional duration, strategy and compact source checks,
+including for unchanged evidence. Older receipts remain readable but missing
+telemetry is unknown, not healthy. A failed scan before source collection has
+no source checks. Source recoveries require adjacent observed checks for the
+same provider; an unknown gap does not establish recovery. Operational reports
+include all strategies; strategy performance evaluation remains separate.
+
+Completion rate is the fraction of recorded attempts that finished successfully.
+It does not measure continuous uptime, identify missed dispatches while the
+backend was stopped, prove source completeness or establish trading returns.
+A 72-hour selection with only a few minutes of samples is still a short sample.
+Active scans and failures that could not be written to disk are visible through
+runtime status, not counted as completed historical attempts.
+
+Recent journal reads stop after collecting the requested matching records.
+They avoid loading the whole archive on normal status polls; sparse or absent
+asset matches may still require scanning the full file. Memory depends on the
+returned records and longest individual line. Archives remain append-only;
+this increment adds no destructive retention or compaction.
 
 ## Preview and Verification
 
@@ -131,6 +181,10 @@ source attribution and semantic de-duplication consistency:
 ```bash
 pnpm market-monitor:acceptance -- --scan
 ```
+
+Every acceptance report includes the selected assets' 24-hour operational
+reports. `--scan` also verifies its new attempts contain duration and source
+checks in that report. A short smoke pass does not satisfy 24–72-hour observation.
 
 To verify browser-free scheduling on an otherwise paused monitor:
 

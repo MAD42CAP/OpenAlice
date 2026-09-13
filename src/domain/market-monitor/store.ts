@@ -1,6 +1,7 @@
 import { appendFile, mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
 import { randomUUID } from 'node:crypto'
+import { readRecentJsonLines } from './journal.js'
 import { dataPath } from '../../core/paths.js'
 import type {
   MarketMonitorAlert,
@@ -33,18 +34,6 @@ async function ensureParent(file: string): Promise<void> {
 async function appendJsonLine(file: string, value: unknown): Promise<void> {
   await ensureParent(file)
   await appendFile(file, `${JSON.stringify(value)}\n`, 'utf8')
-}
-
-async function readJsonLines<T>(file: string): Promise<T[]> {
-  try {
-    const text = await readFile(file, 'utf8')
-    return text.split('\n').filter(Boolean).flatMap((line) => {
-      try { return [JSON.parse(line) as T] } catch { return [] }
-    })
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return []
-    throw error
-  }
 }
 
 export interface MarketMonitorStore {
@@ -84,18 +73,15 @@ export function createMarketMonitorStore(root = ROOT): MarketMonitorStore {
       await rename(temp, SETTINGS_FILE)
     },
     async snapshots(asset, limit = 100) {
-      const rows = await readJsonLines<MarketMonitorSnapshot>(SNAPSHOTS_FILE)
-      return rows.filter((row) => !asset || row.asset === asset).slice(-Math.max(1, Math.min(1000, limit)))
+      return (await readRecentJsonLines<MarketMonitorSnapshot>(SNAPSHOTS_FILE, Math.max(1, Math.min(1000, limit)), (row) => !asset || row.asset === asset)).rows
     },
     appendSnapshot: (snapshot) => appendJsonLine(SNAPSHOTS_FILE, snapshot),
     async alerts(asset, limit = 100) {
-      const rows = await readJsonLines<MarketMonitorAlert>(ALERTS_FILE)
-      return rows.filter((row) => !asset || row.asset === asset).slice(-Math.max(1, Math.min(1000, limit)))
+      return (await readRecentJsonLines<MarketMonitorAlert>(ALERTS_FILE, Math.max(1, Math.min(1000, limit)), (row) => !asset || row.asset === asset)).rows
     },
     appendAlert: (alert) => appendJsonLine(ALERTS_FILE, alert),
     async receipts(asset, limit = 100) {
-      const rows = await readJsonLines<MarketMonitorReceipt>(RECEIPTS_FILE)
-      return rows.filter((row) => !asset || row.asset === asset).slice(-Math.max(1, Math.min(1000, limit)))
+      return (await readRecentJsonLines<MarketMonitorReceipt>(RECEIPTS_FILE, Math.max(1, Math.min(10_000, limit)), (row) => !asset || row.asset === asset)).rows
     },
     appendReceipt: (receipt) => appendJsonLine(RECEIPTS_FILE, receipt),
     async latestSeries(asset, strategyId = DEFAULT_MARKET_MONITOR_STRATEGY_ID) {

@@ -127,6 +127,8 @@ describe('market monitor service', () => {
     expect(store.data.snapshots[0].chart.daily).toEqual([])
     expect((await service.snapshots('TSLA', 1))[0].chart.daily).toHaveLength(90)
     expect(store.data.receipts.map((row) => [row.trigger, row.outcome])).toEqual([['manual', 'stored'], ['scheduled', 'duplicate']])
+    expect(store.data.receipts.every((row) => row.strategyId === 'evidence-chain-v1' && Number.isFinite(row.durationMs) && row.sourceHealth?.length)).toBe(true)
+    expect((await service.health('TSLA')).summary).toMatchObject({ attempts: 2, duplicates: 1, scansWithSourceChecks: 2 })
   })
 
   it('keeps an unavailable hourly source explicit instead of using daily bars', async () => {

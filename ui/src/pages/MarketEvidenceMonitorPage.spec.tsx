@@ -2,16 +2,17 @@
 
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { demoMonitorSnapshot } from '../demo/fixtures/market-monitor'
+import { demoMonitorHealth, demoMonitorSnapshot } from '../demo/fixtures/market-monitor'
 import { MarketEvidenceMonitorPage } from './MarketEvidenceMonitorPage'
 
 const mocks = vi.hoisted(() => ({
-  status: vi.fn(), settings: vi.fn(), strategies: vi.fn(), snapshots: vi.fn(), alerts: vi.fn(), evaluation: vi.fn(), scan: vi.fn(), saveSettings: vi.fn(),
+  health: vi.fn(), status: vi.fn(), settings: vi.fn(), strategies: vi.fn(), snapshots: vi.fn(), alerts: vi.fn(), evaluation: vi.fn(), scan: vi.fn(), saveSettings: vi.fn(),
 }))
 vi.mock('../api', () => ({ api: { marketMonitor: mocks } }))
 
 beforeEach(() => {
   window.localStorage.clear()
+  mocks.health.mockImplementation(async (asset: 'BTC' | 'TSLA', hours: 24 | 72) => demoMonitorHealth(asset, hours))
   const settings = { backgroundEnabled: false, enabledAssets: ['BTC', 'TSLA'], strategyId: 'evidence-chain-v1', intervalMinutes: 15, notifications: false, alertConfidence: 68, abnormalVolumeRatio: 1.8, abnormalMovePercent: 1.5 }
   mocks.status.mockResolvedValue({ running: true, backgroundEnabled: false, intervalMinutes: 15, checkedAt: null, error: null, assets: ['BTC', 'TSLA'].map((asset) => ({ asset, enabled: true, scanning: false, nextScanAt: null, lastReceipt: null })) })
   mocks.settings.mockResolvedValue(settings)
@@ -64,6 +65,18 @@ it('opens empty history without silently dispatching a scan', async () => {
   mocks.snapshots.mockResolvedValue({ snapshots: [], count: 0 })
   render(<MarketEvidenceMonitorPage />)
   await screen.findByText('No observations yet')
+  expect(await screen.findByRole('table', { name: 'Recent scan attempts' })).toBeTruthy()
+  expect(mocks.scan).not.toHaveBeenCalled()
+})
+
+it('selects a per-asset operational report independently of the evidence history', async () => {
+  render(<MarketEvidenceMonitorPage />)
+  await screen.findByRole('table', { name: 'Data source reliability' })
+  fireEvent.click(screen.getByRole('button', { name: '72 hours' }))
+  await waitFor(() => expect(mocks.health).toHaveBeenCalledWith('BTC', 72))
+  fireEvent.click(screen.getByRole('tab', { name: /TSLA/ }))
+  await waitFor(() => expect(mocks.health).toHaveBeenCalledWith('TSLA', 72))
+  expect(await screen.findByRole('region', { name: 'TSLA monitor operations' })).toBeTruthy()
   expect(mocks.scan).not.toHaveBeenCalled()
 })
 

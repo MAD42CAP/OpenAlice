@@ -16,6 +16,8 @@ import { Button } from '../components/ui/button'
 import { EmptyState, Skeleton } from '../components/StateViews'
 import { cn } from '../lib/utils'
 import { useMarketMonitorStatus } from '../hooks/useMarketMonitorStatus'
+import { useMarketMonitorHealth } from '../hooks/useMarketMonitorHealth'
+import { MonitorOperations } from '../components/market/MonitorOperations'
 
 const ASSETS: MonitorAsset[] = ['BTC', 'TSLA']
 const DEFAULT_SETTINGS: MonitorSettings = {
@@ -70,6 +72,9 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
   const [refreshError, setRefreshError] = useState<string | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const runtime = useMarketMonitorStatus(visible)
+  const [reportHours, setReportHours] = useState<24 | 72>(24)
+  const [healthRevision, setHealthRevision] = useState(0)
+  const health = useMarketMonitorHealth(asset, reportHours, visible, `${runtime.status?.assets.find((item) => item.asset === asset)?.lastReceipt?.id ?? ''}:${healthRevision}`)
   const seenAlerts = useRef<Set<string> | null>(null)
   const loadGeneration = useRef(0)
   const snapshots = history[asset]
@@ -131,6 +136,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
       return null
     } finally {
       setScanning(false)
+      setHealthRevision((revision) => revision + 1)
     }
   }, [history, loadState, runtime.refresh])
 
@@ -224,6 +230,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
             <HistoryPanel snapshots={snapshots} evaluation={evaluation} alerts={alerts.filter((item) => item.asset === asset)} />
           </div>
         ) : <EmptyState title="No observations yet" description="Choose Scan now for a one-time check, or enable background monitoring in settings." />}
+        <MonitorOperations asset={asset} hours={reportHours} onHoursChange={setReportHours} report={health.report} loading={health.loading} error={health.error} onRefresh={health.refresh} />
       </div>
     </div>
   )
@@ -245,7 +252,7 @@ function RuntimeStatus({ asset, status, error, onRetry }: { asset: MonitorAsset;
     {error ? <><span>Last known state only. {error}</span><Button variant="ghost" size="sm" onClick={() => void onRetry()}>Retry status</Button></> : <>
       {item?.lastReceipt && <span>Last attempt: {formatDate(item.lastReceipt.completedAt ?? item.lastReceipt.requestedAt)} · {item.lastReceipt.outcome}</span>}
       {item?.nextScanAt && !import.meta.env.VITE_DEMO_MODE && <span>Next: {formatDate(item.nextScanAt)}</span>}
-      {item?.lastReceipt?.error && <span className="text-warning">{item.lastReceipt.error}</span>}
+      {item?.lastError && <span className="text-warning">{item.lastError}</span>}
       {status?.error && <span className="text-warning">{status.error}</span>}
     </>}
   </section>

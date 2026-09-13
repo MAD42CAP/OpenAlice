@@ -1,5 +1,31 @@
 import type { HistoricalBar } from '../../api/market'
-import type { MonitorAsset, MonitorSnapshot } from '../../api/market-monitor'
+import type { MonitorAsset, MonitorHealthReport, MonitorReceipt, MonitorSnapshot } from '../../api/market-monitor'
+
+/** Illustrative attempts only; the demo never runs a background scheduler. */
+export function demoMonitorHealth(asset: MonitorAsset, hours: 24 | 72 = 24): MonitorHealthReport {
+  const snapshot = demoMonitorSnapshot(asset)
+  const generatedAt = '2026-09-12T12:36:00.000Z'
+  const receipts: MonitorReceipt[] = [0, 1, 2].map((index) => ({
+    id: `demo-health-${asset}-${index}`, asset,
+    requestedAt: new Date(Date.parse('2026-09-12T12:05:00Z') + index * 900_000).toISOString(),
+    completedAt: new Date(Date.parse('2026-09-12T12:05:00Z') + index * 900_000 + (index + 1) * 600).toISOString(),
+    trigger: index ? 'scheduled' : 'manual', outcome: index ? 'duplicate' : 'stored',
+    snapshotId: snapshot.id, strategyId: snapshot.strategyId, durationMs: (index + 1) * 600,
+    sourceHealth: snapshot.sourceHealth.map(({ detail: _detail, ...source }) => ({ ...source, status: source.id === 'context' && index === 0 ? 'degraded' : 'ok' })),
+  }))
+  return {
+    schemaVersion: 1, asset, generatedAt,
+    window: { hours, from: new Date(Date.parse(generatedAt) - hours * 3_600_000).toISOString(), to: generatedAt, firstSampleAt: receipts[0].completedAt!, lastSampleAt: receipts[2].completedAt!, sampleLimit: 5000, truncated: false },
+    summary: { attempts: 3, successful: 3, failed: 0, stored: 1, duplicates: 2, scheduled: 2, manual: 1, successRatePercent: 100, consecutiveFailures: 0, recoveries: 0, lastSuccessAt: receipts[2].completedAt!, lastFailureAt: null, durationSamples: 3, averageDurationMs: 1200, p95DurationMs: 1800, scansWithSourceChecks: 3, scansWithSourceIssues: 1 },
+    sources: snapshot.sourceHealth.map((source) => ({
+      id: source.id, label: source.label, provider: source.provider, samples: 3,
+      ok: source.id === 'context' ? 2 : 3, degraded: source.id === 'context' ? 1 : 0,
+      unavailable: 0, recoveries: source.id === 'context' ? 1 : 0,
+      latestStatus: 'ok', lastCheckedAt: receipts[2].completedAt!, lastDataAt: source.asOf,
+    })),
+    recent: receipts.reverse(),
+  }
+}
 
 function bars(asset: MonitorAsset, interval: '1D' | '1H'): HistoricalBar[] {
   const count = interval === '1D' ? 150 : 96

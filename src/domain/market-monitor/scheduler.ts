@@ -22,11 +22,13 @@ export function createMarketMonitorScheduler(
   if (!Number.isFinite(pollIntervalMs) || pollIntervalMs < 1) throw new Error('Invalid monitor poll interval')
   let running = false
   let timer: ReturnType<typeof setInterval> | undefined
-  let activeTick: Promise<void> | undefined
+  let activePoll: Promise<void> | undefined
+  const activeScans = new Map<MarketMonitorAsset, Promise<void>>()
   let checkedAt: string | null = null
   let error: string | null = null
   // If receipt persistence itself fails, still avoid a hot retry loop.
   const lastAttempt = new Map<MarketMonitorAsset, number>()
+  const lastFailure = new Map<MarketMonitorAsset, { receiptId: string | null; message: string }>()
 
   const status = async (): Promise<MarketMonitorSchedulerStatus> => {
     const settings = await service.settings()
@@ -38,11 +40,14 @@ export function createMarketMonitorScheduler(
       const attempted = lastAttempt.get(asset) ?? 0
       const last = Math.max(Number.isFinite(completed) && completed <= currentTime ? completed : 0, attempted <= currentTime ? attempted : 0)
       const enabled = settings.enabledAssets.includes(asset)
-      const scanning = service.isScanning(asset)
+      const scanning = activeScans.has(asset) || service.isScanning(asset)
+      const failure = lastFailure.get(asset)
+      const lastError = failure && failure.receiptId === (lastReceipt?.id ?? null)
+        ? failure.message : lastReceipt?.error ?? null
       // Ignore future clock-skewed timestamps; never postpone indefinitely.
       const due = last ? last + interval : currentTime
       return {
-        asset, enabled, scanning, lastReceipt,
+        asset, enabled, scanning, lastReceipt, lastError,
         nextScanAt: running && settings.backgroundEnabled && enabled && !scanning
           ? new Date(due).toISOString() : null,
       }
@@ -50,47 +55,61 @@ export function createMarketMonitorScheduler(
     return { running, backgroundEnabled: settings.backgroundEnabled, intervalMinutes: settings.intervalMinutes, checkedAt, error, assets }
   }
 
-  const tick = (): Promise<void> => {
+  const poll = (): Promise<void> => {
     if (!running) return Promise.resolve()
-    if (activeTick) return activeTick
-    activeTick = (async () => {
+    if (activePoll) return activePoll
+    activePoll = (async () => {
       try {
         const current = await status()
         checkedAt = now().toISOString()
         error = null
         if (!running || !current.backgroundEnabled) return
-        await Promise.all(current.assets.map(async (item) => {
-          if (!running || !item.nextScanAt || item.scanning || Date.parse(item.nextScanAt) > now().getTime()) return
-          try {
-            await service.scan(item.asset, 'scheduled')
-          } catch {
-            // Service writes the attributed failure receipt; the other asset
-            // must still finish and the next interval must remain eligible.
-          } finally {
-            lastAttempt.set(item.asset, now().getTime())
-          }
-        }))
+        for (const item of current.assets) {
+          if (!running || !item.nextScanAt || item.scanning || activeScans.has(item.asset) || Date.parse(item.nextScanAt) > now().getTime()) continue
+          const scan = Promise.resolve().then(async () => {
+            try {
+              await service.scan(item.asset, 'scheduled')
+              lastFailure.delete(item.asset)
+            } catch (cause) {
+              // Keep an in-memory error even if the failure receipt cannot
+              // be written; never let it hide behind an older successful scan.
+              lastFailure.set(item.asset, {
+                receiptId: item.lastReceipt?.id ?? null,
+                message: cause instanceof Error ? cause.message : String(cause),
+              })
+            } finally {
+              lastAttempt.set(item.asset, now().getTime())
+              activeScans.delete(item.asset)
+            }
+          })
+          activeScans.set(item.asset, scan)
+        }
       } catch (cause) {
         error = cause instanceof Error ? cause.message : String(cause)
       }
-    })().finally(() => { activeTick = undefined })
-    return activeTick
+    })().finally(() => { activePoll = undefined })
+    return activePoll
   }
 
   return {
-    status, tick,
+    status,
+    async tick() {
+      await poll()
+      await Promise.all([...activeScans.values()])
+    },
     start() {
       if (running) return
       running = true
-      timer = setInterval(() => { void tick() }, pollIntervalMs)
+      timer = setInterval(() => { void poll() }, pollIntervalMs)
       timer.unref?.()
-      void tick()
+      void poll()
     },
     async stop() {
       running = false
       if (timer) clearInterval(timer)
       timer = undefined
-      await activeTick
+      await activePoll
+      await Promise.all([...activeScans.values()])
     },
   }
 }

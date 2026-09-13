@@ -82,10 +82,12 @@ describe('market monitor background scheduler', () => {
     scheduler.start()
     await scheduler.tick()
     expect(service.scan).toHaveBeenCalledTimes(2)
+    expect((await scheduler.status()).assets.find((row) => row.asset === 'BTC')?.lastError).toBe('BTC provider/storage unavailable')
     await vi.advanceTimersByTimeAsync(45_000)
     expect(service.scan).toHaveBeenCalledTimes(2)
     await vi.advanceTimersByTimeAsync(15_000)
     expect(service.scan).toHaveBeenCalledTimes(4)
+    expect((await scheduler.status()).assets.find((row) => row.asset === 'BTC')?.lastError).toBeNull()
     await scheduler.stop()
   })
 
@@ -108,6 +110,27 @@ describe('market monitor background scheduler', () => {
     release()
     await pending
     await scheduler.stop()
+  })
+
+  it('keeps scanning TSLA while a BTC request is still pending', async () => {
+    const { scheduler, service, configure } = fixture()
+    configure({ backgroundEnabled: true, intervalMinutes: 1 })
+    let release!: () => void
+    service.scan.mockImplementationOnce(async () => {
+      await new Promise<void>((resolve) => { release = resolve })
+      return { receipt: {} as never, snapshot: {} as never, stored: true, alert: null }
+    })
+    scheduler.start()
+    await vi.advanceTimersByTimeAsync(0)
+    try {
+      await vi.advanceTimersByTimeAsync(120_000)
+      expect(service.scan.mock.calls.filter(([asset]) => asset === 'BTC')).toHaveLength(1)
+      expect(service.scan.mock.calls.filter(([asset]) => asset === 'TSLA')).toHaveLength(3)
+      expect((await scheduler.status()).assets.find((row) => row.asset === 'BTC')?.scanning).toBe(true)
+    } finally {
+      release()
+      await scheduler.stop()
+    }
   })
 
   it('makes settings failures visible and recovers without losing its timer', async () => {

@@ -110,6 +110,57 @@ export interface MonitorReceipt {
   outcome: 'stored' | 'duplicate' | 'failed'
   snapshotId?: string
   error?: string
+  strategyId?: string
+  durationMs?: number
+  sourceHealth?: Array<Pick<SourceHealth, 'id' | 'label' | 'provider' | 'status' | 'asOf'>>
+}
+
+export interface MonitorHealthReport {
+  schemaVersion: 1
+  asset: MonitorAsset
+  generatedAt: string
+  window: {
+    hours: 24 | 72
+    from: string
+    to: string
+    firstSampleAt: string | null
+    lastSampleAt: string | null
+    sampleLimit: number
+    truncated: boolean
+  }
+  summary: {
+    attempts: number
+    successful: number
+    failed: number
+    stored: number
+    duplicates: number
+    scheduled: number
+    manual: number
+    successRatePercent: number | null
+    consecutiveFailures: number
+    recoveries: number
+    lastSuccessAt: string | null
+    lastFailureAt: string | null
+    durationSamples: number
+    averageDurationMs: number | null
+    p95DurationMs: number | null
+    scansWithSourceChecks: number
+    scansWithSourceIssues: number
+  }
+  sources: Array<{
+    id: string
+    label: string
+    provider: string
+    samples: number
+    ok: number
+    degraded: number
+    unavailable: number
+    recoveries: number
+    latestStatus: SourceHealth['status']
+    lastCheckedAt: string
+    lastDataAt: string | null
+  }>
+  recent: MonitorReceipt[]
 }
 
 export interface MonitorSchedulerStatus {
@@ -124,6 +175,7 @@ export interface MonitorSchedulerStatus {
     scanning: boolean
     nextScanAt: string | null
     lastReceipt: MonitorReceipt | null
+    lastError: string | null
   }>
 }
 
@@ -158,6 +210,7 @@ function query(asset?: MonitorAsset, limit = 100, strategyId?: string): string {
 }
 
 export const marketMonitorApi = {
+  health: (asset: MonitorAsset, hours: 24 | 72 = 24) => fetchJson<MonitorHealthReport>(`/api/market-monitor/health?asset=${asset}&hours=${hours}`),
   status: () => fetchJson<MonitorSchedulerStatus>('/api/market-monitor/status'),
   settings: () => fetchJson<MonitorSettings>('/api/market-monitor/settings'),
   strategies: () => fetchJson<{ strategies: MonitorStrategy[] }>('/api/market-monitor/strategies'),

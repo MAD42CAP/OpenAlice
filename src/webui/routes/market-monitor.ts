@@ -102,6 +102,13 @@ export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketM
     return c.json(await service.evaluation(asset))
   })
 
+  app.get('/health', async (c) => {
+    const asset = assetFrom(c.req.query('asset'))
+    const hours = c.req.query('hours') ?? '24'
+    if (!asset || !['24', '72'].includes(hours)) return c.json({ error: 'asset must be BTC or TSLA; hours must be 24 or 72' }, 400)
+    return c.json(await service.health(asset, Number(hours) as 24 | 72))
+  })
+
   app.get('/defaults', (c) => c.json(DEFAULT_MARKET_MONITOR_SETTINGS))
 
   return app

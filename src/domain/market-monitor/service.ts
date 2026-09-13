@@ -4,6 +4,7 @@ import type { BarMeta, BarService, BarsResult, OhlcvBar } from '../market-data/b
 import type { INewsProvider } from '../news/types.js'
 import type { ReferenceDataService } from '../market-data/reference/types.js'
 import { evaluateSnapshots } from './analysis.js'
+import { HEALTH_RECEIPT_LIMIT, summarizeMonitorHealth } from './health.js'
 import {
   createDefaultMarketContextProviderRegistry,
   type MarketContextProviderRegistry,
@@ -21,6 +22,7 @@ import {
   type MarketMonitorAlert,
   type MarketMonitorAsset,
   type MarketMonitorEvaluation,
+  type MarketMonitorHealthReport,
   type MarketMonitorReceipt,
   type MarketMonitorScanResult,
   type MarketMonitorSettings,
@@ -51,6 +53,7 @@ export interface MarketMonitorService {
   alerts(asset?: MarketMonitorAsset, limit?: number): Promise<MarketMonitorAlert[]>
   receipts(asset?: MarketMonitorAsset, limit?: number): Promise<MarketMonitorReceipt[]>
   evaluation(asset: MarketMonitorAsset): Promise<MarketMonitorEvaluation>
+  health(asset: MarketMonitorAsset, hours?: 24 | 72): Promise<MarketMonitorHealthReport>
   strategies(): MarketMonitorStrategyManifest[]
   contextProviders(): MarketContextProviderManifest[]
 }
@@ -142,6 +145,10 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
     },
     alerts: (asset, limit) => store.alerts(asset, limit),
     receipts: (asset, limit) => store.receipts(asset, limit),
+    async health(asset, hours = 24) {
+      if (hours !== 24 && hours !== 72) throw new Error('Health window must be 24 or 72 hours')
+      return summarizeMonitorHealth(asset, await store.receipts(asset, HEALTH_RECEIPT_LIMIT + 1), hours, now())
+    },
     async evaluation(asset) {
       const settings = await loadSettings()
       const rows = (await store.snapshots(asset, 1000)).filter((row) => row.strategyId === settings.strategyId)
@@ -154,10 +161,13 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
       if (pending) return pending
       const task = (async () => {
         const requestedAt = now().toISOString()
+        const started = performance.now()
+        let strategyId: string | undefined
         const receiptBase = { id: randomUUID(), asset, requestedAt, trigger } as const
         try {
           const settings = await loadSettings()
           const strategy = strategyRegistry.get(settings.strategyId)
+          strategyId = strategy.manifest.id
           const daily = await loadBars(deps.barService, asset, '1d', 260)
           let intraday: { result: BarsResult; fallback: boolean } | null = null
           let intradayError: unknown
@@ -219,11 +229,20 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
             await store.appendSnapshot({ ...snapshot, chart: { ...snapshot.chart, daily: [], intraday: [] } })
           }
           const alert = stored ? await maybeAlert(store, snapshot, previous, settings) : null
-          const receipt: MarketMonitorReceipt = { ...receiptBase, completedAt: now().toISOString(), outcome: stored ? 'stored' : 'duplicate', snapshotId: stored ? snapshot.id : previous?.id }
+          const receipt: MarketMonitorReceipt = {
+            ...receiptBase, completedAt: now().toISOString(), strategyId,
+            durationMs: Math.max(0, Math.round(performance.now() - started)),
+            sourceHealth: sourceHealth.map(({ id, label, provider, status, asOf }) => ({ id, label, provider, status, asOf })),
+            outcome: stored ? 'stored' : 'duplicate', snapshotId: stored ? snapshot.id : previous?.id,
+          }
           await store.appendReceipt(receipt)
           return { snapshot, stored, alert, receipt }
         } catch (error) {
-          const receipt: MarketMonitorReceipt = { ...receiptBase, completedAt: now().toISOString(), outcome: 'failed', error: error instanceof Error ? error.message : String(error) }
+          const receipt: MarketMonitorReceipt = {
+            ...receiptBase, completedAt: now().toISOString(), strategyId,
+            durationMs: Math.max(0, Math.round(performance.now() - started)),
+            outcome: 'failed', error: error instanceof Error ? error.message : String(error),
+          }
           await store.appendReceipt(receipt)
           throw error
         }

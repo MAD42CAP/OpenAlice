@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { isLoopbackHost, parseOptions, runBackgroundProbe, validateScanPair, validateSnapshot } from './market-monitor-live-smoke.mjs'
+import { isLoopbackHost, parseOptions, runBackgroundProbe, validateHealthReport, validateScanPair, validateSnapshot } from './market-monitor-live-smoke.mjs'
+import { summarizeMonitorHealth } from '../src/domain/market-monitor/health.js'
 
 function snapshot(asset = 'BTC') {
   const intraday: Array<Record<string, unknown>> = []
@@ -18,6 +19,14 @@ function snapshot(asset = 'BTC') {
 }
 
 describe('market monitor live acceptance', () => {
+  it('validates operational sample counts and preserves unavailable source checks', () => {
+    const now = new Date('2026-09-13T00:00:00Z')
+    const report = summarizeMonitorHealth('BTC', [{ id: '1', asset: 'BTC', requestedAt: now.toISOString(), trigger: 'manual', outcome: 'duplicate', sourceHealth: [{ id: 'context', label: 'Context', provider: 'fixture', status: 'unavailable', asOf: null }] }], 24, now)
+    expect(() => validateHealthReport('BTC', report)).not.toThrow()
+    expect(report.summary.scansWithSourceIssues).toBe(1)
+    expect(() => validateHealthReport('TSLA', report)).toThrow('selection')
+    expect(() => validateHealthReport('BTC', { ...report, summary: { ...report.summary, attempts: 0 } })).toThrow('counts')
+  })
   it('defaults to a loopback, read-only acceptance run', () => {
     expect(parseOptions([], {})).toMatchObject({ baseUrl: 'http://127.0.0.1:47331', scan: false, background: false, assets: ['BTC', 'TSLA'] })
     expect(isLoopbackHost('::1')).toBe(true)

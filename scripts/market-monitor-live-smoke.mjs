@@ -78,6 +78,18 @@ export function validateScanPair(asset, first, second, strategyId = 'evidence-ch
   }
 }
 
+export function validateHealthReport(asset, report) {
+  if (report?.schemaVersion !== 1 || report.asset !== asset || report.window?.hours !== 24) throw new Error(`${asset}: invalid health report selection`)
+  const summary = report.summary
+  if (!summary || !Number.isInteger(summary.attempts) || summary.attempts < 0
+    || summary.successful + summary.failed !== summary.attempts
+    || summary.stored + summary.duplicates !== summary.successful
+    || summary.scansWithSourceChecks > summary.attempts
+    || summary.scansWithSourceIssues > summary.scansWithSourceChecks
+    || !Array.isArray(report.sources) || !Array.isArray(report.recent)) throw new Error(`${asset}: inconsistent health report counts`)
+  if (summary.attempts && (!report.window.firstSampleAt || !report.window.lastSampleAt)) throw new Error(`${asset}: health report omits observed sample times`)
+}
+
 async function request(fetcher, baseUrl, path, init, timeoutMs = 45_000) {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
@@ -184,6 +196,11 @@ export async function runAcceptance(options, dependencies = {}) {
     const receipts = await json(fetcher, options.baseUrl, `/api/market-monitor/receipts?asset=${asset}&limit=1000`)
     const alerts = await json(fetcher, options.baseUrl, `/api/market-monitor/alerts?asset=${asset}&limit=1000`)
     const evaluation = await json(fetcher, options.baseUrl, `/api/market-monitor/evaluation?asset=${asset}`)
+    const health = await json(fetcher, options.baseUrl, `/api/market-monitor/health?asset=${asset}&hours=24`)
+    validateHealthReport(asset, health)
+    if (options.scan && [first, second].some((result) => !health.recent.some((receipt) => receipt.id === result.receipt.id && Number.isFinite(receipt.durationMs) && receipt.sourceHealth?.length))) {
+      throw new Error(`${asset}: health report is missing telemetry for acceptance scans`)
+    }
     const latest = snapshots.snapshots?.at(-1)
     if (latest) validateSnapshot(asset, latest, settings.strategyId)
     if (options.scan && (!latest || snapshots.count < before.count || receipts.count < 2)) {
@@ -196,6 +213,7 @@ export async function runAcceptance(options, dependencies = {}) {
       receipts: receipts.count,
       alerts: alerts.count,
       evaluationSamples: evaluation.samples,
+      health,
       firstOutcome: first?.receipt?.outcome ?? null,
       secondOutcome: second?.receipt?.outcome ?? null,
       latestFingerprint: latest?.fingerprint ?? null,
