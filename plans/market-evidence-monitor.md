@@ -33,6 +33,9 @@ present the result as a responsive dashboard with deterministic demo data.
   Lite mode, adopts Guardian's selected UI port and opens the dashboard only
   after verifying the OpenAlice shell. It does not switch branches or take over
   an existing runtime.
+- Fresh source installs link workspace packages before their distributable
+  entry points exist. Real dev and demo launch therefore build the UI's
+  connector protocol dependency before Vite resolves its `dist` export.
 - Read recent journals backwards in bounded blocks rather than parsing whole
   archives on every 15-second poll. Keep append-only history intact.
 - Autonomous UI choice: a compact Operations section within the existing
@@ -108,6 +111,7 @@ present the result as a responsive dashboard with deterministic demo data.
 - [x] Verify the health increment against isolated runtime data.
 - [x] Add a checkpointed 24/72-hour observer for Mac/runtime acceptance.
 - [x] Add a Mac source launcher for environment checks, demo and real dashboard.
+- [x] Prepare UI workspace package exports automatically on a fresh clone.
 - [ ] Check the updated dashboard visually on the Mac (cloud browser blocks localhost).
 - [ ] Verify decision-scale BTC fingerprinting with consecutive live scans.
 - [ ] Run the live command on macOS and observe scheduling for 24–72 hours.
@@ -221,6 +225,15 @@ Mac launcher increment verified in the managed Linux workspace on 2026-09-13:
   Linux because this entry point is Mac-specific.
 - The actual Finder double-click, default-browser open and Mac foreground
   process shutdown remain part of the native Mac acceptance gate.
+- The first real fresh-clone Mac attempt exposed a missing
+  `@traderalice/connector-protocol` `dist` entry after `pnpm install`. Repeating
+  that state locally now runs the automatic dependency build first; the full
+  demo UI resolved 3,925 modules and completed successfully.
+- The focused monitor closure still passed 15 files and 79 tests after the
+  fresh-clone launch repair.
+- Managed Linux could not run Guardian's `tsx` IPC pipe (`EPERM`) for the full
+  source-dev stack. This is the previously recorded host restriction; the
+  missing-package build and complete Vite import graph both passed.
 
 The branch is complete when BTC and TSLA can be scanned read-only, duplicate
 snapshots are suppressed, source failure is visible without erasing the last

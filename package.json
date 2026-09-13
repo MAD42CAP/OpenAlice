@@ -12,7 +12,9 @@
   "main": "dist/electron/main.js",
   "scripts": {
     "cli": "node packages/cli/bin/openalice.ts",
+    "predev": "pnpm --filter @traderalice/connector-protocol build",
     "dev": "tsx scripts/guardian/dev.ts",
+    "premarket-monitor:preview": "pnpm --filter @traderalice/connector-protocol build",
     "market-monitor:preview": "node scripts/market-monitor-preview.mjs",
     "market-monitor:acceptance": "node scripts/market-monitor-live-smoke.mjs",
     "market-monitor:observe": "node scripts/market-monitor-observe.mjs",

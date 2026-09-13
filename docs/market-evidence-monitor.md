@@ -157,9 +157,10 @@ this increment adds no destructive retention or compaction.
 On the maintained feature branch, double-click
 `scripts/market-monitor-mac.command` in Finder. The command adds the usual
 Homebrew locations to `PATH`, installs workspace dependencies on first use,
-checks macOS, Node.js 22.19+, pnpm, Git and the current branch, then starts the
-real OpenAlice source stack in read-only Lite mode. It reads Guardian's actual
-Vite port, waits for the OpenAlice application shell and opens
+checks macOS, Node.js 22.19+, pnpm, Git and the current branch, then builds the
+UI's internal `@traderalice/connector-protocol` workspace dependency before it
+starts the real OpenAlice source stack in read-only Lite mode. It reads
+Guardian's actual Vite port, waits for the OpenAlice application shell and opens
 `/market/evidence` in the default browser.
 
 The same entry point is available in Terminal:
@@ -176,6 +177,23 @@ because the monitor only needs read-only market providers. `--no-open` leaves
 the browser closed, and `--home=<directory>` passes an isolated data root to
 Guardian. The launcher does not switch branches, take over an existing runtime
 or edit monitor settings. Stop the foreground source stack with Control-C.
+
+Both plain `pnpm dev` and the deterministic monitor preview run the same
+workspace-package preparation automatically. This matters on a new clone:
+`pnpm install` links local packages but does not create
+`packages/connector-protocol/dist/index.js`, while Vite resolves that package's
+normal import entry to `dist`.
+
+An older checkout already showing Vite's “Failed to resolve entry for package
+`@traderalice/connector-protocol`” overlay can be repaired once with:
+
+```bash
+pnpm --filter @traderalice/connector-protocol build
+```
+
+Refresh the page afterward, or stop the old foreground stack with Control-C,
+pull the feature branch and start it again. Updated launch commands perform
+this step automatically.
 
 For the first checkout from our repository:
 

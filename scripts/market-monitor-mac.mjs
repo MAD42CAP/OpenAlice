@@ -129,6 +129,7 @@ async function launch(options) {
     ? ['market-monitor:preview', '--', ...(options.noOpen ? ['--no-open'] : [])]
     : ['dev', ...(options.home ? ['--', `--home=${options.home}`] : [])]
   const invocation = packageManager(args)
+  console.log('[market-monitor] Preparing source workspace packages before the UI starts…')
   const child = spawn(invocation.command, invocation.args, {
     cwd: process.cwd(),
     env: { ...process.env, ...(options.full || options.demo ? {} : { OPENALICE_LITE_MODE: '1' }) },
