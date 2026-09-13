@@ -15,6 +15,7 @@
     "dev": "tsx scripts/guardian/dev.ts",
     "market-monitor:preview": "node scripts/market-monitor-preview.mjs",
     "market-monitor:acceptance": "node scripts/market-monitor-live-smoke.mjs",
+    "market-monitor:observe": "node scripts/market-monitor-observe.mjs",
     "dev:onboarding": "tsx scripts/onboarding-test-dev.ts",
     "remote:ssh": "node packages/cli/bin/openalice.mjs ssh",
     "docker:build": "docker build --tag openalice:local .",

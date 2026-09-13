@@ -206,6 +206,33 @@ The command accepts `--base-url=http://127.0.0.1:<port>` when Guardian selected
 a non-default port, and writes `dist/market-monitor-acceptance.json`. Non-local
 URLs are rejected unless the caller explicitly adds `--allow-remote`.
 
+For a sustained observation after enabling background monitoring in the
+dashboard:
+
+```bash
+pnpm market-monitor:observe -- --duration=24h
+pnpm market-monitor:observe -- --duration=72h
+```
+
+The observer is read-only: it does not enable the monitor, edit cadence or call
+the scan endpoint. Once per minute it reads runtime status and the 72-hour
+health reports, saving an atomic checkpoint to
+`dist/market-monitor-observation.json`. `--asset=BTC` or `--asset=TSLA` narrows
+the scope; `--sample-seconds=15` through `3600` changes probe frequency.
+
+The final report distinguishes local API reachability, scheduler heartbeat and
+configuration interruptions, newly observed scheduled receipts, scan failures,
+and each provider's degraded/unavailable episodes. It checks for missing
+cadence after at least two configured intervals.
+
+`pass` means the observer reached the backend, found no operational or source
+incidents and saw cadence when the duration was long enough. `attention` keeps
+transient API, scan or source episodes visible. `fail` covers stopped/stale or
+disabled scheduling, less than 95% API reachability, or missing expected
+cadence. Interrupting the command leaves an `incomplete` checkpoint rather than
+claiming acceptance. An API outage never counts as evidence that an earlier
+incident recovered.
+
 Mac/Electron acceptance must confirm desktop and narrow-window layout, live
 timestamps, the 1D/1H switch, persistence after restart and no duplicate scan
 records across a 24–72 hour observation window.

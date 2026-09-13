@@ -26,6 +26,9 @@ present the result as a responsive dashboard with deterministic demo data.
 - Health reports cover requested 24/72-hour windows with actual first/last
   samples and an explicit receipt cap. Success rates describe recorded
   attempts, not continuous uptime, missing scheduled runs or strategy profit.
+- Sustained acceptance uses a separate read-only observer. It checkpoints every
+  probe, does not mutate settings or dispatch scans, and only marks recovery
+  after a successful probe observes the recovered state.
 - Read recent journals backwards in bounded blocks rather than parsing whole
   archives on every 15-second poll. Keep append-only history intact.
 - Autonomous UI choice: a compact Operations section within the existing
@@ -99,6 +102,7 @@ present the result as a responsive dashboard with deterministic demo data.
 - [x] Add per-attempt telemetry and bounded operational reports.
 - [x] Connect health reports, export and deterministic demo/UI coverage.
 - [x] Verify the health increment against isolated runtime data.
+- [x] Add a checkpointed 24/72-hour observer for Mac/runtime acceptance.
 - [ ] Check the updated dashboard visually on the Mac (cloud browser blocks localhost).
 - [ ] Verify decision-scale BTC fingerprinting with consecutive live scans.
 - [ ] Run the live command on macOS and observe scheduling for 24–72 hours.
@@ -186,6 +190,19 @@ Operational health increment verified in the managed Linux workspace on
 - The real 72-hour API selection returned the same three short-run samples per
   asset with actual sample times. No 24/72-hour uptime claim is made. The test
   backend and its isolated temporary state were removed after acceptance.
+
+Long-run observer increment verified in the managed Linux workspace on
+2026-09-13:
+
+- The observer parser, cadence assessment, incident recovery and atomic
+  checkpoint tests passed with the focused monitor closure.
+- A real isolated one-minute observation completed five of five probes with
+  at most 50 ms local API latency and captured one scheduled receipt for BTC
+  and one for TSLA without dispatching a manual scan.
+- Its final result was `attention`, as intended: Deribit remained unavailable
+  and TSLA calendar/news remained degraded. The short run labelled cadence
+  evidence `insufficient-duration`; it did not claim 24/72-hour acceptance.
+- The isolated backend and temporary state were removed after the observation.
 
 The branch is complete when BTC and TSLA can be scanned read-only, duplicate
 snapshots are suppressed, source failure is visible without erasing the last
