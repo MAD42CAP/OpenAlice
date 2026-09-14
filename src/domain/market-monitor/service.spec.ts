@@ -10,14 +10,14 @@ import { createMarketMonitorService } from './service.js'
 import { createMarketMonitorStore, type MarketMonitorStore } from './store.js'
 import { createMarketMonitorScheduler } from './scheduler.js'
 import { createMarketMonitorStrategyRegistry, evidenceChainV1Strategy } from './strategy.js'
-import { DEFAULT_MARKET_MONITOR_SETTINGS, type MarketMonitorAlert, type MarketMonitorReceipt, type MarketMonitorSnapshot } from './types.js'
+import { DEFAULT_MARKET_MONITOR_SETTINGS, type MarketAiNarration, type MarketMonitorAlert, type MarketMonitorReceipt, type MarketMonitorSnapshot } from './types.js'
 
 function bars(count: number, step: number): OhlcvBar[] {
   return Array.from({ length: count }, (_, index) => ({ date: new Date(Date.parse('2026-01-01T00:00:00Z') + index * step).toISOString(), open: 100 + index, high: 102 + index, low: 99 + index, close: 101 + index, volume: 1000 + index }))
 }
 
-function memoryStore(): MarketMonitorStore & { data: { snapshots: MarketMonitorSnapshot[]; alerts: MarketMonitorAlert[]; receipts: MarketMonitorReceipt[] } } {
-  const data = { snapshots: [] as MarketMonitorSnapshot[], alerts: [] as MarketMonitorAlert[], receipts: [] as MarketMonitorReceipt[] }
+function memoryStore(): MarketMonitorStore & { data: { snapshots: MarketMonitorSnapshot[]; alerts: MarketMonitorAlert[]; receipts: MarketMonitorReceipt[]; narrations: MarketAiNarration[] } } {
+  const data = { snapshots: [] as MarketMonitorSnapshot[], alerts: [] as MarketMonitorAlert[], receipts: [] as MarketMonitorReceipt[], narrations: [] as MarketAiNarration[] }
   let settings = { ...DEFAULT_MARKET_MONITOR_SETTINGS }
   const series = new Map<string, MarketMonitorSnapshot['chart']>()
   return {
@@ -30,6 +30,8 @@ function memoryStore(): MarketMonitorStore & { data: { snapshots: MarketMonitorS
     appendAlert: async (row) => { data.alerts.push(row) },
     receipts: async (asset, limit = 100) => data.receipts.filter((row) => !asset || row.asset === asset).slice(-limit),
     appendReceipt: async (row) => { data.receipts.push(row) },
+    narrations: async (asset, limit = 100) => data.narrations.filter((row) => !asset || row.asset === asset).slice(-limit),
+    appendNarration: async (row) => { data.narrations.push(row) },
     latestSeries: async (asset, strategyId = 'evidence-chain-v1') => series.get(`${asset}:${strategyId}`) ?? null,
     saveLatestSeries: async (asset, chart, strategyId = 'evidence-chain-v1') => { series.set(`${asset}:${strategyId}`, chart) },
   }
@@ -135,6 +137,31 @@ describe('market monitor service', () => {
     expect(store.data.receipts.map((row) => [row.trigger, row.outcome])).toEqual([['manual', 'stored'], ['scheduled', 'duplicate']])
     expect(store.data.receipts.every((row) => row.strategyId === 'evidence-chain-v1' && Number.isFinite(row.durationMs) && row.sourceHealth?.length)).toBe(true)
     expect((await service.health('TSLA')).summary).toMatchObject({ attempts: 2, duplicates: 1, scansWithSourceChecks: 2 })
+  })
+
+  it('publishes at most one Codex narration per asset, strategy and daily period', async () => {
+    const store = memoryStore()
+    const service = createMarketMonitorService({ ...dependencies(), store, now: () => new Date('2026-04-01T00:00:00Z') })
+    const daily = await service.dailyNarrationInput(['TSLA'])
+    expect(daily.assets[0]).toMatchObject({ asset: 'TSLA', status: 'ready', periodKey: '2026-03-31' })
+    const input = {
+      asset: 'TSLA' as const, strategyId: 'evidence-chain-v1', periodKey: '2026-03-31',
+      headline: '区间等待确认', summary: '事实与解释保持分离。', shortTerm: '转换中', mediumTerm: '横盘', longTerm: '偏多',
+      evidence: ['价格仍在区间内'], risks: ['向下跌破'], watchFor: ['等待测试'],
+    }
+    const provenance = { workspaceId: 'chat-1', runId: 'run-1', issueId: 'mad42lab-market-daily-interpretation', agent: 'codex' }
+    expect((await service.publishNarration(input, provenance)).stored).toBe(true)
+    expect((await service.publishNarration({ ...input, headline: '不得覆盖' }, { ...provenance, runId: 'run-2' })).stored).toBe(false)
+    expect(store.data.narrations).toHaveLength(1)
+    expect((await service.snapshots('TSLA', 1))[0].aiNarration).toMatchObject({ headline: '区间等待确认', provenance: { runId: 'run-1' } })
+    expect((await service.dailyNarrationInput(['TSLA'])).assets[0].status).toBe('already-published')
+  })
+
+  it('rejects narration without a matching deterministic brief or Codex provenance', async () => {
+    const service = createMarketMonitorService({ ...dependencies(), store: memoryStore() })
+    const input = { asset: 'BTC' as const, strategyId: 'evidence-chain-v1', periodKey: '2099-01-01', headline: 'x', summary: 'x', shortTerm: 'x', mediumTerm: 'x', longTerm: 'x', evidence: [], risks: [], watchFor: [] }
+    await expect(service.publishNarration(input, { workspaceId: 'w', runId: 'r', issueId: 'i', agent: 'claude' })).rejects.toThrow('Codex')
+    await expect(service.publishNarration(input, { workspaceId: 'w', runId: 'r', issueId: 'mad42lab-market-daily-interpretation', agent: 'codex' })).rejects.toThrow('does not match')
   })
 
   it('keeps an unavailable hourly source explicit instead of using daily bars', async () => {

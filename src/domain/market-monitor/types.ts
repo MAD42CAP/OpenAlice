@@ -15,6 +15,7 @@ export type WyckoffEventStatus = 'candidate' | 'confirmed' | 'invalidated'
 export type WyckoffTestState = 'none' | 'pending' | 'confirmed' | 'invalidated'
 
 export const DEFAULT_MARKET_MONITOR_STRATEGY_ID = 'evidence-chain-v1'
+export const MARKET_DAILY_NARRATION_ISSUE_ID = 'mad42lab-market-daily-interpretation'
 
 export interface MarketMonitorAssetConfig {
   asset: MarketMonitorAsset
@@ -31,6 +32,8 @@ export const MARKET_MONITOR_ASSET_CONFIG: Record<MarketMonitorAsset, MarketMonit
 
 export interface MarketMonitorSettings {
   backgroundEnabled: boolean
+  /** Daily native-Codex interpretation. Reconciled to a scheduled Workspace Issue. */
+  codexNarrationEnabled: boolean
   enabledAssets: MarketMonitorAsset[]
   strategyId: MarketMonitorStrategyId
   intervalMinutes: number
@@ -42,6 +45,7 @@ export interface MarketMonitorSettings {
 
 export const DEFAULT_MARKET_MONITOR_SETTINGS: MarketMonitorSettings = {
   backgroundEnabled: false,
+  codexNarrationEnabled: true,
   enabledAssets: ['BTC', 'TSLA'],
   strategyId: DEFAULT_MARKET_MONITOR_STRATEGY_ID,
   intervalMinutes: 15,
@@ -147,6 +151,32 @@ export interface MarketDailyBrief {
   risks: string[]
 }
 
+export interface MarketAiNarration {
+  id: string
+  asset: MarketMonitorAsset
+  strategyId: MarketMonitorStrategyId
+  periodKey: string
+  promptVersion: 'codex-daily-v1'
+  generatedAt: string
+  language: 'zh-CN'
+  agent: 'codex'
+  model?: string
+  effort?: string
+  headline: string
+  summary: string
+  shortTerm: string
+  mediumTerm: string
+  longTerm: string
+  evidence: string[]
+  risks: string[]
+  watchFor: string[]
+  provenance: {
+    workspaceId: string
+    runId: string
+    issueId: string
+  }
+}
+
 export interface MarketHypothesis {
   id: 'demand-control' | 'supply-control' | 'balanced-range'
   label: string
@@ -210,6 +240,8 @@ export interface MarketMonitorSnapshot {
   wyckoff?: WyckoffAssessment
   /** Optional while previously persisted v1 observations remain readable. */
   dailyBrief?: MarketDailyBrief
+  /** Codex prose is supplemental; deterministic fields above stay authoritative. */
+  aiNarration?: MarketAiNarration
   context: MarketContext
   sourceHealth: SourceHealth[]
   chart: {

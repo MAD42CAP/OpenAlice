@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Bell, Download, RefreshCw, Settings2 } from 'lucide-react'
+import { Bell, Download, RefreshCw, Settings2, Sparkles } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api'
 import type {
   MonitorAlert,
   MonitorAsset,
   MonitorEvaluation,
+  MarketNarratorStatus,
   MonitorSettings,
   MonitorSnapshot,
   MonitorStrategy,
@@ -44,6 +45,7 @@ import {
 const ASSETS: MonitorAsset[] = ['BTC', 'TSLA']
 const DEFAULT_SETTINGS: MonitorSettings = {
   backgroundEnabled: false,
+  codexNarrationEnabled: true,
   enabledAssets: ASSETS,
   strategyId: 'evidence-chain-v1',
   intervalMinutes: 15,
@@ -94,6 +96,8 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
   const [error, setError] = useState<string | null>(null)
   const [refreshError, setRefreshError] = useState<string | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [narratorStatus, setNarratorStatus] = useState<MarketNarratorStatus | null>(null)
+  const [narratorRunning, setNarratorRunning] = useState(false)
   const runtime = useMarketMonitorStatus(visible)
   const [reportHours, setReportHours] = useState<24 | 72>(24)
   const [healthRevision, setHealthRevision] = useState(0)
@@ -121,6 +125,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
         api.marketMonitor.settings(),
         api.marketMonitor.strategies(),
       ])
+      const nextNarrator = await api.marketMonitor.narratorStatus().catch(() => null)
       const [btc, tsla, nextAlerts] = await Promise.all([
         api.marketMonitor.snapshots('BTC', 120, nextSettings.strategyId),
         api.marketMonitor.snapshots('TSLA', 120, nextSettings.strategyId),
@@ -129,6 +134,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
       if (request !== loadGeneration.current) return
       setSettings(nextSettings)
       setStrategies(nextStrategies.strategies)
+      setNarratorStatus(nextNarrator)
       setHistory({ BTC: btc.snapshots, TSLA: tsla.snapshots })
       setAlerts(nextAlerts.alerts)
       notifyNewAlerts(nextAlerts.alerts, nextSettings.notifications)
@@ -193,6 +199,19 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
     await Promise.all([loadState(false), runtime.refresh()])
   }
 
+  const runNarratorNow = async () => {
+    setNarratorRunning(true)
+    setRefreshError(null)
+    try {
+      setNarratorStatus(await api.marketMonitor.runNarratorNow())
+      window.setTimeout(() => { void loadState(false) }, 2_000)
+    } catch (cause) {
+      setRefreshError(cause instanceof Error ? cause.message : String(cause))
+    } finally {
+      setNarratorRunning(false)
+    }
+  }
+
   const exportData = (format: 'json' | 'csv') => {
     const rows = history[asset]
     const content = format === 'json'
@@ -215,6 +234,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
         right={<div className="flex items-center gap-1.5">
           {import.meta.env.VITE_DEMO_MODE && <span className="rounded-sm border border-warning/50 bg-warning/10 px-2 py-1 text-[10px] font-semibold tracking-wide text-warning">{t('marketMonitor.demoBadge')}</span>}
           <Button variant="ghost" size="sm" onClick={() => setSettingsOpen((value) => !value)} aria-label={t('marketMonitor.settingsTitle')}><Settings2 className="size-4" /></Button>
+          <Button variant="ghost" size="sm" onClick={() => void runNarratorNow()} disabled={!settings.codexNarrationEnabled || narratorRunning}><Sparkles className={cn('size-3.5', narratorRunning && 'animate-pulse')} />{t('marketMonitor.narrator.runNow')}</Button>
           <Button size="sm" onClick={() => void scan(asset, 'manual')} disabled={scanning}><RefreshCw className={cn('size-3.5', scanning && 'animate-spin')} />{t('marketMonitor.scanNow')}</Button>
         </div>}
       />
@@ -241,7 +261,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-6">
         {loading && !snapshot ? <MonitorSkeleton /> : error && !snapshot ? <div><EmptyState title={t('marketMonitor.unavailable')} description={error} /><div className="-mt-9 flex justify-center pb-10"><Button onClick={() => void scan(asset, 'manual')}>{t('marketMonitor.retryScan')}</Button></div></div> : snapshot ? (
           <div className="mx-auto flex max-w-[1320px] flex-col gap-4 pb-8">
-            <DailyBriefPanel snapshot={snapshot} />
+            <DailyBriefPanel snapshot={snapshot} narratorStatus={narratorStatus} />
             <Overview snapshot={snapshot} timeframe={timeframe} />
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(300px,0.7fr)]">
               <EvidenceTable snapshot={snapshot} />
@@ -261,12 +281,13 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
   )
 }
 
-function DailyBriefPanel({ snapshot }: { snapshot: MonitorSnapshot }) {
+function DailyBriefPanel({ snapshot, narratorStatus }: { snapshot: MonitorSnapshot; narratorStatus: MarketNarratorStatus | null }) {
   const { t } = useTranslation()
   const brief = snapshot.dailyBrief
   const trend = snapshot.trend
   if (!brief || !trend) return <Panel title={t('marketMonitor.panels.dailyBrief')}><p className="text-xs text-muted-foreground">{t('marketMonitor.brief.upgradeHint')}</p></Panel>
   const tone = brief.overallDirection === 'bullish' ? 'text-success' : brief.overallDirection === 'bearish' ? 'text-destructive' : 'text-foreground'
+  const narration = snapshot.aiNarration
   return <Panel title={t('marketMonitor.panels.dailyBrief')} trailing={<span className="text-[10px] text-muted-foreground">{t('marketMonitor.brief.cadence', { date: brief.periodKey })} · {t('marketMonitor.brief.narrator')}</span>}>
     <div className="flex flex-wrap items-baseline justify-between gap-2">
       <h4 className={cn('text-lg font-semibold', tone)}>{monitorBriefHeadline(t, brief.headline)}</h4>
@@ -283,6 +304,28 @@ function DailyBriefPanel({ snapshot }: { snapshot: MonitorSnapshot }) {
       <ConditionList title={t('marketMonitor.brief.observations')} rows={brief.observations.map((id) => monitorBriefObservation(t, id))} tone="neutral" />
       <ConditionList title={t('marketMonitor.brief.watchFor')} rows={brief.watchFor.map((id) => monitorWyckoffCondition(t, id))} tone="positive" />
       <ConditionList title={t('marketMonitor.brief.risks')} rows={brief.risks.length ? brief.risks.map((id) => monitorBriefRisk(t, id)) : [t('marketMonitor.brief.noRisks')]} tone="negative" />
+    </div>
+    <div className="mt-5 border-t border-border/60 pt-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-xs font-semibold"><Sparkles className="size-3.5 text-primary" />{t('marketMonitor.narrator.title')}</div>
+        {narration ? <span className="text-[10px] text-muted-foreground">Codex{narration.model ? ` · ${narration.model}` : ''} · {formatDate(narration.generatedAt)}</span>
+          : <span className={cn('text-[10px]', narratorStatus?.state === 'failed' || narratorStatus?.state === 'blocked' ? 'text-warning' : 'text-muted-foreground')}>{narratorStatus ? t(`marketMonitor.narrator.state.${narratorStatus.state}`) : t('marketMonitor.narrator.checking')}</span>}
+      </div>
+      {narration ? <div>
+        <h4 className="text-base font-semibold">{narration.headline}</h4>
+        <p className="mt-2 text-xs leading-5 text-muted-foreground">{narration.summary}</p>
+        <dl className="mt-4 grid gap-4 sm:grid-cols-3">
+          <div><dt className="text-[11px] text-muted-foreground">{t('marketMonitor.trend.short')}</dt><dd className="mt-1 text-xs leading-5">{narration.shortTerm}</dd></div>
+          <div><dt className="text-[11px] text-muted-foreground">{t('marketMonitor.trend.medium')}</dt><dd className="mt-1 text-xs leading-5">{narration.mediumTerm}</dd></div>
+          <div><dt className="text-[11px] text-muted-foreground">{t('marketMonitor.trend.long')}</dt><dd className="mt-1 text-xs leading-5">{narration.longTerm}</dd></div>
+        </dl>
+        <div className="grid gap-x-6 lg:grid-cols-3">
+          <ConditionList title={t('marketMonitor.narrator.evidence')} rows={narration.evidence} tone="neutral" />
+          <ConditionList title={t('marketMonitor.narrator.watchFor')} rows={narration.watchFor} tone="positive" />
+          <ConditionList title={t('marketMonitor.narrator.risks')} rows={narration.risks} tone="negative" />
+        </div>
+        <p className="mt-3 text-[10px] text-muted-foreground">{t('marketMonitor.narrator.disclaimer')}</p>
+      </div> : <p className="text-xs leading-5 text-muted-foreground">{narratorStatus?.message ?? t('marketMonitor.narrator.waiting')}</p>}
     </div>
   </Panel>
 }
@@ -443,6 +486,7 @@ function SettingsPanel({ settings, strategies, onSave, onClose }: { settings: Mo
     <fieldset disabled={saving} className="mx-auto max-w-[1160px] space-y-3">
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
         <label className="flex items-center gap-2 font-medium"><input type="checkbox" checked={draft.backgroundEnabled} onChange={(event) => setDraft({ ...draft, backgroundEnabled: event.target.checked })} />{t('marketMonitor.settings.background')}</label>
+        <label className="flex items-center gap-2 font-medium"><input type="checkbox" checked={draft.codexNarrationEnabled} onChange={(event) => setDraft({ ...draft, codexNarrationEnabled: event.target.checked })} />{t('marketMonitor.settings.codexNarration')}</label>
         <fieldset className="flex items-center gap-3"><legend className="sr-only">{t('marketMonitor.settings.scheduledAssets')}</legend>{ASSETS.map((item) => <label key={item} className="flex items-center gap-1.5"><input type="checkbox" checked={draft.enabledAssets.includes(item)} onChange={(event) => setDraft({ ...draft, enabledAssets: event.target.checked ? [...draft.enabledAssets, item] : draft.enabledAssets.filter((asset) => asset !== item) })} />{item}</label>)}</fieldset>
       </div>
       <p className="text-[11px] leading-5 text-muted-foreground">{t('marketMonitor.settings.explanation')}</p>

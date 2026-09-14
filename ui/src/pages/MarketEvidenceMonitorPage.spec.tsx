@@ -7,7 +7,7 @@ import { i18n } from '../i18n'
 import { MarketEvidenceMonitorPage } from './MarketEvidenceMonitorPage'
 
 const mocks = vi.hoisted(() => ({
-  health: vi.fn(), status: vi.fn(), settings: vi.fn(), strategies: vi.fn(), snapshots: vi.fn(), alerts: vi.fn(), evaluation: vi.fn(), scan: vi.fn(), saveSettings: vi.fn(),
+  health: vi.fn(), status: vi.fn(), narratorStatus: vi.fn(), runNarratorNow: vi.fn(), reconcileNarrator: vi.fn(), settings: vi.fn(), strategies: vi.fn(), snapshots: vi.fn(), alerts: vi.fn(), evaluation: vi.fn(), scan: vi.fn(), saveSettings: vi.fn(),
 }))
 vi.mock('../api', () => ({ api: { marketMonitor: mocks } }))
 
@@ -15,8 +15,10 @@ beforeEach(async () => {
   await i18n.changeLanguage('en')
   window.localStorage.clear()
   mocks.health.mockImplementation(async (asset: 'BTC' | 'TSLA', hours: 24 | 72) => demoMonitorHealth(asset, hours))
-  const settings = { backgroundEnabled: false, enabledAssets: ['BTC', 'TSLA'], strategyId: 'evidence-chain-v1', intervalMinutes: 15, notifications: false, alertConfidence: 68, abnormalVolumeRatio: 1.8, abnormalMovePercent: 1.5 }
+  const settings = { backgroundEnabled: false, codexNarrationEnabled: true, enabledAssets: ['BTC', 'TSLA'], strategyId: 'evidence-chain-v1', intervalMinutes: 15, notifications: false, alertConfidence: 68, abnormalVolumeRatio: 1.8, abnormalMovePercent: 1.5 }
   mocks.status.mockResolvedValue({ running: true, backgroundEnabled: false, intervalMinutes: 15, checkedAt: null, error: null, assets: ['BTC', 'TSLA'].map((asset) => ({ asset, enabled: true, scanning: false, nextScanAt: null, lastReceipt: null })) })
+  mocks.narratorStatus.mockResolvedValue({ enabled: true, state: 'ready', issueId: 'mad42lab-market-daily-interpretation', schedule: { cron: '30 17 * * *', timezone: 'America/Vancouver', localTime: '17:30' }, message: 'Codex daily narration is enabled.' })
+  mocks.runNarratorNow.mockResolvedValue({ enabled: true, state: 'ready', issueId: 'mad42lab-market-daily-interpretation', schedule: { cron: '30 17 * * *', timezone: 'America/Vancouver', localTime: '17:30' }, message: 'Run dispatched.' })
   mocks.settings.mockResolvedValue(settings)
   mocks.strategies.mockResolvedValue({ strategies: [{ id: 'evidence-chain-v1', label: 'Evidence chain', version: 1, description: 'fixture', requiredData: ['daily-bars', 'hourly-bars', 'asset-context'] }] })
   mocks.snapshots.mockImplementation(async (asset: 'BTC' | 'TSLA') => ({ snapshots: [demoMonitorSnapshot(asset)], count: 1 }))
@@ -61,6 +63,15 @@ it('renders the registered strategy in monitor settings', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Monitor settings' }))
   expect((screen.getByRole('combobox', { name: 'Strategy' }) as HTMLSelectElement).value).toBe('evidence-chain-v1')
   expect(screen.getByRole('option', { name: 'Evidence chain v1' })).toBeTruthy()
+})
+
+it('keeps Codex daily interpretation enabled by default and can dispatch it now', async () => {
+  render(<MarketEvidenceMonitorPage />)
+  await screen.findAllByText('Codex daily interpretation')
+  fireEvent.click(screen.getByRole('button', { name: /Run Codex/ }))
+  await waitFor(() => expect(mocks.runNarratorNow).toHaveBeenCalledOnce())
+  fireEvent.click(screen.getByRole('button', { name: 'Monitor settings' }))
+  expect((screen.getByRole('checkbox', { name: /Codex daily interpretation/ }) as HTMLInputElement).checked).toBe(true)
 })
 
 it('opens empty history without silently dispatching a scan', async () => {

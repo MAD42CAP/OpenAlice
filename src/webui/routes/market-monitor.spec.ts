@@ -4,6 +4,7 @@ import type { MarketMonitorService } from '../../domain/market-monitor/service.j
 import { DEFAULT_MARKET_MONITOR_SETTINGS, type MarketContextProviderManifest, type MarketMonitorStrategyManifest } from '../../domain/market-monitor/types.js'
 import { createMarketMonitorRoutes } from './market-monitor.js'
 import { summarizeMonitorHealth } from '../../domain/market-monitor/health.js'
+import type { MarketNarratorCoordinator } from '../market-monitor-narrator.js'
 
 function service(): MarketMonitorService {
   return {
@@ -16,10 +17,26 @@ function service(): MarketMonitorService {
     evaluation: vi.fn(async (asset) => ({ asset, samples: 0, resolved: 0, directionalAccuracy: null, averageForwardChangePercent: null, rows: [] })),
     strategies: vi.fn((): MarketMonitorStrategyManifest[] => [{ id: 'evidence-chain-v1', label: 'Evidence chain', version: 1, description: 'fixture', requiredData: ['daily-bars', 'hourly-bars', 'asset-context'] }]),
     contextProviders: vi.fn((): MarketContextProviderManifest[] => [{ id: 'fixture-context', label: 'Fixture', assets: ['BTC', 'TSLA'], description: 'fixture' }]),
+    dailyNarrationInput: vi.fn(async () => ({ generatedAt: new Date().toISOString(), strategyId: 'evidence-chain-v1', assets: [] })),
+    publishNarration: vi.fn(),
+    narrations: vi.fn(async () => []),
   }
 }
 
 describe('market monitor routes', () => {
+  it('exposes narrator health, reconciles settings and dispatches an immediate run', async () => {
+    const fake = service()
+    const status = { enabled: true, state: 'ready' as const, issueId: 'mad42lab-market-daily-interpretation', schedule: { cron: '30 17 * * *', timezone: 'America/Vancouver', localTime: '17:30' }, message: 'ready' }
+    const narrator = { status: vi.fn(async () => status), reconcile: vi.fn(async () => status), runNow: vi.fn(async () => status) } satisfies MarketNarratorCoordinator
+    const app = createMarketMonitorRoutes({} as EngineContext, fake, undefined, narrator)
+    expect((await app.request('/narrator/status')).status).toBe(200)
+    expect((await app.request('/narrator/run', { method: 'POST' })).status).toBe(200)
+    expect(narrator.runNow).toHaveBeenCalledOnce()
+    const saved = await app.request('/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(DEFAULT_MARKET_MONITOR_SETTINGS) })
+    expect(saved.status).toBe(200)
+    expect(narrator.reconcile).toHaveBeenCalledWith(true)
+  })
+
   it('validates scan identity and preserves trigger provenance', async () => {
     const fake = service()
     const app = createMarketMonitorRoutes({} as EngineContext, fake)

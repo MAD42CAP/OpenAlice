@@ -3,11 +3,13 @@ import { z } from 'zod'
 import type { EngineContext } from '../../core/types.js'
 import { createMarketMonitorService, type MarketMonitorService } from '../../domain/market-monitor/service.js'
 import type { MarketMonitorScheduler } from '../../domain/market-monitor/scheduler.js'
+import type { MarketNarratorCoordinator } from '../market-monitor-narrator.js'
 import { DEFAULT_MARKET_MONITOR_SETTINGS, MARKET_MONITOR_ASSETS, type MarketMonitorAsset } from '../../domain/market-monitor/types.js'
 
 const assetSchema = z.enum(MARKET_MONITOR_ASSETS)
 const settingsSchema = z.object({
   backgroundEnabled: z.boolean().default(false),
+  codexNarrationEnabled: z.boolean().default(true),
   enabledAssets: z.array(assetSchema).min(1).max(2).refine((assets) => new Set(assets).size === assets.length, 'Assets must be unique'),
   strategyId: z.string().trim().min(1).default(DEFAULT_MARKET_MONITOR_SETTINGS.strategyId),
   intervalMinutes: z.number().int().min(1).max(1440),
@@ -27,7 +29,7 @@ function assetFrom(raw: string | undefined): MarketMonitorAsset | undefined {
   return parsed.success ? parsed.data : undefined
 }
 
-export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketMonitorService, scheduler?: MarketMonitorScheduler): Hono {
+export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketMonitorService, scheduler?: MarketMonitorScheduler, narrator?: MarketNarratorCoordinator): Hono {
   const app = new Hono()
   const service = provided ?? createMarketMonitorService({
     barService: ctx.barService,
@@ -54,7 +56,28 @@ export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketM
       return c.json({ error: 'Unknown monitor strategy' }, 400)
     }
     await service.saveSettings(parsed.data)
+    await narrator?.reconcile(parsed.data.codexNarrationEnabled)
     return c.json(parsed.data)
+  })
+
+  app.get('/narrator/status', async (c) => {
+    if (!narrator) return c.json({ error: 'Codex narrator is not attached to this runtime' }, 503)
+    return c.json(await narrator.status((await service.settings()).codexNarrationEnabled))
+  })
+
+  app.post('/narrator/reconcile', async (c) => {
+    if (!narrator) return c.json({ error: 'Codex narrator is not attached to this runtime' }, 503)
+    return c.json(await narrator.reconcile((await service.settings()).codexNarrationEnabled))
+  })
+
+  app.post('/narrator/run', async (c) => {
+    if (!narrator) return c.json({ error: 'Codex narrator is not attached to this runtime' }, 503)
+    const settings = await service.settings()
+    if (!settings.codexNarrationEnabled) return c.json({ error: 'Codex daily narration is disabled' }, 409)
+    const ready = await narrator.reconcile(true)
+    if (ready.state === 'blocked' || ready.state === 'failed') return c.json(ready, 409)
+    try { return c.json(await narrator.runNow()) }
+    catch (error) { return c.json({ error: error instanceof Error ? error.message : String(error) }, 409) }
   })
 
   app.post('/scan', async (c) => {

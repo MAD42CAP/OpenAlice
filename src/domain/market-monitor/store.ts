@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto'
 import { readRecentJsonLines } from './journal.js'
 import { dataPath } from '../../core/paths.js'
 import type {
+  MarketAiNarration,
   MarketMonitorAlert,
   MarketMonitorAsset,
   MarketMonitorReceipt,
@@ -45,6 +46,8 @@ export interface MarketMonitorStore {
   appendAlert(alert: MarketMonitorAlert): Promise<void>
   receipts(asset?: MarketMonitorAsset, limit?: number): Promise<MarketMonitorReceipt[]>
   appendReceipt(receipt: MarketMonitorReceipt): Promise<void>
+  narrations(asset?: MarketMonitorAsset, limit?: number): Promise<MarketAiNarration[]>
+  appendNarration(narration: MarketAiNarration): Promise<void>
   latestSeries(asset: MarketMonitorAsset, strategyId?: string): Promise<MarketMonitorSnapshot['chart'] | null>
   saveLatestSeries(asset: MarketMonitorAsset, chart: MarketMonitorSnapshot['chart'], strategyId?: string): Promise<void>
 }
@@ -54,6 +57,7 @@ export function createMarketMonitorStore(root = ROOT): MarketMonitorStore {
   const SNAPSHOTS_FILE = `${root}/observations.jsonl`
   const ALERTS_FILE = `${root}/alerts.jsonl`
   const RECEIPTS_FILE = `${root}/receipts.jsonl`
+  const NARRATIONS_FILE = `${root}/ai-narrations.jsonl`
   return {
     async settings() {
       try {
@@ -84,6 +88,10 @@ export function createMarketMonitorStore(root = ROOT): MarketMonitorStore {
       return (await readRecentJsonLines<MarketMonitorReceipt>(RECEIPTS_FILE, Math.max(1, Math.min(10_000, limit)), (row) => !asset || row.asset === asset)).rows
     },
     appendReceipt: (receipt) => appendJsonLine(RECEIPTS_FILE, receipt),
+    async narrations(asset, limit = 100) {
+      return (await readRecentJsonLines<MarketAiNarration>(NARRATIONS_FILE, Math.max(1, Math.min(1000, limit)), (row) => !asset || row.asset === asset)).rows
+    },
+    appendNarration: (narration) => appendJsonLine(NARRATIONS_FILE, narration),
     async latestSeries(asset, strategyId = DEFAULT_MARKET_MONITOR_STRATEGY_ID) {
       const current = await readSeriesFile(seriesFile(root, asset, strategyId))
       if (current || strategyId !== DEFAULT_MARKET_MONITOR_STRATEGY_ID) return current

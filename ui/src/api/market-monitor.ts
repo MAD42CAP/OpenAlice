@@ -6,6 +6,7 @@ export type MonitorTrigger = 'manual' | 'scheduled'
 
 export interface MonitorSettings {
   backgroundEnabled: boolean
+  codexNarrationEnabled: boolean
   enabledAssets: MonitorAsset[]
   strategyId: string
   intervalMinutes: number
@@ -97,6 +98,28 @@ export interface MarketDailyBrief {
   risks: string[]
 }
 
+export interface MarketAiNarration {
+  id: string
+  asset: MonitorAsset
+  strategyId: string
+  periodKey: string
+  promptVersion: 'codex-daily-v1'
+  generatedAt: string
+  language: 'zh-CN'
+  agent: 'codex'
+  model?: string
+  effort?: string
+  headline: string
+  summary: string
+  shortTerm: string
+  mediumTerm: string
+  longTerm: string
+  evidence: string[]
+  risks: string[]
+  watchFor: string[]
+  provenance: { workspaceId: string; runId: string; issueId: string }
+}
+
 export interface MonitorSnapshot {
   id: string
   asset: MonitorAsset
@@ -136,6 +159,7 @@ export interface MonitorSnapshot {
   trend?: MultiTimeframeTrend
   wyckoff?: WyckoffAssessment
   dailyBrief?: MarketDailyBrief
+  aiNarration?: MarketAiNarration
   context: Record<string, unknown> & { recentNews?: Array<{ title: string; time: string; source: string | null }> }
   sourceHealth: SourceHealth[]
   chart: { daily: HistoricalBar[]; intraday: HistoricalBar[]; dailyMeta: BarMeta; intradayMeta: BarMeta | null }
@@ -230,6 +254,18 @@ export interface MonitorSchedulerStatus {
   }>
 }
 
+export interface MarketNarratorStatus {
+  enabled: boolean
+  state: 'ready' | 'disabled' | 'blocked' | 'failed'
+  issueId: string
+  workspaceId?: string
+  workspaceLabel?: string
+  schedule: { cron: string; timezone: string; localTime: string }
+  message: string
+  nextRunAt?: string | null
+  lastRun?: { taskId: string; status: string; startedAt: string; finishedAt?: string; model?: string; effort?: string; error?: string }
+}
+
 export interface ScanResult {
   snapshot: MonitorSnapshot
   stored: boolean
@@ -263,6 +299,9 @@ function query(asset?: MonitorAsset, limit = 100, strategyId?: string): string {
 export const marketMonitorApi = {
   health: (asset: MonitorAsset, hours: 24 | 72 = 24) => fetchJson<MonitorHealthReport>(`/api/market-monitor/health?asset=${asset}&hours=${hours}`),
   status: () => fetchJson<MonitorSchedulerStatus>('/api/market-monitor/status'),
+  narratorStatus: () => fetchJson<MarketNarratorStatus>('/api/market-monitor/narrator/status'),
+  reconcileNarrator: () => fetchJson<MarketNarratorStatus>('/api/market-monitor/narrator/reconcile', { method: 'POST', headers }),
+  runNarratorNow: () => fetchJson<MarketNarratorStatus>('/api/market-monitor/narrator/run', { method: 'POST', headers }),
   settings: () => fetchJson<MonitorSettings>('/api/market-monitor/settings'),
   strategies: () => fetchJson<{ strategies: MonitorStrategy[] }>('/api/market-monitor/strategies'),
   contextProviders: () => fetchJson<{ providers: MonitorContextProvider[] }>('/api/market-monitor/context-providers'),

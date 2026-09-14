@@ -243,6 +243,7 @@ export interface WorkspaceToolContext {
    *  inboxStore.append) so a pushed entry self-links to its originating run /
    *  issue. Absent (interactive session, or no header) → undefined. */
   callerRun?: Pick<HeadlessTaskRecord, 'taskId' | 'status' | 'trigger' | 'inquiry'>
+    & Partial<Pick<HeadlessTaskRecord, 'agent' | 'model' | 'effort'>>
   origin?: InboxOrigin
   /** GLOBAL issue-board reader — the cross-workspace board the
    *  `alice` CLI surfaces (issue_list / issue_show read EVERY

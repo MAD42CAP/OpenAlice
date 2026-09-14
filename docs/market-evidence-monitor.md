@@ -157,17 +157,23 @@ The dashboard creates one logical brief for each attributed daily-candle date.
 BTC advances when its next daily candle arrives; TSLA advances on its next
 trading-day candle, so weekends and market holidays do not produce empty
 briefs. Intraday scans may refresh the live evidence under the same date. The
-current narrator is deterministic and bilingual; a future optional Agent-CLI
-narrator can rewrite only these structured facts and must use the same daily
-identity to avoid repeat model calls.
+deterministic narrator remains the authoritative bilingual record. A
+supplemental native-Codex interpretation is enabled by default and runs from an
+OpenAlice scheduled Issue at 17:30 `America/Vancouver` (`catchUp: true`). One
+Issue handles BTC and TSLA: BTC can advance every day, while TSLA is skipped
+until a new attributed trading-day candle exists. The dashboard also exposes an
+explicit **Run Codex** action for immediate verification.
 
-Codex availability in Chat does not automatically make it the monitor's
-narrator. Chat is an interactive native Codex session, while the monitor is a
-browser-independent domain service. An optional daily AI reading should be an
-OpenAlice scheduled Issue assigned to `codex`, reading the persisted structured
-brief and publishing its result back to the monitor/Inbox. This preserves model
-selection, credential provenance, run history and failure visibility without
-adding an in-process model client to the monitor.
+The scheduled Issue uses the existing native Codex login and inherits its model
+unless the Issue is edited later. It refreshes read-only evidence through a
+Workspace tool, publishes at most one narration per
+`asset + strategy + daily-period`, and sends a concise Inbox summary. The write
+tool accepts output only from that exact Issue running as `codex`; ordinary Chat
+sessions, other agents and other Issues cannot publish. Narrations are
+append-only and carry Workspace, Issue, run, agent, model and effort provenance.
+They supplement but never replace deterministic scores, phases, confirmation
+conditions or invalidation conditions. This keeps model use and failure history
+visible without adding an in-process model client or any trading authority.
 
 ## Fork branding
 

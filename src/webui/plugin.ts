@@ -27,6 +27,8 @@ import { createMarketRoutes } from './routes/market.js'
 import { createMarketMonitorRoutes } from './routes/market-monitor.js'
 import { createMarketMonitorService } from '../domain/market-monitor/service.js'
 import { createMarketMonitorScheduler, type MarketMonitorScheduler } from '../domain/market-monitor/scheduler.js'
+import { createMarketMonitorToolFactories } from '../tool/market-monitor.js'
+import { createMarketNarratorCoordinator } from './market-monitor-narrator.js'
 import { createBarsRoutes } from './routes/bars.js'
 import { createReferenceRoutes } from './routes/reference.js'
 import { createInboxRoutes } from './routes/inbox.js'
@@ -279,7 +281,6 @@ export class WebPlugin implements Plugin {
       ...(ctx.newsProvider ? { newsProvider: ctx.newsProvider } : {}),
     })
     this.marketMonitorScheduler = createMarketMonitorScheduler(marketMonitor)
-    app.route('/api/market-monitor', createMarketMonitorRoutes(ctx, marketMonitor, this.marketMonitorScheduler))
     app.route('/api/bars', createBarsRoutes(ctx))
     app.route('/api/reference', createReferenceRoutes(ctx))
     app.route('/api/inbox', createInboxRoutes({ inboxStore: ctx.inboxStore, resolveWorkspace: id => this.workspaceService?.registry.get(id) }))
@@ -308,6 +309,14 @@ export class WebPlugin implements Plugin {
     }).catch((error: unknown) => console.warn('[workspace setup] Could not read setup request:', error))
     this.workspacesIpc = attachWorkspacesIpc(this.workspaceService)
     if (this.workspaceServiceRef) this.workspaceServiceRef.current = this.workspaceService
+    for (const factory of createMarketMonitorToolFactories(marketMonitor)) ctx.workspaceToolCenter.register(factory)
+    const marketNarrator = createMarketNarratorCoordinator(this.workspaceService)
+    const narrationSettings = await marketMonitor.settings()
+    const narrationStatus = await marketNarrator.reconcile(narrationSettings.codexNarrationEnabled)
+    if (narrationStatus.state === 'failed' || narrationStatus.state === 'blocked') {
+      console.warn(`[market monitor] Codex daily narration: ${narrationStatus.message}`)
+    }
+    app.route('/api/market-monitor', createMarketMonitorRoutes(ctx, marketMonitor, this.marketMonitorScheduler, marketNarrator))
     app.route('/api/workspaces', createWorkspaceRoutes(this.workspaceService))
     app.route('/api/harness-surfaces', createHarnessSurfaceRoutes(this.workspaceService.harnessSurfaces, {
       getGatewayPort: () => this.surfaceGatewayPort,

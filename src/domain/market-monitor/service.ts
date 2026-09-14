@@ -18,6 +18,9 @@ import {
 } from './strategy.js'
 import {
   MARKET_MONITOR_ASSET_CONFIG,
+  MARKET_MONITOR_ASSETS,
+  MARKET_DAILY_NARRATION_ISSUE_ID,
+  type MarketAiNarration,
   type MarketContext,
   type MarketContextProviderManifest,
   type MarketMonitorAlert,
@@ -57,6 +60,45 @@ export interface MarketMonitorService {
   health(asset: MarketMonitorAsset, hours?: 24 | 72): Promise<MarketMonitorHealthReport>
   strategies(): MarketMonitorStrategyManifest[]
   contextProviders(): MarketContextProviderManifest[]
+  dailyNarrationInput(assets?: MarketMonitorAsset[]): Promise<MarketNarrationInput>
+  publishNarration(input: MarketNarrationPublishInput, provenance: MarketNarrationProvenance): Promise<{ stored: boolean; narration: MarketAiNarration }>
+  narrations(asset?: MarketMonitorAsset, limit?: number): Promise<MarketAiNarration[]>
+}
+
+export interface MarketNarrationInput {
+  generatedAt: string
+  strategyId: string
+  assets: Array<{
+    asset: MarketMonitorAsset
+    status: 'ready' | 'already-published' | 'failed'
+    periodKey?: string
+    snapshot?: Omit<MarketMonitorSnapshot, 'chart' | 'aiNarration'>
+    existingNarration?: MarketAiNarration
+    error?: string
+  }>
+}
+
+export interface MarketNarrationPublishInput {
+  asset: MarketMonitorAsset
+  strategyId: string
+  periodKey: string
+  headline: string
+  summary: string
+  shortTerm: string
+  mediumTerm: string
+  longTerm: string
+  evidence: string[]
+  risks: string[]
+  watchFor: string[]
+}
+
+export interface MarketNarrationProvenance {
+  workspaceId: string
+  runId: string
+  issueId: string
+  agent: string
+  model?: string
+  effort?: string
 }
 
 function compactBars(bars: OhlcvBar[], max: number): OhlcvBar[] {
@@ -106,6 +148,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
   const store = deps.store ?? createMarketMonitorStore()
   const now = deps.now ?? (() => new Date())
   const inFlight = new Map<MarketMonitorAsset, Promise<MarketMonitorScanResult>>()
+  const narrationWrites = new Map<string, Promise<{ stored: boolean; narration: MarketAiNarration }>>()
   const strategyRegistry = deps.strategyRegistry ?? createMarketMonitorStrategyRegistry()
   const contextProviderRegistry = deps.contextProviderRegistry ?? createDefaultMarketContextProviderRegistry({
     equityClient: deps.equityClient,
@@ -127,6 +170,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
     },
     strategies: () => strategyRegistry.list(),
     contextProviders: () => contextProviderRegistry.list(),
+    narrations: (asset, limit) => store.narrations(asset, limit),
     isScanning: (asset) => inFlight.has(asset),
     async snapshots(asset, limit, strategyId) {
       if (strategyId) strategyRegistry.get(strategyId)
@@ -142,7 +186,61 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
         const chart = await store.latestSeries(row.asset, row.strategyId)
         if (chart) rows[index] = { ...row, chart }
       }
+      const narrations = await store.narrations(asset, 1000)
+      const byPeriod = new Map(narrations.map((row) => [`${row.asset}:${row.strategyId}:${row.periodKey}`, row]))
+      rows.forEach((row, index) => {
+        const narration = row.dailyBrief && byPeriod.get(`${row.asset}:${row.strategyId}:${row.dailyBrief.periodKey}`)
+        if (narration) rows[index] = { ...row, aiNarration: narration }
+      })
       return rows
+    },
+    async dailyNarrationInput(assets = [...MARKET_MONITOR_ASSETS]) {
+      const settings = await loadSettings()
+      const narrations = await store.narrations(undefined, 1000)
+      const rows: MarketNarrationInput['assets'] = []
+      for (const asset of assets) {
+        try {
+          const result = await this.scan(asset, 'scheduled')
+          const snapshot = result.snapshot
+          const periodKey = snapshot.dailyBrief?.periodKey
+          if (!periodKey) throw new Error('Daily deterministic brief is unavailable')
+          const existingNarration = narrations.find((row) => row.asset === asset && row.strategyId === snapshot.strategyId && row.periodKey === periodKey)
+          const { chart: _chart, aiNarration: _narration, ...compact } = snapshot
+          rows.push({ asset, status: existingNarration ? 'already-published' : 'ready', periodKey, snapshot: compact, ...(existingNarration ? { existingNarration } : {}) })
+        } catch (error) {
+          rows.push({ asset, status: 'failed', error: error instanceof Error ? error.message : String(error) })
+        }
+      }
+      return { generatedAt: now().toISOString(), strategyId: settings.strategyId, assets: rows }
+    },
+    publishNarration(input, provenance) {
+      const key = `${input.asset}:${input.strategyId}:${input.periodKey}`
+      const pending = narrationWrites.get(key)
+      if (pending) return pending
+      const task = (async () => {
+        if (provenance.agent !== 'codex' || provenance.issueId !== MARKET_DAILY_NARRATION_ISSUE_ID) throw new Error('Daily narration must be published by the authorized Codex Issue')
+        const rows = (await store.snapshots(input.asset, 1000)).filter((row) => row.strategyId === input.strategyId)
+        const latest = rows.at(-1)
+        if (!latest || latest.dailyBrief?.periodKey !== input.periodKey) throw new Error('The narration period does not match the current deterministic daily brief')
+        const existing = (await store.narrations(input.asset, 1000)).find((row) => row.strategyId === input.strategyId && row.periodKey === input.periodKey)
+        if (existing) return { stored: false, narration: existing }
+        const clean = (value: string) => value.trim()
+        const cleanList = (values: string[]) => values.map(clean).filter(Boolean).slice(0, 8)
+        const narration: MarketAiNarration = {
+          id: randomUUID(), asset: input.asset, strategyId: input.strategyId, periodKey: input.periodKey,
+          promptVersion: 'codex-daily-v1', generatedAt: now().toISOString(), language: 'zh-CN', agent: 'codex',
+          ...(provenance.model ? { model: provenance.model } : {}),
+          ...(provenance.effort ? { effort: provenance.effort } : {}),
+          headline: clean(input.headline), summary: clean(input.summary), shortTerm: clean(input.shortTerm),
+          mediumTerm: clean(input.mediumTerm), longTerm: clean(input.longTerm), evidence: cleanList(input.evidence),
+          risks: cleanList(input.risks), watchFor: cleanList(input.watchFor),
+          provenance: { workspaceId: provenance.workspaceId, runId: provenance.runId, issueId: provenance.issueId },
+        }
+        await store.appendNarration(narration)
+        return { stored: true, narration }
+      })().finally(() => { narrationWrites.delete(key) })
+      narrationWrites.set(key, task)
+      return task
     },
     alerts: (asset, limit) => store.alerts(asset, limit),
     receipts: (asset, limit) => store.receipts(asset, limit),
