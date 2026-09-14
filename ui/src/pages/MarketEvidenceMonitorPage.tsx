@@ -22,11 +22,23 @@ import { MonitorOperations } from '../components/market/MonitorOperations'
 import { getIntlLocale } from '../lib/intl'
 import {
   monitorAlertCopy,
+  monitorBriefHeadline,
+  monitorBriefObservation,
+  monitorBriefRisk,
   monitorEvidenceCopy,
+  monitorHorizonLabel,
   monitorHypothesisCopy,
   monitorSourceDetail,
   monitorSourceLabel,
   monitorStrategyLabel,
+  monitorTrendDirectionLabel,
+  monitorTrendRegimeLabel,
+  monitorWyckoffCondition,
+  monitorWyckoffEventLabel,
+  monitorWyckoffEventStatus,
+  monitorWyckoffEvidence,
+  monitorWyckoffPhaseLabel,
+  monitorWyckoffTestLabel,
 } from './market/market-monitor-presentation'
 
 const ASSETS: MonitorAsset[] = ['BTC', 'TSLA']
@@ -229,11 +241,13 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-6">
         {loading && !snapshot ? <MonitorSkeleton /> : error && !snapshot ? <div><EmptyState title={t('marketMonitor.unavailable')} description={error} /><div className="-mt-9 flex justify-center pb-10"><Button onClick={() => void scan(asset, 'manual')}>{t('marketMonitor.retryScan')}</Button></div></div> : snapshot ? (
           <div className="mx-auto flex max-w-[1320px] flex-col gap-4 pb-8">
+            <DailyBriefPanel snapshot={snapshot} />
             <Overview snapshot={snapshot} timeframe={timeframe} />
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(300px,0.7fr)]">
               <EvidenceTable snapshot={snapshot} />
               <HypothesisPanel snapshot={snapshot} />
             </div>
+            <WyckoffPanel snapshot={snapshot} />
             <div className="grid gap-4 xl:grid-cols-2">
               <ContextPanel snapshot={snapshot} />
               <SourcePanel snapshot={snapshot} />
@@ -245,6 +259,32 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
       </div>
     </div>
   )
+}
+
+function DailyBriefPanel({ snapshot }: { snapshot: MonitorSnapshot }) {
+  const { t } = useTranslation()
+  const brief = snapshot.dailyBrief
+  const trend = snapshot.trend
+  if (!brief || !trend) return <Panel title={t('marketMonitor.panels.dailyBrief')}><p className="text-xs text-muted-foreground">{t('marketMonitor.brief.upgradeHint')}</p></Panel>
+  const tone = brief.overallDirection === 'bullish' ? 'text-success' : brief.overallDirection === 'bearish' ? 'text-destructive' : 'text-foreground'
+  return <Panel title={t('marketMonitor.panels.dailyBrief')} trailing={<span className="text-[10px] text-muted-foreground">{t('marketMonitor.brief.cadence', { date: brief.periodKey })} · {t('marketMonitor.brief.narrator')}</span>}>
+    <div className="flex flex-wrap items-baseline justify-between gap-2">
+      <h4 className={cn('text-lg font-semibold', tone)}>{monitorBriefHeadline(t, brief.headline)}</h4>
+      <span className="text-xs font-semibold tabular-nums text-muted-foreground">{t('marketMonitor.trend.confidence', { confidence: brief.confidence })}</span>
+    </div>
+    <dl className="mt-4 grid border-y border-border/60 sm:grid-cols-3 sm:divide-x sm:divide-border/60">
+      {([trend.short, trend.medium, trend.long] as const).map((assessment) => <div key={assessment.horizon} className="py-3 sm:px-4 sm:first:pl-0 sm:last:pr-0">
+        <dt className="text-[11px] text-muted-foreground">{monitorHorizonLabel(t, assessment.horizon)}</dt>
+        <dd className={cn('mt-1 text-base font-semibold', assessment.direction === 'bullish' ? 'text-success' : assessment.direction === 'bearish' ? 'text-destructive' : '')}>{monitorTrendDirectionLabel(t, assessment.direction)}</dd>
+        <div className="mt-1 text-[11px] text-muted-foreground">{monitorTrendRegimeLabel(t, assessment.regime)} · {t('marketMonitor.trend.score', { score: assessment.score })} · {assessment.confidence}%</div>
+      </div>)}
+    </dl>
+    <div className="grid gap-x-6 lg:grid-cols-3">
+      <ConditionList title={t('marketMonitor.brief.observations')} rows={brief.observations.map((id) => monitorBriefObservation(t, id))} tone="neutral" />
+      <ConditionList title={t('marketMonitor.brief.watchFor')} rows={brief.watchFor.map((id) => monitorWyckoffCondition(t, id))} tone="positive" />
+      <ConditionList title={t('marketMonitor.brief.risks')} rows={brief.risks.length ? brief.risks.map((id) => monitorBriefRisk(t, id)) : [t('marketMonitor.brief.noRisks')]} tone="negative" />
+    </div>
+  </Panel>
 }
 
 function RuntimeStatus({ asset, status, error, onRetry }: { asset: MonitorAsset; status: MonitorSchedulerStatus | null; error: string | null; onRetry: () => Promise<void> }) {
@@ -331,6 +371,35 @@ function HypothesisPanel({ snapshot }: { snapshot: MonitorSnapshot }) {
   const hypothesis = snapshot.hypothesis
   const copy = monitorHypothesisCopy(t, snapshot)
   return <Panel title={t('marketMonitor.panels.currentHypothesis')} trailing={<span className={cn('text-xs font-semibold tabular-nums', hypothesis.bias === 'bullish' ? 'text-success' : hypothesis.bias === 'bearish' ? 'text-destructive' : 'text-muted-foreground')}>{hypothesis.confidence}%</span>}><h4 className="text-lg font-semibold">{copy.label}</h4><p className="mt-2 text-xs leading-5 text-muted-foreground">{copy.summary}</p><ConditionList title={t('marketMonitor.panels.confirmation')} rows={copy.confirm} tone="positive" /><ConditionList title={t('marketMonitor.panels.invalidation')} rows={copy.invalidate} tone="negative" /><ConditionList title={t('marketMonitor.panels.alternatives')} rows={copy.alternatives} tone="neutral" /></Panel>
+}
+
+function WyckoffPanel({ snapshot }: { snapshot: MonitorSnapshot }) {
+  const { t } = useTranslation()
+  const wyckoff = snapshot.wyckoff
+  if (!wyckoff) return <Panel title={t('marketMonitor.panels.wyckoff')}><p className="text-xs text-muted-foreground">{t('marketMonitor.brief.upgradeHint')}</p></Panel>
+  const priceDigits = snapshot.asset === 'BTC' ? 0 : 2
+  return <Panel title={t('marketMonitor.panels.wyckoff')} trailing={<span className="text-[10px] text-muted-foreground">{t('marketMonitor.wyckoff.candidate')}</span>}>
+    <div className="grid gap-5 lg:grid-cols-[minmax(240px,0.65fr)_minmax(0,1.35fr)]">
+      <div>
+        <div className="flex flex-wrap items-baseline justify-between gap-2"><h4 className="text-lg font-semibold">{monitorWyckoffPhaseLabel(t, wyckoff.phaseCandidate)}</h4><span className="text-xs font-semibold tabular-nums text-muted-foreground">{t('marketMonitor.wyckoff.confidence', { confidence: wyckoff.confidence })}</span></div>
+        <div className="mt-1 text-xs text-muted-foreground">{monitorWyckoffTestLabel(t, wyckoff.testState)}</div>
+        {wyckoff.range && <dl className="mt-4 grid grid-cols-2 gap-3 border-y border-border/60 py-3 text-xs">
+          <Metric label={t('marketMonitor.wyckoff.lower')} value={`$${formatNumber(wyckoff.range.lower, priceDigits)}`} />
+          <Metric label={t('marketMonitor.wyckoff.upper')} value={`$${formatNumber(wyckoff.range.upper, priceDigits)}`} />
+          <Metric label={t('marketMonitor.wyckoff.position')} value={`${Math.round(wyckoff.range.position * 100)}%`} />
+          <Metric label={t('marketMonitor.wyckoff.width')} value={formatPercent(wyckoff.range.widthPercent)} />
+        </dl>}
+        <div className="mt-4 text-[11px] font-semibold text-muted-foreground">{t('marketMonitor.wyckoff.events')}</div>
+        {wyckoff.events.length ? <ul className="mt-2 space-y-2">{wyckoff.events.map((event) => <li key={`${event.kind}:${event.at}`} className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border/50 pb-2 text-xs"><span>{monitorWyckoffEventLabel(t, event.kind)}</span><span className={cn('text-[11px]', event.status === 'confirmed' ? 'text-success' : event.status === 'invalidated' ? 'text-destructive' : 'text-warning')}>{monitorWyckoffEventStatus(t, event.status)} · {formatDate(event.at)}{event.level == null ? '' : ` · $${formatNumber(event.level, priceDigits)}`}</span></li>)}</ul> : <p className="mt-2 text-xs text-muted-foreground">{t('marketMonitor.wyckoff.noEvents')}</p>}
+      </div>
+      <div className="grid gap-x-6 md:grid-cols-2">
+        <ConditionList title={t('marketMonitor.wyckoff.supporting')} rows={wyckoff.supportingEvidence.map((id) => monitorWyckoffEvidence(t, id))} tone="positive" />
+        <ConditionList title={t('marketMonitor.wyckoff.opposing')} rows={wyckoff.opposingEvidence.length ? wyckoff.opposingEvidence.map((id) => monitorWyckoffEvidence(t, id)) : [t('marketMonitor.wyckoff.noOpposing')]} tone="neutral" />
+        <ConditionList title={t('marketMonitor.panels.confirmation')} rows={wyckoff.confirmation.map((id) => monitorWyckoffCondition(t, id))} tone="positive" />
+        <ConditionList title={t('marketMonitor.panels.invalidation')} rows={wyckoff.invalidation.map((id) => monitorWyckoffCondition(t, id))} tone="negative" />
+      </div>
+    </div>
+  </Panel>
 }
 
 function ConditionList({ title, rows, tone }: { title: string; rows: string[]; tone: 'positive' | 'negative' | 'neutral' }) {

@@ -5,6 +5,14 @@ export type MarketMonitorAsset = typeof MARKET_MONITOR_ASSETS[number]
 export type MarketMonitorTrigger = 'manual' | 'scheduled'
 export type EvidenceTone = 'positive' | 'negative' | 'neutral'
 export type MarketMonitorStrategyId = string
+export type TrendHorizon = 'short' | 'medium' | 'long'
+export type TrendDirection = 'bullish' | 'bearish' | 'sideways' | 'transition' | 'insufficient'
+export type TrendRegime = 'trend' | 'range' | 'transition' | 'unknown'
+export type TrendAlignment = 'aligned-bullish' | 'aligned-bearish' | 'mixed' | 'range' | 'insufficient'
+export type WyckoffPhaseCandidate = 'accumulation' | 'markup' | 'distribution' | 'markdown' | 'reaccumulation' | 'redistribution' | 'indeterminate'
+export type WyckoffEventKind = 'spring' | 'test' | 'sign-of-strength' | 'last-point-of-support' | 'upthrust' | 'upthrust-after-distribution' | 'sign-of-weakness' | 'last-point-of-supply'
+export type WyckoffEventStatus = 'candidate' | 'confirmed' | 'invalidated'
+export type WyckoffTestState = 'none' | 'pending' | 'confirmed' | 'invalidated'
 
 export const DEFAULT_MARKET_MONITOR_STRATEGY_ID = 'evidence-chain-v1'
 
@@ -77,6 +85,68 @@ export interface EvidenceItem {
   weight: number
 }
 
+export interface TrendSignal {
+  id: string
+  tone: EvidenceTone
+  weight: number
+  value?: number | null
+}
+
+export interface TrendAssessment {
+  horizon: TrendHorizon
+  direction: TrendDirection
+  regime: TrendRegime
+  score: number
+  confidence: number
+  signals: TrendSignal[]
+}
+
+export interface MultiTimeframeTrend {
+  short: TrendAssessment
+  medium: TrendAssessment
+  long: TrendAssessment
+  alignment: TrendAlignment
+}
+
+export interface WyckoffEvent {
+  kind: WyckoffEventKind
+  status: WyckoffEventStatus
+  at: string
+  level: number | null
+}
+
+export interface WyckoffAssessment {
+  phaseCandidate: WyckoffPhaseCandidate
+  confidence: number
+  testState: WyckoffTestState
+  range: {
+    lookback: number
+    lower: number
+    upper: number
+    position: number
+    widthPercent: number | null
+  } | null
+  events: WyckoffEvent[]
+  supportingEvidence: string[]
+  opposingEvidence: string[]
+  confirmation: string[]
+  invalidation: string[]
+}
+
+export interface MarketDailyBrief {
+  cadence: 'daily-bar'
+  periodKey: string
+  narrator: 'deterministic-v1'
+  overallDirection: TrendDirection
+  confidence: number
+  alignment: TrendAlignment
+  phaseCandidate: WyckoffPhaseCandidate
+  headline: string
+  observations: string[]
+  watchFor: string[]
+  risks: string[]
+}
+
 export interface MarketHypothesis {
   id: 'demand-control' | 'supply-control' | 'balanced-range'
   label: string
@@ -134,6 +204,12 @@ export interface MarketMonitorSnapshot {
   metrics: MarketMonitorMetrics
   hypothesis: MarketHypothesis
   evidence: EvidenceItem[]
+  /** Optional while previously persisted v1 observations remain readable. */
+  trend?: MultiTimeframeTrend
+  /** Optional while previously persisted v1 observations remain readable. */
+  wyckoff?: WyckoffAssessment
+  /** Optional while previously persisted v1 observations remain readable. */
+  dailyBrief?: MarketDailyBrief
   context: MarketContext
   sourceHealth: SourceHealth[]
   chart: {

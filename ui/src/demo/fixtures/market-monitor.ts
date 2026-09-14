@@ -91,6 +91,34 @@ export function demoMonitorSnapshot(asset: MonitorAsset, sequence = 0): MonitorS
       { id: 'weekly', label: 'Weekly follow-through', timeframe: '1W', tone: bullish ? 'positive' : 'neutral', observation: `Latest week is ${bullish ? 2.75 : -0.45}% from the previous week.`, interpretation: 'Weekly direction provides context rather than a standalone signal.', weight: 2 },
       { id: 'intraday', label: 'Intraday pulse', timeframe: '1H', tone: bullish ? 'positive' : 'neutral', observation: `Latest hour ${bullish ? 0.36 : -0.18}%; rolling four hours ${bullish ? 0.94 : -0.71}%.`, interpretation: 'No abnormal hourly expansion detected.', weight: 1 },
     ],
+    trend: {
+      short: { horizon: 'short', direction: bullish ? 'bullish' : 'transition', regime: 'transition', score: bullish ? 44 : -8, confidence: bullish ? 67 : 53, signals: [] },
+      medium: { horizon: 'medium', direction: bullish ? 'bullish' : 'sideways', regime: bullish ? 'trend' : 'range', score: bullish ? 72 : 10, confidence: bullish ? 77 : 54, signals: [] },
+      long: { horizon: 'long', direction: bullish ? 'bullish' : 'bullish', regime: 'trend', score: bullish ? 61 : 48, confidence: bullish ? 73 : 68, signals: [] },
+      alignment: bullish ? 'aligned-bullish' : 'mixed',
+    },
+    wyckoff: {
+      phaseCandidate: bullish ? 'markup' : 'reaccumulation', confidence: bullish ? 75 : 60, testState: bullish ? 'confirmed' : 'pending',
+      range: { lookback: 60, lower: bullish ? 101_500 : 310, upper: bullish ? 119_800 : 365, position: bullish ? 0.82 : 0.56, widthPercent: bullish ? 18.03 : 17.74 },
+      events: bullish
+        ? [{ kind: 'sign-of-strength', status: 'confirmed', at: daily.at(-3)!.date, level: 116_400 }]
+        : [{ kind: 'last-point-of-support', status: 'candidate', at: daily.at(-2)!.date, level: 332 }],
+      supportingEvidence: bullish ? ['range-high-location', 'sign-of-strength', 'successful-test'] : ['long-trend-supports'],
+      opposingEvidence: bullish ? [] : ['no-defining-event'],
+      confirmation: bullish ? ['hold-breakout', 'higher-low', 'positive-weekly-follow-through'] : ['hold-range-midpoint', 'quieter-pullback', 'break-range-high'],
+      invalidation: bullish ? ['return-inside-range', 'failed-upside-test'] : ['lose-range-low', 'long-trend-deteriorates'],
+    },
+    dailyBrief: {
+      cadence: 'daily-bar', periodKey: last.date.slice(0, 10), narrator: 'deterministic-v1',
+      overallDirection: bullish ? 'bullish' : 'transition', confidence: bullish ? 72 : 58,
+      alignment: bullish ? 'aligned-bullish' : 'mixed', phaseCandidate: bullish ? 'markup' : 'reaccumulation',
+      headline: bullish ? 'aligned-bullish' : 'mixed',
+      observations: bullish
+        ? ['short-bullish', 'medium-bullish', 'long-bullish', 'wyckoff-markup']
+        : ['short-transition', 'medium-sideways', 'long-bullish', 'wyckoff-reaccumulation'],
+      watchFor: bullish ? ['hold-breakout', 'higher-low'] : ['hold-range-midpoint', 'break-range-high'],
+      risks: bullish ? [] : ['mixed-timeframes', 'no-defining-event'],
+    },
     context: asset === 'BTC' ? { fundingRate: 0.00012, openInterest: 812_500_000, annualizedBasisPercent: 5.7, optionOpenInterest: 198_400, putCallOpenInterestRatio: 0.78 } : { marketCap: 1_087_000_000_000, trailingPe: 186.4, forwardPe: 98.6, analystTargetMean: 352.5, shortPercentFloat: 2.74, nextEarningsAt: '2026-10-21', recentNews: [{ title: 'Tesla delivery expectations remain in focus', time: '2026-09-12T09:00:00Z', source: 'Demo Wire' }] },
     sourceHealth: [
       { id: 'daily-bars', label: 'Daily OHLCV', status: 'ok', provider: 'demo/yfinance', asOf: last.date, detail: 'Deterministic attributed demo bars.' },

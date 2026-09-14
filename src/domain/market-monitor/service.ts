@@ -4,6 +4,7 @@ import type { BarMeta, BarService, BarsResult, OhlcvBar } from '../market-data/b
 import type { INewsProvider } from '../news/types.js'
 import type { ReferenceDataService } from '../market-data/reference/types.js'
 import { evaluateSnapshots } from './analysis.js'
+import { createDailyMarketBrief } from './daily-brief.js'
 import { HEALTH_RECEIPT_LIMIT, summarizeMonitorHealth } from './health.js'
 import {
   createDefaultMarketContextProviderRegistry,
@@ -168,11 +169,12 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
           const settings = await loadSettings()
           const strategy = strategyRegistry.get(settings.strategyId)
           strategyId = strategy.manifest.id
-          const daily = await loadBars(deps.barService, asset, '1d', 260)
+          const daily = await loadBars(deps.barService, asset, '1d', 400)
           let intraday: { result: BarsResult; fallback: boolean } | null = null
           let intradayError: unknown
           try { intraday = await loadBars(deps.barService, asset, '1h', 180) } catch (error) { intradayError = error }
           const analysis = strategy.analyze({
+            asset,
             dailyBars: daily.result.bars, intradayBars: intraday?.result.bars ?? [],
             abnormalMovePercent: settings.abnormalMovePercent,
             abnormalVolumeRatio: settings.abnormalVolumeRatio,
@@ -214,12 +216,21 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
           sourceHealth.push(...contextResult.health.map((source) => fallback.retained && source.status !== 'ok'
             ? { ...source, detail: `${source.detail} Last valid fields retained from ${previousCapturedAt}.` }
             : source))
-          const fingerprint = strategy.fingerprint({ asset, ...analysis, context, sourceHealth })
+          const enrichedAnalysis = {
+            ...analysis,
+            dailyBrief: createDailyMarketBrief({
+              metrics: analysis.metrics,
+              trend: analysis.trend,
+              wyckoff: analysis.wyckoff,
+              sourceHealth,
+            }),
+          }
+          const fingerprint = strategy.fingerprint({ asset, ...enrichedAnalysis, context, sourceHealth })
           const snapshot: MarketMonitorSnapshot = {
             id: randomUUID(), asset, capturedAt: requestedAt, trigger,
-            strategyId: strategy.manifest.id, fingerprint, ...analysis, context, sourceHealth,
+            strategyId: strategy.manifest.id, fingerprint, ...enrichedAnalysis, context, sourceHealth,
             chart: {
-              daily: compactBars(daily.result.bars, 260), intraday: compactBars(intraday?.result.bars ?? [], 180),
+              daily: compactBars(daily.result.bars, 400), intraday: compactBars(intraday?.result.bars ?? [], 180),
               dailyMeta: daily.result.meta, intradayMeta: intraday?.result.meta ?? null,
             },
           }

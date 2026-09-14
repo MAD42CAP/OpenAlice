@@ -1,11 +1,166 @@
 import type { TFunction } from 'i18next'
-import type { EvidenceItem, MonitorAlert, MonitorSnapshot, SourceHealth } from '../../api/market-monitor'
+import type {
+  EvidenceItem,
+  MonitorAlert,
+  MonitorSnapshot,
+  SourceHealth,
+  TrendDirection,
+  TrendRegime,
+  WyckoffEventKind,
+  WyckoffPhaseCandidate,
+} from '../../api/market-monitor'
 
 type Translate = TFunction<'translation'>
 type FormatNumber = (value: unknown, digits?: number) => string
 
 export function monitorStrategyLabel(t: Translate, id: string, fallback: string): string {
   return id === 'evidence-chain-v1' ? t('marketMonitor.strategyEvidenceChain') : fallback
+}
+
+export function monitorTrendDirectionLabel(t: Translate, direction: TrendDirection): string {
+  switch (direction) {
+    case 'bullish': return t('marketMonitor.trend.bullish')
+    case 'bearish': return t('marketMonitor.trend.bearish')
+    case 'sideways': return t('marketMonitor.trend.sideways')
+    case 'transition': return t('marketMonitor.trend.transition')
+    case 'insufficient': return t('marketMonitor.trend.insufficient')
+  }
+}
+
+export function monitorTrendRegimeLabel(t: Translate, regime: TrendRegime): string {
+  switch (regime) {
+    case 'trend': return t('marketMonitor.trend.trend')
+    case 'range': return t('marketMonitor.trend.range')
+    case 'transition': return t('marketMonitor.trend.transitionRegime')
+    case 'unknown': return t('marketMonitor.trend.unknown')
+  }
+}
+
+export function monitorHorizonLabel(t: Translate, horizon: 'short' | 'medium' | 'long'): string {
+  return horizon === 'short' ? t('marketMonitor.trend.short')
+    : horizon === 'medium' ? t('marketMonitor.trend.medium')
+      : t('marketMonitor.trend.long')
+}
+
+export function monitorBriefHeadline(t: Translate, headline: string): string {
+  switch (headline) {
+    case 'aligned-bullish': return t('marketMonitor.brief.headlineAlignedBullish')
+    case 'aligned-bearish': return t('marketMonitor.brief.headlineAlignedBearish')
+    case 'range': return t('marketMonitor.brief.headlineRange')
+    case 'mixed': return t('marketMonitor.brief.headlineMixed')
+    default: return t('marketMonitor.brief.headlineInsufficient')
+  }
+}
+
+export function monitorWyckoffPhaseLabel(t: Translate, phase: WyckoffPhaseCandidate): string {
+  switch (phase) {
+    case 'accumulation': return t('marketMonitor.wyckoff.accumulation')
+    case 'markup': return t('marketMonitor.wyckoff.markup')
+    case 'distribution': return t('marketMonitor.wyckoff.distribution')
+    case 'markdown': return t('marketMonitor.wyckoff.markdown')
+    case 'reaccumulation': return t('marketMonitor.wyckoff.reaccumulation')
+    case 'redistribution': return t('marketMonitor.wyckoff.redistribution')
+    case 'indeterminate': return t('marketMonitor.wyckoff.indeterminate')
+  }
+}
+
+export function monitorWyckoffEventLabel(t: Translate, kind: WyckoffEventKind): string {
+  switch (kind) {
+    case 'spring': return t('marketMonitor.wyckoff.spring')
+    case 'test': return t('marketMonitor.wyckoff.test')
+    case 'sign-of-strength': return t('marketMonitor.wyckoff.signOfStrength')
+    case 'last-point-of-support': return t('marketMonitor.wyckoff.lastPointOfSupport')
+    case 'upthrust': return t('marketMonitor.wyckoff.upthrust')
+    case 'upthrust-after-distribution': return t('marketMonitor.wyckoff.utad')
+    case 'sign-of-weakness': return t('marketMonitor.wyckoff.signOfWeakness')
+    case 'last-point-of-supply': return t('marketMonitor.wyckoff.lastPointOfSupply')
+  }
+}
+
+export function monitorWyckoffEventStatus(t: Translate, status: 'candidate' | 'confirmed' | 'invalidated'): string {
+  return status === 'candidate' ? t('marketMonitor.wyckoff.eventCandidate')
+    : status === 'confirmed' ? t('marketMonitor.wyckoff.eventConfirmed')
+      : t('marketMonitor.wyckoff.eventInvalidated')
+}
+
+export function monitorWyckoffTestLabel(t: Translate, state: 'none' | 'pending' | 'confirmed' | 'invalidated'): string {
+  return state === 'none' ? t('marketMonitor.wyckoff.testNone')
+    : state === 'pending' ? t('marketMonitor.wyckoff.testPending')
+      : state === 'confirmed' ? t('marketMonitor.wyckoff.testConfirmed')
+        : t('marketMonitor.wyckoff.testInvalidated')
+}
+
+export function monitorWyckoffEvidence(t: Translate, id: string): string {
+  switch (id) {
+    case 'range-low-location': return t('marketMonitor.wyckoff.rangeLowLocation')
+    case 'range-high-location': return t('marketMonitor.wyckoff.rangeHighLocation')
+    case 'high-effort-small-result': return t('marketMonitor.wyckoff.highEffortSmallResult')
+    case 'spring-reclaim': return t('marketMonitor.wyckoff.springReclaim')
+    case 'upthrust-rejection': return t('marketMonitor.wyckoff.upthrustRejection')
+    case 'sign-of-strength': return t('marketMonitor.wyckoff.signOfStrengthEvidence')
+    case 'sign-of-weakness': return t('marketMonitor.wyckoff.signOfWeaknessEvidence')
+    case 'successful-test': return t('marketMonitor.wyckoff.successfulTest')
+    case 'long-trend-supports': return t('marketMonitor.wyckoff.longTrendSupports')
+    case 'insufficient-range-data': return t('marketMonitor.wyckoff.insufficientRangeData')
+    case 'no-defining-event': return t('marketMonitor.brief.noDefiningEvent')
+    case 'no-absorption-evidence': return t('marketMonitor.brief.noAbsorptionEvidence')
+    case 'long-trend-bullish': return t('marketMonitor.brief.longTrendBullish')
+    case 'long-trend-bearish': return t('marketMonitor.brief.longTrendBearish')
+    default: return id
+  }
+}
+
+export function monitorWyckoffCondition(t: Translate, id: string): string {
+  const copy: Record<string, string> = {
+    'hold-range-low': t('marketMonitor.wyckoff.holdRangeLow'),
+    'quieter-secondary-test': t('marketMonitor.wyckoff.quieterSecondaryTest'),
+    'break-range-high': t('marketMonitor.wyckoff.breakRangeHigh'),
+    'close-below-spring-low': t('marketMonitor.wyckoff.closeBelowSpringLow'),
+    'downside-expansion': t('marketMonitor.wyckoff.downsideExpansion'),
+    'hold-range-midpoint': t('marketMonitor.wyckoff.holdRangeMidpoint'),
+    'quieter-pullback': t('marketMonitor.wyckoff.quieterPullback'),
+    'lose-range-low': t('marketMonitor.wyckoff.loseRangeLow'),
+    'long-trend-deteriorates': t('marketMonitor.wyckoff.longTrendDeteriorates'),
+    'hold-breakout': t('marketMonitor.wyckoff.holdBreakout'),
+    'higher-low': t('marketMonitor.wyckoff.higherLow'),
+    'positive-weekly-follow-through': t('marketMonitor.wyckoff.positiveWeeklyFollowThrough'),
+    'return-inside-range': t('marketMonitor.wyckoff.returnInsideRange'),
+    'failed-upside-test': t('marketMonitor.wyckoff.failedUpsideTest'),
+    'reject-range-high': t('marketMonitor.wyckoff.rejectRangeHigh'),
+    'weaker-secondary-test': t('marketMonitor.wyckoff.weakerSecondaryTest'),
+    'break-range-low': t('marketMonitor.wyckoff.breakRangeLow'),
+    'close-above-upthrust-high': t('marketMonitor.wyckoff.closeAboveUpthrustHigh'),
+    'upside-expansion': t('marketMonitor.wyckoff.upsideExpansion'),
+    'stay-below-range-midpoint': t('marketMonitor.wyckoff.stayBelowRangeMidpoint'),
+    'weak-rally': t('marketMonitor.wyckoff.weakRally'),
+    'reclaim-range-high': t('marketMonitor.wyckoff.reclaimRangeHigh'),
+    'long-trend-improves': t('marketMonitor.wyckoff.longTrendImproves'),
+    'stay-below-breakdown': t('marketMonitor.wyckoff.stayBelowBreakdown'),
+    'lower-high': t('marketMonitor.wyckoff.lowerHigh'),
+    'negative-weekly-follow-through': t('marketMonitor.wyckoff.negativeWeeklyFollowThrough'),
+    'reclaim-range': t('marketMonitor.wyckoff.reclaimRange'),
+    'failed-downside-test': t('marketMonitor.wyckoff.failedDownsideTest'),
+    'range-event-needs-test': t('marketMonitor.wyckoff.rangeEventNeedsTest'),
+    'wait-for-structural-progress': t('marketMonitor.wyckoff.waitForStructuralProgress'),
+    'new-range-invalidates-reading': t('marketMonitor.wyckoff.newRangeInvalidatesReading'),
+  }
+  return copy[id] ?? id
+}
+
+export function monitorBriefObservation(t: Translate, id: string): string {
+  if (id.startsWith('wyckoff-')) return monitorWyckoffPhaseLabel(t, id.slice('wyckoff-'.length) as WyckoffPhaseCandidate)
+  const split = id.indexOf('-')
+  if (split < 0) return id
+  const horizon = id.slice(0, split) as 'short' | 'medium' | 'long'
+  const direction = id.slice(split + 1) as TrendDirection
+  return `${monitorHorizonLabel(t, horizon)}：${monitorTrendDirectionLabel(t, direction)}`
+}
+
+export function monitorBriefRisk(t: Translate, id: string): string {
+  if (id === 'source-issues') return t('marketMonitor.brief.sourceIssues')
+  if (id === 'mixed-timeframes') return t('marketMonitor.brief.mixedTimeframes')
+  if (id === 'intraday-unavailable') return t('marketMonitor.brief.intradayUnavailable')
+  return monitorWyckoffEvidence(t, id)
 }
 
 export function monitorIntradayNote(t: Translate, snapshot: MonitorSnapshot): string {

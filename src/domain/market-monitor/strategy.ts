@@ -5,13 +5,17 @@ import {
   type EvidenceItem,
   type MarketContext,
   type MarketHypothesis,
+  type MarketDailyBrief,
   type MarketMonitorAsset,
   type MarketMonitorMetrics,
   type MarketMonitorStrategyManifest,
+  type MultiTimeframeTrend,
   type SourceHealth,
+  type WyckoffAssessment,
 } from './types.js'
 
 export interface MarketMonitorStrategyInput {
+  asset: MarketMonitorAsset
   dailyBars: OhlcvBar[]
   intradayBars: OhlcvBar[]
   abnormalVolumeRatio: number
@@ -22,6 +26,9 @@ export interface MarketMonitorStrategyOutput {
   metrics: MarketMonitorMetrics
   evidence: EvidenceItem[]
   hypothesis: MarketHypothesis
+  trend: MultiTimeframeTrend
+  wyckoff: WyckoffAssessment
+  dailyBrief: MarketDailyBrief
 }
 
 export interface MarketMonitorFingerprintInput extends MarketMonitorStrategyOutput {

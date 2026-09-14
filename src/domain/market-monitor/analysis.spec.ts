@@ -19,12 +19,18 @@ describe('market evidence analysis', () => {
     expect(result.evidence.map((item) => item.timeframe)).toEqual(expect.arrayContaining(['1D', '1W', '1H']))
     expect(result.hypothesis.confirm.length).toBeGreaterThan(0)
     expect(result.hypothesis.invalidate.length).toBeGreaterThan(0)
+    expect(result.trend.short.horizon).toBe('short')
+    expect(result.trend.medium.horizon).toBe('medium')
+    expect(result.trend.long.horizon).toBe('long')
+    expect(result.wyckoff.confidence).toBeLessThanOrEqual(85)
+    expect(result.dailyBrief).toMatchObject({ cadence: 'daily-bar', periodKey: '2026-03-31', narrator: 'deterministic-v1' })
   })
 
   it('does not substitute daily candles when hourly data is absent', () => {
     const result = analyzeEvidence({ dailyBars: series(90, 86400000), intradayBars: [], abnormalVolumeRatio: 1.8, abnormalMovePercent: 1.5 })
     expect(result.metrics.intraday).toMatchObject({ available: false, latestAt: null, abnormal: false })
     expect(result.evidence.find((item) => item.id === 'intraday')?.observation).toContain('not substituted')
+    expect(result.dailyBrief.risks).toContain('intraday-unavailable')
   })
 
   it('fingerprints semantic state rather than request mechanics', () => {

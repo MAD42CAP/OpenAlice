@@ -49,6 +49,54 @@ export interface EvidenceItem {
   weight: number
 }
 
+export type TrendDirection = 'bullish' | 'bearish' | 'sideways' | 'transition' | 'insufficient'
+export type TrendRegime = 'trend' | 'range' | 'transition' | 'unknown'
+export type TrendAlignment = 'aligned-bullish' | 'aligned-bearish' | 'mixed' | 'range' | 'insufficient'
+export type WyckoffPhaseCandidate = 'accumulation' | 'markup' | 'distribution' | 'markdown' | 'reaccumulation' | 'redistribution' | 'indeterminate'
+export type WyckoffEventKind = 'spring' | 'test' | 'sign-of-strength' | 'last-point-of-support' | 'upthrust' | 'upthrust-after-distribution' | 'sign-of-weakness' | 'last-point-of-supply'
+
+export interface TrendAssessment {
+  horizon: 'short' | 'medium' | 'long'
+  direction: TrendDirection
+  regime: TrendRegime
+  score: number
+  confidence: number
+  signals: Array<{ id: string; tone: 'positive' | 'negative' | 'neutral'; weight: number; value?: number | null }>
+}
+
+export interface MultiTimeframeTrend {
+  short: TrendAssessment
+  medium: TrendAssessment
+  long: TrendAssessment
+  alignment: TrendAlignment
+}
+
+export interface WyckoffAssessment {
+  phaseCandidate: WyckoffPhaseCandidate
+  confidence: number
+  testState: 'none' | 'pending' | 'confirmed' | 'invalidated'
+  range: { lookback: number; lower: number; upper: number; position: number; widthPercent: number | null } | null
+  events: Array<{ kind: WyckoffEventKind; status: 'candidate' | 'confirmed' | 'invalidated'; at: string; level: number | null }>
+  supportingEvidence: string[]
+  opposingEvidence: string[]
+  confirmation: string[]
+  invalidation: string[]
+}
+
+export interface MarketDailyBrief {
+  cadence: 'daily-bar'
+  periodKey: string
+  narrator: 'deterministic-v1'
+  overallDirection: TrendDirection
+  confidence: number
+  alignment: TrendAlignment
+  phaseCandidate: WyckoffPhaseCandidate
+  headline: string
+  observations: string[]
+  watchFor: string[]
+  risks: string[]
+}
+
 export interface MonitorSnapshot {
   id: string
   asset: MonitorAsset
@@ -85,6 +133,9 @@ export interface MonitorSnapshot {
     alternatives: string[]
   }
   evidence: EvidenceItem[]
+  trend?: MultiTimeframeTrend
+  wyckoff?: WyckoffAssessment
+  dailyBrief?: MarketDailyBrief
   context: Record<string, unknown> & { recentNews?: Array<{ title: string; time: string; source: string | null }> }
   sourceHealth: SourceHealth[]
   chart: { daily: HistoricalBar[]; intraday: HistoricalBar[]; dailyMeta: BarMeta; intradayMeta: BarMeta | null }

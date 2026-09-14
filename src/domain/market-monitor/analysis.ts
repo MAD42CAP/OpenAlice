@@ -4,13 +4,19 @@ import type {
   EvidenceItem,
   IntradayPulse,
   MarketContext,
+  MarketDailyBrief,
   MarketHypothesis,
   MarketMonitorAsset,
   MarketMonitorEvaluation,
   MarketMonitorMetrics,
   MarketMonitorSnapshot,
+  MultiTimeframeTrend,
   SourceHealth,
+  WyckoffAssessment,
 } from './types.js'
+import { createDailyMarketBrief } from './daily-brief.js'
+import { analyzeMultiTimeframeTrend } from './trend.js'
+import { analyzeWyckoffStructure } from './wyckoff.js'
 
 const pct = (latest: number, prior: number): number | null =>
   Number.isFinite(latest) && Number.isFinite(prior) && prior !== 0
@@ -102,11 +108,12 @@ function intradayPulse(bars: OhlcvBar[], abnormalVolumeRatio: number, abnormalMo
 }
 
 export function analyzeEvidence(input: {
+  asset?: MarketMonitorAsset
   dailyBars: OhlcvBar[]
   intradayBars: OhlcvBar[]
   abnormalVolumeRatio: number
   abnormalMovePercent: number
-}): { metrics: MarketMonitorMetrics; evidence: EvidenceItem[]; hypothesis: MarketHypothesis } {
+}): { metrics: MarketMonitorMetrics; evidence: EvidenceItem[]; hypothesis: MarketHypothesis; trend: MultiTimeframeTrend; wyckoff: WyckoffAssessment; dailyBrief: MarketDailyBrief } {
   const daily = sortedBars(input.dailyBars)
   if (daily.length < 20) throw new Error('At least 20 daily bars are required for evidence analysis')
   const latest = daily.at(-1)!
@@ -182,21 +189,31 @@ export function analyzeEvidence(input: {
     alternatives: ['Re-accumulation before an upside continuation.', 'Distribution before a downside continuation.'],
   }
 
-  return {
-    metrics: {
-      lastPrice: latest.close,
-      lastBarAt: latest.date,
-      change1dPercent: rounded(change1d), change5dPercent: rounded(change5d),
-      rangePosition60d: rounded(position, 4), volumeRatio20d: rounded(dailyVolumeRatio),
-      weeklyChangePercent: rounded(weeklyChange), intraday: pulse,
-    }, evidence, hypothesis,
+  const metrics: MarketMonitorMetrics = {
+    lastPrice: latest.close,
+    lastBarAt: latest.date,
+    change1dPercent: rounded(change1d), change5dPercent: rounded(change5d),
+    rangePosition60d: rounded(position, 4), volumeRatio20d: rounded(dailyVolumeRatio),
+    weeklyChangePercent: rounded(weeklyChange), intraday: pulse,
   }
+  const trend = analyzeMultiTimeframeTrend({
+    asset: input.asset ?? 'BTC', dailyBars: daily, intradayBars: input.intradayBars,
+    metrics, abnormalVolumeRatio: input.abnormalVolumeRatio,
+  })
+  const wyckoff = analyzeWyckoffStructure({
+    dailyBars: daily, metrics, trend, abnormalVolumeRatio: input.abnormalVolumeRatio,
+  })
+  const dailyBrief = createDailyMarketBrief({ metrics, trend, wyckoff })
+  return { metrics, evidence, hypothesis, trend, wyckoff, dailyBrief }
 }
 
 export function semanticFingerprint(input: {
   asset: MarketMonitorAsset
   metrics: MarketMonitorMetrics
   hypothesis: MarketHypothesis
+  trend?: MultiTimeframeTrend
+  wyckoff?: WyckoffAssessment
+  dailyBrief?: MarketDailyBrief
   context: MarketContext
   sourceHealth: SourceHealth[]
 }): string {
@@ -208,6 +225,18 @@ export function semanticFingerprint(input: {
     intradayChange: input.metrics.intraday.latestChangePercent,
     hypothesis: input.hypothesis.id,
     confidence: input.hypothesis.confidence,
+    trend: input.trend ? {
+      short: [input.trend.short.direction, input.trend.short.regime, input.trend.short.score],
+      medium: [input.trend.medium.direction, input.trend.medium.regime, input.trend.medium.score],
+      long: [input.trend.long.direction, input.trend.long.regime, input.trend.long.score],
+      alignment: input.trend.alignment,
+    } : undefined,
+    wyckoff: input.wyckoff ? {
+      phase: input.wyckoff.phaseCandidate,
+      test: input.wyckoff.testState,
+      events: input.wyckoff.events.map(({ kind, status, at }) => [kind, status, at]),
+    } : undefined,
+    brief: input.dailyBrief ? [input.dailyBrief.periodKey, input.dailyBrief.headline] : undefined,
     // Continuously moving derivatives fields are quantized to decision-scale
     // buckets. A new headline or meaningful positioning/basis change is still
     // semantic; a provider's last decimal ticking between two requests is not.

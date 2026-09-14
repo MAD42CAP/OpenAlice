@@ -102,6 +102,7 @@ describe('market monitor service', () => {
     expect(store.data.receipts).toHaveLength(1)
     expect(store.data.snapshots).toHaveLength(1)
     expect(deps.barService.getBars).toHaveBeenCalledTimes(2)
+    expect(deps.barService.getBars).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ interval: '1d', count: 400 }))
     expect(service.isScanning('TSLA')).toBe(false)
     await service.scan('TSLA', 'scheduled')
     expect(store.data.receipts).toHaveLength(2)
@@ -124,6 +125,11 @@ describe('market monitor service', () => {
     expect((await service.scan('TSLA', 'manual')).stored).toBe(true)
     expect((await service.scan('TSLA', 'scheduled')).stored).toBe(false)
     expect(store.data.snapshots).toHaveLength(1)
+    expect(store.data.snapshots[0]).toMatchObject({
+      trend: { alignment: expect.any(String) },
+      wyckoff: { phaseCandidate: expect.any(String), confidence: expect.any(Number) },
+      dailyBrief: { cadence: 'daily-bar', periodKey: '2026-03-31', narrator: 'deterministic-v1' },
+    })
     expect(store.data.snapshots[0].chart.daily).toEqual([])
     expect((await service.snapshots('TSLA', 1))[0].chart.daily).toHaveLength(90)
     expect(store.data.receipts.map((row) => [row.trigger, row.outcome])).toEqual([['manual', 'stored'], ['scheduled', 'duplicate']])

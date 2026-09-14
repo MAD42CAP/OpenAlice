@@ -23,6 +23,16 @@ never relabelled as intraday data.
 
 - `src/domain/market-monitor/analysis.ts` owns the first strategy
   (`evidence-chain-v1`), semantic fingerprints and observation evaluation.
+- `src/domain/market-monitor/trend.ts` owns deterministic short-, medium- and
+  long-horizon direction/regime assessments. Horizon disagreement remains an
+  explicit mixed state instead of being averaged into one direction.
+- `src/domain/market-monitor/wyckoff.ts` owns the candidate-based Wyckoff
+  reading: trading range, phase candidate, Spring/upthrust/UTAD/SOS/SOW/LPS/
+  LPSY events, test state, supporting/opposing evidence and explicit
+  confirmation/invalidation conditions.
+- `src/domain/market-monitor/daily-brief.ts` composes the structured daily
+  brief. Its logical identity is asset + strategy + latest attributed daily
+  candle date; it remains available without an Agent CLI or model connection.
 - `src/domain/market-monitor/strategy.ts` owns the strategy contract and
   registry. A strategy declares a stable ID, version, required inputs, analysis
   function and semantic fingerprint function.
@@ -125,6 +135,31 @@ Browser notifications are opt-in and work only while the dashboard is open.
 Recorded alerts survive closing the page; native/background push delivery is
 intentionally outside this increment. No trading or agent-execution endpoint
 is used by the scheduler.
+
+## Trend, Wyckoff and daily briefs
+
+Each new scan evaluates three independent horizons:
+
+| Horizon | Primary evidence | Intended reading |
+|---|---|---|
+| Short | 1h/4h pulse, 1d/5d momentum, five-day structure | Immediate momentum and transition |
+| Medium | 20-day structure/slope, 60-day location, weekly follow-through, volume/result | Swing trend versus trading range |
+| Long | 50/200-day relationship, 200-day slope, 120-day return, annual range | Secular backdrop |
+
+The Wyckoff module is a complete analysis contract, not a promise of perfect
+real-time pattern recognition. It reports a phase **candidate**, caps confidence
+at 85%, preserves contradictory evidence and requires a later test before an
+event becomes confirmed. “Accumulation” and “distribution” therefore describe
+testable price/volume hypotheses; they do not claim knowledge of a coordinated
+market actor.
+
+The dashboard creates one logical brief for each attributed daily-candle date.
+BTC advances when its next daily candle arrives; TSLA advances on its next
+trading-day candle, so weekends and market holidays do not produce empty
+briefs. Intraday scans may refresh the live evidence under the same date. The
+current narrator is deterministic and bilingual; a future optional Agent-CLI
+narrator can rewrite only these structured facts and must use the same daily
+identity to avoid repeat model calls.
 
 ## Operational Reports
 

@@ -1,3498 +1,248 @@
-import type { Resources } from './en'
-
-/** ç®€ä½“ä¸­æ–‡. Typed as `Resources` â†’ must match en's key structure exactly. */
-export const zh: Resources = {
-  stickers: {
-    "meaning": "å«ä¹‰ï¼ˆå¯é€‰ï¼‰",
-    "title": "è¡¨æƒ…åŒ…",
-    "hint": "Project æä¾›è¡¨æƒ…èµ„æºï¼Œé€šè¿‡å¯é€‰ Skill åœ¨ Chat ä¸­ä½¿ç”¨ï¼Œä¸å‘ AGENTS.md æ·»åŠ å¼•å¯¼ã€‚",
-    "importHint": "é€‰æ‹©ä¸€å¼ æˆ–å¤šå¼  PNG/WebPï¼Œæ¯å¼ æœ€å¤š 512 KiBï¼Œæ€»è®¡æœ€å¤š 32 MiBã€‚å¯å¡«å†™å›¾ç‰‡å«ä¹‰ï¼›ç›¸åŒ ID å¯å‘å¸ƒæ–°ç‰ˆã€‚",
-    "workspaceHint": "æ–° Chat é»˜è®¤å®‰è£…æ‰€é€‰è¡¨æƒ…åŒ…ï¼›å·²æœ‰å·¥ä½œåŒºåªåœ¨ç¡®è®¤åº”ç”¨åæ”¹å˜ã€‚",
-    "empty": "è¿˜æ²¡æœ‰ Chat å·¥ä½œåŒºã€‚",
-    "default": "é»˜è®¤",
-    "available": "å¯ç”¨ç‰ˆæœ¬",
-    "makeDefault": "è®¾ä¸ºæ–° Chat é»˜è®¤",
-    "workspaces": "Chat å·¥ä½œåŒº",
-    "enabled": "å·²å¯ç”¨",
-    "disabled": "å·²å…³é—­",
-    "missing": "Skill ç¼ºå¤±",
-    "notInstalled": "æœªå®‰è£…",
-    "changed": "{{count}} ä¸ªæ–‡ä»¶ç¼ºå¤±æˆ–æœ‰ä¿®æ”¹",
-    "restore": "æ›´æ–° / æ¢å¤",
-    "usePack": "ä½¿ç”¨ {{name}}",
-    "disable": "å…³é—­",
-    "review": "ç¡®è®¤è¡¨æƒ…åŒ…æ–‡ä»¶",
-    "reviewEnable": "å®‰è£…æ‰€é€‰å›¾ç‰‡å’Œå¯¹åº” Skillï¼Œä¿ç•™å…¶ä»–å·¥ä½œåŒºæ–‡ä»¶ã€‚",
-    "reviewDisable": "ç§»é™¤ Sticker Skill åŠ Claude é•œåƒï¼Œå›¾ç‰‡ä¿ç•™ã€‚å·²æœ‰ä¼šè¯å¯èƒ½ä»è®°å¾—ä¹‹å‰çš„è¯´æ˜ã€‚",
-    "conflicts": "ä»¥ä¸‹æ–‡ä»¶æœ‰æœ¬åœ°ä¿®æ”¹ã€‚ä»…å…è®¸æ˜ç¡®æ›¿æ¢åŸæœ¬ç”±è¡¨æƒ…åŒ…ç®¡ç†çš„æ–‡ä»¶ã€‚",
-    "unowned": "éæ‰˜ç®¡æ–‡ä»¶ï¼šè¯·å…ˆé‡å‘½åæˆ–ç§»èµ°",
-    "replaceManaged": "æ›¿æ¢æ‰˜ç®¡æ–‡ä»¶çš„ä¿®æ”¹",
-    "apply": "åº”ç”¨",
-    "packName": "è¡¨æƒ…åŒ…åç§°",
-    "packId": "è¡¨æƒ…åŒ… ID",
-    "version": "ç‰ˆæœ¬",
-    "images": "é€‰æ‹©å›¾ç‰‡",
-    "import": "å¯¼å…¥è¡¨æƒ…åŒ…"
-},
-  aliceHarness: {
-    "unversioned": "å°šæœªè®°å½•",
-    "manage": "ç®¡ç†",
-    "description": "CLI å’Œé…å¥— Skills ç”± Alice Project æä¾›ï¼Œå¯ç‹¬ç«‹äº Chatã€AutoQuant å’Œ Auto Prediction å‡çº§ã€‚å‘½ä»¤ç”±å½“å‰ Project è¿è¡Œæ—¶æ‰§è¡Œï¼Œå·²è®°å½•ç‰ˆæœ¬ä¸ä»£è¡¨é”å®šæ—§ç‰ˆå¯æ‰§è¡Œç¨‹åºã€‚",
-    "applied": "å·²æ³¨å…¥ç‰ˆæœ¬",
-    "available": "Project å¯ç”¨ç‰ˆæœ¬",
-    "enabled": "å¯ç”¨ CLI",
-    "configHint": "å…ˆä¿å­˜å‘½ä»¤å¼€å…³ï¼Œå†é¢„è§ˆæŠ€èƒ½æ›´æ–°ã€‚ä¿å­˜æˆ–å‡çº§å‰éœ€æš‚åœæ´»è·ƒä¼šè¯ï¼›æœ¬åœ°æ–‡ä»¶æ”¹åŠ¨ä¼šè¿›å…¥æ¯”è¾ƒï¼Œä¸ä¼šç›´æ¥è¦†ç›–ã€‚",
-    "review": "é¢„è§ˆæ³¨å…¥å‡çº§"
-},
-
-  mirrors: {
-    "canonical": "ä¸»æº",
-    "mirror-only": "ä»…æœ‰é•œåƒ",
-    "legacy": "æ—§ç‰ˆå‰¯æœ¬",
-    "mirror": "é•œåƒ",
-    "source": "ä¸»æº",
-    "noSource": "ä¸»æºç¼ºå¤±ã€‚ä»å¯æŸ¥é˜…è¿™ä¸ªè¿è¡Œæ—¶å‰¯æœ¬ï¼Œä¸ä¼šè¦†ç›–å…¶å†…å®¹ã€‚",
-    "primaryHint": "é»˜è®¤é˜…è¯»ä¸»æºã€‚ä¸‹æ–¹æ ¸å¯¹è¿è¡Œæ—¶é•œåƒï¼Œå†…å®¹åç¦»ä¹Ÿåªå¯¹åº”åŒä¸€é¡¹å†…å®¹ã€‚",
-    "checking": "æ­£åœ¨æ ¸å¯¹ç›®å½•â€¦",
-    "unchecked": "æœªèƒ½å®Œæ•´æ ¸å¯¹",
-    "changed": "å­˜åœ¨å·®å¼‚",
-    "equal": "å†…å®¹ä¸€è‡´",
-    "scope": "æ£€æŸ¥æ•´ä¸ªç›®å½•ï¼ŒåŒ…æ‹¬è„šæœ¬ã€ç¤ºä¾‹å’Œç©ºç›®å½•ã€‚ç¬¦å·é“¾æ¥ã€æ— æ³•è¯»å–ã€è¿‡å¤§æˆ–æ— æ³•è§£ç çš„æ–‡ä»¶ï¼Œä»¥åŠè¶…å‡ºéå†ä¸Šé™çš„å†…å®¹ä¼šä¿ç•™ä¸ºæœªæ ¸å¯¹ã€‚è¿™æ˜¯åªè¯»å¿«ç…§ï¼Œä¸æ˜¯æŒç»­åŒæ­¥ã€‚",
-    "sourceOnly": "é•œåƒç¼ºå°‘",
-    "mirrorOnly": "ä»…é•œåƒå­˜åœ¨",
-    "absent": "ç¼ºå¤±",
-    "directory": "ç›®å½•"
-},
-  skillManager: {
-    chooseWorkspace: "é€‰æ‹©å·¥ä½œåŒº",
-    lastBundle: "ä¸Šæ¬¡æ•´å¥—æ³¨å…¥",
-    injectedVersion: "å·²æ³¨å…¥ç‰ˆæœ¬",
-    projectVersion: "Project ç‰ˆæœ¬",
-    status: "çŠ¶æ€",
-    mirrorShort: "é•œåƒæœ‰å·®å¼‚",
-    more: "{{skill}} çš„æ›´å¤šæ“ä½œ",
-    injectedAt: "æ³¨å…¥äº",
-    bundleUpdates: "æ•´å¥—æ³¨å…¥æ›´æ–°",
-
-    title: "Skills",
-    prototypes: "Project åŸå‹",
-    search: "æœç´¢ Skills",
-    noResults: "æ²¡æœ‰åŒ¹é…çš„ Skill",
-    copies: "å·¥ä½œåŒºå‰¯æœ¬",
-    prototype: "Project åŸå‹",
-    prototypeHint: "Project ä¿ç•™æºæ–‡ä»¶ï¼›å„ Workspace å¯å®‰è£…ã€å®šåˆ¶ã€ç§»é™¤æˆ–æ¢å¤è‡ªå·±çš„å‰¯æœ¬ã€‚CLI å¼€å…³ç‹¬ç«‹ã€‚",
-    install: "å®‰è£…",
-    update: "æ›´æ–°",
-    remove: "ç§»é™¤",
-    restore: "æ¢å¤åŸå‹",
-    scopeHint: "åªå¤„ç†è¿™ä¸ª Skill åŠå…¶ä¿ç•™åå¥½ã€‚å…¶ä»– Skills å’Œ CLI å¼€å…³ä¿æŒåŸæ ·ã€‚",
-    restoreHint: "æ¢å¤å°†ç”¨ Project åŸå‹æ›¿æ¢è¿™ä¸ª Skill çš„æœ¬åœ°æ–‡ä»¶ï¼ŒåŒ…æ‹¬è¿è¡Œæ—¶é•œåƒã€‚åº”ç”¨å‰è¯·æŸ¥çœ‹å…·ä½“æ–‡ä»¶å·®å¼‚ã€‚",
-    notInstalled: "æœªå®‰è£…",
-    missingPrimary: "ç¼ºå°‘ä¸»å‰¯æœ¬",
-    customized: "æœ‰æœ¬åœ°å®šåˆ¶",
-    updateAvailable: "å¯æ›´æ–°",
-    matches: "ä¸åŸå‹ä¸€è‡´",
-    unverified: "éœ€è¦æ£€æŸ¥",
-    retained: "ä¿ç•™å¹¶å‚ä¸åç»­æ›´æ–°",
-    excluded: "å·²æ’é™¤ï¼Œå¯éšæ—¶é‡æ–°å®‰è£…",
-    mirrorDiverged: "Claude é•œåƒä¸ä¸»å‰¯æœ¬å­˜åœ¨å·®å¼‚ï¼Œå¯åœ¨ä¸‹æ–¹æŸ¥çœ‹ä¸¤ä¸ªä½ç½®ã€‚",
-    blocked: "å½“å‰å·¥ä½œåŒºæš‚ä¸å¯ä¿®æ”¹ã€‚æ‰“å¼€æ“ä½œé¢„è§ˆå¯æŸ¥çœ‹å…·ä½“åŸå› ã€‚",
-    compare: "æ¯”è¾ƒæ–‡ä»¶",
-    different: "æœ‰å·®å¼‚",
-    truncated: "é¢„è§ˆå·²æˆªæ–­ï¼Œè¯·æŸ¥çœ‹å®Œæ•´æ–‡ä»¶åå†å†³å®šã€‚",
-    local: "å·¥ä½œåŒºå‰¯æœ¬",
-    absent: "æ–‡ä»¶ä¸å­˜åœ¨",
-  },
-  distribution: {
-    cliHint: 'Project è¿è¡Œæ—¶æä¾›çš„å®Œæ•´å‘½ä»¤ç›®å½•ã€‚å·¥ä½œåŒºå¼€å…³ä»ä¸­é€‰æ‹©å¯ç”¨èƒ½åŠ›ï¼Œæ— éœ€ä¸ºæ¯ä¸ªå·¥ä½œåŒºå•ç‹¬å‡çº§ CLIã€‚',
-    title: "Workspace æ³¨å…¥",
-    description: "Alice Project æä¾› CLI è¿è¡Œæ—¶èƒ½åŠ›å’Œ Skills æºæ–‡ä»¶ã€‚æ¯ä¸ª Workspace ç‹¬ç«‹é€‰æ‹©å¯ç”¨å“ªäº›å‘½ä»¤ã€ä¿ç•™å“ªäº› Skillsï¼›åªæœ‰ Skill æ–‡ä»¶éœ€è¦æ˜¾å¼æ›´æ–°ã€‚",
-    skillsVersion: "Skills æ–‡ä»¶åŒ…",
-    preferences: "å·¥ä½œåŒºåå¥½",
-    preferencesHint: "CLI å¼€å…³ä¸ Skill ä¿ç•™èŒƒå›´æ˜¯ç›¸äº’ç‹¬ç«‹çš„å·¥ä½œåŒºåå¥½ã€‚",
-    manage: "å‰å¾€ Project ç®¡ç†",
-    keepSkills: "ä¿ç•™çš„ Skills",
-    keepHint: "å–æ¶ˆå‹¾é€‰å¯ç§»é™¤å·¥ä½œåŒºå‰¯æœ¬ï¼›é‡æ–°å‹¾é€‰åå¯ä» Project æºæ–‡ä»¶è£…å›ã€‚æœ¬åœ°ä¿®æ”¹ä¼šå…ˆè¿›å…¥æ¯”è¾ƒï¼Œä¸ä¼šè¢«é™é»˜è¦†ç›–ã€‚",
-    saveHint: "ä¿å­˜å CLI å¼€å…³ç«‹å³ç”Ÿæ•ˆï¼›Skill åå¥½åœ¨ Project ç®¡ç†é¡µæ›´æ–°æ–‡ä»¶æ—¶åº”ç”¨ã€‚",
-    workspaces: "å·¥ä½œåŒº",
-    source: "Skills æºæ–‡ä»¶",
-    batchHint: "æŒ‰å½“å‰é¢„è§ˆæ‰¹é‡æ›´æ–°æ— å†²çªé¡¹ã€‚å¿™ç¢Œæˆ–æœ‰å†²çªçš„å·¥ä½œåŒºä¼šè·³è¿‡ï¼Œæ¯ä¸ªå·¥ä½œåŒºç‹¬ç«‹æäº¤ã€‚",
-    updateReady: "æ›´æ–°å¯å¤„ç†é¡¹ï¼ˆ{{count}}ï¼‰",
-    empty: "å½“å‰ Project è¿˜æ²¡æœ‰å·¥ä½œåŒºã€‚",
-    review: "æŸ¥çœ‹å˜æ›´",
-    updated: "å·²æ›´æ–°",
-    reviewHint: "è¿™é‡Œåªæ›´æ–° Skills æ–‡ä»¶ï¼Œä¸æ”¹å˜å·¥ä½œåŒº Harness è‡ªèº«ç‰ˆæœ¬æˆ– CLI è¿è¡Œæ—¶ã€‚",
-    sourceHint: "è¿™é‡Œæ˜¯å½“å‰ Project æä¾›çš„æºæ–‡ä»¶ï¼Œä¸æ˜¯æŸä¸ªå·¥ä½œåŒºçš„å‰¯æœ¬ã€‚",
-    browse: "æŸ¥é˜…æ–‡ä»¶",
-    error: "æ— æ³•è¯»å–",
-    busy: "æš‚ä¸å¯æ›´æ–°",
-    conflicts: "éœ€è¦å¤„ç†å†²çª",
-    update: "å¯æ›´æ–°",
-    record: "å¾…è®°å½•ç‰ˆæœ¬",
-    customized: "æœ‰æœ¬åœ°å®šåˆ¶",
-    current: "å·²æ˜¯å½“å‰ç‰ˆæœ¬",
-  },
-  capabilities: {
-    ownerAlice: "Alice Harness æ³¨å…¥",
-    ownerWorkspace: "Workspace è‡ªå¸¦",
-    ownerUnknown: "æ¥æºå¾…ç¡®è®¤",
-    ownerAliceHint: "ç”± Alice Project æ³¨å…¥å±‚ç®¡ç†ã€‚æœ¬åœ°ä¿®æ”¹ä»å±äºæ­¤å·¥ä½œåŒºï¼Œå‡çº§æ—¶ä¼šå…ˆæ¯”è¾ƒå†å¤„ç†ã€‚",
-    ownerWorkspaceHint: "æ¥è‡ªå·¥ä½œåŒºæ¨¡æ¿æˆ–åç»­æœ¬åœ°æ–°å¢ï¼Œéš Workspace è‡ªèº«ç»´æŠ¤ï¼Œä¸ Alice Harness æ³¨å…¥å±‚ç‹¬ç«‹ã€‚",
-    ownerUnknownHint: "æ¥æºæ¸…å•æš‚æ—¶æ— æ³•è¯»å–ã€‚ä»å¯æŸ¥é˜…æ–‡ä»¶å†…å®¹ï¼Œæš‚ä¸æ¨æ–­å½’å±ã€‚",
-    cliOwnerHint: "è¿™é‡Œå±•ç¤º Alice Harness æä¾›çš„ CLIï¼Œå®æ—¶æ¸…å•åæ˜ æ­¤å·¥ä½œåŒºçš„å¼€å…³é…ç½®ï¼›ä¸åŒ…å«å·¥ä½œåŒºè‡ªè¡Œå®‰è£…çš„å…¶ä»–å‘½ä»¤ã€‚",
-
-    "search": "æœç´¢åç§°ä¸å†…å®¹â€¦",
-    "copy": "å¤åˆ¶å‘½ä»¤",
-    "copyFailed": "å¤åˆ¶å¤±è´¥ï¼Œè¯·é€‰ä¸­å‘½ä»¤æ‰‹åŠ¨å¤åˆ¶ã€‚",
-    "view": "æ–‡æ¡£è§†å›¾",
-    "read": "é˜…è¯»",
-    "source": "æºç ",
-    "files": "é™„å¸¦æ–‡ä»¶",
-    "back": "è¿”å›åˆ—è¡¨",
-    "skills": "Skills",
-    "instructions": "æŒ‡ä»¤",
-    "injection": "æ³¨å…¥è¯´æ˜",
-    "cli": "CLI å‘½ä»¤å‚è€ƒ",
-    "copies": "{{count}} ä»½ç›¸åŒå‰¯æœ¬",
-    "workspaceFile": "å·¥ä½œåŒºå®é™…æ–‡ä»¶",
-    "actualHint": "ç›´æ¥è¯»å–å½“å‰å·¥ä½œåŒºã€‚æ–‡ä»¶åä¸èƒ½è¯æ˜æ¥æºï¼Œä¹Ÿä¸ä»£è¡¨è¿è¡Œæ—¶å·²åŠ è½½ã€‚",
-    "skillsHint": "æŸ¥é˜… Workspace æŠ€èƒ½ä¸»æºä¸è¿è¡Œæ—¶é•œåƒã€‚",
-    "instructionsHint": "æŸ¥çœ‹è¿™ä¸ªå·¥ä½œåŒºå½“å‰å®é™…ä¿å­˜çš„æŒ‡ä»¤æ–‡ä»¶ã€‚",
-    "empty": "æ²¡æœ‰åŒ¹é…çš„å†…å®¹ã€‚",
-    "live": "å®æ—¶å‘½ä»¤æ¸…å•",
-    "cliHint": "ä»å½“å‰å·¥å…·æ³¨å†Œè¡¨æŸ¥é˜…å‘½ä»¤åˆ†ç»„ã€ç”¨é€”ä¸å‚æ•°ã€‚",
-    "commands": "å‘½ä»¤",
-    "command": "å‘½ä»¤",
-    "parameters": "å‚æ•°",
-    "required": "å¿…å¡«",
-    "default": "é»˜è®¤å€¼",
-    "noParameters": "æ²¡æœ‰å£°æ˜å‚æ•°ï¼Œå®Œæ•´å¥‘çº¦è¯·æŸ¥çœ‹åŸå§‹ Schemaã€‚",
-    "schema": "åŸå§‹å‚æ•° Schema",
-    "noExecute": "è¿™é‡Œåªæä¾›æŸ¥é˜…ã€‚å¤åˆ¶ä¸ä¼šæ‰§è¡Œå‘½ä»¤ï¼›ä½¿ç”¨å‰è¯·è¡¥å…¨å¿…å¡«å‚æ•°ã€‚",
-    "disk": "å·¥ä½œåŒºé‡Œå¯å‘ç°çš„æ–‡ä»¶",
-    "diskHint": "ä»¥ä¸‹æŠ€èƒ½ç›®å½•å®é™…å­˜åœ¨äºå½“å‰å·¥ä½œåŒºã€‚æœ¬é¡µæ£€æŸ¥å…±äº« Agentã€Claude ä¸ Pi æŠ€èƒ½ç›®å½•ã€‚",
-    "discoveryHint": "æ–‡ä»¶å­˜åœ¨ä¸ä»£è¡¨æŸä¸ªè¿è¡Œæ—¶å·²ç»åŠ è½½ã€‚å…¶ä»–åŸç”Ÿç›®å½•åŠç”¨æˆ·çº§æŠ€èƒ½ä¸åœ¨æœ¬é¡µæ¸…å•èŒƒå›´å†…ã€‚",
-    "runtime": "å¯åŠ¨ä¼šè¯æ—¶è¿æ¥",
-    "runtimeHint": "OpenAlice é€šè¿‡è¿›ç¨‹ç¯å¢ƒæä¾›å·¥ä½œåŒºèº«ä»½å’Œ CLI å…¥å£ï¼›æ¨¡å‹ä¸è®¿é—®é…ç½®ç”±æ‰€é€‰ Agent é€‚é…å™¨å¤„ç†ã€‚",
-    "secretsHint": "è¿™é‡Œè¯´æ˜å¯åŠ¨å¥‘çº¦ï¼Œä¸è¯»å–è¿è¡Œä¸­è¿›ç¨‹çš„ç¯å¢ƒã€‚ä¸ä¼šå±•ç¤ºå‡­æ®å’Œç¯å¢ƒå˜é‡ä¸­çš„ç§˜å¯†å€¼ã€‚",
-    "upgrades": "å¯æŒç»­æ¼”è¿›çš„å·¥ä½œåŒºå¿«ç…§",
-    "upgradesHint": "å·¥ä½œåŒºæ–‡ä»¶å¯ä»¥ç‹¬ç«‹äºæ¨¡æ¿ä¿®æ”¹ã€‚åˆ›å»ºæ—¶å¤åˆ¶çš„æŠ€èƒ½ä¸ä¼šæ¯æ¬¡å¯åŠ¨è¢«é™é»˜è¦†ç›–ï¼›æ¨¡æ¿æ›´æ–°é€šè¿‡æ˜¾å¼å‡çº§æµç¨‹å¤„ç†ã€‚"
-},
-  workspaceDetails: {
-    title: "å·¥ä½œåŒºè¯¦æƒ…",
-    back: "è¿”å›ä¼šè¯",
-    notFound: "æ­¤ Harness ä¸­æ²¡æœ‰å¯ç”¨çš„è¯¥å·¥ä½œåŒºã€‚",
-    harness: "Harness",
-    created: "åˆ›å»ºæ—¶é—´",
-    baseline: "å·²åº”ç”¨çš„æ¨¡æ¿",
-    sourceVersion: "å·²å®‰è£…çš„ Harness æ¥æºç‰ˆæœ¬",
-    repository: "æ¥æºä»“åº“",
-    location: "æœ¬åœ°ç›®å½•",
-    documents: "å·¥ä½œåŒºæ–‡æ¡£",
-    overview: "å·¥ä½œåŒºæ¦‚è§ˆ",
-    guide: "Harness æŒ‡å—",
-    overviewHint: "æ­¤å·¥ä½œåŒºå†…çš„ README.mdã€‚å†…å®¹ç”±å·¥ä½œåŒºç®¡ç†ï¼Œä¼šéšç€ä½ çš„ä½¿ç”¨è€Œå˜åŒ–ã€‚",
-    guideHint: "å½“å‰æ¨¡æ¿ç›®å½•æä¾›çš„å‚è€ƒè¯´æ˜ï¼Œå¹¶éæ­¤å·¥ä½œåŒºçš„å®æ—¶é…ç½®ã€‚",
-    noReadme: "æ­¤å·¥ä½œåŒºè¿˜æ²¡æœ‰ README.mdã€‚ä½ å¯ä»¥è®© Agent æ’°å†™ä¸€ä»½è¯´æ˜ï¼Œä»‹ç»å®ƒçš„ç”¨é€”å’Œå†…å®¹ã€‚",
-    noGuide: "æš‚æ—  Harness æŒ‡å—ã€‚",
-  },
-  projectSetup: { connectPi: 'ä¸º Chat é…ç½® Pi çš„ AI æä¾›æ–¹', title: 'éƒ¨åˆ†å·¥ä½œåŒºå°šæœªå‡†å¤‡å®Œæˆ', description: 'é¡¹ç›®å·²åˆ›å»ºã€‚å¯ä»¥é‡è¯•å‡†å¤‡å‰©ä½™å·¥ä½œåŒºï¼Œä¹Ÿå¯ä»¥å…ˆä½¿ç”¨å·²å°±ç»ªçš„å·¥ä½œåŒºã€‚', pending: 'ç­‰å¾…å‡†å¤‡', preparing: 'æ­£åœ¨å‡†å¤‡â€¦' },
-  quickStart: { chooseHarness: 'é€‰æ‹© Harness' },
-  nav: {
-    quickStart: 'Quick Start',
-    generalChat: 'Chat',
-    harnessLabel: '{{name}} Harness',
-    item: {
-      inbox: 'æ”¶ä»¶ç®±',
-      tracked: 'è¿½è¸ª',
-      chat: 'é—® Alice',
-      autoQuant: 'Auto Quant',
-      autoPrediction: 'Auto Prediction',
-      workspaces: 'å·¥ä½œåŒº',
-      market: 'å¸‚åœº',
-      news: 'æ–°é—»',
-      office: 'åŠå…¬å®¤',
-      tradingAsGit: 'äº¤æ˜“å³ Git',
-      trading: 'äº¤æ˜“',
-      portfolio: 'æŠ•èµ„ç»„åˆ',
-      connectors: 'è¿æ¥å™¨',
-      issue: 'è®®é¢˜',
-      automation: 'è‡ªåŠ¨åŒ–',
-      settings: 'è®¾ç½®',
-    },
-    section: {
-      beta: 'æµ‹è¯•ç‰ˆ',
-      system: 'ç³»ç»Ÿ',
-    },
-    betaDescription:
-      'å·²å¯ç”¨ï¼Œä½†çŠ¶æ€æ¨¡å‹å’Œ UX ä»å¯èƒ½å˜åŒ–ã€‚é…ç½®ä»åœ¨â€œè®¾ç½®â€ä¸­ç®¡ç†ã€‚',
-    unread: '{{count}} æ¡æœªè¯»',
-    pendingPush: '{{count}} ç¬”å¾…æ¨é€',
-    connectorNeedsAttention: '{{count}} ä¸ªè¿æ¥å™¨éœ€è¦å¤„ç†',
-    about: 'å…³äº{{label}}',
-    primaryNavigation: 'ä¸»å¯¼èˆª',
-    yourAlice: 'Your Alice',
-    applicationMenu: 'Your Aliceï¼šæ‰“å¼€åº”ç”¨èœå•',
-    appearanceMenu: 'å¤–è§‚ï¼š{{mode}}',
-    collapseRail: 'æŠ˜å æ´»åŠ¨æ ',
-    expandRail: 'å±•å¼€æ´»åŠ¨æ ',
-  },
-  demoBanner: {
-    badge: 'æ¼”ç¤º',
-    compact: 'å½•åˆ¶é¢„è§ˆ',
-    description: 'ä½ æ­£åœ¨æŸ¥çœ‹åŒ…å«å½•åˆ¶æ•°æ®çš„ OpenAlice å¿«ç…§ã€‚æ›´æ”¹ä¸ä¼šä¿å­˜ï¼›Web å›å¤ä¸ºæ¨¡æ‹Ÿç”Ÿæˆã€‚',
-    install: 'å®‰è£… OpenAlice',
-  },
-  issues: {
-    description: 'é›†ä¸­æŸ¥çœ‹æ‰€æœ‰å·¥ä½œåŒºè¿½è¸ªçš„å·¥ä½œã€‚',
-    settings: 'è®®é¢˜è®¾ç½®',
-    loadError: 'è®®é¢˜åŠ è½½å¤±è´¥ï¼š{{error}}',
-    unknownError: 'æœªçŸ¥é”™è¯¯',
-    stale: 'å®æ—¶åˆ·æ–°å¤±è´¥ï¼Œå½“å‰æ˜¾ç¤ºä¸Šæ¬¡å·²çŸ¥çš„è®®é¢˜ã€‚',
-    emptyTitle: 'è¿˜æ²¡æœ‰å·¥ä½œåŒºåˆ›å»ºè®®é¢˜ã€‚',
-    emptyPrefix: 'å·¥ä½œåŒºå¯é€šè¿‡å†™å…¥',
-    emptySuffixBeforeWhen: ' æ¥è¿½è¸ªè®®é¢˜ï¼›æ·»åŠ  ',
-    emptySuffixAfterWhen: ' å­—æ®µåå³å¯è‡ªåŠ¨è°ƒåº¦ã€‚',
-    unreadableWorkspace: 'æ— æ³•è¯»å–æ­¤å·¥ä½œåŒºçš„è®®é¢˜ã€‚',
-    openIssue: 'æ‰“å¼€ {{id}}',
-    assignOnFirstRun: 'é¦–æ¬¡è¿è¡Œæ—¶æŒ‡æ´¾',
-    duplicateOne: 'åç§°é‡å¤â€”â€”å¦æœ‰ 1 ä¸ªå·¥ä½œåŒºä¹Ÿåœ¨ä½¿ç”¨ã€‚[[name]] æ˜¯å…¨å±€å¥æŸ„ï¼Œè¯·æ‰‹åŠ¨è§£å†³å†²çªã€‚',
-    duplicateMany: 'åç§°é‡å¤â€”â€”å¦æœ‰ {{count}} ä¸ªå·¥ä½œåŒºä¹Ÿåœ¨ä½¿ç”¨ã€‚[[name]] æ˜¯å…¨å±€å¥æŸ„ï¼Œè¯·æ‰‹åŠ¨è§£å†³å†²çªã€‚',
-    duplicateLabel: 'å¤šä¸ªå·¥ä½œåŒºå­˜åœ¨åŒåè®®é¢˜',
-    duplicateShort: 'é‡å¤',
-    workspaceTitle: 'å·¥ä½œåŒºï¼š{{workspace}}ï¼ˆ{{id}}ï¼‰',
-    issueIdTitle: 'è®®é¢˜ IDï¼š{{id}}',
-    assigneeTitle: 'è´Ÿè´£äººï¼š{{assignee}}',
-    agentOverrideTitle: 'Agent è¿è¡Œæ—¶è¦†ç›–ï¼š{{agent}}',
-    agentOverrideShort: '{{agent}} è¦†ç›–',
-    collapseStatus: 'æŠ˜å â€œ{{status}}â€è®®é¢˜',
-    expandStatus: 'å±•å¼€â€œ{{status}}â€è®®é¢˜',
-    status: {
-      in_progress: 'è¿›è¡Œä¸­',
-      todo: 'å¾…åŠ',
-      backlog: 'å¾…æ’æœŸ',
-      done: 'å·²å®Œæˆ',
-      canceled: 'å·²å–æ¶ˆ',
-    },
-    health: {
-      inactive: 'æœªå¯ç”¨',
-      not_started: 'å°šæœªå¼€å§‹',
-      due: 'ç­‰å¾…è¿è¡Œ',
-      running: 'è¿è¡Œä¸­',
-      healthy: 'æ­£å¸¸',
-      interrupted: 'å·²ä¸­æ–­',
-      failed: 'å¤±è´¥',
-      blocked: 'å—é˜»',
-    },
-    detail: {
-      workItem: 'å·¥ä½œé¡¹',
-      ownership: 'å½’å±',
-      agent: 'æ™ºèƒ½ä½“',
-      workItemDescription: 'è´Ÿè´£äººå’Œè®¡åˆ’éƒ½å±äºè¿™ä¸ªè®®é¢˜ã€‚',
-      sectionNavigation: 'è®®é¢˜åˆ†åŒº',
-      replyNavigation: 'å›å¤',
-      status: 'çŠ¶æ€',
-      priority: 'ä¼˜å…ˆçº§',
-      assignee: 'è´Ÿè´£äºº',
-      cadence: 'è¿è¡Œè®¡åˆ’',
-      schedule: 'è¿è¡Œè®¡åˆ’',
-      execution: 'æ‰§è¡Œé…ç½®',
-      runtime: 'è¿è¡Œæ—¶',
-      credential: 'å‡­è¯',
-      model: 'æ¨¡å‹',
-      effort: 'æ¨ç†å¼ºåº¦',
-      timeout: 'è¿è¡Œæ—¶é™',
-      timeoutNone: 'ä¸é™åˆ¶',
-      timeoutHint: 'è¿™æ¬¡è®¡åˆ’è¿è¡Œçš„å¯é€‰çœ‹é—¨ç‹—ã€‚ä¸è®¾åˆ™è®© Agent è·‘åˆ°è‡ªå·±ç»“æŸã€‚',
-      health: 'è¿è¡ŒçŠ¶æ€',
-      runHealth: 'è¿è¡ŒçŠ¶æ€',
-      lastRun: 'ä¸Šæ¬¡è¿è¡Œ',
-      nextRun: 'ä¸‹æ¬¡è¿è¡Œ',
-      catchUp: 'é”™è¿‡æ—¶è‡ªåŠ¨é‡è¯•',
-      catchUpDescription: 'å¦‚æœ Session æ­£å¿™æˆ– worker æ± å·²æ»¡ï¼Œè¿™ä¸€æ ¼ä¼šä¿æŒ due ç›´åˆ°è·‘å‡ºå»ã€‚å…³æ‰åˆ™ç­‰åˆ°æ—¥å†ä¸Šçš„ä¸‹ä¸€æ¬¡ã€‚',
-      editSchedule: 'è°ƒåº¦è®¾ç½®',
-      scheduleSettings: 'è°ƒåº¦è®¾ç½®',
-      scheduleSettingsDescription: 'è°ƒæ•´é”™è¿‡è§¦å‘æ—¶çš„è¡Œä¸ºå’Œå¯é€‰è¶…æ—¶ï¼Œä¸ä¼šæ”¹å˜æ—¥å†é¢‘ç‡ã€‚',
-      viewLastRun: 'æŸ¥çœ‹ä¸Šæ¬¡è¿è¡Œ',
-      never: 'ä»æœª',
-      default: 'é»˜è®¤',
-      defaultRuntime: 'é»˜è®¤ï¼ˆ{{runtime}}ï¼‰',
-      defaultWorkspaceRuntime: 'é»˜è®¤ï¼ˆ{{runtime}}ï¼Œå·¥ä½œåŒºï¼‰',
-      defaultLoading: 'é»˜è®¤ Â· åŠ è½½ä¸­â€¦',
-      defaultValue: 'é»˜è®¤ Â· {{value}}',
-      defaultRuntimeDecides: 'é»˜è®¤ Â· ç”± Runtime ç®¡ç†',
-      defaultThinkingOn: 'é»˜è®¤ Â· å¯ç”¨æ¨ç†',
-      defaultThinkingOff: 'é»˜è®¤ Â· å…³é—­æ¨ç†',
-      overrideValue: 'è¦†ç›– Â· {{value}}',
-      none: 'æ— ',
-      required: 'å¿…éœ€',
-      assigneeNew: 'æ–°ä¼šè¯ Â· é¦–æ¬¡è¿è¡Œåå›ºå®šè´Ÿè´£äºº',
-      assigneeNewDescription: 'é¦–æ¬¡åˆ›å»ºä¸€ä¸ª Sessionï¼Œåç»­è¿è¡Œç»§ç»­ç”±å®ƒè´Ÿè´£ã€‚',
-      assigneeWorkspace: 'æœªæŒ‡æ´¾',
-      assigneeWorkspaceScheduled: 'æ–°ä¼šè¯ Â· æ¯æ¬¡è¿è¡Œéƒ½æ–°å»º',
-      assigneeEachDescription: 'æ¯æ¬¡è¿è¡Œéƒ½åˆ›å»ºä¸€ä¸ªç‹¬ç«‹ Sessionã€‚',
-      assigneeHumanDescription: 'ç”±äººå·¥è´Ÿè´£ä¸‹ä¸€æ­¥å¤„ç†ã€‚',
-      assigneeUnassignedDescription: 'æš‚æ—¶æ²¡æœ‰äººå‘˜æˆ– Session è´Ÿè´£ã€‚',
-      chooseAssignee: 'é€‰æ‹©è´£ä»»å½’å±',
-      chooseAssigneeDescription: 'é€‰æ‹©åˆ†é…ç­–ç•¥ï¼Œæˆ–æŠŠæ­¤è®®é¢˜ç»‘å®šåˆ°å·¥ä½œåŒºä¸­æ´»è·ƒçš„ Sessionã€‚',
-      pendingAssignee: 'å¾…ç¡®è®¤è´Ÿè´£äºº',
-      confirmAssignment: 'ç¡®è®¤åˆ†é…',
-      assigning: 'æ­£åœ¨åˆ†é…â€¦',
-      searchSessions: 'æœç´¢ Sessionâ€¦',
-      assignmentPolicy: 'åˆ†é…ç­–ç•¥',
-      noSessionsFound: 'æ²¡æœ‰åŒ¹é…çš„ Session',
-      sessionUnavailable: 'å½“å‰ç»‘å®šçš„ Session å·²ä¸å¯ç”¨ã€‚',
-      activeNow: 'å½“å‰æ´»è·ƒ',
-      workspaceSessions: 'å·¥ä½œåŒºä¼šè¯',
-      signedSession: 'å·²ç­¾åä¼šè¯ Â· {{resumeId}}',
-      human: 'ç”¨æˆ·',
-      unassigned: 'æœªåˆ†é…',
-      runtimeMissingSuffix: 'ï¼ˆæœªå®‰è£…ï¼‰',
-      runtimeCredentialSuffix: 'ï¼ˆéœ€è¦å‡­æ®ï¼‰',
-      configureRuntime: 'é…ç½® {{runtime}}',
-      noConfigurableRuntime: 'å°šæœªé€‰æ‹©å¯é…ç½®çš„è¿è¡Œæ—¶',
-      runCredential: 'è¿è¡Œå‡­è¯',
-      defaultCredential: 'Workspace / ç”±è¿è¡Œæ—¶ç®¡ç†',
-      defaultCredentialValue: 'Workspace é»˜è®¤ Â· {{credential}}',
-      missingCredentialValue: 'ä¸å¯ç”¨ Â· {{credential}}',
-      runModel: 'è¿è¡Œæ¨¡å‹',
-      customRunModel: 'è‡ªå®šä¹‰è¿è¡Œæ¨¡å‹',
-      customModel: 'è‡ªå®šä¹‰æ¨¡å‹â€¦',
-      nativeModelPlaceholder: 'åŸç”Ÿæ¨¡å‹ ID',
-      runEffort: 'è¿è¡Œæ¨ç†å¼ºåº¦',
-      sessionDeterminesRuntime: 'è´Ÿè´£äººä¼šè¯å†³å®šå…¶è¿è¡Œæ—¶',
-      sessionOwned: 'ç”±ä¼šè¯å†³å®š',
-      aiCredentialMissing: 'ç¼ºå°‘ AI å‡­æ®ã€‚',
-      aiConfiguration: 'AI é…ç½®',
-      aiConfigurationDescription: 'é€‰æ‹©ç”±è°ç®¡ç†ä¸‹ä¸€ä¸ªæ–°ä¼šè¯çš„ AI è®¿é—®ï¼Œå†é€‰æ‹©ä¸ä¹‹å…¼å®¹çš„æ¨¡å‹å’Œæ¨ç†å¼ºåº¦ã€‚',
-      aiAccess: 'AI è®¿é—®æ–¹å¼',
-      aiAccessDescription: 'ç»§æ‰¿å·¥ä½œåŒºä¼šä½¿ç”¨æ— å¤´æ¨¡å¼åå¥½ï¼›ç”±è¿è¡Œæ—¶ç®¡ç†æ—¶ï¼Œå‡­æ®ä¸æä¾›æ–¹é…ç½®äº¤ç»™ Agent Runtime è‡ªè¡Œè§£æï¼›å·²ä¿å­˜å‡­æ®ä¼šæ³¨å…¥ OpenAlice å‡­æ®åº“ä¸­çš„é…ç½®ã€‚',
-      followWorkspaceHeadless: 'ç»§æ‰¿å·¥ä½œåŒºæ— å¤´æ¨¡å¼åå¥½',
-      useAgentLogin: 'ç”± Agent Runtime ç®¡ç†',
-      agentLogin: 'ç”± Runtime ç®¡ç†',
-      savedAccess: 'å·²ä¿å­˜å‡­æ®',
-      runtimeDecides: 'ç”± Runtime ç®¡ç†',
-      workspaceHeadlessFixed: 'å·¥ä½œåŒºå›ºå®šåå¥½',
-      workspaceHeadlessRecent: 'å·¥ä½œåŒºæœ€è¿‘ä½¿ç”¨',
-      agentRuntimeDefault: 'Agent è¿è¡Œæ—¶',
-      issueOverride: 'Issue å•ç‹¬è®¾ç½®',
-      sessionBinding: 'ä¼šè¯å›ºå®šé…ç½®',
-      workspaceValue: 'å·¥ä½œåŒº Â· {{value}}',
-      applyAiConfiguration: 'åº”ç”¨é…ç½®',
-      sessionAiConfigurationDescription:
-        'æ›´æ”¹è¿™ä¸ªä¼šè¯åœ¨ä¸‹ä¸€æ¬¡è®¡åˆ’è¿è¡Œæˆ–è¯„è®ºå›å¤æ—¶ä½¿ç”¨çš„å‡­æ®ã€æ¨¡å‹å’Œæ¨ç†å¼ºåº¦ã€‚Agent è¿è¡Œæ—¶ä¿æŒé”å®šã€‚',
-      sessionAiAccessDescription:
-        'ç”±è¿è¡Œæ—¶ç®¡ç†æ—¶ï¼Œå‡­æ®ä¸æä¾›æ–¹é…ç½®äº¤ç»™ Agent Runtime è‡ªè¡Œè§£æï¼›å·²ä¿å­˜å‡­æ®ä¼šæ³¨å…¥ OpenAlice å‡­æ®åº“ä¸­çš„é…ç½®ã€‚ä¸‹ä¸€è½®ä¼šå›æ”¾è¿™æ¬¡ç»‘å®šã€‚',
-      sessionTurnInProgress: 'è¯·ç­‰å½“å‰è½®æ¬¡ç»“æŸåå†æ›´æ¢å‡­æ®ã€æ¨¡å‹æˆ–æ¨ç†å¼ºåº¦ã€‚',
-      changeAssigneeCapabilitiesTitle: 'æ›´æ”¹è®¡åˆ’ä¸­çš„è´Ÿè´£äººèƒ½åŠ›ï¼Ÿ',
-      changeAssigneeCapabilitiesMessage:
-        'è¿™æ ·ä¼šæ”¹å˜å·²ç»åœ¨è®¡åˆ’ä¸­çš„è´Ÿè´£äººèƒ½åŠ›ï¼Œä» {{from}} å˜ä¸º {{to}}ã€‚',
-      changeAssigneeCapabilitiesConfirm: 'æ›´æ”¹èƒ½åŠ›',
-      changingAssigneeCapabilities: 'æ­£åœ¨æ›´æ–°â€¦',
-      retryNow: 'ç«‹å³é‡è¯•',
-      retrying: 'æ­£åœ¨é‡è¯•â€¦',
-      retryNowTitle: 'ç°åœ¨é‡è¯•è¿™ä¸ªè®®é¢˜ï¼Ÿ',
-      retryNowMessage:
-        'OpenAlice ä¼šç”¨å½“å‰çš„ Whatã€è´Ÿè´£äººå’Œè¿è¡Œæ—¶é‡æ–°æ‰§è¡Œå¤±è´¥çš„ä»»åŠ¡ã€‚ä¸‹æ¬¡é¢„å®šæ—¶é—´ä¸ä¼šæ”¹å˜ã€‚',
-      runNow: 'ç«‹å³è¿è¡Œ',
-      runningNow: 'æ­£åœ¨å¯åŠ¨â€¦',
-      runNowTitle: 'ç°åœ¨è¿è¡Œè¿™ä¸ªè®®é¢˜ï¼Ÿ',
-      runNowMessage:
-        'OpenAlice ä¼šç”¨å½“å‰çš„ Whatã€è´Ÿè´£äººå’Œè¿è¡Œæ—¶å¯åŠ¨ä¸€è½®åå°ä»»åŠ¡ã€‚ä¸‹æ¬¡é¢„å®šæ—¶é—´ä¸ä¼šæ”¹å˜ã€‚',
-      healthMessage: {
-        inactive: 'è®®é¢˜çŠ¶æ€ä¸ºâ€œ{{status}}â€ï¼Œè¿è¡Œè®¡åˆ’å·²åœæ­¢ã€‚',
-        not_started: 'è¿è¡Œè®¡åˆ’æœ‰æ•ˆï¼Œä½†å°šæœªæ‰§è¡Œã€‚',
-        due: 'å·²åˆ°è¿è¡Œæ—¶é—´ï¼Œæ­£åœ¨ç­‰å¾…æ´¾å‘ã€‚',
-        running: 'è®¡åˆ’ä»»åŠ¡æ­£åœ¨è¿è¡Œã€‚',
-        healthy: 'æœ€è¿‘ä¸€æ¬¡è®¡åˆ’ä»»åŠ¡å·²å®Œæˆã€‚',
-        runtimeMissing: 'è¿™å°ä¸»æœºå°šæœªå®‰è£… {{agent}}ã€‚è¯·åœ¨ä¸‹æ¬¡è®¡åˆ’è¿è¡Œå‰å®Œæˆå®‰è£…ã€‚',
-        missingSession: 'æŒ‡å®šçš„ä¼šè¯ä¸å­˜åœ¨ã€‚è¯·é€‰æ‹©æ´»è·ƒä¼šè¯æˆ–â€œæ¯æ¬¡è¿è¡Œéƒ½æ–°å»ºä¼šè¯â€ã€‚',
-        retiredSession: 'æŒ‡å®šçš„ä¼šè¯å·²å½’æ¡£ã€‚è¯·åœ¨ä¸‹æ¬¡è¿è¡Œå‰é‡æ–°åˆ†é…è®®é¢˜ã€‚',
-        unboundSession: 'æŒ‡å®šçš„ä¼šè¯è¿˜æ²¡æœ‰å¯æ¢å¤çš„è¿è¡Œæ—¶å¯¹è¯ã€‚',
-        noFutureRun: 'è¿è¡Œè®¡åˆ’æ²¡æœ‰ä¸‹æ¬¡è§¦å‘æ—¶é—´ã€‚è¯·æ£€æŸ¥è¡¨è¾¾å¼å’Œæ—¶é—´æˆ³ã€‚',
-      },
-      what: 'ä»»åŠ¡å†…å®¹',
-      whatScheduledDescription: 'æ¯æ¬¡è®¡åˆ’è¿è¡Œéƒ½ä¼šå°†è¿™æ®µ Markdown åŸæ ·å‘é€ç»™ Agentã€‚',
-      whatDescription: 'è¿™ä¸ªå·¥ä½œé¡¹çš„æ ‡å‡† Markdown å®šä¹‰ã€‚',
-      whatEditHint: 'ç‚¹æŒ‰æ–‡å­—å³å¯ç¼–è¾‘ Â· æ›´æ”¹ä¼šè‡ªåŠ¨ä¿å­˜ã€‚',
-      commentBehavior: 'è¯„è®ºè¡Œä¸º',
-      commentBehaviorCustom: 'è‡ªå®šä¹‰',
-      commentBehaviorDefaultHint: 'æ ‡å‡†å›å¤å¥—è¯',
-      commentPrompt: 'è¯„è®º Prompt',
-      commentPromptDescription: 'æœ‰è¯„è®ºéœ€è¦å›å¤æ—¶ï¼Œç”¨è¿™ä¸ªæ¨¡æ¿ç”Ÿæˆ Input Promptã€‚é»˜è®¤ä¼šåŒ…ä¸€å±‚è¯´æ˜ï¼›èŠå¤©åœºæ™¯å¯ä»¥åªå†™ {comment}ã€‚',
-      commentPromptTokensLabel: 'å¯ç”¨å˜é‡',
-      commentPromptTokens: '{comment} {title} {id} {workspaceId} {author} {what}',
-      commentPromptSave: 'ä¿å­˜è¯„è®º Prompt',
-      commentPromptReset: 'æ¢å¤é»˜è®¤å¥—è¯',
-      whatEditorLabel: 'è®®é¢˜å†…å®¹',
-      whatEditorPlaceholder: 'æè¿°è¿™ä¸ªè®®é¢˜éœ€è¦å®Œæˆä»€ä¹ˆâ€¦',
-      whatSaving: 'æ­£åœ¨ä¿å­˜â€¦',
-      whatSaved: 'å·²ä¿å­˜',
-      whatSaveError: 'æ— æ³•ä¿å­˜ Â· å†æ¬¡ç¼–è¾‘åé‡è¯•',
-      activity: 'åŠ¨æ€',
-      activityDescription: 'å˜æ›´ä¸å¯¹è¯',
-      noActivity: 'è¿˜æ²¡æœ‰è®°å½•ä»»ä½•å˜æ›´æˆ–è¯„è®ºã€‚',
-      reply: 'å›å¤',
-      waitingForPrefix: 'æ­£åœ¨ç­‰å¾…',
-      waitingForSuffix: 'å›å¤â€¦',
-      replyFailed: 'è¯„è®ºå·²ä¿å­˜ï¼Œä½† Agent æœªèƒ½å›å¤ï¼š{{error}}',
-      directFileEdit: 'ç›´æ¥ç¼–è¾‘æ–‡ä»¶',
-      concurrentEditUnknown: 'å·¥ä½œåŒºå¹¶å‘ç¼–è¾‘ Â· ä½œè€…æœªçŸ¥',
-      unknownOrigin: 'æœªçŸ¥æ¥æº Â· {{reason}}',
-      externalOrigin: 'å¤–éƒ¨æ¥æº Â· {{system}}',
-      showSessionDetails: 'æŸ¥çœ‹ {{origin}} çš„ä¼šè¯è¯¦æƒ…',
-      sessionDialog: 'ä¼šè¯ {{resumeId}}',
-      session: 'ä¼šè¯',
-      opening: 'æ­£åœ¨æ‰“å¼€â€¦',
-      openConversation: 'æ‰“å¼€å¯¹è¯',
-      openSessionFailed: 'æ— æ³•æ‰“å¼€ä¼šè¯ï¼š{{error}}',
-      provenanceAction: {
-        created: 'åˆ›å»ºäº†è®®é¢˜',
-        updated: 'æ›´æ–°äº†è®®é¢˜',
-        commented: 'å‘è¡¨äº†è¯„è®º',
-        sent: 'å‘é€äº†è®®é¢˜',
-        decided: 'è®°å½•äº†å†³ç­–',
-        reconstructed: 'é‡å»ºäº†è®®é¢˜ä¸Šä¸‹æ–‡',
-      },
-      mutationField: {
-        title: 'æ ‡é¢˜',
-        status: 'çŠ¶æ€',
-        priority: 'ä¼˜å…ˆçº§',
-        assignee: 'è´Ÿè´£äºº',
-        schedule: 'è¿è¡Œè®¡åˆ’',
-        runtime: 'è¿è¡Œæ—¶',
-        credential: 'å‡­è¯',
-        model: 'æ¨¡å‹',
-        effort: 'æ¨ç†å¼ºåº¦',
-        timeout: 'è¿è¡Œæ—¶é™',
-        what: 'ä»»åŠ¡å†…å®¹',
-        commentPrompt: 'è¯„è®º Prompt',
-      },
-      mutationValue: {
-        newSessionKeepOwner: 'æ–°å»ºä¼šè¯ï¼Œä¹‹åå›ºå®šè´Ÿè´£äºº',
-        newSessionEachRun: 'æ¯æ¬¡è¿è¡Œæ–°å»ºä¼šè¯',
-        once: 'å•æ¬¡ Â· {{at}}',
-        every: 'æ¯ {{every}}',
-      },
-      mutationSummary: {
-        edited: 'ç¼–è¾‘äº†{{field}}',
-        set: 'å°†{{field}}è®¾ä¸º{{value}}',
-        cleared: 'æ¸…é™¤äº†{{field}}',
-        changed: 'å°†{{field}}ä»{{before}}æ”¹ä¸º{{after}}',
-      },
-      commentTo: 'è¯„è®ºç»™ @{{resumeId}}â€¦',
-      askAboutIssue: 'è¯¢é—®è¿™ä¸ªè®®é¢˜â€¦',
-      assignedSessionPrefix: 'è´Ÿè´£äººä¼šè¯',
-      assignedSessionSuffix: 'ä¼šåœ¨è¿™é‡Œå›å¤ã€‚',
-      replyBeforeFirstRun: 'é¦–æ¬¡è¿è¡Œç¡®å®šè´Ÿè´£äººå‰ï¼Œåˆ›å»ºè€…æˆ–è´Ÿè´£é‡å»ºä¸Šä¸‹æ–‡çš„å·¥ä½œåŒº Agent ä¼šåœ¨è¿™é‡Œå›å¤ã€‚',
-      replyWithoutOwner: 'åˆ›å»ºè€…æˆ–è´Ÿè´£é‡å»ºä¸Šä¸‹æ–‡çš„å·¥ä½œåŒº Agent ä¼šåœ¨è¿™é‡Œå›å¤ï¼›è´Ÿè´£äººä¿æŒä¸å˜ã€‚',
-      sending: 'æ­£åœ¨å‘é€â€¦',
-      commentNotify: 'è¯„è®ºå¹¶é€šçŸ¥',
-      commentAsk: 'è¯„è®ºå¹¶è¯¢é—®',
-      runStatus: {
-        running: 'è¿è¡Œä¸­',
-        done: 'å·²å®Œæˆ',
-        failed: 'å¤±è´¥',
-        interrupted: 'å·²ä¸­æ–­',
-      },
-      openRunSessionTitle: 'æ‰“å¼€è¿™æ¬¡è¿è¡Œå¯¹åº”çš„ä¼šè¯',
-      noResumableSessionTitle: 'è¿™æ¬¡è¿è¡Œæ²¡æœ‰å¯æ¢å¤çš„ä¼šè¯',
-      toolCalls: '{{count}} æ¬¡å·¥å…·è°ƒç”¨',
-      toolFailures: '{{count}} æ¬¡å¤±è´¥',
-      runs: 'è¿è¡Œè®°å½•',
-      runsDescription: 'è‡ªåŠ¨åŒ–æ‰§è¡Œå†å²',
-      showRecentRuns: 'ä»…æ˜¾ç¤ºæœ€è¿‘è¿è¡Œ',
-      showMoreRuns: 'å†æ˜¾ç¤º {{count}} æ¬¡è¿è¡Œ',
-      inboxReports: 'æ”¶ä»¶ç®±æŠ¥å‘Š',
-      openInInbox: 'åœ¨æ”¶ä»¶ç®±ä¸­æ‰“å¼€',
-      emptyPush: 'ï¼ˆç©ºæ¨é€ï¼‰',
-      matchesSeveral: 'å¯¹åº”å¤šä¸ªç›®æ ‡',
-      close: 'å…³é—­',
-      pickWikilinkTarget: 'è¿™ä¸ªåç§°æ˜¯å…¨å±€æ ‡è¯†ï¼Œä½†æŒ‡å‘äº†å¤šä¸ªå¯¹è±¡â€”â€”è¯·é€‰æ‹©ä½ æƒ³æ‰“å¼€çš„ç›®æ ‡ã€‚',
-      openTrackedEntity: 'æ‰“å¼€è¿½è¸ªå¯¹è±¡ {{name}}',
-      openIssueInWorkspace: 'åœ¨ {{workspace}} ä¸­æ‰“å¼€ {{id}}',
-      loadError: 'è®®é¢˜åŠ è½½å¤±è´¥ï¼š{{error}}',
-    },
-    priority: {
-      urgent: 'ç´§æ€¥',
-      high: 'é«˜',
-      medium: 'ä¸­',
-      low: 'ä½',
-      none: 'æ— ',
-      label: '{{priority}}ä¼˜å…ˆçº§',
-    },
-    cadence: {
-      custom: 'æŒ‰è‡ªå®šä¹‰è®¡åˆ’é‡å¤',
-      customAt: 'æŒ‰è‡ªå®šä¹‰è®¡åˆ’äº {{time}} é‡å¤',
-      everyMinute: 'æ¯åˆ†é’Ÿ',
-      everyHour: 'æ¯å°æ—¶',
-      everyDuration: 'æ¯ {{duration}}',
-      everyDayAt: 'æ¯{{day}} {{time}}',
-      everyMonthDayAt: 'æ¯æœˆ {{day}} æ—¥ {{time}}',
-      day: 'å¤©',
-      weekday: 'å·¥ä½œæ—¥',
-      weekend: 'å‘¨æœ«',
-      local: 'æœ¬åœ°',
-      localTime: 'æœ¬åœ°æ—¶é—´',
-      catchUp: 'é”™è¿‡ä¼šè‡ªåŠ¨è¡¥æ‰“ï¼Œç›´åˆ°è·‘å‡ºå»',
-      calendarOnly: 'é”™è¿‡åˆ™ç­‰åˆ°æ—¥å†ä¸Šçš„ä¸‹ä¸€æ¬¡',
-    },
-    weekday: {
-      sun: 'å‘¨æ—¥',
-      mon: 'å‘¨ä¸€',
-      tue: 'å‘¨äºŒ',
-      wed: 'å‘¨ä¸‰',
-      thu: 'å‘¨å››',
-      fri: 'å‘¨äº”',
-      sat: 'å‘¨å…­',
-    },
-  },
-  settings: {
-    title: 'è®¾ç½®',
-    group: {
-      workspace: 'å·¥ä½œåŒº',
-      agents: 'æ™ºèƒ½ä½“',
-      operations: 'è¿è¡Œ',
-      connections: 'è¿æ¥',
-      developer: 'å¼€å‘è€…',
-    },
-    language: {
-      title: 'è¯­è¨€',
-      description: 'ç•Œé¢è¯­è¨€ï¼Œç«‹å³ç”Ÿæ•ˆã€‚',
-    },
-    appearance: {
-      title: 'å¤–è§‚',
-      description: 'è‰²å½©ä¸å¸ƒå±€åå¥½ï¼Œä»…ä¿å­˜åœ¨æœ¬è®¾å¤‡ã€‚',
-      interfaceStyle: 'ç•Œé¢æ ·å¼',
-      interfaceStyleDescription: 'è°ƒæ•´ç»„ä»¶å¤–å½¢ã€å¯†åº¦ã€å­—ä½“ä¸åŠ¨æ•ˆï¼Œä¸ä¼šæ”¹å˜ä½ é€‰æ‹©çš„è‰²å¡ã€‚',
-      recommendedPalette: '{{style}}æ¨èé…è‰²',
-      recommendedPaletteDescription: 'å¯é€‰â€”â€”ä»…åœ¨æ­¤æ ·å¼å¯ç”¨æ—¶ä½¿ç”¨{{palette}}ã€‚å·²ä¿å­˜çš„æ—¥é—´ä¸æš—å¤œé…è‰²ä¸ä¼šè¢«æ”¹å†™ã€‚',
-      applyRecommendedPalette: 'åº”ç”¨æ¨èé…è‰²',
-      useSavedPalettes: 'ä½¿ç”¨å·²ä¿å­˜é…è‰²',
-      colorMode: 'è‰²å½©æ¨¡å¼',
-      colorModeDescription: 'è‡ªåŠ¨æ¨¡å¼è·Ÿéšç³»ç»Ÿåœ¨æ—¥é—´å’Œæš—å¤œæ§½ä½é—´åˆ‡æ¢ï¼›æ—¥é—´å’Œæš—å¤œæ¨¡å¼ä¼šå›ºå®šå¯¹åº”æ§½ä½ã€‚',
-      dayPalette: 'æ—¥é—´è‰²å¡',
-      dayPaletteDescription: 'ç”¨äºæ—¥é—´æ¨¡å¼ï¼Œä»¥åŠè‡ªåŠ¨æ¨¡å¼è·Ÿéšæµ…è‰²ç³»ç»Ÿåå¥½æ—¶ï¼›å¯é€‰æ‹©ä»»æ„è‰²å¡ã€‚',
-      nightPalette: 'æš—å¤œè‰²å¡',
-      nightPaletteDescription: 'ç”¨äºæš—å¤œæ¨¡å¼ï¼Œä»¥åŠè‡ªåŠ¨æ¨¡å¼è·Ÿéšæ·±è‰²ç³»ç»Ÿåå¥½æ—¶ï¼›å¯é€‰æ‹©ä»»æ„è‰²å¡ã€‚',
-      currentPalette: 'å½“å‰ä½¿ç”¨{{slot}} Â· {{palette}}',
-      followsSystem: 'è·Ÿéšç³»ç»Ÿ',
-      themePair: 'æ—¥é—´ä¸æš—å¤œé…è‰²',
-      themePairDescription: 'è‡ªåŠ¨æ¨¡å¼ä¼šåœ¨è¿™ä¸¤ç»„å·²ä¿å­˜é…è‰²é—´åˆ‡æ¢ï¼›æ ·å¼æ¨èè‰²ä¸ä¼šè¦†ç›–å®ƒä»¬ã€‚',
-      customizePalettes: 'è‡ªå®šä¹‰é…è‰²',
-      hidePaletteEditor: 'æ”¶èµ·é…è‰²ç¼–è¾‘å™¨',
-      resetPair: 'é‡ç½®ç»„åˆ',
-      activeSlot: 'å½“å‰ç”Ÿæ•ˆ',
-      editingSlot: 'æ­£åœ¨ç¼–è¾‘',
-      editPaletteSlot: 'ç¼–è¾‘{{slot}}è‰²å¡ï¼š{{palette}}',
-      choosePalette: 'é€‰æ‹©{{slot}}è‰²å¡',
-      paletteLibraryDescription: 'æ¨èè‰²å¡ä¸å½“å‰æ§½ä½çš„æ˜æš—å±æ€§åŒ¹é…ï¼›â€œå…¨éƒ¨è‰²å¡â€ä»ä¿ç•™è‡ªç”±ç»„åˆã€‚',
-      paletteFilter: 'è‰²å¡ç­›é€‰',
-      paletteFilterOption: {
-        recommended: 'æ¨è',
-        all: 'å…¨éƒ¨è‰²å¡',
-      },
-      choosePaletteOption: 'é€‰æ‹©{{palette}}',
-      usedForDay: 'ç”¨äºæ—¥é—´',
-      usedForNight: 'ç”¨äºæš—å¤œ',
-      usedForBoth: 'åŒæ—¶ç”¨äºæ—¥é—´ä¸æš—å¤œ',
-    },
-    about: {
-      title: 'å…³äº OpenAlice',
-      description: 'æŸ¥çœ‹å½“å‰å®‰è£…ã€è¿è¡Œç¯å¢ƒã€æ›´æ–°çŠ¶æ€ï¼Œä»¥åŠæ­¤å¤„æ‰“å¼€çš„ AliceProjectã€‚',
-      connection: {
-        title: 'åç«¯è¿æ¥',
-        description: 'æ­¤æµè§ˆå™¨æ­£é€šè¿‡ SSH éš§é“è¿æ¥è¿œç«¯ OpenAlice Runtimeã€‚',
-        connected: 'å·²è¿æ¥',
-      },
-      aliceProject: {
-        title: 'å½“å‰ AliceProject',
-        description: 'æ‹¥æœ‰æ­¤æ•°æ®ç›®å½•ã€Guardianã€åç«¯ä¸å‰ç«¯å…¥å£çš„é¡¶å±‚é¡¹ç›®ã€‚',
-        loading: 'æ­£åœ¨è¯»å– AliceProject ä¿¡æ¯â€¦',
-        unavailable: 'æš‚æ—¶æ— æ³•è¯»å– AliceProject ä¿¡æ¯ã€‚',
-        statusRunning: 'æ­£åœ¨æ­¤å¤„è¿è¡Œ',
-        dataHome: 'æ•°æ®ç›®å½•',
-        appRoot: 'è¿è¡Œæ—¶æ¥æº',
-        stableId: 'ç¨³å®š ID',
-        runtimeManaged: 'æ‰˜ç®¡è¿è¡Œæ—¶',
-        browserNote: 'å·¥ä½œåŒºå’Œ Session éƒ½ä½äºè¿™ä¸ª AliceProject å†…ï¼›å…¶ä»–æµè§ˆå™¨çª—å£å¯ä»¥è¿æ¥åŒä¸€å…¥å£ï¼Œè€Œä¸ä¼šå†åˆ›å»ºä¸€ä¸ªåç«¯ã€‚',
-        retry: 'é‡è¯•',
-      },
-      versionLoading: 'â€¦',
-      runtime: {
-        browser: 'æµè§ˆå™¨ / æœåŠ¡ç«¯',
-        'electron-dev': 'æ¡Œé¢å¼€å‘ç‰ˆ',
-        'electron-packaged': 'æ¡Œé¢åº”ç”¨',
-      },
-      channel: {
-        stable: 'ç¨³å®šé€šé“',
-        beta: 'Beta é€šé“',
-        dev: 'å¼€å‘é€šé“',
-        pinned: 'å›ºå®šç‰ˆæœ¬',
-        custom: 'è‡ªå®šä¹‰æ¥æº',
-      },
-      status: {
-        loading: 'æ­£åœ¨è¯»å–ç‰ˆæœ¬ä¿¡æ¯â€¦',
-        checking: 'æ­£åœ¨æ£€æŸ¥æ›´æ–°â€¦',
-        current: 'å½“å‰å·²æ˜¯æœ€æ–°ç‰ˆæœ¬ã€‚',
-        serviceManaged: 'æ›´æ–°ç”±å½“å‰éƒ¨ç½²æœåŠ¡ç®¡ç†ã€‚',
-        cliManaged: 'è¯·ä½¿ç”¨ OpenAlice CLI æ£€æŸ¥æ­¤å¼€å‘ç‰ˆæœ¬çš„æ›´æ–°ã€‚',
-        noUpdater: 'å½“å‰å®‰è£…ä¸è·Ÿéšè‡ªåŠ¨æ›´æ–°é€šé“ã€‚',
-        available: 'OpenAlice v{{version}} å·²å¯æ›´æ–°ã€‚',
-        availableUnknown: 'å·²æœ‰æ–°çš„ OpenAlice ç‰ˆæœ¬å¯æ›´æ–°ã€‚',
-        downloading: 'æ­£åœ¨ä¸‹è½½æ›´æ–°â€¦',
-        downloadingProgress: 'æ­£åœ¨ä¸‹è½½æ›´æ–°â€¦ {{percent}}%',
-        ready: 'OpenAlice v{{version}} å·²å‡†å¤‡å¥½å®‰è£…ã€‚',
-        installing: {
-          preparing: 'æ­£åœ¨å‡†å¤‡æ›´æ–°â€¦',
-          'stopping-services': 'æ­£åœ¨å®‰å…¨åœæ­¢ OpenAlice æœåŠ¡â€¦',
-          'releasing-runtime': 'æ­£åœ¨ç»“æŸå½“å‰ä¼šè¯â€¦',
-          'handing-off': 'æ­£åœ¨äº¤ç»™ç³»ç»Ÿå®‰è£…å™¨â€¦',
-        },
-        error: 'æš‚æ—¶æ— æ³•æ£€æŸ¥æ›´æ–°ã€‚',
-      },
-      check: 'æ£€æŸ¥æ›´æ–°',
-      checking: 'æ£€æŸ¥ä¸­â€¦',
-      viewReleases: 'æŸ¥çœ‹å‘å¸ƒè®°å½•',
-      installAndRestart: 'é‡å¯å¹¶æ›´æ–°',
-      installing: 'å‡†å¤‡ä¸­â€¦',
-      installHandoffNote: 'OpenAlice ä¼šåœ¨ç³»ç»Ÿå®‰è£…æ›´æ–°æ—¶å…³é—­ï¼Œéšåè‡ªåŠ¨é‡æ–°æ‰“å¼€ï¼›è¿™ä¸€è¿‡ç¨‹æœ€é•¿å¯èƒ½éœ€è¦ä¸€åˆ†é’Ÿã€‚',
-      prompt: {
-        readyTitle: 'æ›´æ–°å·²å°±ç»ª',
-        installingTitle: 'æ­£åœ¨æ›´æ–° OpenAlice',
-        readyBody: 'æ›´æ–°å·²ä¸‹è½½å®Œæˆï¼Œå¯ä»¥å¼€å§‹å®‰è£…ã€‚',
-        later: 'ç¨å',
-        restartNow: 'ç«‹å³é‡å¯',
-        close: 'å…³é—­æ›´æ–°æç¤º',
-      },
-      checkError: 'æš‚æ—¶æ— æ³•è¿æ¥æ›´æ–°æœåŠ¡ï¼›ä¸Šæ–¹ä»ä¼šæ˜¾ç¤ºå½“å‰ç‰ˆæœ¬ã€‚',
-      openReleaseError: 'æ— æ³•æ‰“å¼€å‘å¸ƒé¡µé¢ã€‚',
-      installError: 'æ— æ³•å¯åŠ¨æ›´æ–°ï¼Œè¯·é‡è¯•ã€‚',
-    },
-    dataHome: {
-      title: 'èµ„æ–™å­˜æ”¾ä½ç½®',
-      description: 'å½“å‰å®ä¾‹ä½¿ç”¨çš„å®Œæ•´ OpenAlice ä¸»ç›®å½•ï¼ŒåŒ…æ‹¬èµ„æ–™ã€å·¥ä½œåŒºã€å‡­æ®ã€Broker Pack å’Œè¿è¡Œé”ã€‚',
-      current: 'å½“å‰ä½ç½®',
-      loading: 'åŠ è½½ä¸­â€¦',
-      source: {
-        default: 'é»˜è®¤',
-        'desktop-preference': 'æ¡Œé¢ç«¯é€‰æ‹©',
-        environment: 'ç¯å¢ƒå˜é‡',
-      },
-      switchNote: 'åˆ‡æ¢ä¼šåœ¨å®‰å…¨é‡å¯åæ‰“å¼€å¦ä¸€å¥—å®Œæ•´ä¸»ç›®å½•ï¼Œä¸ä¼šç§»åŠ¨æˆ–å¤åˆ¶å½“å‰ä½ç½®ä¸­çš„æ–‡ä»¶ã€‚',
-      open: 'æ‰“å¼€æ–‡ä»¶å¤¹',
-      chooseAndRestart: 'é€‰æ‹©æ–‡ä»¶å¤¹å¹¶é‡å¯',
-      restarting: 'æ­£åœ¨é‡å¯â€¦',
-      askOnStartup: 'å¯åŠ¨æ—¶è¯¢é—®ä½¿ç”¨å“ªä¸ªä½ç½®',
-      askOnStartupDescription: 'é€‚åˆå¤šä¸ªå·¥ç¨‹æˆ–å¤šä¸ª OpenAlice å®ä¾‹ä½¿ç”¨å½¼æ­¤ç‹¬ç«‹çš„æ–‡ä»¶å’Œé”ã€‚',
-      recent: 'æœ€è¿‘ä½¿ç”¨çš„ä½ç½®',
-      useAndRestart: 'ä½¿ç”¨å¹¶é‡å¯',
-      browserOnly: 'æ¡Œé¢ç«¯å¯ä»¥ç›´æ¥é€‰æ‹©æ–‡ä»¶å¤¹ï¼›æµè§ˆå™¨å’Œå¼€å‘æ¨¡å¼å¯ç”¨ä»¥ä¸‹å‘½ä»¤é€‰æ‹©åŒä¸€å¥—è¾¹ç•Œï¼š',
-      remoteManaged: 'æ­¤æ•°æ®ç›®å½•å±äºå½“å‰è¿æ¥çš„è¿œç«¯ Runtimeã€‚è¯·åœ¨è¿œç«¯ä¸»æœºæˆ–å…¶éƒ¨ç½²æœåŠ¡ä¸­ç®¡ç†è¯¥ä½ç½®ã€‚',
-      lockedByHome: 'æœ¬æ¬¡å¯åŠ¨è¢« OPENALICE_HOME é”å®šã€‚è¯·å…ˆç§»é™¤è¯¥ç¯å¢ƒå˜é‡ï¼Œå†ä»æ¡Œé¢ UI åˆ‡æ¢ã€‚',
-      lockedByWorkspace: 'æœ¬æ¬¡å¯åŠ¨å›ºå®šäº† AQ_LAUNCHER_ROOTã€‚è¯·å…ˆç§»é™¤è¯¥ç¯å¢ƒå˜é‡ï¼Œå†ä»æ¡Œé¢ UI åˆ‡æ¢å®Œæ•´ä¸»ç›®å½•ã€‚',
-      loadError: 'æ— æ³•è¯»å–æ¡Œé¢ç«¯çš„èµ„æ–™ä½ç½®è®¾ç½®ã€‚',
-      actionError: 'æ— æ³•éªŒè¯æˆ–ä¿å­˜è¿™ä¸ªèµ„æ–™ä½ç½®ã€‚',
-      openError: 'æ— æ³•æ‰“å¼€å½“å‰èµ„æ–™æ–‡ä»¶å¤¹ã€‚',
-    },
-    workspaceShell: {
-      title: 'å·¥ä½œåŒº Shellï¼ˆWindowsï¼‰',
-      description: 'å·¥ä½œåŒºç»ˆç«¯å’Œæ™ºèƒ½ä½“ shell å·¥å…·ç»Ÿä¸€ä½¿ç”¨çš„ Git Bashï¼Œä»…ä¿å­˜åœ¨å½“å‰ Windows å®‰è£…ä¸­ã€‚',
-      mode: 'é€‰æ‹©æ–¹å¼',
-      auto: 'è‡ªåŠ¨â€”â€”ä¼˜å…ˆå†…ç½® Git Bashï¼Œå…¶æ¬¡ Git for Windows',
-      custom: 'è‡ªå®šä¹‰ bash.exe è·¯å¾„',
-      path: 'bash.exe è·¯å¾„',
-      pathDescription: 'è¯·é€‰æ‹© Git for Windows å®‰è£…ç›®å½•ä¸­çš„ bin\\bash.exeã€‚',
-      resolved: 'å½“å‰è§£æç»“æœ',
-      source: 'å·²å°±ç»ª Â· æ¥æºï¼š{{source}}',
-      notFound: 'æœªæ‰¾åˆ° Git Bash',
-      save: 'ä¿å­˜ Shell',
-      saving: 'ä¿å­˜ä¸­â€¦',
-      saveError: 'æ— æ³•ä¿å­˜æˆ–éªŒè¯è¿™ä¸ª bash.exe è·¯å¾„ã€‚',
-    },
-    category: {
-      general: 'é€šç”¨',
-      appearance: 'å¤–è§‚',
-      activityBar: 'ä¾§æ ',
-      aiProvider: 'AI æä¾›æ–¹',
-      agentRuntimes: 'Agent è¿è¡Œæ—¶',
-      agentPermissions: 'æ™ºèƒ½ä½“æƒé™',
-      tools: 'å·¥å…·',
-      trading: 'äº¤æ˜“',
-      issues: 'è®®é¢˜',
-      harness: 'Harness',
-      connectors: 'è¿æ¥å™¨',
-      mcpServer: 'MCP æœåŠ¡å™¨',
-      marketData: 'å¸‚åœºæ•°æ®',
-      newsSources: 'æ–°é—»æº',
-      beta: 'æµ‹è¯•ç‰ˆ',
-    },
-    activityBar: {
-      title: 'ä¾§æ ',
-      description: 'é€‰æ‹©å·¦ä¾§å…¥å£æ˜¯å¦æ˜¾ç¤ºï¼Œä»¥åŠå®ƒä»¬çš„åˆ†ç»„ã€‚ä¿å­˜åœ¨å½“å‰ Alice å®¶ç›®å½•çš„ data/ui-layout.jsonã€‚',
-      primaryGroup: 'ç½®é¡¶',
-      newGroup: 'æ–°åˆ†ç»„',
-      addGroup: 'æ·»åŠ åˆ†ç»„',
-      deleteGroup: 'åˆ é™¤åˆ†ç»„',
-      renameGroup: 'åˆ†ç»„åç§°',
-      reset: 'æ¢å¤é»˜è®¤',
-      resetConfirm: 'æ¢å¤é»˜è®¤ä¾§æ åˆ†ç»„ï¼Ÿ',
-      path: 'ä¿å­˜åœ¨ data/ui-layout.json',
-      show: 'æ˜¾ç¤º{{label}}',
-      hide: 'éšè—{{label}}',
-      dragGroup: 'è°ƒæ•´åˆ†ç»„é¡ºåº',
-      dragItem: 'è°ƒæ•´{{label}}é¡ºåº',
-      pinned: 'è®¾ç½®ä¼šä¸€ç›´ç•™åœ¨ä¾§æ ã€‚',
-      loadError: 'æ— æ³•åŠ è½½ä¾§æ å¸ƒå±€ã€‚',
-    },
-    beta: {
-      title: 'æµ‹è¯•ç‰ˆ',
-      description: 'æœªå®Œæˆçš„ç•Œé¢é»˜è®¤éšè—ï¼Œæ‰“å¼€åæ‰ä¼šå‡ºç°ã€‚è¿™äº›åå¥½åªä¿å­˜åœ¨æœ¬æœºã€‚',
-      office: 'åŠå…¬å®¤',
-      officeDescription: 'åœ¨æ´»åŠ¨æ æ˜¾ç¤ºåŠå…¬å®¤å…¥å£ã€‚æ¥¼å±‚ç”»é¢ä»æ˜¯åŠæˆå“ï¼Œä¹‹åå¯èƒ½æ”¹ã€‚',
-    },
-    agentRuntimes: {
-      title: 'Agent è¿è¡Œæ—¶',
-      description: 'æŸ¥çœ‹è¿™ä¸ª AliceProject å¯ä»¥å¯åŠ¨çš„åŸç”Ÿ CLIï¼Œä¿®å¤ç¼ºå¤±å®‰è£…ï¼Œå¹¶é€‰æ‹©æœ€å¤šå››ä¸ªå¿«æ·è¿è¡Œæ—¶ã€‚',
-      quickAccess: 'å¿«æ·å…¥å£',
-      quickAccessDescription: 'æˆåŠŸåˆ›å»º Session åï¼Œå¯¹åº”è¿è¡Œæ—¶ä¼šè‡ªåŠ¨ç§»åˆ°æœ€å‰é¢ã€‚è¿™é‡Œçš„é¡ºåºä½œä¸ºæœ€è¿‘ä½¿ç”¨è®°å½•ä¹‹åçš„å€™è¡¥åŸºçº¿ï¼›æœªå®‰è£…çš„è¿è¡Œæ—¶ä¸ä¼šè‡ªåŠ¨å¡«å…¥ã€‚',
-      quickAccessEmpty: 'è¿˜æ²¡æœ‰ç½®é¡¶è¿è¡Œæ—¶ã€‚å¯ä»ä¸‹æ–¹ç›®å½•æœ€å¤šæ·»åŠ å››ä¸ªã€‚',
-      catalog: 'å·²å‘ç°çš„è¿è¡Œæ—¶',
-      catalogDescription: 'å®‰è£…çŠ¶æ€ç”±æœ¬æœºæ¢æµ‹ï¼Œä¸ä¼šä½œä¸ºåå¥½ä¿å­˜ã€‚',
-      refresh: 'åˆ·æ–°',
-      refreshing: 'æ­£åœ¨æ£€æŸ¥â€¦',
-      probe: 'æ£€æŸ¥æ­¤è¿è¡Œæ—¶',
-      search: 'æœç´¢è¿è¡Œæ—¶â€¦',
-      emptyCatalog: 'å°šæœªæ³¨å†Œä»»ä½• Agent è¿è¡Œæ—¶ã€‚',
-      noMatches: 'æ²¡æœ‰åŒ¹é…â€œ{{query}}â€çš„è¿è¡Œæ—¶ã€‚',
-      installed: 'å·²å®‰è£…',
-      notInstalled: 'æœªå®‰è£…',
-      unknownPath: 'æœªæŠ¥å‘Šè·¯å¾„',
-      models: 'æ¨¡å‹',
-      auth: 'è®¤è¯',
-      installDocs: 'å®‰è£…æ–‡æ¡£',
-      pin: 'å°† {{name}} åŠ å…¥å¿«æ·å…¥å£',
-      unpin: 'å°† {{name}} ç§»å‡ºå¿«æ·å…¥å£',
-      pinDisabled: 'å¿«æ·å…¥å£å·²æœ‰å››ä¸ªè¿è¡Œæ—¶ã€‚è¯·å…ˆç§»é™¤ä¸€ä¸ªå†æ·»åŠ  {{name}}ã€‚',
-      pinUninstalled: '{{name}} æœªå®‰è£…ï¼Œä¸èƒ½åŠ å…¥å¿«æ·å…¥å£ã€‚',
-      moveUp: 'ä¸Šç§» {{name}}',
-      moveDown: 'ä¸‹ç§» {{name}}',
-      status: {
-        unknown: 'å°šæœªæ£€æŸ¥',
-        checking: 'æ­£åœ¨æ£€æŸ¥',
-        ready: 'å°±ç»ª',
-        notInstalled: 'æœªå®‰è£…',
-        authRequired: 'éœ€è¦ç™»å½•',
-        providerRequired: 'éœ€è¦é…ç½®æä¾›æ–¹',
-        outputUnrecognized: 'æ¢æµ‹è¾“å‡ºæ— æ³•è¯†åˆ«',
-        timeout: 'æ£€æŸ¥è¶…æ—¶',
-        failed: 'æ£€æŸ¥å¤±è´¥',
-      },
-      repair: {
-        runtimeInstall: 'å®‰è£…æ­¤ CLI å¹¶ç¡®ä¿å®ƒåœ¨ PATH ä¸Šï¼Œç„¶åé‡æ–°æ£€æŸ¥ã€‚',
-        cliLogin: 'ç”¨åŸç”Ÿ CLI ç™»å½•åï¼Œå†é‡æ–°æ£€æŸ¥ã€‚',
-        aiProvider: 'åœ¨ AI æä¾›æ–¹ä¸­æ·»åŠ å…¼å®¹å‡­è¯ï¼Œç„¶åé‡æ–°æ£€æŸ¥ã€‚',
-        retry: 'ä¿®å¥½ä¸»æœºæˆ–ç½‘ç»œåï¼Œå†æ£€æŸ¥ä¸€æ¬¡æ­¤è¿è¡Œæ—¶ã€‚',
-      },
-    },
-    harness: {
-      title: 'Harness',
-      description: 'Ask Aliceã€Auto Quant å’Œ Auto Prediction éƒ½æ˜¯ Workspace Harnessï¼šæ¡Œå­å°±æ˜¯ä»»åŠ¡ï¼Œç”± coding agent åœ¨é‡Œé¢å¹²æ´»ã€‚',
-      shared: 'å…±ç”¨ Harness è¡Œä¸º',
-      sharedDescription: 'è¿™äº›å®‰è£…çº§é€‰é¡¹ä½œç”¨äºæ‰€æœ‰ Harness Workspaceã€‚',
-      showHeadlessBorn: 'æ˜¾ç¤ºæ— å¤´å‡ºèº«çš„ Session',
-      showHeadlessBornDescription: 'é»˜è®¤å…³é—­ã€‚ä» Issue æˆ– API è·‘èµ·æ¥ã€ä»æœªæ‰“å¼€è¿‡ TUI / Web çš„ Session ç•™åœ¨ Issue é¡µï¼Œä¸è¿›æ¡Œå­åå†Œã€‚',
-      showIssueAttached: 'æ˜¾ç¤ºæŒ‚é  Issue çš„ Session',
-      showIssueAttachedDescription: 'é»˜è®¤å…³é—­ã€‚å¼€å¯åï¼Œæ™®é€š Issue å½“å‰æŒæœ‰æˆ–å ç”¨çš„ Session ä¼šè¿›å…¥å…±äº«æ¡Œå­åå†Œï¼›Connector èŠå¤© Session å§‹ç»ˆéšè—ã€‚',
-      showUnverifiedReleases: 'æ˜¾ç¤ºæœªç»è®¤è¯çš„ Harness ç‰ˆæœ¬',
-      showUnverifiedReleasesDescription: 'é»˜è®¤å…³é—­ã€‚å¼€å¯å OpenAlice ä¹Ÿä¼šæ£€æŸ¥ä¸Šæ¸¸ä»“åº“æœ€æ–°çš„ç¨³å®šç‰ˆæœ¬ï¼›è¿™äº›ç‰ˆæœ¬ä¼šæ˜ç¡®æ ‡è®°ï¼Œä¸”ä»éœ€å®¡é˜…åå‡çº§ã€‚',
-      askAlice: 'Ask Alice',
-      askAliceDescription: 'å¯¹è¯ Workspace åŠå…¶ Session åå†Œã€‚',
-      autoQuant: 'Auto Quant',
-      autoQuantDescription: 'Auto Quant Workspace åŠå…¶ç ”ç©¶åå†Œã€‚',
-      autoPrediction: 'Auto Prediction',
-      autoPredictionDescription: 'Auto Prediction Workspaceã€Session å’Œæºç ç‰ˆæœ¬ã€‚',
-      usesSharedRoster: 'æ²¿ç”¨ä¸Šé¢çš„å…±ç”¨ Harness è¡Œä¸ºï¼›ä¸“å±é€‰é¡¹å¯ä»¥æ”¾åœ¨è¿™ä¸€èŠ‚ã€‚',
-    },
-    agent: {
-      title: 'æ™ºèƒ½ä½“',
-      description: 'æ§åˆ¶ AI å¯ä»¥ä»£ä½ åšä»€ä¹ˆã€‚æ›´æ”¹åœ¨ä¸‹ä¸€æ¬¡è¯·æ±‚æ—¶ç”Ÿæ•ˆã€‚',
-      allowAiTrading: 'å…è®¸ AI è‡ªåŠ¨ä¸‹å•',
-      allowAiTradingOn: 'å¼€å¯â€”â€”AI å¯è‡ªè¡Œå‘åˆ¸å•†å‘é€è®¢å•ï¼Œæ— éœ€æ¯æ¬¡å¾æ±‚ä½ çš„åŒæ„ã€‚',
-      allowAiTradingOff: 'å…³é—­â€”â€”AI å¯ä»¥æš‚å­˜å¹¶æè®®äº¤æ˜“ï¼Œä½†æ¯æ¬¡ push éƒ½éœ€è¦ä½ åœ¨ Web UI ä¸­æ‰¹å‡†ã€‚',
-      allowAiTradingWarning: 'AI è‡ªåŠ¨äº¤æ˜“å·²å¼€å¯ã€‚AI å¯è‡ªè¡Œä¸‹å•ã€æ”¹å•ã€æ’¤å•ã€‚æ¯è´¦æˆ·çš„åªè¯»è®¾ç½®ä»ç„¶ç”Ÿæ•ˆã€‚',
-      allowAiTradingConfirmTitle: 'å¼€å¯ AI è‡ªåŠ¨äº¤æ˜“ï¼Ÿ',
-      allowAiTradingConfirmBody: 'å¼€å¯åï¼ŒAI å¯åœ¨ä¸å¾æ±‚ä½ åŒæ„çš„æƒ…å†µä¸‹å‘åˆ¸å•†å‘é€çœŸå®è®¢å•ã€‚UTA äº¤æ˜“æ¥å£ç›®å‰ä»ä¸ç¨³å®šï¼Œå¯èƒ½å­˜åœ¨ç²¾åº¦æˆ–å‚æ•°é—®é¢˜ã€‚å¼ºçƒˆä¸å»ºè®®åœ¨å®ç›˜è´¦æˆ·ä¸Šä½¿ç”¨â€”â€”è¯·ä½¿ç”¨æ¨¡æ‹Ÿ / demo è´¦æˆ·ã€‚',
-      allowAiTradingConfirmCta: 'å¼€å¯è‡ªåŠ¨äº¤æ˜“',
-    },
-    agentPermissions: {
-      title: 'æ™ºèƒ½ä½“æƒé™',
-      loadErrorTitle: 'æ— æ³•åŠ è½½æ™ºèƒ½ä½“æƒé™',
-      loadErrorDescription: 'OpenAlice æ— æ³•è¯»å–å½“å‰é…ç½®ã€‚ä½ çš„æƒé™æ²¡æœ‰å‘ç”Ÿå˜åŒ–ã€‚',
-      mode: {
-        title: 'äº¤æ˜“æ¨¡å¼',
-        description: 'Alice å’Œå·¥ä½œåŒºæ™ºèƒ½ä½“çš„å…¨å±€åˆ¸å•†èƒ½åŠ›ã€‚',
-        lite: {
-          label: 'Lite',
-          description: 'UTA ä¿æŒæ–­å¼€ã€‚Alice åªåšåˆ†æï¼Œä¸è¯»å–åˆ¸å•†è´¦æˆ·ã€‚',
-        },
-        readonly: {
-          label: 'Readonly',
-          description: 'UTA å¯è¯»å–è´¦æˆ·å’ŒæŒä»“ï¼Œä½†ç¦æ­¢å†™å…¥åˆ¸å•†çŠ¶æ€ã€‚',
-        },
-        pro: {
-          label: 'Pro',
-          description: 'UTA å¼€å¯ï¼Œå¹¶åº”ç”¨æ¯ä¸ªè´¦æˆ·è‡ªå·±çš„æƒé™å’Œå®¡æ‰¹æ§åˆ¶ã€‚',
-        },
-        saving: 'åˆ‡æ¢ä¸­',
-        envLocked: 'å½“å‰å®‰è£…è¢«ç¯å¢ƒå˜é‡é”å®šï¼Œä¸èƒ½ä»ç•Œé¢åˆ‡æ¢ã€‚',
-        source: 'å½“å‰æ¥æºï¼š{{source}}',
-      },
-      aiPush: {
-        title: 'AI äº¤æ˜“æ¨é€',
-        description: 'æ§åˆ¶æ™ºèƒ½ä½“æ˜¯å¦å¯ä»¥ç»•è¿‡äººå·¥å®¡æ‰¹ï¼Œç›´æ¥æ‰§è¡Œå·² commit çš„åˆ¸å•†å†™å…¥ã€‚',
-        proOnly: 'å½“å‰äº¤æ˜“æ¨¡å¼ä»ä¼šé˜»æ­¢åˆ¸å•†å†™å…¥ã€‚è¿™ä¸ªå¼€å…³åªæœ‰åœ¨ Pro æ¨¡å¼æ‰§è¡Œæ—¶æ‰ä¼šçœŸæ­£ç”Ÿæ•ˆã€‚',
-      },
-    },
-    tools: {
-      summary: '{{groups}} ä¸ªåˆ†ç»„å…± {{tools}} ä¸ªå·¥å…·â€”â€”æ›´æ”¹åœ¨ä¸‹æ¬¡ AI è¯·æ±‚æ—¶ç”Ÿæ•ˆ',
-      loadError: 'æ— æ³•åŠ è½½å·¥å…·ç›®å½•ã€‚',
-      emptyTitle: 'å°šæœªæ³¨å†Œä»»ä½•å·¥å…·ã€‚',
-      emptyDescription: 'å¼•æ“å¯åŠ¨åå·¥å…·ä¼šæ˜¾ç¤ºåœ¨è¿™é‡Œã€‚',
-      group: {
-        thinking: 'æ€è€ƒå·¥å…·é›†',
-        cron: 'Cron è°ƒåº¦å™¨',
-        equity: 'è‚¡ç¥¨æ•°æ®',
-        cryptoData: 'åŠ å¯†è´§å¸æ•°æ®',
-        currencyData: 'è´§å¸æ•°æ®',
-        news: 'æ–°é—»',
-        newsArchive: 'æ–°é—»å½’æ¡£',
-        analysis: 'åˆ†æå·¥å…·é›†',
-        cryptoTrading: 'åŠ å¯†è´§å¸äº¤æ˜“',
-        securitiesTrading: 'è¯åˆ¸äº¤æ˜“',
-      },
-    },
-  },
-  aiProvider: {
-    title: 'AI æä¾›æ–¹',
-    description: 'ç®¡ç† Workspace Session å¯é€‰ç”¨çš„æä¾›æ–¹è´¦æˆ·å’Œæ¨¡å‹å»ºè®®ã€‚',
-    loadErrorTitle: 'æ— æ³•åŠ è½½ AI å‡­è¯',
-    loadErrorDescription: 'OpenAlice æ— æ³•è¯»å–å‡­è¯åº“ã€‚ä½ å·²ä¿å­˜çš„å‡­è¯æ²¡æœ‰å‘ç”Ÿå˜åŒ–ã€‚',
-    vaultIntro: 'API key ç”± Alice é›†ä¸­ä¿ç®¡ï¼Œä»…åœ¨ Session æ˜ç¡®é€‰ç”¨æ—¶è§£æã€‚åƒ OpenRouter è¿™æ ·çš„ç½‘å…³å¯ä»¥ç”¨ä¸€æŠŠ key è¦†ç›–å¤šå®¶æ¨¡å‹ã€‚Workspace åªä¿å­˜æ— å¯†é’¥å¼•ç”¨ï¼›ç”± Runtime ç®¡ç†çš„è®¿é—®æ–¹å¼ç•™åœ¨å„è‡ªçš„ Agent Runtime å†…ï¼ŒAlice ä¸ä¼šå¯¼å…¥ã€‚',
-    credentials: 'å‡­è¯åº“',
-    credentialsCount: 'ï¼ˆ{{count}}ï¼‰',
-    credentialsFiltered: 'ï¼ˆ{{shown}} / {{total}}ï¼‰',
-    searchCredentials: 'æœç´¢å‡­è¯â€¦',
-    noCredentialMatches: 'æ²¡æœ‰åŒ¹é…â€œ{{query}}â€çš„å‡­è¯ã€‚',
-    addFirst: 'æ·»åŠ ç¬¬ä¸€ä¸ªå‡­è¯',
-    keySet: 'å·²è®¾ç½® key',
-    defaultModel: 'é»˜è®¤æ¨¡å‹',
-    notSet: 'æœªè®¾ç½®',
-    officialEndpoint: 'æä¾›æ–¹å®˜æ–¹ç«¯ç‚¹',
-    deleteFailed: 'åˆ é™¤å¤±è´¥',
-    editCredentialAria: 'ç¼–è¾‘ {{credential}}',
-    deleteCredentialAria: 'åˆ é™¤ {{credential}}',
-    deleteConfirmTitle: 'åˆ é™¤ {{credential}}ï¼Ÿ',
-    deleteConfirmMessage: 'è¿™ä¼šä» Alice å‡­è¯åº“ä¸­æ°¸ä¹…åˆ é™¤ {{slug}}ï¼Œå¹¶æ¸…é™¤æ‰€æœ‰å¼•ç”¨å®ƒçš„æ–°å·¥ä½œåŒºé»˜è®¤å€¼ã€‚ç°æœ‰å·¥ä½œåŒºæ–‡ä»¶ä¸ä¼šæ”¹å˜ã€‚',
-    defaultsIntro: 'å¯ä»¥ä¸ºæ–° Workspace è®¾ç½®æä¾›æ–¹é»˜è®¤å€¼ã€‚Workspace åªä¼šåœ¨ .alice/settings.json ä¿å­˜å‡­è¯å¼•ç”¨ï¼Œå¯†é’¥åœ¨è¿›ç¨‹å¯åŠ¨æ—¶æä¾›ï¼›ä¸è®¾ç½®æ—¶ï¼Œå„ Agent Runtime è‡ªè¡Œç®¡ç†å‡­æ®ä¸æä¾›æ–¹é…ç½®ã€‚',
-    defaultsTitle: 'æ–°å·¥ä½œåŒºé»˜è®¤å€¼',
-    defaultCredentialLabel: '{{agent}} é»˜è®¤å‡­è¯',
-    apiProtocolLabel: '{{agent}} API åè®®',
-    reasoningOverrideLabel: '{{agent}} æœªçŸ¥æ¨¡å‹çš„é»˜è®¤æ€è€ƒèƒ½åŠ›è¦†ç›–',
-    noCompatible: 'å‡­è¯åº“é‡Œè¿˜æ²¡æœ‰å…¼å®¹å‡­è¯ã€‚',
-    dontSeed: 'ç”± Agent Runtime ç®¡ç†',
-    protocol: 'åè®®ï¼š{{protocol}}',
-    model: 'æ¨¡å‹ï¼š{{model}}',
-    automatic: 'è‡ªåŠ¨ç™»è®°ï¼š{{summary}}',
-    advancedReasoning: 'é«˜çº§â€”â€”æœªçŸ¥æ¨¡å‹çš„æ€è€ƒèƒ½åŠ›',
-    useRuntimeDefault: 'ç”± Agent Runtime ç®¡ç†',
-    supportsReasoning: 'æ¨¡å‹æ”¯æŒæ€è€ƒæ¨¡å¼',
-    noReasoning: 'æ¨¡å‹æ²¡æœ‰æ€è€ƒæ¨¡å¼',
-    advancedAgents: 'é«˜çº§â€”â€”Claude Code / Codexï¼ˆéå®˜æ–¹ APIï¼‰',
-    advancedAgentsDescription: 'ä»…å½“æ–° Workspace åˆå§‹åº”ä¼˜å…ˆä½¿ç”¨ OpenAlice æ‰˜ç®¡çš„å‡­æ®åº“æ—¶è®¾ç½®ï¼›ç”¨æˆ·ä»å¯åœ¨å¯åŠ¨é€‰æ‹©å™¨é‡ŒæŠŠç®¡ç†æƒäº¤è¿˜ç»™ Agent Runtimeã€‚',
-    saveFailed: 'ä¿å­˜å¤±è´¥',
-    runtimeReference: 'Agent è¿è¡Œæ—¶å‚è€ƒ',
-    runtimeIntro: 'è¿™é‡Œè¯´æ˜å·¥ä½œåŒºå¯ä»¥å¯åŠ¨çš„ agent CLIã€‚ä¸Šæ–¹å‡­è¯ä¼šäº¤ç»™å…¼å®¹çš„è¿è¡Œæ—¶ï¼›æ‰€æœ‰è¿è¡Œæ—¶éƒ½é€šè¿‡åŸç”Ÿ MCP æˆ– alice CLI ä½¿ç”¨å®Œæ•´çš„ OpenAlice å·¥å…·ã€‚',
-    openAgentRuntimes: 'æ‰“å¼€ Agent è¿è¡Œæ—¶',
-    openAgentRuntimesDescription: 'å®‰è£…çŠ¶æ€ã€å°±ç»ªæ£€æŸ¥ã€ä¿®å¤æŒ‡å¼•å’Œå¿«æ·å…¥å£éƒ½åœ¨â€œAgent è¿è¡Œæ—¶â€é¡µé¢ç®¡ç†ã€‚',
-    models: 'æ¨¡å‹',
-    auth: 'è®¤è¯',
-    runtime: {
-      claude: {
-        blurb: 'Anthropic çš„ coding-agent CLIï¼Œagent å¾ªç¯æœ€æ·±ã€‚',
-        models: 'Claudeï¼ˆAnthropicï¼‰ï¼Œä»¥åŠé€šè¿‡ Base URL å’Œè®¤è¯å¤´æ¥å…¥çš„ Anthropic å…¼å®¹ç½‘å…³ã€‚',
-        auth: 'Claude Pro/Max è®¢é˜…æˆ– Anthropic API keyã€‚',
-      },
-      codex: {
-        blurb: 'OpenAI çš„ coding-agent CLIã€‚',
-        models: 'OpenAI GPT æ¨¡å‹ã€‚ä»…æ”¯æŒ Responses APIï¼›åªæœ‰ Chat æ¥å£çš„æä¾›æ–¹éœ€è¦ Responses ä»£ç†ã€‚',
-        auth: 'ChatGPT è®¢é˜…æˆ– OpenAI API keyã€‚',
-      },
-      cursor: {
-        blurb: 'Cursor çš„ coding-agent CLIã€‚Alice åªå¯åŠ¨ PATH ä¸Šçš„ `cursor-agent`ï¼Œä¸ä¼šä½¿ç”¨ä¼šå’Œ Grok å†²çªçš„ `agent` å‘½ä»¤ã€‚',
-        models: 'ç™»å½•åçš„æœ¬å®¶ Cursor Modelsï¼šAutoã€Composer 2.5ã€Grok 4.6 / 4.5ã€‚effort å’Œ Fast å†™åœ¨ CLI id é‡Œã€‚ç¬¬ä¸‰æ–¹æ¨¡å‹å¯æ‰‹è¾“ã€‚',
-        auth: '`cursor-agent login`ï¼Œæˆ–æŠŠ Cursor Dashboard API key æ”¾è¿› `CURSOR_API_KEY`ã€‚',
-      },
-      agy: {
-        blurb: 'Google çš„ coding-agent CLIã€‚Alice åªå¯åŠ¨ PATH ä¸Šçš„ `agy`ï¼Œä¸ä¼šä½¿ç”¨ `antigravity` æˆ– `gemini`ã€‚',
-        models: 'ç™»å½•åçš„æœ¬å®¶ Gemini slugï¼ˆ3.7 / 3.6 Flashã€3.1 Proï¼‰ã€‚åŸç”Ÿ `--effort` åªæœ‰ low / medium / highã€‚ç¬¬ä¸‰æ–¹æ¨¡å‹å¯æ‰‹è¾“ã€‚',
-        auth: 'ç”¨ `agy` æµè§ˆå™¨ / é’¥åŒ™ä¸²ç™»å½•ã€‚ä¿é™©åº“é‡Œçš„ Gemini key è¿˜è¦è‡ªå·±åœ¨ CLI settings é‡Œå†™ `modelProvider: "gemini"`â€”â€”Alice ä¸ä¼šæ”¹é‚£ä¸ªæ–‡ä»¶ã€‚',
-      },
-      grok: {
-        blurb: 'xAI çš„ coding-agent CLIã€‚',
-        models: 'xAI API ä¸Šçš„ Grok æ¨¡å‹ï¼Œä¹Ÿå¯é€šè¿‡è‡ªå®šä¹‰ Base URL æ¥å…¥å…¼å®¹ OpenAI çš„ç«¯ç‚¹ã€‚',
-        auth: '`grok login` è®¢é˜…æˆ– xAI API keyã€‚',
-      },
-      omp: {
-        blurb: 'Oh My Piâ€”â€”Pi çš„ forkï¼Œæœ‰è‡ªå·±çš„å®¶ç›®å½•ã€ä¼šè¯å’Œ print/JSON åè®®ã€‚',
-        models: 'OpenAIã€Anthropicã€Googleï¼Œä»¥åŠé€šè¿‡åŸç”Ÿæˆ–å…¼å®¹åè®®æ¥å…¥çš„æœ¬åœ°æ¨¡å‹å’Œä»£ç†ã€‚',
-        auth: 'æ¯ä¸ªæä¾›æ–¹å„è‡ªçš„ API keyï¼Œæˆ–åœ¨ `omp` é‡Œ /loginã€‚åªè®¤ PATH ä¸Šçš„ `omp`ã€‚',
-      },
-      opencode: {
-        blurb: 'åŸºäº AI SDK å’Œ Models.dev çš„æä¾›æ–¹æ— å…³å¼€æº agent CLIã€‚',
-        models: 'Anthropicã€OpenAIã€Googleã€OpenRouterã€äº‘æä¾›æ–¹ä»¥åŠå…¼å®¹ OpenAI çš„æœ¬åœ°è¿è¡Œæ—¶ã€‚',
-        auth: 'æ¯ä¸ªæä¾›æ–¹å„è‡ªçš„ API keyã€‚',
-      },
-      pi: {
-        blurb: 'æä¾›ç»Ÿä¸€å¤šæä¾›æ–¹ API çš„è½»é‡å¼€æº agent CLIã€‚',
-        models: 'OpenAIã€Anthropicã€Googleï¼Œä»¥åŠé€šè¿‡åŸç”Ÿæˆ–å…¼å®¹åè®®æ¥å…¥çš„æœ¬åœ°æ¨¡å‹å’Œä»£ç†ã€‚',
-        auth: 'æ¯ä¸ªæä¾›æ–¹å„è‡ªçš„ API keyã€‚',
-      },
-    },
-    credentialModal: {
-      addTitle: 'æ·»åŠ å‡­è¯',
-      editTitle: 'ç¼–è¾‘å‡­è¯â€”â€”{{slug}}',
-      subtitle: 'æŠŠä¸€ä¸ªæä¾›æ–¹è´¦æˆ·æ¥åˆ°æ‰€æœ‰å…¼å®¹çš„å·¥ä½œåŒºè¿è¡Œæ—¶ã€‚',
-      close: 'å…³é—­å‡­è¯å¯¹è¯æ¡†',
-      search: 'æœç´¢æä¾›æ–¹â€¦',
-      displayName: 'æ˜¾ç¤ºåç§°',
-      displayNameHelp: 'é€‰æ‹©å™¨é‡Œçš„å¯é€‰æ˜µç§°ã€‚ç•™ç©ºåˆ™ä½¿ç”¨æä¾›æ–¹åç§°å’Œ slugã€‚',
-      displayNamePlaceholder: 'ä¾‹å¦‚ å·¥ä½œç”¨ key',
-      noMatches: 'æ²¡æœ‰åŒ¹é…â€œ{{query}}â€çš„æä¾›æ–¹ã€‚',
-      chooseMode: 'é€‰æ‹© API æ¨¡å¼åå³å¯ç¡®å®šå…¼å®¹çš„ agent',
-      worksWith: 'å…¼å®¹ {{agents}}',
-      freeForm: 'è‡ªç”±é…ç½®',
-      chooseProvider: 'è¯·å…ˆé€‰æ‹©æä¾›æ–¹ã€‚',
-      providerNameRequired: 'è¯·è¾“å…¥æä¾›æ–¹åç§°ã€‚',
-      customUrlRequired: 'è¯·è¾“å…¥è‡ªå®šä¹‰ API Base URLã€‚',
-      customUrlInvalid: 'è¯·è¾“å…¥æœ‰æ•ˆçš„ http:// æˆ– https:// API Base URLã€‚',
-      endpointRequired: 'è¯·é€‰æ‹© API ç«¯ç‚¹ã€‚',
-      keyRequired: 'è¯·è¾“å…¥{{label}}ã€‚',
-      modelRequired: 'è¯·è¾“å…¥è¦æµ‹è¯•å¹¶è®°ä½çš„å‡†ç¡®æ¨¡å‹ IDã€‚',
-      completeRequired: 'è¯·å…ˆå¡«å†™å¿…å¡«å­—æ®µã€‚',
-      providerName: 'æä¾›æ–¹åç§°',
-      providerNameHelp: 'åœ¨é€‰æ‹©å™¨é‡Œæ˜¾ç¤ºçš„æ˜“è¯»åç§°ã€‚',
-      providerNamePlaceholder: 'ä¾‹å¦‚æœ¬åœ° vLLM',
-      compatibilityMode: 'API å…¼å®¹æ¨¡å¼',
-      compatibilityModeHelp: 'é€‰æ‹©ç«¯ç‚¹å®é™…å®ç°çš„åè®®ï¼Œå®ƒå†³å®šå“ªäº› agent è¿è¡Œæ—¶å¯ä»¥ä½¿ç”¨æ­¤å‡­è¯ã€‚',
-      baseUrl: 'API Base URL',
-      baseUrlHelp: 'è‡ªå®šä¹‰æä¾›æ–¹å¿…é¡»å¡«å†™ã€‚è¯·åŒ…å«æ–‡æ¡£è¦æ±‚çš„è·¯å¾„å‰ç¼€ï¼Œä¾‹å¦‚ /v1ã€‚',
-      directBaseUrlHelp: 'å¯é€‰ã€‚ç•™ç©ºæ—¶ä½¿ç”¨ Agent Runtime å†…ç½®çš„æä¾›æ–¹åœ°å€ã€‚',
-      accountRegion: 'è´¦æˆ·åŒºåŸŸ',
-      accountRegionHelp: 'é€‰æ‹©ç­¾å‘æ­¤ API key çš„æä¾›æ–¹åŒºåŸŸã€‚',
-      storedEndpoint: 'å·²ä¿å­˜çš„è‡ªå®šä¹‰ç«¯ç‚¹ï¼ˆä¿æŒä¸å˜ï¼‰',
-      compatibleRuntimes: 'å…¼å®¹çš„ agent è¿è¡Œæ—¶',
-      chooseSupportedMode: 'è¯·é€‰æ‹©æ”¯æŒçš„ API æ¨¡å¼ã€‚',
-      injectionHelp: 'OpenAlice å¯ä»¥æŠŠè¿™ä¸ªè´¦æˆ·æŒ‰å•æ¬¡ Session è¿›ç¨‹æŠ•å½±ç»™ä¸Šé¢åˆ—å‡ºçš„å…¼å®¹è¿è¡Œæ—¶ã€‚',
-      apiKey: 'API key',
-      apiKeyHelp: 'ä½¿ç”¨æ­¤æä¾›æ–¹ç­¾å‘çš„ API keyï¼›è®¢é˜…ç™»å½•ä»ä¿ç•™åœ¨ agent CLI ä¸­ã€‚',
-      apiKeyPlaceholder: 'è¾“å…¥ API key',
-      defaultModel: 'é»˜è®¤æ¨¡å‹',
-      defaultModelHelp: 'ç³»ç»Ÿä¼šæµ‹è¯•å¹¶è®°ä½è¿™ä¸ªå‡†ç¡®æ¨¡å‹ IDï¼›å·¥ä½œåŒºä¹‹åå¯ä»¥å±€éƒ¨è¦†ç›–ã€‚',
-      modelPlaceholder: 'æä¾›æ–¹çš„å‡†ç¡®æ¨¡å‹ ID',
-      endpointDetails: 'åè®®å’Œç«¯ç‚¹è¯¦æƒ…',
-      noEndpoint: 'å°šæœªé…ç½®ç«¯ç‚¹ã€‚',
-      selectedModel: 'æ‰€é€‰æ¨¡å‹',
-      testExplanation: 'ç³»ç»Ÿä¼šå‘ {{model}} å‘é€ä¸€ä¸ªå°è¯·æ±‚ã€‚åªæœ‰å½“å‰ keyã€ç«¯ç‚¹ã€åè®®å’Œæ¨¡å‹ä¸€èµ·é€šè¿‡åï¼Œæ‰ä¼šè§£é”ä¿å­˜ã€‚',
-      testingConnection: 'æ­£åœ¨æµ‹è¯•è¿æ¥â€¦',
-      connectionVerified: 'è¿æ¥å·²éªŒè¯',
-      verifiedNoText: 'è¿æ¥å·²éªŒè¯â€”â€”æä¾›æ–¹æ²¡æœ‰è¿”å›æ–‡æœ¬ã€‚',
-      testFailed: 'æµ‹è¯•å¤±è´¥ï¼š',
-      formChanged: 'è¡¨å•åœ¨ä¸Šæ¬¡æµ‹è¯•åå‘ç”Ÿäº†å˜åŒ–ï¼Œè¯·é‡æ–°æµ‹è¯•å†ä¿å­˜ã€‚',
-      formChangedShort: 'è¡¨å•å·²å˜åŒ–â€”â€”è¯·é‡æ–°æµ‹è¯•',
-      fixAndRetry: 'è¯·ä¿®æ­£å­—æ®µåé‡æ–°æµ‹è¯•',
-      testBeforeSave: 'ä¿å­˜å‰è¯·å…ˆæµ‹è¯•æ­¤ keyã€‚',
-    },
-  },
-  workspaceSettings: {
-    title: 'å·¥ä½œåŒºè®¾ç½®',
-    close: 'å…³é—­å·¥ä½œåŒºè®¾ç½®',
-    section: {
-      general: 'é€šç”¨',
-      launch: 'Agent Runtime',
-      preferences: 'AI åå¥½',
-      aiProvider: 'AI æä¾›æ–¹',
-      template: 'æ¨¡æ¿',
-      consolidate: 'åˆå¹¶å·¥ä½œåŒº',
-    },
-    general: {
-      displayName: 'æ˜¾ç¤ºåç§°',
-      displayNameHelp: 'æ˜¾ç¤ºåœ¨å·¥ä½œåŒºåˆ—è¡¨å’Œæ ‡ç­¾é¡µæ ‡é¢˜ä¸­ã€‚',
-      description: 'è¯´æ˜',
-      descriptionPlaceholder: 'å¸®åŠ©è¯†åˆ«æ­¤å·¥ä½œåŒºçš„ç®€çŸ­è¯´æ˜ã€‚',
-      descriptionHelp: 'æ˜¾ç¤ºåœ¨å·¥ä½œåŒºæ¦‚è§ˆå¡ç‰‡ä¸­ã€‚',
-      stableTag: 'ç¨³å®šæ ‡ç­¾',
-      stableTagHelp: 'æ ‡ç­¾ä¼šä¿æŒç¨³å®šï¼Œç”¨äºè·¯å¾„å’Œ launcher è®°å½•ï¼›æ˜¾ç¤ºåç§°æ‰æ˜¯é¢å‘äººçš„åç§°ã€‚',
-      saved: 'å·²ä¿å­˜åˆ° .alice/workspace.jsonã€‚',
-      storedIn: 'ä¿å­˜åœ¨ .alice/workspace.jsonã€‚',
-    },
-    preferences: {
-      title: 'AI åå¥½',
-      description: 'é»˜è®¤ä¼šè‡ªåŠ¨æ²¿ç”¨æœ€è¿‘ä¸€æ¬¡æˆåŠŸå¯åŠ¨ï¼›åªæœ‰éœ€è¦å›ºå®šè¡Œä¸ºæ—¶æ‰åœ¨è¿™é‡Œè®¾ç½®ã€‚ä¸‹é¢å®Œæ•´åˆ—å‡ºäº¤äº’å¼ä¸æ— å¤´ä¸¤ç§å¯åŠ¨æ¨¡å¼ã€‚',
-      interactive: 'äº¤äº’å¼ Session',
-      headless: 'æ— å¤´è¿è¡Œ',
-      interactiveHelp: 'ç”¨æˆ·å¯è§ã€å¯è¿›å…¥ TUI çš„ Agent Sessionï¼ŒåŒ…æ‹¬ä»é—® Aliceã€Workspace ä¾§æ ã€CLI æˆ– API å¯åŠ¨ã€‚',
-      headlessHelp: 'ç”±è®®é¢˜ã€å®šæ—¶ä»»åŠ¡ã€è‡ªåŠ¨åŒ–ã€CLI æˆ– API åœ¨åå°å¯åŠ¨çš„ Agent è¿è¡Œã€‚',
-      defaultRuntime: 'é»˜è®¤ Agent Runtime',
-      defaultRuntimeFor: '{{mode}}çš„é»˜è®¤ Agent Runtime',
-      followRecentRuntime: 'è·Ÿéšæœ€è¿‘ä¸€æ¬¡æˆåŠŸä½¿ç”¨çš„ Runtime',
-      followRecentRuntimeResolved: 'è·Ÿéšæœ€è¿‘ä½¿ç”¨ â€” {{runtime}}',
-      currentlyResolvesTo: 'å½“å‰è§£æä¸º',
-      recentRuntime: 'æœ€è¿‘æˆåŠŸä½¿ç”¨çš„ Runtime',
-      runtime: 'Runtime',
-      resolvedPreference: 'è®¿é—®æ–¹å¼ã€æ¨¡å‹å’Œå¼ºåº¦',
-      fixed: 'å›ºå®šé»˜è®¤å€¼',
-      fixedCurrentRecentRuntime: 'å›ºå®šé»˜è®¤å€¼ Â· å½“å‰æœ€è¿‘ä½¿ç”¨',
-      recent: 'è·Ÿéšæœ€è¿‘ä½¿ç”¨',
-      currentRecentRuntime: 'å½“å‰æœ€è¿‘ä½¿ç”¨çš„ Runtime',
-      usesRecentSettings: 'ä½¿ç”¨æœ€è¿‘è®¾ç½®',
-      agentLogin: 'ç”± Runtime ç®¡ç†',
-      editRuntimeFor: 'ç¼–è¾‘{{mode}}ä¸­çš„ {{runtime}} åå¥½',
-      editTitle: '{{runtime}} é»˜è®¤åå¥½',
-      editDescription: 'ä¸ºè¿™ç§å¯åŠ¨æ¨¡å¼å›ºå®šæ— å¯†é’¥çš„è®¿é—®å¼•ç”¨ã€æ¨¡å‹å’Œæ€è€ƒå¼ºåº¦ï¼Œæˆ–ç»§ç»­è·ŸéšæˆåŠŸå¯åŠ¨è®°å½•ã€‚',
-      behavior: 'åå¥½è¡Œä¸º',
-      followRecent: 'è·Ÿéšæœ€è¿‘ä½¿ç”¨',
-      followRecentHelp: 'ä½¿ç”¨è¿™ä¸ª Runtime æœ€è¿‘ä¸€æ¬¡æˆåŠŸå¯åŠ¨çš„é€‰æ‹©ã€‚',
-      fixedDefault: 'å›ºå®šé»˜è®¤å€¼',
-      fixedDefaultHelp: 'åœ¨è¿™é‡Œå†æ¬¡ä¿®æ”¹å‰å§‹ç»ˆä½¿ç”¨è¿™ç»„é€‰æ‹©ã€‚',
-      nativeAccessHelp: 'ç”± Runtime ç®¡ç†æ—¶ï¼ŒOpenAlice ä¸æ³¨å…¥å‡­æ®æˆ–æä¾›æ–¹é…ç½®ï¼›Agent Runtime è‡ªè¡Œè§£æç™»å½•ã€ç¯å¢ƒå˜é‡ä¸å±€éƒ¨é…ç½®ã€‚å·²ä¿å­˜çš„è®¿é—®æ–¹å¼åªè®°å½•å‡­æ®å¼•ç”¨ï¼Œå¯†é’¥ä»ä¿å­˜åœ¨ Alice çš„å‡­æ®åº“ä¸­ã€‚',
-      apply: 'ä¿å­˜æ›´æ”¹',
-      saved: 'Workspace AI åå¥½å·²ä¿å­˜ã€‚',
-    },
-    launch: {
-      title: 'Agent Runtime è¯Šæ–­',
-      description: 'æ£€æŸ¥æ¯ä¸ªå·²æ³¨å†Œ Agent Runtime åœ¨è¿™ä¸ª Workspace ä¸­çš„å®é™…å¯åŠ¨æ–¹å¼ã€‚',
-      defaultRuntime: 'æ–° Session Runtime',
-      inheritRuntime: 'æ²¿ç”¨ Alice é»˜è®¤å€¼ â€” {{runtime}}',
-      automaticRuntime: 'è‡ªåŠ¨é€‰æ‹©',
-      defaultRuntimeHelp: 'åªä¿å­˜åœ¨å½“å‰ Workspaceã€‚Quick Chatã€ä¾§æ  Runtime èœå•ã€CLI å‚æ•°å’Œ API å‚æ•°éƒ½å¯ä»¥åªè¦†ç›–æŸä¸€æ¬¡ Sessionï¼Œä¸ä¼šæš—æ”¹è¿™é‡Œã€‚',
-      defaultSaved: 'Workspace é»˜è®¤ Runtime å·²ä¿å­˜ã€‚',
-      previewTitle: 'å®é™…å¯åŠ¨é¢„è§ˆ',
-      previewDescription: 'æ£€æŸ¥ä»»æ„ Runtime æœ€ç»ˆäº¤ç»™ PTY çš„å¯åŠ¨è®¡åˆ’ã€‚åˆ‡æ¢é¢„è§ˆä¸ä¼šä¿®æ”¹ AI åå¥½ã€‚',
-      loading: 'æ­£åœ¨è§£æå¯åŠ¨è®¡åˆ’â€¦',
-      loadError: 'æ— æ³•è¯»å–å¯åŠ¨è®¡åˆ’',
-      noRuntimes: 'å½“å‰æ²¡æœ‰å·²æ³¨å†Œã€å¯ä¾›é¢„è§ˆçš„ Agent Runtimeã€‚',
-      runtimeReady: 'å·²æ‰¾åˆ° Runtime',
-      runtimeMissing: 'æœªæ‰¾åˆ° Runtime',
-      runtimeMissingHelp: 'å½“å‰è·¯å¾„ä¸­æ²¡æœ‰æ‰¾åˆ°è¿™ä¸ª Runtimeã€‚å¯åŠ¨ä»ä¼šå°è¯•ï¼Œä½†è¿›ç¨‹å¾ˆå¯èƒ½ä»¥ executable not found å¤±è´¥ã€‚',
-      mode: {
-        direct: 'ç›´æ¥å¯åŠ¨',
-        'node-shim': 'Node shim',
-        'bash-shim': 'Bash shim',
-        'cmd-shim': 'CMD å…¼å®¹',
-      },
-      command: 'ç»„åˆå‘½ä»¤',
-      commandHelp: 'Adapter æ ¹æ®å·¥ä½œåŒºé…ç½®ã€æƒé™å’Œ fresh Session æ„å›¾ç”Ÿæˆçš„ argvã€‚',
-      resolvedCommand: 'å¹³å°è§£æåçš„è¿›ç¨‹ argv',
-      copyCommand: 'å¤åˆ¶è¿›ç¨‹ argv',
-      cwd: 'å·¥ä½œç›®å½•',
-      transcript: 'ä¼šè¯è®°å½•ç›®å½•',
-      noTranscript: 'ä¸å‘ç°åŸç”Ÿä¼šè¯è®°å½•',
-      environment: 'ç¯å¢ƒè´¡çŒ®',
-      environmentHelp: 'åªåˆ—å‡º OpenAlice æ§åˆ¶çš„ç¯å¢ƒé¡¹ï¼›ä¸ä¼šè¿”å›ç»§æ‰¿çš„å®¿ä¸»ç¯å¢ƒï¼Œå‡­æ®å€¼å§‹ç»ˆè„±æ•ã€‚',
-      configured: 'å·²é…ç½®',
-      redacted: 'å·²è„±æ•',
-      pathCount: '{{count}} ä¸ªæœç´¢è·¯å¾„',
-      source: {
-        terminal: 'ç»ˆç«¯èƒ½åŠ›',
-        workspace: 'å·¥ä½œåŒºä¸Šä¸‹æ–‡',
-        tools: 'OpenAlice å·¥å…·é“¾',
-        adapter: 'Runtime adapter',
-      },
-      capabilities: 'å·²å£°æ˜èƒ½åŠ›',
-      parallel: 'åŒç›®å½•å¹¶è¡Œ',
-      resumeById: 'æŒ‰ ID æ¢å¤',
-      resumeLast: 'æ¢å¤æœ€è¿‘ä¼šè¯',
-      headless: 'Headless ä»»åŠ¡',
-      transcriptMode: {
-        'fs-watch': 'æ–‡ä»¶ä¼šè¯å‘ç°',
-        subprocess: 'Runtime ä¼šè¯å‘ç°',
-        none: 'ä¸å‘ç°ä¼šè¯è®°å½•',
-      },
-      previewReadOnly: 'ä»…é¢„è§ˆ Â· ä»¥ fresh interactive Session ä¸ºå‡†',
-      compatibilityTitle: 'åŸç”Ÿ CLI é…ç½®å¯¼å‡ºï¼ˆå·²å¼ƒç”¨ï¼‰',
-      compatibilityDescription: 'æŠŠæä¾›æ–¹é…ç½®å†™å…¥å½“å‰é¡¹ç›®ï¼Œä¾›è„±ç¦» OpenAlice ç›´æ¥å¯åŠ¨ CLI æ—¶ä½¿ç”¨ã€‚æ‰˜ç®¡ Session æ”¹ç”¨ .alice/settings.json ä¸è¿›ç¨‹çº§å¯åŠ¨å‚æ•°ã€‚',
-      openCompatibility: 'æ‰“å¼€å…¼å®¹å¯¼å‡º',
-    },
-    ai: {
-      deprecatedTitle: 'å·²å¼ƒç”¨çš„å…¼å®¹å¯¼å‡º',
-      deprecatedDescription: 'è¿™ä¸ªç¼–è¾‘å™¨ä¼šå†™å…¥ Runtime åŸç”Ÿé¡¹ç›®é…ç½®ã€‚Alice ä¸å†æŠŠå®ƒå½“ä½œæ–° Session é»˜è®¤å€¼ï¼Œä½† CLI ä»å¯èƒ½æŒ‰è‡ªèº«çš„é¡¹ç›®é…ç½®ä¼˜å…ˆçº§è¯»å–è¿™ä¸ªæ–‡ä»¶ã€‚',
-      loadSaved: 'ä»å·²ä¿å­˜å‡­è¯è½½å…¥',
-      savedCredentialLabel: '{{agent}} å·²ä¿å­˜å‡­è¯',
-      savedCredentialProtocolLabel: 'å·²ä¿å­˜å‡­è¯çš„ API åè®®',
-      selectCredential: 'â€” é€‰æ‹©ä¸€ä¸ªå‡­è¯ â€”',
-      noCompatibleCredential: 'â€” æ²¡æœ‰å…¼å®¹ {{agent}} çš„å‡­è¯ â€”',
-      protocolCount: '{{count}} ç§åè®®',
-      load: 'è½½å…¥',
-      loadHelp: 'ä» Alice å‡­è¯åº“å¡«å…¥ç«¯ç‚¹å’Œ keyã€‚è‹¥æœ‰å¤šç§åè®®å…ˆé€‰æ‹©åè®®ï¼Œç„¶åä¿ç•™å·²è®°ä½çš„æ¨¡å‹æˆ–è¾“å…¥å…¶ä»–æ¨¡å‹ IDã€‚',
-      incompatibleHelp: 'å·²ä¿å­˜å‡­è¯éƒ½æ²¡æœ‰ä½¿ç”¨ {{agent}} æ”¯æŒçš„åè®®ã€‚è¯·æ·»åŠ å…¼å®¹å‡­è¯ï¼Œæˆ–æ”¹ç”¨ Pi / opencodeã€‚',
-      apiProtocol: 'API åè®®',
-      apiProtocolLabel: '{{agent}} API åè®®',
-      apiProtocolHelp: 'é€‰æ‹©æ­¤ç«¯ç‚¹å®é™…å®ç°çš„æä¾›æ–¹é€‚é…å™¨ã€‚',
-      baseUrl: 'Base URL',
-      apiKey: 'API Key',
-      authHeader: 'è®¤è¯è¯·æ±‚å¤´',
-      authHeaderLabel: '{{agent}} è®¤è¯è¯·æ±‚å¤´',
-      authHeaderHelp: 'Anthropic å®˜æ–¹æ¥å£ä½¿ç”¨ x-api-keyï¼›MiniMaxã€LongCat ç­‰å…¼å®¹ç½‘å…³é€šå¸¸è¦æ±‚ Authorization: Bearerã€‚',
-      model: 'æ¨¡å‹',
-      modelSuggestions: 'æ¥è‡ªåŒ¹é…æä¾›æ–¹çš„å»ºè®®ï¼›ä¹Ÿå¯ä»¥è¾“å…¥ä»»æ„æ¨¡å‹ IDã€‚',
-      registeredAutomatically: 'è‡ªåŠ¨ç™»è®°ï¼š',
-      reasoningEffort: 'æ€è€ƒå¼ºåº¦',
-      reasoningEffortLabel: '{{agent}} æ€è€ƒå¼ºåº¦',
-      registeredDefault: 'æ³¨å†Œé»˜è®¤å€¼',
-      runtimeDefaultOption: 'è¿è¡Œæ—¶é»˜è®¤ï¼ˆæä¾›æ–¹æœªå…¬å¸ƒï¼‰',
-      effortNotSpecified: 'æœªæŒ‡å®š',
-      reasoningEffortHelp: 'æä¾›æ–¹é»˜è®¤å€¼ï¼š{{defaultEffort}}ã€‚ç•™ç©ºæ—¶ä¸æ³¨å…¥æ€è€ƒå¼ºåº¦ï¼Œç”±æ¨¡å‹æˆ–æä¾›æ–¹è‡ªè¡Œå†³å®šï¼›ä¹Ÿå¯ä»¥é€‰æ‹©ä¸€ä¸ªå€¼ï¼Œä½œä¸ºæ˜¾å¼è¦†ç›–å†™å…¥ {{runtime}} çš„å·¥ä½œåŒºå±€éƒ¨é…ç½®ã€‚',
-      reasoningEffortUnknownHelp: 'ç•™ç©ºæ—¶ä¸æ³¨å…¥æ€è€ƒå¼ºåº¦ï¼Œç”±æ¨¡å‹æˆ–æä¾›æ–¹è‡ªè¡Œå†³å®šï¼›ä¹Ÿå¯ä»¥é€‰æ‹©ä¸€ä¸ªå€¼ï¼Œä½œä¸ºæ˜¾å¼è¦†ç›–å†™å…¥ {{runtime}} çš„å·¥ä½œåŒºå±€éƒ¨é…ç½®ã€‚',
-      thinkingPolicy: 'æ€è€ƒç­–ç•¥',
-      thinkingAlwaysOn: 'å§‹ç»ˆå¼€å¯',
-      thinkingEnabled: 'å¼€å¯ï¼ˆæä¾›æ–¹é»˜è®¤ï¼‰',
-      thinkingDisabled: 'å…³é—­ï¼ˆæä¾›æ–¹é»˜è®¤ï¼‰',
-      thinkingUnknown: 'è¿è¡Œæ—¶é»˜è®¤ï¼ˆæä¾›æ–¹æœªå…¬å¸ƒï¼‰',
-      thinkingPolicyHelp: 'è¯¥æ¨¡å‹æ²¡æœ‰å…¬å¸ƒå¯è°ƒèŠ‚çš„ effort æ¡£ä½ã€‚OpenAlice ä¼šä¿ç•™çœŸå®çš„æ€è€ƒå¼€å…³è¯­ä¹‰ï¼Œä¸ä¼šè™šæ„ä¸€ä¸ªå¼ºåº¦å€¼ã€‚',
-      unknownReasoningHelp: 'ä»…ç”¨äº Alice æ³¨å†Œè¡¨é‡Œæ²¡æœ‰çš„æ‰‹åŠ¨è¾“å…¥æ¨¡å‹ã€‚æ›´æ¢æ¨¡å‹æˆ–æä¾›æ–¹æ—¶ä¼šæ¸…é™¤æ­¤è¦†ç›–ã€‚',
-      reasoningOverrideLabel: '{{agent}} æœªçŸ¥æ¨¡å‹æ€è€ƒèƒ½åŠ›è¦†ç›–',
-      contextWindow: 'ä¸Šä¸‹æ–‡çª—å£',
-      contextWindowLabel: '{{agent}} ä¸Šä¸‹æ–‡çª—å£',
-      contextAutomatic: 'è‡ªåŠ¨ä½¿ç”¨æ¨¡å‹ç™»è®°å€¼ {{limit}}',
-      protocolDetails: 'æ­¤åè®®å¦‚ä½•æ³¨å…¥',
-      googleWire: 'ä½¿ç”¨åŸç”Ÿ Google Generative AI åè®®ï¼Œç›´æ¥å‘é€å—æ”¯æŒçš„ Google æˆæƒ keyï¼Œä¸éœ€è¦è½¬æ¢ä»£ç†ã€‚',
-      anthropicWire: 'ä½¿ç”¨ Anthropic Messagesã€‚Base URL åº”æŒ‡å‘ Anthropic å…¼å®¹ç«¯ç‚¹ï¼Œå¹¶é€‰æ‹©è¯¥ç«¯ç‚¹è¦æ±‚çš„è®¤è¯è¯·æ±‚å¤´ã€‚',
-      responsesWire: 'ä½¿ç”¨ OpenAI Responsesã€‚ç«¯ç‚¹å¿…é¡»å®ç° Responsesï¼Œä¸èƒ½åªæœ‰ Chat Completionsã€‚',
-      chatWire: 'ä½¿ç”¨ OpenAI Chat Completionsï¼Œå¯ç›´æ¥è¿æ¥å…¼å®¹çš„äº‘ç«¯æˆ–æœ¬åœ°æä¾›æ–¹ã€‚',
-      piInjection: 'åªæœ‰ç”¨æˆ·æ˜ç¡®é€‰æ‹©åï¼ŒOpenAlice æ‰ä¼šé€šè¿‡å·¥ä½œåŒºå±€éƒ¨çš„ Pi æ‰©å±•ä¸ .pi/settings.json ç»‘å®šè‡ªå®šä¹‰æä¾›æ–¹ã€‚Pi çš„å…¨å±€ç™»å½•ã€æ¨¡å‹æ³¨å†Œè¡¨å’Œ fallback é“¾ä»å½’ç”¨æˆ·æ‰€æœ‰ã€‚',
-      opencodeInjection: 'OpenAlice ä¼šæŠŠæä¾›æ–¹å†™å…¥æ­¤å·¥ä½œåŒºçš„ opencode.jsonï¼Œå¹¶åœ¨ä¼šè¯å¯åŠ¨æ—¶æ³¨å…¥ MCP æœåŠ¡å™¨ã€‚',
-      codexResponsesOnly: 'Codex åªæ”¯æŒ Responses APIã€‚åªæœ‰ Chat æ¥å£çš„æä¾›æ–¹éœ€è¦ Responses è½¬æ¢ä»£ç†ã€‚',
-      changesHelp: 'å˜æ›´åªå¯¹æ–°ä¼šè¯ç”Ÿæ•ˆã€‚è¯·æš‚åœå¹¶æ¢å¤å·²æ‰“å¼€çš„ä¼šè¯ï¼Œä»¥é‡æ–°è½½å…¥å·¥ä½œåŒºå±€éƒ¨é…ç½®ã€‚',
-      saved: 'å·²ä¿å­˜ã€‚è¯·æš‚åœå¹¶æ¢å¤å·²æ‰“å¼€çš„ä¼šè¯ä»¥é‡æ–°è½½å…¥ã€‚',
-      savedModelToast: 'å·²ä¸º {{workspace}} çš„ {{runtime}} é€‰æ‹© {{model}}ã€‚',
-      savedConfigToast: '{{workspace}} çš„ {{runtime}} å·²æ”¹ç”¨å·¥ä½œåŒº AI é…ç½®ã€‚',
-      saveCredentialPrompt: 'æŠŠæ­¤æä¾›æ–¹ä¿å­˜åˆ° Aliceï¼Œä¾›å…¶ä»–å·¥ä½œåŒºå¤ç”¨ï¼Ÿ',
-      notNow: 'æš‚ä¸ä¿å­˜',
-      saveToAlice: 'ä¿å­˜åˆ° Alice',
-      savedReusable: 'å·²ä½œä¸ºâ€œ{{slug}}â€ä¿å­˜åˆ° Aliceï¼Œå¯åœ¨ä»»ä½•å·¥ä½œåŒºå¤ç”¨ã€‚',
-      testingConnection: 'æ­£åœ¨æµ‹è¯•è¿æ¥â€¦',
-      testPassed: 'æµ‹è¯•é€šè¿‡â€”â€”{{provider}} å·²å›å¤ï¼š',
-      testPassedNoText: 'æµ‹è¯•é€šè¿‡â€”â€”æä¾›æ–¹å¯è®¿é—®ï¼Œä½†æ²¡æœ‰è¿”å›æ–‡æœ¬ã€‚',
-      testFailed: 'æµ‹è¯•å¤±è´¥ï¼š',
-      formChanged: 'è¿æ¥å­—æ®µåœ¨ä¸Šæ¬¡æµ‹è¯•åå‘ç”Ÿå˜åŒ–ï¼Œè¯·é‡æ–°æµ‹è¯•å†ä¿å­˜ã€‚',
-      reset: 'æ¢å¤ä¸ºå…¨å±€é»˜è®¤å€¼',
-      fillRequired: 'è¯·å…ˆå¡«å†™ Base URLã€API Key å’Œæ¨¡å‹',
-      providerReplyClaude: 'Anthropic',
-      providerReplyOpenAi: 'OpenAI',
-      providerReplyGeneric: 'æä¾›æ–¹',
-    },
-  },
-  common: {
-    loading: 'åŠ è½½ä¸­â€¦',
-    searching: 'æœç´¢ä¸­â€¦',
-    tools: 'å·¥å…·',
-    logs: 'æ—¥å¿—',
-    off: 'å…³é—­',
-    delete: 'åˆ é™¤',
-    retry: 'é‡è¯•',
-    close: 'å…³é—­',
-    add: 'æ·»åŠ ',
-    edit: 'ç¼–è¾‘',
-    save: 'ä¿å­˜',
-    saving: 'ä¿å­˜ä¸­â€¦',
-    saved: 'å·²ä¿å­˜',
-    saveFailed: 'ä¿å­˜å¤±è´¥',
-    cancel: 'å–æ¶ˆ',
-    show: 'æ˜¾ç¤º',
-    hide: 'éšè—',
-    change: 'æ›´æ¢',
-    test: 'æµ‹è¯•',
-    testing: 'æµ‹è¯•ä¸­â€¦',
-    testConnection: 'æµ‹è¯•è¿æ¥',
-    collapsePanel: 'æ”¶èµ·{{title}}',
-    openPanel: 'æ‰“å¼€{{title}}',
-    resizePanel: 'è°ƒæ•´{{title}}å®½åº¦',
-    closePanel: 'å…³é—­{{title}}',
-    focusContent: 'èšç„¦å†…å®¹åŒº',
-    moreActions: '{{target}}çš„æ›´å¤šæ“ä½œ',
-  },
-  chat: {
-    newChat: 'æ–°å¯¹è¯',
-    newSession: 'åœ¨æ­¤å·¥ä½œåŒºä¸­æ–°å»ºå¯¹è¯',
-    newWorkspace: 'æ–°å»ºå·¥ä½œåŒº',
-    displayModeLabel: 'å·¥ä½œåŒºæ˜¾ç¤ºæ¨¡å¼',
-    focusedMode: 'å½“å‰å·¥ä½œåŒº',
-    focusedModeDescription: 'æ˜¾ç¤ºå½“å‰å·¥ä½œåŒºçš„å¯¹è¯',
-    recentMode: 'å…¨éƒ¨å·¥ä½œåŒºçš„æœ€è¿‘å¯¹è¯',
-    multiMode: 'å·¥ä½œåŒºæ ‘',
-    multiModeDescription: 'æŒ‰å·¥ä½œåŒºåˆ†ç»„æ˜¾ç¤ºå¯¹è¯',
-    multiModeDialogTitle: 'åˆ‡æ¢åˆ°å·¥ä½œåŒºæ ‘ï¼Ÿ',
-    multiModeDialogMessage: 'ä¾§æ ä¼šå±•å¼€æ‰€æœ‰å¯¹è¯å·¥ä½œåŒºåŠå…¶ä¼šè¯ï¼Œæ–¹ä¾¿æ‰¹é‡æŸ¥çœ‹ã€‚è¿™åªä¼šæ”¹å˜å¯¼èˆªæ–¹å¼ï¼Œä¸ä¼šæ”¹åŠ¨å·²æœ‰çš„å·¥ä½œåŒºå’Œå¯¹è¯ã€‚',
-    multiModeDialogConfirm: 'æ˜¾ç¤ºå…¨éƒ¨å·¥ä½œåŒº',
-    focusedEmpty: 'åˆ›å»ºä¸€ä¸ªå¯¹è¯å·¥ä½œåŒºï¼ŒæŠŠç›¸å…³çš„å¯¹è¯å’Œæ–‡ä»¶é•¿æœŸæ”¾åœ¨ä¸€èµ·ã€‚',
-    recentConversations: 'æœ€è¿‘å¯¹è¯',
-    runningInBackground: 'åå°è¿è¡Œä¸­',
-    allConversationsRunning: 'å½“å‰ä¼šè¯éƒ½è¿˜åœ¨åå°è¿è¡Œã€‚',
-    headlessBusyTitle: 'è¿™ä¸ª Session æ­£åœ¨åå°è¿è¡Œ',
-    headlessBusyDescription: 'ä¸ºé¿å…ä¸¤ä¸ª Agent è¿›ç¨‹åŒæ—¶å†™å…¥åŒä¸€ä»½ä¼šè¯è®°å½•ï¼ŒOpenAlice ä¸€æ¬¡åªå…è®¸ä¸€ä¸ªè¿›ç¨‹å ç”¨ Sessionã€‚æ­¤æ¬¡ä»»åŠ¡ç»“æŸåå³å¯ä½¿ç”¨ TUI æˆ– Web æ‰“å¼€ã€‚',
-    headlessBusyIssue: 'ç”± Issue {{issue}} å¯åŠ¨',
-    headlessBusyAgent: 'æ­£åœ¨ä½¿ç”¨ {{agent}} è¿è¡Œ',
-    recentAcrossWorkspaces: 'å…¨éƒ¨å·¥ä½œåŒºçš„æœ€è¿‘å¯¹è¯',
-    noRecentConversations: 'ä½ çš„å¯¹è¯å·¥ä½œåŒºä¸­è¿˜æ²¡æœ‰ä¼šè¯ã€‚',
-    noConversationsYet: 'è¿™ä¸ªå·¥ä½œåŒºè¿˜æ²¡æœ‰å¯¹è¯ã€‚',
-    currentWorkspace: 'å½“å‰å·¥ä½œåŒº',
-    allWorkspaces: 'å…¨éƒ¨å·¥ä½œåŒº',
-    currentScope: 'å½“å‰',
-    recentScope: 'æœ€è¿‘',
-    workspacesScope: 'å·¥ä½œåŒº',
-    workspaceContextLabel: 'å¯¹è¯ä¸Šä¸‹æ–‡ï¼š{{name}}',
-    workspaceContextUpdateLabel: 'å¯¹è¯ä¸Šä¸‹æ–‡ï¼š{{name}}ã€‚æ¨¡æ¿å¯å‡çº§è‡³ v{{version}}ã€‚',
-    workspaceContextMenu: 'å¯¹è¯å·¥ä½œåŒºé€‰é¡¹',
-    workspaceUpdateAvailable: 'æ¨¡æ¿å¯å‡çº§ Â· v{{version}}',
-    reviewWorkspaceUpdate: 'æŸ¥çœ‹æ¨¡æ¿å‡çº§',
-    reviewWorkspaceUpdateLabel: 'æŸ¥çœ‹æ¨¡æ¿å‡çº§è‡³ v{{version}}',
-    view: 'è§†å›¾',
-    currentWorkspaceLabel: 'å½“å‰å·¥ä½œåŒºï¼š{{workspace}}',
-    switchWorkspace: 'åˆ‡æ¢å·¥ä½œåŒº',
-    workspacePickerDescription: 'ä¸ºä¸‹ä¸€æ®µå¯¹è¯é€‰æ‹©ä¸€ä¸ªå¯é•¿æœŸä½¿ç”¨çš„å·¥ä½œä¸Šä¸‹æ–‡ã€‚',
-    workspaceSearchPlaceholder: 'æœç´¢å·¥ä½œåŒºâ€¦',
-    workspaceResultCount: '{{count}} ä¸ªåŒ¹é…çš„å·¥ä½œåŒº',
-    workspaceSessionCount: '{{count}} ä¸ªå¯¹è¯',
-    noWorkspaceMatches: 'æ²¡æœ‰åŒ¹é…æœç´¢æ¡ä»¶çš„å·¥ä½œåŒºã€‚',
-    browseWorkspace: 'æµè§ˆå…¨éƒ¨å¯¹è¯',
-    conversationBrowserDescription: 'æ— éœ€ç¦»å¼€å½“å‰è§†å›¾å³å¯æŸ¥æ‰¾å¹¶æ‰“å¼€å¯¹è¯ã€‚',
-    conversationSearchPlaceholder: 'æœç´¢å¯¹è¯â€¦',
-    conversationScope: 'å¯¹è¯èŒƒå›´',
-    conversationResultCount: '{{count}} ä¸ªåŒ¹é…çš„å¯¹è¯',
-    noConversationMatches: 'æ²¡æœ‰ç¬¦åˆå½“å‰ç­›é€‰æ¡ä»¶çš„å¯¹è¯ã€‚',
-    showAllWorkspaces: 'æ˜¾ç¤ºå…¨éƒ¨å·¥ä½œåŒº',
-    moreOptions: 'æ›´å¤šé€‰é¡¹',
-    today: 'ä»Šå¤©',
-    yesterday: 'æ˜¨å¤©',
-    collapseSessions: 'æ”¶èµ·ä¼šè¯',
-    expandSessions: 'å±•å¼€ä¼šè¯',
-    workspaceActions: {
-      collapse: 'æ”¶èµ· {{workspace}} çš„ä¼šè¯',
-      expand: 'å±•å¼€ {{workspace}} çš„ä¼šè¯',
-      newConversation: 'åœ¨ {{workspace}} ä¸­æ–°å»ºå¯¹è¯',
-      configure: 'é…ç½® {{workspace}}',
-      offboard: 'åŠç† {{workspace}} ç¦»èŒ',
-    },
-    viewAllSessions: 'æŸ¥çœ‹å…¨éƒ¨ {{count}} ä¸ªä¼šè¯',
-    viewAllConversations: 'æŸ¥çœ‹å…¨éƒ¨ {{count}} ä¸ªå¯¹è¯',
-    deleteWorkspace: 'åŠç†å·¥ä½œåŒºç¦»èŒ',
-    deleteWorkspaceTitle: 'åŠç†å¯¹è¯å·¥ä½œåŒºç¦»èŒ',
-    deleteWorkspaceMessage: 'è®©å¯¹è¯å·¥ä½œåŒº {{tag}} ç¦»èŒï¼Ÿå®ƒçš„å·¥ä½œå°ä¼šç§»å‡ºæ´»åŠ¨ç›®å½•ï¼ŒSession ä¼šé€€ä¼‘ï¼Œå¹¶ä¿ç•™äº¤æ¥è®°å½•ä»¥ä¾¿æ—¥åæ¢å¤ã€‚',
-    deleteSessionTitle: 'åˆ é™¤å¯¹è¯',
-    deleteSessionMessage: 'åˆ é™¤ã€Œ{{title}}ã€ï¼Ÿè¿™ä¼šç§»é™¤è¯¥å¯¹è¯åŠå…¶å†å²ï¼Œå·¥ä½œåŒºä¿ç•™ã€‚',
-    noChatWorkspacesYet: 'è¿˜æ²¡æœ‰å¯¹è¯å·¥ä½œåŒº',
-  },
-  harnessNavigation: {
-    openStudio: 'æ‰“å¼€ Studio',
-    selectHint: 'é€‰æ‹©ä¸€ä¸ªå·¥ä½œåŒºï¼Œç»§ç»­ç ”ç©¶ã€‚',
-    selectAction: 'é€‰æ‹©å·¥ä½œåŒº',
-  },
-  harnessSurface: {
-    studio: 'Studio',
-    refresh: 'åˆ·æ–°',
-    restart: 'é‡å¯',
-    logs: 'æ—¥å¿—',
-    noLogs: 'æš‚æ—¶æ²¡æœ‰ Studio è¾“å‡ºã€‚',
-    openSeparate: 'ç‹¬ç«‹æ‰“å¼€',
-    startingTitle: 'æ­£åœ¨å¯åŠ¨ Studio',
-    startingBody: 'OpenAlice æ­£åœ¨åˆ†é…å†…éƒ¨ç«¯å£ï¼Œå¹¶ç­‰å¾… Harness é€šè¿‡å°±ç»ªæ£€æŸ¥ã€‚',
-    failedTitle: 'Studio å¯åŠ¨å¤±è´¥',
-    diagnosis: {
-      'missing-dependencies': 'è¿™ä¸ªå·¥ä½œåŒºä¼¼ä¹è¿˜æ²¡æœ‰å®‰è£… Studio æ‰€éœ€çš„ä¾èµ–ã€‚',
-      generic: 'Harness è¿›ç¨‹åœ¨ Studio é€šè¿‡å°±ç»ªæ£€æŸ¥å‰é€€å‡ºäº†ã€‚',
-    },
-    studioOutput: 'Studio è¾“å‡º',
-    setupBody: 'OpenAlice ä¸ä¼šé™é»˜å®‰è£… Harnessã€‚è¯·æ‰“å¼€å·²é¢„å¡«ä»»åŠ¡çš„ Quick Startï¼Œæ£€æŸ¥ Agent å’Œ AI é…ç½®åï¼Œå†è®©å®ƒæ£€æŸ¥ä»“åº“ã€å®‰è£…å£°æ˜çš„ä¾èµ–å¹¶éªŒè¯ Studioã€‚',
-    setupWithAgent: 'ä½¿ç”¨ Agent å®Œæˆè®¾ç½®',
-    tryAgain: 'é‡è¯•',
-    phase: { stopped: 'å·²åœæ­¢', starting: 'æ­£åœ¨å¯åŠ¨â€¦', ready: 'å·²å°±ç»ª', failed: 'å¤±è´¥', stopping: 'æ­£åœ¨åœæ­¢â€¦' },
-  },
-  autoQuant: {
-    newResearch: 'æ–°å»ºé‡åŒ–ç ”ç©¶',
-    newWorkspace: 'æ–°å»º AutoQuant å·¥ä½œåŒº',
-    noWorkspacesYet: 'è¿˜æ²¡æœ‰ AutoQuant å·¥ä½œåŒº',
-    recentResearch: 'æœ€è¿‘ç ”ç©¶',
-    noResearchYet: 'è¿˜æ²¡æœ‰ç ”ç©¶ä¼šè¯',
-    browseResearch: 'æµè§ˆå…¨éƒ¨ç ”ç©¶',
-    viewAllResearch: 'æŸ¥çœ‹å…¨éƒ¨ {{count}} ä¸ªç ”ç©¶ä¼šè¯',
-    researchBrowserDescription: 'æ— éœ€ç¦»å¼€å½“å‰è§†å›¾å³å¯æŸ¥æ‰¾ç ”ç©¶ä¼šè¯ã€‚',
-    researchSearchPlaceholder: 'æœç´¢ç ”ç©¶ä¼šè¯â€¦',
-    researchScope: 'ç ”ç©¶èŒƒå›´',
-    researchResultCount: '{{count}} ä¸ªåŒ¹é…çš„ç ”ç©¶ä¼šè¯',
-    noResearchMatches: 'æ²¡æœ‰ç¬¦åˆå½“å‰ç­›é€‰æ¡ä»¶çš„ç ”ç©¶ä¼šè¯ã€‚',
-    workspacePickerDescription: 'é€‰æ‹©ä¸‹ä¸€é¡¹ä»»åŠ¡ä½¿ç”¨çš„é•¿æœŸç ”ç©¶å·¥ä½œå°ã€‚',
-    workspaceSessionCount: '{{count}} ä¸ªç ”ç©¶ä¼šè¯',
-    workspaceSettings: 'AutoQuant å·¥ä½œåŒº',
-    workspaceContextLabel: 'é‡åŒ–å·¥ä½œåŒºï¼š{{name}}',
-    workspaceContextMenu: 'é‡åŒ–å·¥ä½œåŒºé€‰é¡¹',
-    configureWorkspace: 'é…ç½®å½“å‰å·¥ä½œåŒº',
-    useWorkspace: 'å°† {{workspace}} è®¾ä¸ºé»˜è®¤',
-    manageWorkspaces: 'ç®¡ç†å…¨éƒ¨å·¥ä½œåŒº',
-  },
-  autoQuantSetup: {
-    loading: 'æ­£åœ¨è½½å…¥ AutoQuant',
-    loadErrorTitle: 'æš‚æ—¶æ— æ³•è¯»å– AutoQuant çŠ¶æ€',
-    loadErrorBody: 'OpenAlice æ— æ³•è¯»å–é»˜è®¤å·¥ä½œåŒºè®¾ç½®ã€‚è¯·åœ¨åç«¯æ¢å¤åé‡è¯•ã€‚',
-    eyebrow: 'ä¸€æ¬¡æ€§åˆå§‹åŒ–',
-    initializeTitle: 'åˆå§‹åŒ– AutoQuant',
-    initializeBody: 'åˆ›å»º AutoQuant é•¿æœŸä½¿ç”¨çš„æœ¬åœ°é‡åŒ–å·¥ä½œå°ã€‚ä¹‹åçš„æ–°ä»»åŠ¡éƒ½ä¼šæˆä¸ºè¿™ä¸ª Workspace é‡Œçš„ Sessionã€‚',
-    chooseTitle: 'é€‰æ‹© AutoQuant å·¥ä½œåŒº',
-    chooseBody: 'å·²ç»å­˜åœ¨ AutoQuant å·¥ä½œåŒºï¼Œä½†ç›®å‰æ²¡æœ‰é»˜è®¤å·¥ä½œå°ã€‚è¯·é€‰æ‹©ä»¥åæ¥æ”¶æ–°ç ”ç©¶ä»»åŠ¡çš„é‚£ä¸€ä¸ªã€‚',
-    workspaceMeta: '{{count}} ä¸ªä¼šè¯ Â· Harness {{version}}',
-    manageWorkspaces: 'å‰å¾€å·¥ä½œåŒºç®¡ç†',
-    persistentTitle: 'ä¸€å¼ é•¿æœŸä½¿ç”¨çš„é‡åŒ–å·¥ä½œå°',
-    persistentBody: 'é¡¹ç›®ã€å®éªŒã€æ–‡ä»¶å’Œç‰ˆæœ¬å†å²ä»ç”±è¿™å¼ å·¥ä½œå°é‡Œçš„ Coding Agent è‡ªå·±ç®¡ç†ã€‚',
-    harnessVersion: 'é”å®šçš„ Harness ç‰ˆæœ¬',
-    initializeAction: 'åˆå§‹åŒ– AutoQuant',
-    initializing: 'æ­£åœ¨åˆå§‹åŒ– AutoQuantâ€¦',
-    initializingBody: 'æ­£åœ¨å‡†å¤‡é”å®šç‰ˆæœ¬çš„ Harness å’Œæœ¬åœ° Git å·¥ä½œåŒºï¼Œå¯èƒ½éœ€è¦ä¸€ç‚¹æ—¶é—´ã€‚',
-  },
-  autoPrediction: {
-    newResearch: 'æ–°å»ºé¢„æµ‹ç ”ç©¶', newWorkspace: 'æ–°å»º Auto Prediction å·¥ä½œåŒº',
-    noWorkspacesYet: 'è¿˜æ²¡æœ‰ Auto Prediction å·¥ä½œåŒº', noResearchYet: 'è¿˜æ²¡æœ‰é¢„æµ‹ç ”ç©¶ä¼šè¯',
-    recentResearch: 'æœ€è¿‘çš„é¢„æµ‹ç ”ç©¶', viewAllResearch: 'æŸ¥çœ‹å…¨éƒ¨ {{count}} ä¸ªé¢„æµ‹ç ”ç©¶ä¼šè¯',
-    browseResearch: 'æµè§ˆé¢„æµ‹ç ”ç©¶', workspaceContextLabel: 'é¢„æµ‹å·¥ä½œåŒºä¸Šä¸‹æ–‡ï¼š{{name}}',
-    workspaceContextMenu: 'é¢„æµ‹å·¥ä½œåŒºä¸Šä¸‹æ–‡èœå•', workspacePickerDescription: 'é€‰æ‹©æ¥æ”¶æ–°ç ”ç©¶çš„ Auto Prediction å·¥ä½œåŒºã€‚',
-    workspaceSessionCount_one: '{{count}} ä¸ªç ”ç©¶ä¼šè¯', workspaceSessionCount_other: '{{count}} ä¸ªç ”ç©¶ä¼šè¯',
-    researchBrowserDescription: 'æœç´¢å½“å‰å·¥ä½œåŒºæˆ–å…¨éƒ¨ Auto Prediction å·¥ä½œåŒºä¸­çš„é¢„æµ‹ç ”ç©¶ã€‚',
-    researchSearchPlaceholder: 'æœç´¢é¢„æµ‹ç ”ç©¶â€¦', researchScope: 'é¢„æµ‹ç ”ç©¶èŒƒå›´',
-    researchResultCount: '{{count}} ä¸ªåŒ¹é…çš„é¢„æµ‹ç ”ç©¶ä¼šè¯', noResearchMatches: 'æ²¡æœ‰ç¬¦åˆè¿™äº›ç­›é€‰æ¡ä»¶çš„é¢„æµ‹ç ”ç©¶ã€‚',
-  },
-  autoPredictionSetup: {
-    loading: 'æ­£åœ¨åŠ è½½ Auto Prediction', loadErrorTitle: 'æ— æ³•è·å– Auto Prediction çŠ¶æ€',
-    loadErrorBody: 'OpenAlice æ— æ³•è¯»å–é»˜è®¤å·¥ä½œåŒºåå¥½ã€‚è¯·åœ¨åç«¯æ¢å¤åé‡è¯•ã€‚', eyebrow: 'Beta Harness',
-    initializeTitle: 'åˆå§‹åŒ– Auto Prediction', initializeBody: 'ä»æ‰¹å‡†çš„ Auto Prediction æºç å¿«ç…§åˆ›å»ºæŒä¹…çš„æœ¬åœ°ç ”ç©¶å·¥ä½œåŒºã€‚',
-    chooseTitle: 'é€‰æ‹© Auto Prediction å·¥ä½œåŒº', chooseBody: 'å·²æœ‰ Auto Prediction å·¥ä½œåŒºï¼Œä½†å°šæœªè®¾ç½®é»˜è®¤é¡¹ã€‚è¯·é€‰æ‹©æ¥æ”¶æ–°ç ”ç©¶çš„å·¥ä½œåŒºã€‚',
-    workspaceMeta: '{{count}} ä¸ªä¼šè¯ Â· å¿«ç…§ {{version}}', manageWorkspaces: 'è½¬åˆ°å·¥ä½œåŒºç®¡ç†',
-    persistentTitle: 'ä¸€ä¸ªæŒä¹…çš„é¢„æµ‹ç ”ç©¶å·¥ä½œåŒº', persistentBody: 'è¯æ®ã€Campaignã€SQLite çŠ¶æ€ã€æ–‡ä»¶å’Œ Git å†å²ç”±æ­¤å·¥ä½œåŒºå†…çš„ Auto Prediction æŒæœ‰ã€‚',
-    initializeAction: 'åˆå§‹åŒ– Auto Prediction', initializing: 'æ­£åœ¨åˆå§‹åŒ– Auto Predictionâ€¦',
-    initializingBody: 'æ­£åœ¨å…‹éš†å¹¶éªŒè¯æ‰¹å‡†çš„æºç å¿«ç…§ï¼Œè¯·ç¨å€™ã€‚',
-  },
-  chatSetup: {
-    loading: 'æ­£åœ¨è½½å…¥ Ask Alice',
-    loadErrorTitle: 'æš‚æ—¶æ— æ³•è¯»å– Ask Alice çŠ¶æ€',
-    loadErrorBody: 'OpenAlice æ— æ³•å‡†å¤‡ Chat å·¥ä½œåŒºã€‚è¯·åœ¨åç«¯æ¢å¤åé‡è¯•ã€‚',
-    eyebrow: 'ä¸€æ¬¡æ€§åˆå§‹åŒ–',
-    initializeTitle: 'åˆå§‹åŒ– Ask Alice',
-    initializeBody: 'åˆ›å»ºé•¿æœŸä½¿ç”¨çš„ Chat å·¥ä½œåŒºã€‚ä¹‹åçš„æ–°å¯¹è¯éƒ½ä¼šæˆä¸ºè¿™ä¸ª Workspace é‡Œçš„ Sessionã€‚',
-    chooseTitle: 'é€‰æ‹© Chat å·¥ä½œåŒº',
-    chooseBody: 'å·²ç»å­˜åœ¨ Chat å·¥ä½œåŒºã€‚è¯·é€‰æ‹©ä»¥åæ¥æ”¶æ–°å¯¹è¯çš„é‚£ä¸€ä¸ªã€‚',
-    workspaceMeta: '{{count}} ä¸ªä¼šè¯',
-    manageWorkspaces: 'å‰å¾€å·¥ä½œåŒºç®¡ç†',
-    persistentTitle: 'ä¸€ä¸ªé•¿æœŸä½¿ç”¨çš„ Chat å·¥ä½œåŒº',
-    persistentBody: 'æ–‡ä»¶ã€Session å’Œå†å²éƒ½ä¼šç•™åœ¨è¿™ä¸ª Workspace é‡Œã€‚',
-    initializeAction: 'åˆå§‹åŒ– Ask Alice',
-    initializing: 'æ­£åœ¨åˆå§‹åŒ– Ask Aliceâ€¦',
-    initializingBody: 'æ­£åœ¨å‡†å¤‡ Chat å·¥ä½œåŒºï¼Œå¯èƒ½éœ€è¦ä¸€ç‚¹æ—¶é—´ã€‚',
-  },
-  workspaceManager: {
-    title: 'å·¥ä½œå°ä¸»ç®¡',
-    sidebarDescription: 'åè°ƒæ‰€æœ‰æ´»è·ƒå·¥ä½œå°',
-    eyebrow: 'å…¨å±€æ§åˆ¶å±‚',
-    heading: 'ç®¡ç†æ´»è·ƒ Workspace',
-    subheading: 'ç›˜ç‚¹æ‰€æœ‰æ´»è·ƒ Workspaceï¼Œè¿½é—®çœŸæ­£åšè¿‡å·¥ä½œçš„äººï¼Œå¹¶ä»ä¸€ä¸ªæ§åˆ¶å±‚å®‰æ’åç»­åä½œã€‚',
-    scope: 'æ´»è·ƒå·¥ä½œå°',
-    runtime: 'Agent è¿è¡Œæ—¶',
-    placeholder: 'è®©ä¸»ç®¡æ£€æŸ¥ã€æ¾„æ¸…ã€æ•´ç†æˆ–å®‰æ’æ‰€æœ‰æ´»è·ƒ Workspace çš„å·¥ä½œâ€¦',
-    credential: 'AI æä¾›æ–¹',
-    configureCredential: 'é…ç½® AI æä¾›æ–¹',
-    send: 'å¯åŠ¨ä¸»ç®¡',
-    launching: 'æ­£åœ¨å¯åŠ¨â€¦',
-    suggestions: 'å¿«é€Ÿå¼€å§‹',
-    suggestionAudit: 'ç›˜ç‚¹æ‰€æœ‰æ´»è·ƒ Workspaceï¼šæ€»ç»“èŒè´£ã€å½“å‰å·¥ä½œå’Œæ˜æ˜¾çš„é‡å ã€‚',
-    suggestionOwnership: 'æ‰¾å‡ºèŒè´£ä¸æ¸…çš„åœ°æ–¹ï¼šä¼˜å…ˆæ¢å¤çœŸæ­£åšè¿‡å·¥ä½œçš„ Sessionï¼›åªæœ‰æ— äººå¯æ‰¾æ—¶æ‰ä» Workspace æ‹›å‹Ÿæ–°äººã€‚',
-    suggestionIssues: 'æ£€æŸ¥æ‰€æœ‰ Issue å’Œæ’ç­ï¼Œæ ‡å‡ºè¿‡æ—¶ã€é‡å¤ã€å¤±è´¥æˆ–æ— äººè´Ÿè´£çš„å·¥ä½œã€‚',
-    suggestionUpgrade: 'é¢„è§ˆæ‰€æœ‰æ´»è·ƒ Workspace çš„æ¨¡æ¿å‡çº§ï¼Œå¹¶è¯´æ˜å“ªäº›å€¼å¾—åº”ç”¨ã€‚',
-    guardrail: 'ä¸»ç®¡åªè´Ÿè´£åè°ƒï¼Œä¸åœ¨æ€»ç›®å½•å †ä¸šåŠ¡èµ„æ–™ã€‚èƒ½å®šä½ resumeId å°±æ‰¾åŸåŒäº‹ï¼›åªèƒ½å®šä½ Workspace æ—¶æ‰æ‹›å‹Ÿä¸´æ—¶åŒäº‹ï¼Œå¹¶æ˜ç¡®æ ‡æˆé‡å»ºå›ç­”ã€‚',
-    recent: 'æœ€è¿‘çš„ä¸»ç®¡å¯¹è¯',
-    noRecent: 'è¿˜æ²¡æœ‰ä¸»ç®¡å¯¹è¯ã€‚',
-    back: 'è¿”å›ä¸»ç®¡å¿«é€Ÿå¼€å§‹',
-    loadError: 'æ— æ³•è½½å…¥å·¥ä½œå°ä¸»ç®¡ã€‚',
-    launchError: 'æ— æ³•å¯åŠ¨å·¥ä½œå°ä¸»ç®¡ã€‚',
-    resumeError: 'æ— æ³•æ¢å¤è¿™æ®µä¸»ç®¡å¯¹è¯ã€‚',
-  },
-  chatLanding: {
-    uiMode: 'UI æ¨¡å¼',
-    heading: 'å…ˆè®© Alice å¤„ç†ä»€ä¹ˆï¼Ÿ',
-    subheading: 'åœ¨é€‰å®šçš„ Workspace ä¸­å¼€å±•ç ”ç©¶ã€åˆ†æå’Œäº¤æ˜“å·¥ä½œã€‚',
-    targetHeading: 'åœ¨æ­¤å·¥ä½œåŒºä¸­æ–°å»ºå¯¹è¯',
-    targetSub: 'è¿™æ®µå¯¹è¯å°†åœ¨ {{tag}} å†…åˆ›å»ºâ€”â€”é€‰ä¸ªè¿è¡Œæ—¶ç›´æ¥å‘é€ã€‚',
-    clearTarget: 'æ”¹ä¸ºæ–°å¯¹è¯',
-    placeholder: 'æè¿°ä»»åŠ¡ã€é—®é¢˜æˆ–å¾…å†³äº‹é¡¹â€¦',
-    workspaceType: 'å¯¹è¯',
-    startIn: 'åœ¨æ­¤å¯åŠ¨',
-    runWith: 'ä½¿ç”¨',
-    selectWorkspace: 'é€‰æ‹©å¯¹è¯å·¥ä½œåŒº',
-    newWorkspaceTarget: 'æ–°çš„å¯¹è¯å·¥ä½œåŒº',
-    defaultAgent: 'é»˜è®¤',
-    selectAgent: 'é€‰æ‹©æ™ºèƒ½ä½“',
-    otherRuntimes: 'å…¶ä»–',
-    currentRuntime: 'å½“å‰',
-    allRuntimesTitle: 'å…¨éƒ¨ Agent è¿è¡Œæ—¶',
-    allRuntimesDescription: 'å·²å®‰è£…çš„è¿è¡Œæ—¶ç°åœ¨å°±å¯ä»¥å¯åŠ¨ã€‚ç¼ºå¤±çš„è¿è¡Œæ—¶ä»ä¼šæ˜¾ç¤ºï¼Œå¹¶é™„å¸¦å®‰è£…æŒ‡å¼•ã€‚',
-    searchRuntimes: 'æœç´¢è¿è¡Œæ—¶â€¦',
-    noRuntimeMatches: 'æ²¡æœ‰åŒ¹é…â€œ{{query}}â€çš„è¿è¡Œæ—¶ã€‚',
-    installedRuntimes: 'å·²å®‰è£…',
-    notInstalledRuntimes: 'æœªå®‰è£…',
-    pickerRuntimeChecking: 'æ­£åœ¨æ£€æŸ¥',
-    pickerRuntimeAuthRequired: 'éœ€è¦ç™»å½•',
-    pickerRuntimeProviderRequired: 'éœ€è¦ AI æä¾›æ–¹',
-    pickerRuntimeTimeout: 'å·²è¶…æ—¶',
-    pickerRuntimeUnrecognized: 'è¾“å‡ºæ— æ³•è¯†åˆ«',
-    pickerRuntimeFailed: 'æ£€æŸ¥å¤±è´¥',
-    pickerRuntimeNotInstalled: 'æœªå®‰è£…',
-    agentNotInstalled: 'æœªå®‰è£…',
-    agentMissing: 'æœ¬æœºæœªå®‰è£… {{name}}ã€‚',
-    installLabel: 'å®‰è£…',
-    installDocs: 'å®‰è£…æ–‡æ¡£',
-    copyInstallCommand: 'å¤åˆ¶ {{name}} å®‰è£…å‘½ä»¤',
-    openInstallDocs: 'æ‰“å¼€ {{name}} å®‰è£…æ–‡æ¡£',
-    noAgentsTitle: 'æœªæ£€æµ‹åˆ°æ‰˜ç®¡è¿è¡Œæ—¶',
-    noAgentsBody: 'OpenAlice é€šå¸¸ä¼šè‡ªå¸¦ Pi ç”¨äºå·¥ä½œåŒºå¯¹è¯ã€‚å¦‚æœæ‰“åŒ…ç‰ˆå‡ºç°è¿™ä¸ªæç¤ºï¼Œè¯´æ˜è¿è¡Œæ—¶åŒ…éœ€è¦æ£€æŸ¥ï¼›ä½ ä»ç„¶å¯ä»¥å…ˆä»¥ Lite æ¨¡å¼ç»§ç»­ä½¿ç”¨ã€‚',
-    selectCredential: 'AI è®¿é—®',
-    aiAccess: 'AI è®¿é—®',
-    credentialMenuTitle: 'ç”±è°ç®¡ç† {{runtime}} çš„ AI è®¿é—®ï¼Ÿ',
-    modelField: 'æ¨¡å‹',
-    effortField: 'æ¨ç†å¼ºåº¦',
-    runtimeFallback: 'è¿è¡Œæ—¶',
-    runtimeAccount: '{{runtime}} è´¦æˆ·',
-    runtimeAccountDetail: 'ä½¿ç”¨ {{runtime}} å½“å‰ç™»å½•çš„è´¦æˆ·',
-    workspaceAiAccess: 'Workspace AI é…ç½®',
-    workspaceAccessDetail: 'æ­¤ Workspace çš„ {{credential}}',
-    savedAccessDetail: 'å·²ä¿å­˜çš„ {{credential}}',
-    workspaceAccessDetailFallback: 'ä½¿ç”¨æ­¤ Workspace é…ç½®',
-    selectModel: 'AI æ¨¡å‹',
-    selectEffort: 'æ€è€ƒå¼ºåº¦',
-    selectModelAndEffort: 'æ¨¡å‹ä¸æ¨ç†å¼ºåº¦',
-    customModel: 'è‡ªå®šä¹‰æ¨¡å‹â€¦',
-    customModelTitle: 'ä½¿ç”¨è‡ªå®šä¹‰æ¨¡å‹',
-    customModelDescription: 'è¾“å…¥æ‰€é€‰ AI è®¿é—®æä¾›çš„æ¨¡å‹ IDã€‚',
-    customModelId: 'æ¨¡å‹ ID',
-    defaultLabel: 'é»˜è®¤',
-    defaultModelValue: 'é»˜è®¤ Â· {{model}}',
-    defaultEffort: 'é»˜è®¤æ€è€ƒå¼ºåº¦',
-    defaultEffortValue: 'é»˜è®¤ Â· {{effort}}',
-    effortNotSpecified: 'é»˜è®¤æ¨ç†å¼ºåº¦',
-    configureProvider: 'é…ç½®ä¸€ä¸ª AI æä¾›æ–¹',
-    runtimeDefaultModel: 'é»˜è®¤æ¨¡å‹',
-    runtimeManagedAi: 'æ¨¡å‹ã€æ¨ç†å’Œä¸Šä¸‹æ–‡é™åˆ¶ç”± {{runtime}} é€‰æ‹©',
-    modelSummary: 'æ¨¡å‹ {{model}}',
-    reasoningEffortSummary: '{{effort}} æ€è€ƒå¼ºåº¦',
-    reasoningRequiredSummary: 'å§‹ç»ˆæ€è€ƒ',
-    reasoningAdaptiveSummary: 'è‡ªé€‚åº”æ€è€ƒ',
-    reasoningOptionalSummary: 'å¯é€‰æ€è€ƒ',
-    reasoningEnabledSummary: 'æ€è€ƒå·²å¼€å¯',
-    reasoningDisabledSummary: 'æ€è€ƒå·²å…³é—­',
-    reasoningRuntimeSummary: 'æ¨ç†ç”± Runtime ç®¡ç†',
-    contextSummary: '{{limit}} ä¸Šä¸‹æ–‡',
-    newSessionAiScope: 'ä»…ç”¨äºæ–° Session',
-    workspaceAiScope: 'Workspace é»˜è®¤é…ç½®',
-    runtimeAiScope: '{{runtime}} é»˜è®¤é…ç½®',
-    workspaceAiWillInject: 'æ‰€é€‰æä¾›å•†ä»…ç”¨äºæ–° Sessionï¼Œä¸ä¼šä¿®æ”¹ Workspace è®¾ç½®ã€‚',
-    newWorkspaceAiWillSeed: 'å‘é€åï¼Œæ‰€é€‰æä¾›å•†ä»…ç”¨äºæ–° Sessionã€‚',
-    adjustWorkspaceAi: 'è°ƒæ•´å·¥ä½œåŒº AI',
-    configureWorkspaceAi: 'é…ç½®å·¥ä½œåŒº AI',
-    providerSettings: 'æä¾›æ–¹è®¾ç½®',
-    runtimeOnboardingRequired: '{{runtime}} ä»éœ€å®Œæˆå®ƒè‡ªå·±çš„é¦–æ¬¡è®¾ç½®ã€‚è¯·åœ¨ TUI ä¸­å®Œæˆåç»§ç»­ï¼›OpenAlice ä¸ä¼šæ”¹åŠ¨å…¶ç™»å½•çŠ¶æ€ã€‚',
-    runtimeWorkspaceTrustRequired: '{{runtime}} é¦–æ¬¡è¿›å…¥æ­¤å·¥ä½œåŒºæ—¶ä¼šè¦æ±‚ç¡®è®¤ä¿¡ä»»ï¼›ç¡®è®¤ä¸€æ¬¡åï¼Œå·²æ’é˜Ÿçš„æç¤ºä¼šç»§ç»­æ‰§è¡Œã€‚',
-    noCredBody: '{{name}} è¿˜æ²¡æœ‰é…ç½® AI æä¾›æ–¹ï¼Œå…ˆæ·»åŠ ä¸€ä¸ªæ‰èƒ½å¼€å§‹å¯¹è¯ã€‚',
-    credOverwrite: 'æ–° Session å°†ä½¿ç”¨ {{to}}ï¼Œè€Œä¸æ˜¯ Workspace é»˜è®¤çš„ {{from}}ã€‚',
-    send: 'å‘é€',
-    attach: 'é™„ä»¶',
-    attachSoon: 'é™„ä»¶åŠŸèƒ½å³å°†ä¸Šçº¿',
-    launching: 'æ­£åœ¨å¯åŠ¨â€¦',
-    error: 'ä¼šè¯å¯åŠ¨å¤±è´¥ï¼Œè¯·é‡è¯•ã€‚',
-    runtimeNotReady: 'è¿™ä¸ªè¿è¡Œæ—¶è¿˜ä¸å¯ç”¨ï¼Œè¯·æ£€æŸ¥è®¾ç½®åé‡è¯•ã€‚',
-    examplesLabel: 'å»ºè®®å·¥ä½œæµ',
-    moreExamples: 'æ¢ä¸€ç»„å·¥ä½œæµ',
-    marketBriefLabel: 'å¸‚åœºè„‰æ',
-    marketBriefTitle: 'è¯»æ‡‚ä»Šå¤©çš„è·¨å¸‚åœºä¿¡å·',
-    marketBriefPrompt: 'é˜…è¯»ä»Šå¤©çš„å®è§‚èƒŒæ™¯ã€æ¿å—è½®åŠ¨å’Œå¼‚å¸¸å¼‚åŠ¨ï¼Œç»™å‡ºæœ€å€¼å¾—å…³æ³¨çš„ä¸‰ä¸ªè·¨èµ„äº§ä¿¡å·ï¼Œæ ‡æ˜æ¯é¡¹æ•°æ®çš„æˆªè‡³æ—¶é—´ï¼Œå¹¶æŠŠäº‹å®è¯æ®å’Œä½ çš„åˆ¤æ–­åˆ†å¼€ã€‚',
-    portfolioReviewLabel: 'æŒä»“ä½“æ£€',
-    portfolioReviewTitle: 'å‹åŠ›æµ‹è¯•æˆ‘çš„å½“å‰æŒä»“',
-    portfolioReviewPrompt: 'æ£€æŸ¥æ‰€æœ‰å·²è¿æ¥è´¦æˆ·çš„å½“å‰æŒä»“ï¼Œç»“åˆæœ€æ–°æŠ¥ä»·ã€å¸‚åœºç¯å¢ƒå’Œç›¸å…³æ–°é—»ï¼ŒæŒ‰ä¼˜å…ˆçº§åˆ—å‡ºå€¼å¾—å…³æ³¨çš„é£é™©ï¼›æ ‡æ˜è¯æ®å’Œæ—¶é—´ï¼Œä¸è¦ä¸‹å•æˆ–ä¿®æ”¹è®¢å•ã€‚',
-    researchMemoLabel: 'ç ”ç©¶å¤‡å¿˜',
-    researchMemoTitle: 'æ„å»ºå¯è¯ä¼ªçš„è‹±ä¼Ÿè¾¾é€»è¾‘',
-    researchMemoPrompt: 'ä»åŸºæœ¬é¢å’Œä¸€è‡´é¢„æœŸã€æ¿å—è½®åŠ¨ä¸ä»·æ ¼è¡Œä¸ºä¸¤ä¾§ï¼Œæ„å»ºä¸€ä»½å¯è¯ä¼ªçš„è‹±ä¼Ÿè¾¾æŠ•èµ„é€»è¾‘ï¼›æŠŠå¯å¤ç”¨çš„ç ”ç©¶ä¿å­˜åˆ°æ­¤ Workspaceï¼Œå¹¶è¯´æ˜ä»€ä¹ˆè¯æ®ä¼šæ¨ç¿»å®ƒã€‚',
-    workspaceAuditLabel: 'å·¥ä½œåŒºç›˜ç‚¹',
-    workspaceAuditTitle: 'æ‰¾å‡ºçœŸæ­£éœ€è¦è·Ÿè¿›çš„äº‹é¡¹',
-    workspaceAuditPrompt: 'é˜…è¯»æ­¤ Workspace çš„æ–‡ä»¶ã€Issueã€Inbox æŠ¥å‘Šã€Tracked å®ä½“å’Œå¯è¿½æº¯çš„è¿‘æœŸå·¥ä½œã€‚åœ¨å¼€å§‹æ–°åˆ†æå‰ï¼Œå‘Šè¯‰æˆ‘å“ªäº›å†…å®¹å·²ç»è¿‡æ—¶ã€é‡å¤ã€å—é˜»æˆ–æ­£åœ¨ç­‰å¾…å†³ç­–ã€‚',
-    automationLabel: 'è‡ªåŠ¨åŒ–',
-    automationTitle: 'æŠŠç ”ç©¶å˜æˆå®šæ—¶ Issue',
-    automationPrompt: 'åˆ›å»ºä¸€ä¸ªå·¥ä½œæ—¥è¿è¡Œçš„ Issueï¼Œç”¨æœ€æ–°è¯æ®å¤ç›˜åŠå¯¼ä½“æ¿å—è½®åŠ¨ï¼›é¦–æ¬¡è¿è¡Œåä¿æŒåŒä¸€ä¸ªå¯è¿½æº¯ Sessionï¼Œå¹¶ä¸”åªåœ¨ç»“è®ºå‘ç”Ÿå®è´¨å˜åŒ–æ—¶å‘ Inbox å‘é€ç®€æŠ¥ã€‚',
-    quantDeskLabel: 'é‡åŒ–ç»„',
-    quantDeskTitle: 'å§”æ´¾ä¸€é¡¹å¯å¤ç°ç ”ç©¶',
-    quantDeskPrompt: 'è®© AutoQuant ç ”ç©¶çŸ­æœŸæ¿å—è½®åŠ¨åœ¨è®¡å…¥æˆæœ¬åèƒ½å¦é¢„æµ‹æœªæ¥ä¸€å‘¨çš„ç›¸å¯¹æ”¶ç›Šã€‚è¦æ±‚è¿”å›å¯å¤ç°è¯æ®ã€ä¸å¯å˜çš„ Run æˆ– Report å¼•ç”¨ã€ç ”ç©¶å±€é™ï¼Œå¹¶ä¸”ä¸æˆäºˆäº¤æ˜“æƒé™ã€‚',
-    codeReviewLabel: 'ä»£ç å®¡é˜…',
-    codeReviewTitle: 'å®¡é˜…å½“å‰ Workspace',
-    codeReviewPrompt: 'é˜…è¯»æ­¤ Workspace é‡Œçš„ä»£ç æˆ–ç¬”è®°ï¼Œåˆ—å‡ºé£é™©æœ€é«˜çš„é—®é¢˜ã€å°šæœªå®Œæˆçš„éƒ¨åˆ†ï¼Œä»¥åŠæ¥ä¸‹æ¥ä¸‰å¤„å…·ä½“ä¿®æ”¹ã€‚åªåœç•™åœ¨è¿™ä¸ªç›®å½•ï¼Œä¸è¦å¼€å§‹å¸‚åœºæˆ–äº¤æ˜“å·¥ä½œã€‚',
-    inboxTriageLabel: 'æ”¶ä»¶ç®±',
-    inboxTriageTitle: 'æ•´ç†ä»Šå¤©è¿›æ¥çš„äº‹é¡¹',
-    inboxTriagePrompt: 'é˜…è¯»æ­¤ Workspace çš„ Inbox å’Œ Issueï¼Œæ€»ç»“å“ªäº›éœ€è¦å›å¤ã€å“ªäº›å¯ä»¥ç¨åå¤„ç†ï¼Œä»¥åŠæˆ‘è¯¥å…ˆåšçš„ç¬¬ä¸€ä»¶äº‹ã€‚ä¸è¦ç¼–é€ å¸‚åœºæˆ–äº¤æ˜“ä»»åŠ¡ã€‚',
-  },
-  autoQuantLanding: {
-    heading: 'é‡åŒ–ç»„æ¥ä¸‹æ¥ç ”ç©¶ä»€ä¹ˆï¼Ÿ',
-    subheading: 'ç”¨åŸç”Ÿ Coding Agent æ–°å»ºæˆ–ç»§ç»­ä¸€ä¸ª AutoQuant ç ”ç©¶å·¥ä½œå°ã€‚',
-    targetHeading: 'åœ¨æ­¤å·¥ä½œåŒºä¸­æ–°å»ºç ”ç©¶ä¼šè¯',
-    clearTarget: 'æ¢ä¸€ä¸ªç ”ç©¶å·¥ä½œåŒº',
-    placeholder: 'æè¿°ç­–ç•¥ã€å¸‚åœºã€ç ”ç©¶å‡è®¾æˆ–ä¸‹ä¸€è½®è¿­ä»£ç›®æ ‡â€¦',
-    selectWorkspace: 'é€‰æ‹© AutoQuant å·¥ä½œåŒº',
-    newWorkspaceTarget: 'æ–°çš„ AutoQuant å·¥ä½œåŒº',
-    version: 'Harness',
-    examplesLabel: 'è¯•ç€å®‰æ’',
-    ex1: 'ç ”ç©¶ä¸€ä¸ªç¨³å¥çš„æˆªé¢åŠ¨é‡ç­–ç•¥',
-    ex2: 'å¤ç›˜æœ€è¿‘å¤±è´¥çš„å®éªŒå¹¶æå‡ºä¸‹ä¸€è½®è¿­ä»£',
-    ex3: 'æ„å»ºå¹¶éªŒè¯ä¸€ä¸ª BTC æ³¢åŠ¨ç‡çŠ¶æ€ç­–ç•¥',
-  },
-  autoPredictionLanding: {
-    heading: 'é¢„æµ‹ç ”ç©¶å·¥ä½œåŒºåº”è¯¥è°ƒæŸ¥ä»€ä¹ˆï¼Ÿ', subheading: 'ä½¿ç”¨åŸç”Ÿ Coding Agent ç ”ç©¶é¢„æµ‹å¸‚åœºè¯­ä¹‰ä¸è¯æ®ã€‚',
-    targetHeading: 'åœ¨æ­¤å·¥ä½œåŒºä¸­æ–°å»ºç ”ç©¶ä¼šè¯', clearTarget: 'ä½¿ç”¨å…¶ä»–é¢„æµ‹ç ”ç©¶å·¥ä½œåŒº',
-    placeholder: 'æè¿°å¸‚åœºå…³ç³»ã€ç»“ç®—é—®é¢˜æˆ–è¯æ®ç¼ºå£â€¦', selectWorkspace: 'é€‰æ‹© Auto Prediction å·¥ä½œåŒº',
-    newWorkspaceTarget: 'æ–°å»º Auto Prediction å·¥ä½œåŒº', version: 'å¿«ç…§', examplesLabel: 'è¯•ç€è¿™æ ·é—®',
-    ex1: 'æ£€æŸ¥æœ€æ–°å¸‚åœºç›®å½•è¯æ®ï¼Œå¯»æ‰¾å¯èƒ½çš„è·¨å¸‚åœºè¯­ä¹‰å…³ç³»', ex2: 'å¤æ ¸ä¸€ä¸ªå·²æœ‰å‡è®¾å¹¶åˆ—å‡ºæœ€æœ‰åŠ›çš„åä¾‹',
-    ex3: 'è¿è¡Œä»“åº“æ£€æŸ¥å¹¶è§£é‡Šä¸‹ä¸€å¤„å—é˜»çš„ç ”ç©¶è¾¹ç•Œ',
-  },
-  firstRunGuide: {
-    header: {
-      setup: 'OpenAlice è®¾ç½®',
-      subtitle: 'å…ˆå®‰å…¨å¯åŠ¨ï¼Œéœ€è¦æ—¶å†é€æ­¥å¼€å¯èƒ½åŠ›ã€‚',
-      close: 'å…³é—­å¼•å¯¼',
-    },
-    language: {
-      navLabel: 'è¯­è¨€',
-      eyebrow: 'é€‰æ‹©è¯­è¨€',
-      title: 'å…ˆé€‰æ‹©ä½ æƒ³çœ‹çš„è¯­è¨€ã€‚',
-      body: 'OpenAlice ä¼šç”¨è¿™ä¸ªè¯­è¨€æ˜¾ç¤ºåº”ç”¨ç•Œé¢å’Œè®¾ç½®å¼•å¯¼ã€‚ä¹‹åä¹Ÿå¯ä»¥åœ¨è®¾ç½®é‡Œä¿®æ”¹ã€‚',
-      primary: 'ç»§ç»­',
-      panelTitle: 'ç•Œé¢è¯­è¨€',
-      panelBody: 'å…ˆé€‰ä½ æœ€å®¹æ˜“é˜…è¯»çš„è¯­è¨€ã€‚è¿™ä¸ªé€‰æ‹©åªä¿å­˜åœ¨æœ¬è®¾å¤‡ã€‚',
-      current: 'å½“å‰',
-      choose: 'é€‰æ‹©',
-      option: {
-        en: 'è‹±æ–‡ç•Œé¢',
-        zh: 'ç®€ä½“ä¸­æ–‡ç•Œé¢',
-        ja: 'æ—¥æ–‡ç•Œé¢',
-        'zh-Hant': 'ç¹ä½“ä¸­æ–‡ç•Œé¢',
-      },
-    },
-    common: {
-      step: 'ç¬¬ {{current}} / {{total}} æ­¥ Â· {{label}}',
-      back: 'è¿”å›',
-      continue: 'ç»§ç»­',
-      ready: 'å·²å°±ç»ªã€‚',
-      configured: 'å·²é…ç½®ã€‚',
-      blocked: 'å·²é˜»æ­¢ã€‚',
-      selected: 'å·²é€‰æ‹©',
-      chooseThisOption: 'é€‰æ‹©æ­¤é¡¹',
-      saving: 'ä¿å­˜ä¸­',
-      checking: 'æ£€æµ‹ä¸­',
-    },
-    action: {
-      startSetup: 'å¼€å§‹è®¾ç½®',
-      startWithoutBrokerSetup: 'å…ˆä¸é…ç½®åˆ¸å•†',
-      addCredential: 'æ·»åŠ  AI å‡­è¯',
-      openChecklist: 'æ‰“å¼€è®¾ç½®æ¸…å•',
-      skipBrokerSetup: 'è·³è¿‡åˆ¸å•†è®¾ç½®',
-      connectBroker: 'è¿æ¥åˆ¸å•†è´¦æˆ·',
-      continueWithoutUTA: 'ä¿æŒåªåšç ”ç©¶ï¼Œç»§ç»­',
-      chooseLater: 'ç¨åå†é€‰',
-      continueWithMode: 'ä»¥ {{mode}} ç»§ç»­',
-      startUsingAlice: 'å¼€å§‹ä½¿ç”¨ Alice',
-      openAliceNow: 'ç°åœ¨æ‰“å¼€ Alice',
-      testRuntime: 'æ£€æµ‹ agent è¿è¡Œæ—¶',
-    },
-    mode: {
-      lite: 'Lite',
-      readonly: 'Readonly',
-      pro: 'Pro',
-    },
-    welcome: {
-      navLabel: 'æ¬¢è¿',
-      eyebrow: 'æ¬¢è¿',
-      title: 'OpenAlice æ˜¯ä½ çš„ AI äº¤æ˜“å·¥ä½œåŒºã€‚',
-      body: 'å…ˆç”¨ Alice åšå¸‚åœºç ”ç©¶å¹¶è¿è¡Œå·¥ä½œåŒº agentã€‚åˆ¸å•†è´¦æˆ·ä¼šä¿æŒæ–­å¼€ï¼Œç›´åˆ°ä½ ä¸»åŠ¨æ·»åŠ ï¼›åœ¨è¿™ä¸ªè®¾ç½®ä¸‹ Alice ä¸èƒ½ä¸‹å•ã€‚',
-      panelTitle: 'é»˜è®¤å®‰å…¨',
-      panelBody: 'ä¸è¿æ¥åˆ¸å•†ä¹Ÿå¯ä»¥ä½¿ç”¨ OpenAliceã€‚éœ€è¦æ›´å¤šèƒ½åŠ›æ—¶ï¼Œå†ä¸€æ­¥æ­¥å¼€å¯ã€‚',
-      workspaceAgents: 'å·¥ä½œåŒº agent',
-      workspaceAgentsValue: 'ç ”ç©¶å’Œåˆ†æå·¥ä½œæµã€‚',
-      brokerMode: 'åˆ¸å•†æ¨¡å¼',
-      noBrokerConnectionActive: 'å½“å‰æ²¡æœ‰æ´»åŠ¨çš„åˆ¸å•†è¿æ¥ã€‚',
-      modeActive: '{{mode}} å·²å¯ç”¨ã€‚',
-      brokerAccess: 'åˆ¸å•†è®¿é—®',
-      disconnectedUntilOptIn: 'ä¿æŒæ–­å¼€ï¼Œç›´åˆ°ä½ ä¸»åŠ¨å¼€å¯ã€‚',
-    },
-    ai: {
-      navLabel: 'AI è®¿é—®',
-      eyebrow: 'è®© Alice å¯ç”¨',
-      titleReady: 'Alice å·²ç»æœ‰å¯ç”¨çš„ AI è·¯å¾„ã€‚',
-      titleConnect: 'æŠŠä¸€ä¸ªè¿è¡Œæ—¶æ¥åˆ° AI è®¿é—®ä¸Šã€‚',
-      titleMissingRuntime: 'æœªæ£€æµ‹åˆ°æ‰˜ç®¡è¿è¡Œæ—¶ã€‚',
-      bodyReady: 'å·¥ä½œåŒº agent ç°åœ¨å¯ä»¥ç”¨å·²éªŒè¯çš„ AI key å¯åŠ¨ã€‚åˆ¸å•†å’ŒæŠ•èµ„ç»„åˆè®¾ç½®å¯ä»¥å…ˆä¿æŒå…³é—­ï¼Œç­‰ä½ éœ€è¦æ—¶å†å¼€å¯ã€‚',
-      bodyPiInstalled: 'Pi å·²å®‰è£…ã€‚ç°åœ¨å¯ä»¥æµ‹è¯•ç”± Runtime ç®¡ç†çš„ AI è®¿é—®ï¼›å¦‚æœéœ€è¦å·¥ä½œåŒºä¸“å±è¦†ç›–ï¼Œä¹Ÿå¯ä»¥æ·»åŠ  Alice æ‰˜ç®¡æä¾›æ–¹ã€‚',
-      bodyAddKey: 'æµ‹è¯•å·²å®‰è£… Runtime è‡ªå·±ç®¡ç†çš„ AI è®¿é—®ï¼Œæˆ–æ·»åŠ  Alice æ‰˜ç®¡æä¾›æ–¹ä½œä¸ºå·¥ä½œåŒºä¸“å±è¦†ç›–ã€‚',
-      bodyChecking: 'Alice æ­£åœ¨è·‘ä¸€æ¬¡è½»é‡æ— å¤´æ£€æµ‹ã€‚åªè¦ä»»æ„è¿è¡Œæ—¶èƒ½æ­£å¸¸å›å¤ï¼Œå°±å¯ä»¥ç»§ç»­ã€‚',
-      bodyCliLogin: 'è¿è¡Œæ—¶å·²å®‰è£…ï¼Œä½†éœ€è¦å…ˆå®Œæˆ CLI ç™»å½•ã€‚æ‰“å¼€è®¾ç½®æ¸…å•å®Œæˆç™»å½•åï¼Œå†å›æ¥é‡æ–°æ£€æµ‹ã€‚',
-      bodyRetry: 'Alice æš‚æ—¶æ²¡æœ‰ç¡®è®¤åˆ°å¯ç”¨è¿è¡Œæ—¶ã€‚å¯ä»¥é‡æ–°æ£€æµ‹ï¼Œæˆ–åœ¨è¿è¡Œæ—¶éœ€è¦ provider é…ç½®æ—¶æ·»åŠ  OpenAlice å‡­è¯ã€‚',
-      bodyMissingRuntime: 'æ‰“åŒ…ç‰ˆæœ¬åº”è¯¥è‡ªå¸¦æ‰˜ç®¡ Pi è¿è¡Œæ—¶ã€‚ç»§ç»­ä¹‹å‰ï¼Œè¯·æ‰“å¼€è®¾ç½®æ¸…å•ä¿®å¤è¿è¡Œæ—¶è·¯å¾„ã€‚',
-      panelTitle: 'è¿è¡Œæ—¶æ‰«æ',
-      panelBody: 'åªè¦æœ‰ä¸€è¡ŒåŒæ—¶å…·å¤‡è¿è¡Œæ—¶å’Œ AI è®¿é—®ï¼ŒAlice å°±å¯ç”¨ã€‚',
-      runtime: 'è¿è¡Œæ—¶',
-      aiAccess: 'AI è®¿é—®',
-      noVerifiedKey: 'è¿˜æ²¡æœ‰å·²éªŒè¯çš„ AI keyã€‚',
-      usableKey: 'å·²æœ‰ä¸€ä¸ªå·²å®‰è£…è¿è¡Œæ—¶å¯ä»¥ä½¿ç”¨å·²éªŒè¯ keyã€‚',
-      keyMismatch: 'å·²ä¿å­˜çš„ key å’Œå½“å‰å·²å®‰è£…è¿è¡Œæ—¶ä¸åŒ¹é…ã€‚',
-      runtimeInstalled_one: 'å·²å®‰è£… {{count}} ä¸ªè¿è¡Œæ—¶',
-      runtimeInstalled_other: 'å·²å®‰è£… {{count}} ä¸ªè¿è¡Œæ—¶',
-      managedPiMissing: 'æœªæ£€æµ‹åˆ°æ‰˜ç®¡ Pi è¿è¡Œæ—¶',
-      runtimeMissing: 'æœªæ£€æµ‹åˆ° agent è¿è¡Œæ—¶',
-      runtimeReady: 'å·²æœ‰ä¸€ä¸ªè¿è¡Œæ—¶æˆåŠŸå›å¤ã€‚',
-      checkingRuntime: 'æ­£åœ¨æ£€æµ‹è¿è¡Œæ—¶...',
-      probeFailed: 'è¿è¡Œæ—¶æ£€æµ‹å¤±è´¥ã€‚',
-      cliLoginNeeded: 'éœ€è¦ CLI ç™»å½•ã€‚',
-      providerNeeded: 'éœ€è¦ provider é…ç½®ã€‚',
-      notChecked: 'å°šæœªæ£€æµ‹ã€‚',
-      cli: 'CLI',
-      readyProbe: 'å¯ç”¨æ€§æ£€æµ‹',
-      installed: 'å·²å®‰è£…',
-      missing: 'ç¼ºå¤±',
-      ready: 'å¯ç”¨',
-      source: 'æ¥æºï¼š{{source}}',
-      loginCheckPending: 'ç­‰å¾…ç™»å½•æ£€æŸ¥',
-      needsAiKey: 'éœ€è¦ AI key',
-      cliNotInstalled: 'CLI æœªå®‰è£…',
-      loginOrKey: 'CLI ç™»å½•æˆ– AI key',
-      aiKey: 'AI key',
-      workspaceChat: 'å·¥ä½œåŒºèŠå¤©',
-      needsAiAccess: 'éœ€è¦ AI è®¿é—®ã€‚',
-      needsRuntime: 'éœ€è¦è¿è¡Œæ—¶ã€‚',
-    },
-    broker: {
-      navLabel: 'åˆ¸å•†è®¿é—®',
-      eyebrow: 'äº¤æ˜“æ¨¡å¼',
-      title: 'å†³å®šæ˜¯å¦è¿æ¥åˆ¸å•†è´¦æˆ·ã€‚',
-      body: 'ä½ å¯ä»¥ä¿æŒåˆ¸å•†è®¿é—®å…³é—­ï¼Œåªç”¨ Alice åšç ”ç©¶ï¼›ä¹Ÿå¯ä»¥è¿æ¥è´¦æˆ·ï¼Œè®© Alice è¯»å–æŒä»“ã€‚é™¤éä¹‹ååˆ‡åˆ° Pro æƒé™ï¼Œå¦åˆ™å†™å…¥ä»ä¼šè¢«é˜»æ­¢ã€‚',
-      panelTitle: 'åˆ¸å•†è¿æ¥',
-      panelBodyNeedsUTA: 'è¿æ¥åˆ¸å•†çš„é€‰é¡¹éœ€è¦å…ˆæ·»åŠ ä¸€ä¸ªåˆ¸å•†è´¦æˆ·ã€‚ç°åœ¨è¿æ¥ï¼Œæˆ–è€…å…ˆä¿æŒåªåšç ”ç©¶ï¼Œä¹‹åå†æ·»åŠ ã€‚',
-      panelBodyChoose: 'é€‰æ‹© Alice æ˜¯å¦åº”è¯¥è¿æ¥åˆ¸å•†è´¦æˆ·ã€‚ä¹‹åå¯ä»¥åœ¨è®¾ç½®ä¸­ä¿®æ”¹ã€‚',
-      noBrokerConnection: 'ä¸è¿æ¥åˆ¸å•†',
-      noBrokerConnectionValue: 'åªç”¨ Alice åšç ”ç©¶ï¼›æŠ•èµ„ç»„åˆå’Œäº¤æ˜“ä¿æŒå…³é—­ã€‚',
-      readOnlyBrokerConnection: 'åªè¯»åˆ¸å•†è¿æ¥',
-      readOnlyBrokerConnectionValue: 'è¯»å–ä½™é¢å’ŒæŒä»“ï¼›é˜»æ­¢ä¸‹å•ã€‚',
-      permissionedBrokerWorkflows: 'å¸¦æƒé™æ§åˆ¶çš„åˆ¸å•†å·¥ä½œæµ',
-      permissionedBrokerWorkflowsValue: 'ä½¿ç”¨æ¯è´¦æˆ·å®¡æ‰¹ç­–ç•¥ã€‚',
-      writesControlled: 'ç”±è´¦æˆ·æƒé™æ§åˆ¶ã€‚',
-      writesBlocked: 'å·²é˜»æ­¢ã€‚',
-    },
-    tradingChoices: {
-      badge: 'é€‰æ‹©åˆ¸å•†è®¿é—®',
-      researchOnly: 'åªåšç ”ç©¶',
-      researchOnlyDescription: 'ä¸è¿æ¥åˆ¸å•†ã€‚æŠ•èµ„ç»„åˆå’Œäº¤æ˜“ä¿æŒå…³é—­ã€‚',
-      readOnlyBroker: 'åªè¯»åˆ¸å•†',
-      readOnlyBrokerDescription: 'è¯»å–ä½™é¢å’ŒæŒä»“ï¼›é˜»æ­¢ä¸‹å•ã€‚',
-      proBroker: 'Pro åˆ¸å•†',
-      proBrokerDescription: 'ä½¿ç”¨æ¯è´¦æˆ·å®¡æ‰¹ç­–ç•¥ã€‚',
-      envLocked: 'åˆ¸å•†æ¨¡å¼å·²è¢«å½“å‰ç¯å¢ƒé”å®šã€‚',
-      source: 'å½“å‰æ¥æºï¼š{{source}}',
-    },
-    finish: {
-      navLabel: 'å°±ç»ª',
-      eyebrow: 'è®¾ç½®å®Œæˆ',
-      titleReady: 'å·²ç»å‡†å¤‡å¥½äº†ã€‚',
-      titleOpen: 'OpenAlice å¯ä»¥æ‰“å¼€äº†ã€‚',
-      bodyReady: 'OpenAlice å·²ç»å…·å¤‡å¯ç”¨ AI è·¯å¾„ï¼Œå¹¶å¤„äº{{access}}çŠ¶æ€ã€‚åˆ¸å•†è´¦æˆ·å¯ä»¥ä¿æŒæ–­å¼€ï¼Œç­‰ä½ æ·»åŠ æ—¶å†å¯ç”¨ã€‚',
-      bodyOpen: 'Alice å¯ä»¥åœ¨æ²¡æœ‰åˆ¸å•†è´¦æˆ·çš„æƒ…å†µä¸‹æ‰“å¼€ã€‚ä¹‹åæƒ³ä½¿ç”¨å·¥ä½œåŒºèŠå¤©å’Œè‡ªåŠ¨ç ”ç©¶æ—¶ï¼Œå†æ·»åŠ  AI å‡­è¯ã€‚',
-      noBrokerAccess: 'ä¸è¿æ¥åˆ¸å•†',
-      modeBrokerAccess: '{{mode}} åˆ¸å•†è®¿é—®',
-      panelTitle: 'ç°åœ¨å¯ç”¨',
-      brokerMode: 'åˆ¸å•†æ¨¡å¼',
-      noBrokerConnection: 'æ²¡æœ‰åˆ¸å•†è¿æ¥ã€‚',
-      modeSaved: '{{mode}} å·²ä¿å­˜ã€‚',
-      brokerWrites: 'åˆ¸å•†å†™å…¥',
-    },
-    error: {
-      saveTradingMode: 'ä¿å­˜äº¤æ˜“æ¨¡å¼å¤±è´¥',
-      continueWithoutUTA: 'æ— æ³•åˆ‡æ¢åˆ°åªåšç ”ç©¶æ¨¡å¼',
-    },
-  },
-  onboardingChecklist: {
-    loading: 'æ­£åœ¨åŠ è½½è®¾ç½®çŠ¶æ€â€¦',
-    eyebrow: 'è®¾ç½®æ¸…å•',
-    title: 'è®© Alice ä¸€å±‚ä¸€å±‚å‡†å¤‡å°±ç»ªã€‚',
-    body: 'å…ˆå‡†å¤‡ agent è¿è¡Œæ—¶å’Œ AI è®¿é—®ã€‚åªæœ‰éœ€è¦è¯»å–åˆ¸å•†ä¿¡æ¯æˆ–è¿è¡Œäº¤æ˜“å·¥ä½œæµæ—¶ï¼Œæ‰æ·»åŠ  UTAã€‚',
-    summary: {
-      runtimes: '{{installed}}/{{total}} ä¸ªè¿è¡Œæ—¶',
-      uta_one: '{{count}} ä¸ª UTA',
-      uta_other: '{{count}} ä¸ª UTA',
-      mode: '{{mode}} Â· {{source}}',
-    },
-    source: {
-      auto: 'è‡ªåŠ¨',
-      config: 'é…ç½®',
-      env: 'ç¯å¢ƒå˜é‡',
-    },
-    path: {
-      title: 'è®¾ç½®è·¯å¾„',
-      body: 'ç¬¬ä¸€ä¸ªæœªå®Œæˆé¡¹ç›®ï¼Œå°±æ˜¯æ¥ä¸‹æ¥æœ€æœ‰ç”¨çš„æ“ä½œã€‚',
-    },
-    shortcuts: {
-      title: 'å¿«æ·å…¥å£',
-      aiProvider: 'AI æä¾›æ–¹',
-      agentPermissions: 'Agent æƒé™',
-      tradingSettings: 'äº¤æ˜“è®¾ç½®',
-      askAlice: 'é—® Alice',
-    },
-    status: {
-      setup: 'è®¾ç½®',
-      readyChecks: 'é¡¹æ£€æŸ¥å·²å°±ç»ª',
-      mode: 'æ¨¡å¼',
-      tradingCapability: 'å…¨å±€äº¤æ˜“èƒ½åŠ›',
-      agent: 'Agent',
-      availableRuntimes: 'ä¸ªå¯ç”¨è¿è¡Œæ—¶',
-      configuredUta_one: 'å·²é…ç½® {{count}} ä¸ª',
-      configuredUta_other: 'å·²é…ç½® {{count}} ä¸ª',
-      none: 'æ— ',
-      brokerState: 'åˆ¸å•†è¿æ¥çŠ¶æ€',
-    },
-    state: {
-      ready: 'å·²å°±ç»ª',
-      attention: 'éœ€è¦è®¾ç½®',
-      optional: 'å¯é€‰',
-      locked: 'å·²é”å®š',
-    },
-    steps: {
-      agent: {
-        readyTitle: 'Agent è¿è¡Œæ—¶å·²å°±ç»ª',
-        chooseTitle: 'é€‰æ‹©ä¸€ä¸ª agent è¿è¡Œæ—¶',
-        checkingTitle: 'æ­£åœ¨æ£€æŸ¥ agent è¿è¡Œæ—¶',
-        readyBody: '{{runtimes}} å¯ä»¥å¯åŠ¨ Alice å·¥ä½œåŒºã€‚',
-        missingBody: 'æ¡Œé¢ç‰ˆå¯ä»¥åŒ…å«æ‰˜ç®¡è¿è¡Œæ—¶ï¼›å¼€å‘ç¯å¢ƒä¹Ÿå¯ä½¿ç”¨ PATH ä¸­çš„ Codexã€Claude Codeã€Cursor Agentã€Grok Buildã€Oh My Piã€opencode æˆ– Piã€‚',
-        openAlice: 'æ‰“å¼€â€œé—® Aliceâ€',
-        openSetup: 'æ‰“å¼€è¿è¡Œæ—¶è®¾ç½®',
-      },
-      ai: {
-        configuredTitle: 'AI è®¿é—®å·²é…ç½®',
-        cliTitle: 'CLI ç™»å½•å¯æä¾› AI è®¿é—®',
-        addTitle: 'æ·»åŠ  AI è®¿é—®',
-        configuredBody_one: 'å‡­è¯åº“ä¸­æœ‰ {{count}} ä¸ªå‡­è¯å¯ä¾› Workspace Session ä½¿ç”¨ã€‚',
-        configuredBody_other: 'å‡­è¯åº“ä¸­æœ‰ {{count}} ä¸ªå‡­è¯å¯ä¾› Workspace Session ä½¿ç”¨ã€‚',
-        cliBody: 'Claude Codeã€Codexã€Cursor Agentã€Grok Buildã€OpenCode å’Œ Pi éƒ½å¯ä»¥ä½¿ç”¨å„è‡ªçš„ç™»å½•ï¼›å‡­è¯åº“é…ç½®ä»æ˜¯å¯é€‰é¡¹ã€‚',
-        addBody: 'é€šè¿‡åŸç”Ÿ CLI ç™»å½•ï¼Œæˆ–æ·»åŠ å¯é€‰çš„å‡­è¯åº“å‡­è¯æ¥é…ç½®å·¥ä½œåŒºä¸“å±æä¾›æ–¹ã€‚',
-        action: 'æ‰“å¼€ AI æä¾›æ–¹',
-      },
-      mode: {
-        activeTitle: '{{mode}} æ¨¡å¼å·²å¯ç”¨',
-        liteBody: 'UTA ä¿æŒæ–­å¼€ã€‚Alice ä»å¯åœ¨æ²¡æœ‰åˆ¸å•†çŠ¶æ€çš„æƒ…å†µä¸‹åˆ†æå¸‚åœºå’Œå¼€å±•ç ”ç©¶ã€‚',
-        readonlyBody: 'UTA å¯ä»¥è¯»å–è´¦æˆ·å’ŒæŒä»“ï¼Œä½†åˆ¸å•†å†™å…¥ä¿æŒé˜»æ­¢ã€‚',
-        proBody: 'UTA å·²å¯ç”¨ï¼Œå„è´¦æˆ·æƒé™å†³å®šå†™å…¥è¡Œä¸ºã€‚',
-        action: 'é€‰æ‹©æ¨¡å¼',
-      },
-      uta: {
-        configuredTitle: 'UTA å·²é…ç½®',
-        waitTitle: 'UTA å¯ä»¥ç¨åå†é…',
-        connectTitle: 'è¿æ¥ UTA',
-        configuredBody: 'å…± {{total}} ä¸ªï¼Œå·²å¯ç”¨ {{enabled}} ä¸ªï¼Œåªè¯» {{readOnly}} ä¸ªï¼Œæ•°æ®ä¾›åº”è´¦æˆ· {{vendors}} ä¸ªã€‚',
-        waitBody: 'ä¹‹åå¯ä¸ºæŠ•èµ„ç»„åˆåˆ†æã€åˆ¸å•†è¡Œæƒ…æˆ–â€œäº¤æ˜“å³ Gitâ€å†è¿æ¥ UTAã€‚',
-        connectBody: 'Readonly å’Œ Pro æ¨¡å¼è‡³å°‘éœ€è¦ä¸€ä¸ªåˆ¸å•†æˆ–äº¤æ˜“æ‰€è´¦æˆ·ã€‚',
-        openSettings: 'æ‰“å¼€äº¤æ˜“è®¾ç½®',
-        addLater: 'ç¨åæ·»åŠ  UTA',
-        add: 'æ·»åŠ  UTA',
-      },
-    },
-    capabilities: {
-      title: 'èƒ½åŠ›å›¾',
-      body: 'æ˜¾ç¤ºå½“å‰æ¨¡å¼ä¸‹å¯ä»¥ä½¿ç”¨å“ªäº›èƒ½åŠ›ã€‚',
-      askAlice: {
-        label: 'é—® Alice',
-        ready: 'å¯ä»¥å¯åŠ¨å·¥ä½œåŒºèŠå¤©ã€‚',
-        blocked: 'éœ€è¦ä¸€ä¸ªå¯ç”¨çš„ agent è¿è¡Œæ—¶ã€‚',
-      },
-      market: {
-        label: 'å¸‚åœºåˆ†æ',
-        detail: 'Lite æ¨¡å¼å¯ä½¿ç”¨ OpenAlice å¸‚åœºå·¥å…·ã€‚',
-      },
-      portfolio: {
-        label: 'ç»“åˆæŠ•èµ„ç»„åˆçš„åˆ†æ',
-        lite: 'åˆ‡æ¢åˆ° Readonly æˆ– Pro åå¯ç”¨ã€‚',
-        ready: 'å¯ä»¥è¯»å–åˆ¸å•†è´¦æˆ·ã€‚',
-        needsUta: 'éœ€è¦è¿æ¥ä¸€ä¸ª UTAã€‚',
-      },
-      proposals: {
-        label: 'äº¤æ˜“ææ¡ˆ',
-        lite: 'UTA æ–­å¼€æ—¶ä¸å¯ç”¨ã€‚',
-        ready: 'Agent å¯ä»¥æš‚å­˜åˆ¸å•†äº¤æ˜“ææ¡ˆã€‚',
-        needsUta: 'éœ€è¦è¿æ¥ä¸€ä¸ª UTAã€‚',
-      },
-      aiPush: {
-        label: 'AI äº¤æ˜“æ¨é€',
-        enabled: 'å·²å…¨å±€å¯ç”¨ã€‚',
-        manual: 'ä»éœ€äººå·¥æ‰¹å‡†ã€‚',
-        proOnly: 'ä»…é€‚ç”¨äº Pro æ¨¡å¼ã€‚',
-      },
-    },
-  },
-  theme: {
-    mode: { auto: 'è‡ªåŠ¨', day: 'æ—¥é—´', night: 'æš—å¤œ' },
-    switchTo: 'åˆ‡æ¢åˆ°{{mode}}',
-    uiStyle: {
-      default: 'é»˜è®¤',
-      win98: 'Windows 98',
-      'broker-classic': 'ç»å…¸äº¤æ˜“å°',
-    },
-    uiStyleDescription: {
-      default: 'å®‰é™å…‹åˆ¶çš„ OpenAlice å·¥ä½œå°',
-      win98: 'ç›´è§’ã€æµ®é›•ï¼Œä»¥åŠé²œæ˜çš„ç»å…¸æ‰‹æ„Ÿ',
-      'broker-classic': 'å— TWS å¯å‘çš„é«˜å¯†åº¦äº¤æ˜“å·¥ä½œå°',
-    },
-    palette: {
-      paper: 'çº¸å¼ ', porcelain: 'ç™½ç“·', linen: 'äºšéº»', 'windows-classic': 'Windows ç»å…¸',
-      graphite: 'çŸ³å¢¨', midnight: 'åˆå¤œ', moss: 'è‹”è‰²', iris: 'é¸¢å°¾',
-    },
-    paletteDescription: {
-      paper: 'æ¸©æš–çš„ç¼–è¾‘é£ä¸­æ€§è‰²',
-      porcelain: 'æ¸…çˆ½çš„å†·è°ƒå·¥ä½œåŒº',
-      linen: 'ç‡•éº¦çº¸ã€å¢¨æ£•ä¸é™¶åœŸè‰²',
-      'windows-classic': 'ç³»ç»Ÿé“¶ç°ä¸æ·±è“é€‰æ‹©è‰²',
-      graphite: 'ä½çœ©å…‰çš„ä¸­æ€§æ·±è‰²',
-      midnight: 'æ·±è“è°ƒæš—å¤œè‰²å¡',
-      moss: 'å¢¨ç»¿åº•è‰²ä¸æŸ”å’Œç¥ç€',
-      iris: 'ç´«è“æš®è‰²ä¸å†·é’ç‚¹è‰²',
-    },
-  },
-  dev: {
-    onboarding: 'æ–°æ‰‹å¼•å¯¼',
-    snapshots: 'å¿«ç…§',
-    frontend: 'å‰ç«¯',
-    filterTools: 'ç­›é€‰å·¥å…·â€¦',
-    selectTool: 'è¯·ä»å·¦ä¾§é¢æ¿é€‰æ‹©ä¸€ä¸ªå·¥å…·ã€‚',
-    toolDetailsLoadError: 'å·¥å…·è¯¦æƒ…åŠ è½½å¤±è´¥ã€‚',
-  },
-  simulator: {
-    title: 'æ¨¡æ‹Ÿå™¨',
-  },
-  marketMonitor: {
-    navLabel: 'å¸‚åœºè¯æ®ç›‘æµ‹', title: 'å¸‚åœºè¯æ®ç›‘æµ‹',
-    description: 'BTC + TSLA Â· {{strategy}} Â· äº‹å®ã€å‡è®¾ã€ç¡®è®¤ä¸å¤±æ•ˆæ¡ä»¶',
-    strategyEvidenceChain: 'è¯æ®é“¾', scannedAt: 'æ‰«æäº {{time}}', waitingFirstScan: 'ç­‰å¾…é¦–æ¬¡æ‰«æ',
-    demoBadge: 'æ¼”ç¤ºæ•°æ® Â· éå®æ—¶', settingsTitle: 'ç›‘æµ‹è®¾ç½®', scanNow: 'ç«‹å³æ‰«æ',
-    refreshFailed: 'åˆ·æ–°å¤±è´¥ï¼›å·²ä¿ç•™ä¸Šä¸€æ¬¡æˆåŠŸæ˜¾ç¤ºçš„å†…å®¹ã€‚{{error}}', retry: 'é‡è¯•',
-    monitoredAsset: 'ç›‘æµ‹æ ‡çš„', assetBitcoin: 'æ¯”ç‰¹å¸', assetTesla: 'ç‰¹æ–¯æ‹‰', chartTimeframe: 'å›¾è¡¨å‘¨æœŸ',
-    unavailable: 'å¸‚åœºè¯æ®ç›‘æµ‹æš‚ä¸å¯ç”¨', retryScan: 'é‡æ–°æ‰«æ', noObservations: 'æš‚æ— ç›‘æµ‹è®°å½•',
-    noObservationsDescription: 'ç‚¹å‡»â€œç«‹å³æ‰«æâ€è¿›è¡Œä¸€æ¬¡æ£€æŸ¥ï¼Œæˆ–åœ¨è®¾ç½®ä¸­å¯ç”¨åå°ç›‘æµ‹ã€‚',
-    runtime: {
-      aria: 'åå°ç›‘æµ‹çŠ¶æ€', connectionUnavailable: 'æ— æ³•è¿æ¥ç›‘æµ‹æœåŠ¡', demoPaused: 'æ¼”ç¤ºæ¨¡å¼ Â· æœªè¿è¡Œåå°æ‰«æ',
-      checking: 'æ­£åœ¨æ£€æŸ¥åå°ç›‘æµ‹â€¦', attention: 'åå°ç›‘æµ‹éœ€è¦å¤„ç†', stopped: 'åå°ç›‘æµ‹å·²åœæ­¢',
-      paused: 'åå°ç›‘æµ‹å·²æš‚åœ', excluded: '{{asset}} æœªåŠ å…¥åå°ç›‘æµ‹', scanning: '{{asset}} æ­£åœ¨æ‰«æ',
-      active: 'åå°ç›‘æµ‹è¿è¡Œä¸­', retained: 'å½“å‰æ˜¾ç¤ºä¸Šä¸€æ¬¡å·²çŸ¥çŠ¶æ€ã€‚{{error}}', retry: 'é‡è¯•çŠ¶æ€æ£€æŸ¥',
-      lastAttempt: 'ä¸Šæ¬¡å°è¯•ï¼š{{time}} Â· {{outcome}}', next: 'ä¸‹æ¬¡ï¼š{{time}}',
-    },
-    outcome: { stored: 'å‘ç°æ–°è¯æ®', duplicate: 'è¯æ®æ— å˜åŒ–', failed: 'å¤±è´¥' },
-    panels: {
-      marketState: '{{asset}} å¸‚åœºçŠ¶æ€', evidenceChain: 'è¯æ®é“¾', currentHypothesis: 'å½“å‰å‡è®¾',
-      confirmation: 'ç¡®è®¤æ¡ä»¶', invalidation: 'å¤±æ•ˆæ¡ä»¶', alternatives: 'ç«äº‰æ€§è§£é‡Š', context: '{{asset}} èƒŒæ™¯æ•°æ®',
-      sourceHealth: 'æ•°æ®æºçŠ¶æ€', history: 'ç›‘æµ‹å†å²', recentAlerts: 'è¿‘æœŸæé†’',
-    },
-    metrics: {
-      lastPrice: 'æœ€æ–°ä»·æ ¼', oneDayChange: '1æ—¥æ¶¨è·Œ', fiveDayChange: '5æ—¥æ¶¨è·Œ', weeklyFollowThrough: 'å‘¨çº¿å»¶ç»­',
-      sixtyDayRange: '60æ—¥åŒºé—´ä½ç½®', twentyDayVolume: '20æ—¥æˆäº¤é‡æ¯”', latestHour: 'æœ€è¿‘1å°æ—¶', rollingFourHours: 'æ»šåŠ¨4å°æ—¶',
-    },
-    chart: { hourlyUnavailable: 'å°æ—¶æ•°æ®ä¸å¯ç”¨', noHourlySeries: 'æ²¡æœ‰å¯å½’å› çš„å°æ—¶æ•°æ®ï¼Œä¸ä¼šç”¨æ—¥çº¿æ›¿ä»£ã€‚', aria: 'ä»·æ ¼èµ°åŠ¿ï¼Œæœ€æ–° {{price}}' },
-    evidence: {
-      signal: 'ä¿¡å·', frame: 'å‘¨æœŸ', observedFact: 'è§‚å¯Ÿäº‹å®', interpretation: 'è§£é‡Š',
-      locationLabel: '60æ—¥åŒºé—´ä½ç½®', locationUnavailable: 'åŒºé—´ä½ç½®ä¸å¯ç”¨ã€‚', locationObserved: 'æ”¶ç›˜ä»·ä½äº60æ—¥åŒºé—´çš„ {{position}}%ã€‚',
-      locationInterpretation: 'æ‰€å¤„ä½ç½®ä¼šæ”¹å˜å¯¹åŒä¸€ä»·æ ¼/æˆäº¤é‡äº‹ä»¶çš„è§£é‡Šã€‚', structureLabel: '20æ—¥ä»·æ ¼ç»“æ„',
-      structureAbove: 'æ”¶ç›˜ä»·é«˜äºæ­¤å‰20æ—¥æœ€é«˜ç‚¹ã€‚', structureBelow: 'æ”¶ç›˜ä»·ä½äºæ­¤å‰20æ—¥æœ€ä½ç‚¹ã€‚', structureInside: 'æ”¶ç›˜ä»·ä»åœ¨æ­¤å‰20æ—¥åŒºé—´å†…ã€‚',
-      demandProgress: 'éœ€æ±‚æ¨åŠ¨äº†ç»“æ„æ€§è¿›å±•ã€‚', supplyProgress: 'ä¾›åº”æ¨åŠ¨äº†ç»“æ„æ€§ä¸‹ç§»ã€‚', needsRangeExit: 'å¸‚åœºä»éœ€ç¡®è®¤æœ‰æ•ˆç¦»å¼€åŒºé—´ã€‚',
-      effortLabel: 'åŠªåŠ›ä¸ç»“æœ', effortObserved: 'æˆäº¤é‡ä¸º20æ—¥å‡é‡çš„ {{volume}} å€ï¼Œä»·æ ¼å˜åŠ¨ {{change}}%ã€‚',
-      absorption: 'è¾ƒå¤§æˆäº¤åŠªåŠ›åªäº§ç”Ÿæœ‰é™ä½ç§»ï¼Œå¯èƒ½å­˜åœ¨å¸æ”¶ï¼Œä»éœ€åç»­æµ‹è¯•ã€‚', effortMatches: 'ä»·æ ¼ä½ç§»å¤§ä½“ç¬¦åˆæˆäº¤åŠªåŠ›çš„æ–¹å‘ã€‚',
-      weeklyLabel: 'å‘¨çº¿å»¶ç»­', weeklyObserved: 'æœ€æ–°è‡ªç„¶å‘¨æ”¶ç›˜è¾ƒå‰ä¸€å‘¨å˜åŠ¨ {{change}}%ã€‚', weeklyInterpretation: 'å‘¨çº¿æ–¹å‘åªæä¾›èƒŒæ™¯ï¼Œä¸èƒ½å•ç‹¬ç¡®è®¤åè½¬ã€‚',
-      intradayLabel: 'æ—¥å†…è„‰å†²', intradayObserved: 'æœ€è¿‘1å°æ—¶ {{hour}}%ï¼›æ»šåŠ¨4å°æ—¶ {{fourHours}}%ï¼›æˆäº¤é‡ {{volume}} å€ã€‚',
-      intradayAbnormal: 'æœ€è¿‘ä¸€å°æ—¶çš„ä»·æ ¼æˆ–æˆäº¤é‡è¶…å‡ºè®¾å®šçš„æ­£å¸¸èŒƒå›´ã€‚', intradayNormal: 'æœªå‘ç°å¼‚å¸¸å°æ—¶æ³¢åŠ¨æˆ–æˆäº¤é‡æ‰©å¼ ã€‚',
-      intradayUnavailable: 'å°æ—¶æ•°æ®æºä¸å¯ç”¨ï¼Œæœªä½¿ç”¨æ—¥çº¿æ›¿ä»£ã€‚', intradayUnknown: 'æ—¥å†…ç¡®è®¤ä»å±æœªçŸ¥ï¼Œä¸ä¼šä»æ—¥çº¿æ•°æ®æ¨æ–­ã€‚',
-    },
-    hypothesis: {
-      demandLabel: 'éœ€æ±‚æš‚æ—¶å ä¼˜', demandSummary: 'ä»·æ ¼ç»“æ„å’Œå»¶ç»­æ€§åç§¯æï¼Œä½†ä»éœ€ä¸‹ä¸€æ¬¡æµ‹è¯•ç¡®è®¤ã€‚',
-      demandConfirm1: 'ä¿æŒåœ¨æ­¤å‰20æ—¥åŒºé—´ä¸Šæ–¹ï¼Œæˆ–æµ‹è¯•åè¿…é€Ÿæ”¶å›ã€‚', demandConfirm2: 'å›è°ƒæˆäº¤é‡æ”¶ç¼©ï¼Œä¸”ä¸å†å½¢æˆæœ‰æ•ˆæ–°ä½ã€‚',
-      demandConfirm3: 'å°æ—¶çº§å»¶ç»­ä¼´éšå®é™…ä»·æ ¼æ¨è¿›ï¼Œè€Œä¸ä»…æ˜¯æ æ†æˆ–æˆäº¤é‡å¢åŠ ã€‚', demandInvalidate1: 'ä¸‹è·Œæˆäº¤é‡æ‰©å¼ ï¼Œå¹¶æ”¶å›åˆ°å·²çªç ´åŒºé—´å†…éƒ¨ã€‚',
-      demandInvalidate2: 'å½¢æˆæ›´ä½çš„é«˜ç‚¹åï¼Œæœ‰æ•ˆè·Œç ´20æ—¥åŒºé—´ã€‚', demandInvalidate3: 'å‘¨çº¿å»¶ç»­è½¬è´Ÿï¼ŒåŒæ—¶åŒºé—´ä½ç½®æ¶åŒ–ã€‚',
-      demandAlternative1: 'å‡çªç ´åå›åˆ°å¹³è¡¡åŒºé—´ã€‚', demandAlternative2: 'åªæœ‰ç©ºå¤´å›è¡¥ï¼Œæ²¡æœ‰æŒç»­çš„ç°è´§éœ€æ±‚ã€‚',
-      supplyLabel: 'ä¾›åº”æš‚æ—¶å ä¼˜', supplySummary: 'ä»·æ ¼ç»“æ„å’Œå»¶ç»­æ€§åé˜²å¾¡ï¼Œä½†å¤±è´¥çš„è·Œç ´ä»å¯èƒ½æ‰­è½¬åˆ¤æ–­ã€‚',
-      supplyConfirm1: 'å¼±åŠ¿å›æµ‹åä»åœç•™åœ¨æ­¤å‰20æ—¥åŒºé—´ä¸‹æ–¹ã€‚', supplyConfirm2: 'ä¸‹è·Œçš„ä»·æ ¼ä½ç§»å’Œæˆäº¤é‡åŒæ—¶æ‰©å¤§ã€‚',
-      supplyConfirm3: 'å°æ—¶çº§åå¼¹åœ¨æ”¶å¤è·Œç ´ä½ç½®å‰å¤±è´¥ã€‚', supplyInvalidate1: 'è¿…é€Ÿæ”¶å¤æ­¤å‰åŒºé—´ï¼Œå¹¶åœ¨ç¼©é‡å›æµ‹ä¸­å®ˆä½ã€‚',
-      supplyInvalidate2: 'ä¸‹è·Œæˆäº¤é‡æ‰©å¼ å´ä¸å†äº§ç”Ÿä»·æ ¼æ¨è¿›ï¼Œéšåå½¢æˆæ›´é«˜ä½ç‚¹ã€‚', supplyInvalidate3: 'å‘¨çº¿æ”¶ç›˜è½¬å¼ºï¼ŒåŒæ—¶åŒºé—´ä½ç½®æ”¹å–„ã€‚',
-      supplyAlternative1: 'ç±»ä¼¼ Spring çš„å¤±è´¥è·Œç ´ã€‚', supplyAlternative2: 'çŸ­æœŸå¼ºå¹³ï¼Œè€Œä¸æ˜¯æŒç»­ä¾›åº”ã€‚',
-      balancedLabel: 'è¯æ®ä»ç„¶å‡è¡¡', balancedSummary: 'ä¹°å–åŒæ–¹éƒ½æ²¡æœ‰å½¢æˆè¶³å¤Ÿçš„ç»“æ„æ€§è¿›å±•ã€‚åœ¨ä»·æ ¼ç¦»å¼€åŒºé—´å¹¶å®Œæˆæµ‹è¯•å‰ï¼Œæ–¹å‘åˆ¤æ–­ä»åªæ˜¯å¾…éªŒè¯å‡è®¾ã€‚',
-      balancedConfirm1: 'ç»§ç»­åœ¨æ­¤å‰20æ—¥åŒºé—´å†…è½®åŠ¨ã€‚', balancedConfirm2: 'æˆäº¤é‡å¤šæ¬¡æ‰©å¼ ï¼Œä½†å‡€ä»·æ ¼ä½ç§»æœ‰é™ã€‚',
-      balancedInvalidate1: 'æ”¶ç›˜ç¦»å¼€åŒºé—´ï¼Œå¹¶åœ¨åç»­æµ‹è¯•ä¸­å®ˆä½ã€‚', balancedInvalidate2: 'æ—¥çº¿å’Œå‘¨çº¿å»¶ç»­æ–¹å‘ä¸€è‡´ï¼ŒåŒæ—¶æ—¥å†…å‚ä¸å¼‚å¸¸æ”¾å¤§ã€‚',
-      balancedAlternative1: 'ä¸Šæ¶¨å»¶ç»­å‰çš„å†ç§¯ç´¯ã€‚', balancedAlternative2: 'ä¸‹è·Œå»¶ç»­å‰çš„æ´¾å‘ã€‚',
-    },
-    context: {
-      fundingRate: 'èµ„é‡‘è´¹ç‡', openInterest: 'æ°¸ç»­åˆçº¦æœªå¹³ä»“é‡', annualizedBasisPercent: 'å¹´åŒ–åŸºå·®', optionOpenInterest: 'æœŸæƒæœªå¹³ä»“é‡',
-      putCallOpenInterestRatio: 'çœ‹è·Œ/çœ‹æ¶¨æœŸæƒæŒä»“æ¯”', marketCap: 'å¸‚å€¼', trailingPe: 'æ»šåŠ¨å¸‚ç›ˆç‡', forwardPe: 'é¢„æœŸå¸‚ç›ˆç‡',
-      analystTargetMean: 'åˆ†æå¸ˆå¹³å‡ç›®æ ‡ä»·', shortPercentFloat: 'æµé€šè‚¡åšç©ºæ¯”ä¾‹', nextEarningsAt: 'ä¸‹æ¬¡è´¢æŠ¥',
-      unavailable: 'èƒŒæ™¯æ•°æ®æºä¸å¯ç”¨ï¼›ä»·æ ¼å’Œæˆäº¤é‡è¯æ®ä»ç„¶æœ‰æ•ˆï¼Œå¹¶ä¿ç•™æ¥æºæ ‡è®°ã€‚', recentNews: 'è¿‘æœŸç›¸å…³æ–°é—»', unknown: 'æœªçŸ¥',
-    },
-    source: {
-      asOf: 'æˆªè‡³ {{time}}', dailyBars: 'æ—¥çº¿ OHLCV', intradayBars: 'å°æ—¶ OHLCV', btcDerivatives: 'BTC è¡ç”Ÿå“èƒŒæ™¯',
-      tslaReference: 'TSLA åŸºæœ¬é¢ä¸æŒä»“', tslaCalendarNews: 'TSLA æ—¥å†ä¸æ–°é—»', assetContext: '{{asset}} èƒŒæ™¯æ•°æ®',
-      ok: 'æ•°æ®æºå¯ç”¨ä¸”æ¥æºæ˜ç¡®ã€‚', degraded: 'æ•°æ®æºéƒ¨åˆ†å¯ç”¨æˆ–æ­£åœ¨ä½¿ç”¨å¤‡ç”¨æºã€‚', unavailable: 'æœ¬æ¬¡ç›‘æµ‹æ— æ³•ä½¿ç”¨è¯¥æ•°æ®æºã€‚',
-      retained: ' å·²ä¿ç•™æœ€è¿‘ä¸€æ¬¡æœ‰æ•ˆå­—æ®µã€‚',
-      fallbackUsed: 'é…ç½®çš„æ•°æ®æºå¤±è´¥ï¼Œå·²æ˜ç¡®ä½¿ç”¨ Yahoo å¤‡ç”¨æºã€‚', staleDays: 'æ¯”è¯·æ±‚åŸºå‡†æ»å {{count}} ä¸ªå·¥ä½œæ—¥ã€‚', attributedBars: '{{count}} æ ¹è¡Œæƒ…æ•°æ®ï¼Œæ¥æºæ˜ç¡®ã€‚',
-      derivativesLoaded: 'å·²è½½å…¥åªè¯»è¡ç”Ÿå“èƒŒæ™¯æ•°æ®ã€‚', futuresUnavailable: ' æœŸè´§æ•°æ®ä¸å¯ç”¨ã€‚', optionsUnavailable: ' æœŸæƒæ•°æ®ä¸å¯ç”¨ã€‚',
-      tslaFieldsLoaded: 'å·²è½½å…¥æ•°æ®æºæ”¯æŒçš„ä¼°å€¼ã€åˆ†æå¸ˆé¢„æœŸå’Œåšç©ºæ¯”ä¾‹ã€‚', tslaFieldsUnavailable: 'å·²é…ç½®çš„è‚¡ç¥¨æ•°æ®æºæœªè¿”å›å¯ç”¨èƒŒæ™¯æ•°æ®ã€‚',
-      earningsAvailable: 'æœ‰ä¸‹ä¸€æ¬¡è´¢æŠ¥æ—¥æœŸ', noEarnings: 'æ²¡æœ‰è´¢æŠ¥æ—¥æœŸ', recentStories: '{{count}} æ¡è¿‘æœŸç›¸å…³æ–°é—»', newsNotConfigured: 'ï¼›æœªé…ç½®æ–°é—»é‡‡é›†å™¨',
-      demoBars: 'ç¡®å®šæ€§æ¼”ç¤ºæ—¥çº¿æ•°æ®ï¼Œæ¥æºæ˜ç¡®ã€‚', demoHourlyBars: 'ç¡®å®šæ€§æ¼”ç¤ºå°æ—¶æ•°æ®ï¼Œæ¥æºæ˜ç¡®ã€‚', demoContext: 'ç”¨äºç•Œé¢éªŒæ”¶çš„é™æ€èƒŒæ™¯æ•°æ®ï¼Œå¹¶éå®æ—¶æ•°æ®ã€‚',
-    },
-    history: {
-      summary: 'å·²éªŒè¯ {{resolved}} æ¡ Â· å‡†ç¡®ç‡ {{accuracy}}', captured: 'è®°å½•æ—¶é—´', price: 'ä»·æ ¼', hypothesis: 'å‡è®¾', confidence: 'ç½®ä¿¡åº¦',
-      trigger: 'è§¦å‘æ–¹å¼', manual: 'æ‰‹åŠ¨', scheduled: 'å®šæ—¶', noAlerts: 'å°šæœªè§¦å‘æé†’æ¡ä»¶ã€‚', stateChanged: '{{asset}} è¯æ®çŠ¶æ€å‘ç”Ÿå˜åŒ–',
-      abnormalConfirmation: '{{asset}} å‡ºç°å¼‚å¸¸æ—¥å†…ç¡®è®¤', alertMessage: '{{hypothesis}} Â· ç½®ä¿¡åº¦ {{confidence}}%ã€‚{{note}}',
-    },
-    settings: {
-      background: 'åå°ç›‘æµ‹', scheduledAssets: 'å®šæ—¶ç›‘æµ‹æ ‡çš„',
-      explanation: 'é¡µé¢å…³é—­åä»éš OpenAlice åå°è¿è¡Œï¼›OpenAlice é€€å‡ºæˆ–ç”µè„‘ç¡çœ æ—¶åœæ­¢ã€‚æš‚åœåªé˜»æ­¢æ–°æ‰«æï¼Œè¿›è¡Œä¸­çš„æ‰«æä¼šå®Œæˆã€‚æµè§ˆå™¨æé†’éœ€è¦é¡µé¢ä¿æŒæ‰“å¼€ã€‚',
-      strategy: 'ç­–ç•¥', interval: 'æ‰«æé—´éš”ï¼ˆåˆ†é’Ÿï¼‰', alertConfidence: 'æé†’ç½®ä¿¡åº¦', volumeRatio: 'æˆäº¤é‡å€æ•°', hourlyMove: 'å°æ—¶æ³¢åŠ¨ %',
-      selectAsset: 'è¯·è‡³å°‘é€‰æ‹©ä¸€ä¸ªæ ‡çš„ï¼Œæˆ–è€…å…³é—­åå°ç›‘æµ‹å¹¶ä¿ç•™å½“å‰é€‰æ‹©ã€‚', saveFailed: 'è®¾ç½®ä¿å­˜å¤±è´¥ã€‚{{error}}', browserAlerts: 'æµè§ˆå™¨æé†’',
-      cancel: 'å–æ¶ˆ', saving: 'ä¿å­˜ä¸­â€¦', save: 'ä¿å­˜',
-    },
-    operations: {
-      aria: '{{asset}} ç›‘æµ‹è¿è¡Œæƒ…å†µ', title: '{{asset}} Â· ç›‘æµ‹è¿è¡Œæƒ…å†µ', reportWindow: 'æŠ¥å‘Šæ—¶é—´èŒƒå›´', hours: '{{count}} å°æ—¶',
-      refresh: 'åˆ·æ–°å¥åº·æŠ¥å‘Š', export: 'å¯¼å‡ºæŠ¥å‘Š', unavailable: 'å¥åº·æŠ¥å‘Šä¸å¯ç”¨ã€‚', retained: 'å·²ä¿ç•™ä¸Šä¸€æ¬¡æˆåŠŸæŠ¥å‘Šã€‚', loading: 'æ­£åœ¨åŠ è½½å¥åº·æŠ¥å‘Šâ€¦',
-      window: 'æ—¶é—´èŒƒå›´ï¼š{{from}} â€“ {{to}}ã€‚å·²è®°å½•æ ·æœ¬ï¼š{{first}} â€“ {{last}}ã€‚', truncated: 'ä»…æ˜¾ç¤ºæœ€è¿‘ {{count}} æ¬¡å°è¯•ï¼›è¯¥æ—¶é—´èŒƒå›´å†…æ›´æ—©çš„å°è¯•æœªåŒ…å«ã€‚',
-      noAttempts: 'è¯¥æ—¶é—´èŒƒå›´å†…æ²¡æœ‰æ‰«æè®°å½•ã€‚', recordedAttempts: 'æ‰«æå°è¯•æ¬¡æ•°', completion: 'æ‰«æå®Œæˆç‡', failedAttempts: 'å¤±è´¥æ¬¡æ•°',
-      sourceIssues: 'å­˜åœ¨æ•°æ®æºé—®é¢˜çš„æ‰«æ', checked: '{{issues}} / {{checked}} å·²æ£€æŸ¥', scheduledManual: 'å®šæ—¶ / æ‰‹åŠ¨', newUnchanged: 'æ–°è¯æ® / æ— å˜åŒ–',
-      averageDuration: 'å¹³å‡è€—æ—¶', p95Duration: '95åˆ†ä½è€—æ—¶',
-      qualification: 'å®Œæˆç‡åªè¡¡é‡å·²è®°å½•çš„æ‰«æï¼Œä¸ä»£è¡¨æŒç»­åœ¨çº¿ç‡æˆ–äº¤æ˜“è¡¨ç°ã€‚{{missing}} æ¬¡æ²¡æœ‰æ•°æ®æºæ£€æŸ¥ï¼›{{durations}} æ¬¡è®°å½•äº†è€—æ—¶ã€‚è¿ç»­å¤±è´¥ï¼š{{failures}}ã€‚æ‰«ææ¢å¤ï¼š{{recoveries}}ã€‚',
-      sourceTable: 'æ•°æ®æºå¯é æ€§', source: 'æ•°æ®æº', lastCheck: 'æœ€è¿‘çŠ¶æ€', healthy: 'æ­£å¸¸', degraded: 'é™çº§', unavailableStatus: 'ä¸å¯ç”¨',
-      recoveries: 'æ¢å¤æ¬¡æ•°', checkedDataTime: 'æ£€æŸ¥æ—¶é—´ / æ•°æ®æ—¶é—´', unknownSources: 'è¿™äº›æ‰«ææ²¡æœ‰å¯ç”¨çš„æ•°æ®æºå¥åº·ä¿¡æ¯ã€‚', recentTable: 'è¿‘æœŸæ‰«æè®°å½•',
-      attemptTime: 'æ‰«ææ—¶é—´', trigger: 'è§¦å‘æ–¹å¼', result: 'ç»“æœ', duration: 'è€—æ—¶', detail: 'è¯¦æƒ…', unchangedEvidence: 'è¯æ®æ— å˜åŒ–',
-      newEvidence: 'å‘ç°æ–°è¯æ®', failed: 'å¤±è´¥', seconds: '{{value}} ç§’',
-    },
-  },
-  market: {
-    openSymbol: 'æ‰“å¼€ {{symbol}} è¯¦æƒ…',
-    pageTitle: 'å¸‚åœº',
-    pageDescription: 'æœç´¢èµ„äº§å¹¶æŸ¥çœ‹ä»·æ ¼å†å²ã€‚',
-    tradeableTitle: 'å·²é…ç½®åˆ¸å•†ä¸­çš„å¯äº¤æ˜“åˆçº¦',
-    tradeableInfo:
-      'æ¥å£ï¼š/api/trading/contracts/search\né€šè¿‡åˆ¸å•†ä¾§å¯å‘å¼æ¨¡ç³ŠåŒ¹é…ï¼›åˆ†æé¡µæ ‡çš„æ˜¯æŸ¥è¯¢æ¡ä»¶ï¼Œå¹¶éè§„èŒƒæ ‡è¯†ã€‚\nå¯äº¤æ˜“èº«ä»½ä»¥åˆ¸å•†çš„ aliceIdï¼ˆalias:broker:exchange-idï¼‰ä¸ºå‡†ï¼Œä¸‹å•æ—¶è¯·ä½¿ç”¨å®ƒã€‚',
-    tradeableSearching: 'æ­£åœ¨æœç´¢åˆ¸å•†â€¦',
-    tradeableNoAccounts:
-      'å°šæœªé…ç½®äº¤æ˜“è´¦æˆ·ã€‚<tradingLink>å‰å¾€â€œäº¤æ˜“â€æ·»åŠ </tradingLink>ï¼Œå³å¯åœ¨æ­¤æŸ¥çœ‹åŒ¹é…åˆçº¦ã€‚',
-    tradeableNoMatches: 'å·²é…ç½®åˆ¸å•†ä¸­æ²¡æœ‰ä¸ {{symbol}} åŒ¹é…çš„å¯äº¤æ˜“åˆçº¦ã€‚',
-    tradeableShowFewer: 'æ”¶èµ·',
-    tradeableShowMore: 'å†æ˜¾ç¤º {{hidden}} é¡¹ï¼ˆå…± {{total}} é¡¹ï¼‰',
-    tradeableOrderTitle: 'åœ¨å¯¹åº” UTA ä¸­æ‰“å¼€ä¸‹å•é¢æ¿',
-    tradeableOrder: 'ä¸‹å•',
-    searchPlaceholder: 'æœç´¢èµ„äº§â€¦',
-    searchInputPlaceholder: 'æœç´¢èµ„äº§â€”â€”AAPLã€æ¯”ç‰¹å¸ã€EURã€é»„é‡‘â€¦',
-    searching: 'æœç´¢ä¸­â€¦',
-    browseSection: 'æµè§ˆ',
-    analyticsSection: 'å¸‚åœºåˆ†æ',
-    marketsSection: 'è¡Œæƒ…',
-    macroSection: 'å®è§‚çœ‹æ¿',
-    browseMarkets: 'å¸‚åœºæ¦‚è§ˆ',
-    searchResults: 'æœç´¢ç»“æœ',
-    noMatches: 'æ— åŒ¹é…',
-    watchlist: 'è‡ªé€‰',
-    emptyWatchlistHint: 'ç‚¹å‡»æ ‡çš„æ—çš„ â˜† æ·»åŠ è‡ªé€‰ã€‚',
-    fxTitle: 'ä»ç°è´§ã€å¥—æ¯åˆ°å®è§‚ï¼Œé›†ä¸­åœ¨ä¸€ä¸ªè´§å¸å¯¹è§†å›¾ã€‚',
-    fxDescription: 'æ‰“å¼€ä¸»è¦è´§å¸å¯¹ï¼ŒæŸ¥çœ‹ä»·æ ¼é£é™©ã€åˆ©ç‡ä¸é€šèƒ€åˆ†åŒ–ã€æŒ‡ç¤ºæ€§è¿œæœŸï¼Œä»¥åŠæ‰‹åŠ¨æ•å£æƒ…æ™¯ï¼›æ— éœ€è¿æ¥åˆ¸å•†æˆ–é“¶è¡Œè´¦æˆ·ã€‚',
-    fxGlobalTitle: 'è·¨å›½å®è§‚',
-    fxGlobalDescription: 'æŒ‰è´§å¸ç»æµä½“æ¯”è¾ƒåˆ©ç‡ã€é€šèƒ€ä¸å¢é•¿åŠ¨èƒ½ã€‚',
-    fxUsTitle: 'ç¾å›½å¸‚åœºç¯å¢ƒ',
-    fxUsDescription: 'ç¾å…ƒã€ç¾å€ºæ”¶ç›Šç‡æ›²çº¿ã€é€šèƒ€ä¸å°±ä¸šä¿¡å·ã€‚',
-    fxFedTitle: 'ç¾è”å‚¨æ”¿ç­–',
-    fxFedDescription: 'èµ„äº§è´Ÿå€ºè¡¨ã€äº¤æ˜“å•†æŒä»“ä¸ FOMC æ–‡ä»¶ã€‚',
-    overviewTitle: 'å…ˆçœ‹å¸‚åœºï¼Œè€Œä¸æ˜¯é¢å¯¹ç©ºç™½é¡µã€‚',
-    overviewHint: 'ä»å½“æ—¥å¼‚åŠ¨ã€å®è§‚ç¯å¢ƒã€æ¿å—è½®åŠ¨æˆ–è¿‘æœŸå‚¬åŒ–ä¸­é€‰æ‹©ä¸€ä¸ªå®æ—¶çœ‹æ¿ã€‚',
-    removeFromWatchlist: 'ç§»é™¤ {{symbol}}',
-    sectorRotation: 'æ¿å—è½®åŠ¨',
-    rotationSubtitle: 'èµ„é‡‘åœ¨ 11 ä¸ª GICS æ¿å—é—´çš„è½®åŠ¨ã€‚',
-    asOf: 'æˆªè‡³',
-    rotationMethodology: 'æ–¹æ³•',
-    quadRotatingIn: 'è½®å…¥',
-    quadImproving: 'å›æš–',
-    quadWeakening: 'èµ°å¼±',
-    quadRotatingOut: 'è½®å‡º',
-    axisRelStrength: 'ç›¸å¯¹ SPY å¼ºå¼±ï¼ˆ1Mï¼‰',
-    axisVolumeShare: 'æˆäº¤é¢ä»½é¢ Î”',
-    colSector: 'æ¿å—',
-    colScore: 'è½®åŠ¨åˆ†',
-    colVsBench: 'vs {{sym}}',
-    colRvol: 'RVOL',
-    colVolShareDelta: 'ä»½é¢ Î”',
-    boardsSection: 'çœ‹æ¿',
-    boardMovers: 'å¼‚åŠ¨',
-    moversSubtitle: 'ä»Šæ—¥æ¶¨å¹…æ¦œã€è·Œå¹…æ¦œä¸æˆäº¤æ´»è·ƒæ¦œã€‚',
-    moversGainers: 'æ¶¨å¹…æ¦œ',
-    moversLosers: 'è·Œå¹…æ¦œ',
-    moversActive: 'æ´»è·ƒæ¦œ',
-    moversUndervaluedGrowth: 'ä½ä¼°æˆé•¿',
-    moversGrowthTech: 'æˆé•¿ç§‘æŠ€',
-    moversSmallCaps: 'æ¿€è¿›å°ç›˜',
-    moversUndervaluedLarge: 'ä½ä¼°å¤§ç›˜',
-    colSymbol: 'ä»£ç ',
-    colPrice: 'ä»·æ ¼',
-    colChangePct: 'æ¶¨è·Œå¹…',
-    colVolume: 'æˆäº¤é‡',
-    colDollarVolume: 'æˆäº¤é¢',
-    boardCalendar: 'è´¢ç»æ—¥å†',
-    calendarSubtitle: 'è¿‘æœŸè´¢æŠ¥ã€IPO ä¸é™¤æ¯æ—¥ã€‚',
-    calendarSlowLoading: 'è´¢ç»æ—¥å†ä»åœ¨åŠ è½½ï¼Œé¦–æ¬¡æ‰“å¼€å¯èƒ½éœ€è¦ä¹…ä¸€ç‚¹ã€‚',
-    calendarSearch: 'æœç´¢æ—¥å†äº‹ä»¶',
-    calendarSearchPlaceholder: 'æŒ‰ä»£ç ã€å…¬å¸ã€æ—¥æœŸæˆ–äº¤æ˜“æ‰€ç­›é€‰â€¦',
-    calendarShowing: 'æ­£åœ¨æ˜¾ç¤º {{visible}} / {{total}} ä¸ªäº‹ä»¶',
-    calendarShowMore: 'å†æ˜¾ç¤º {{count}} ä¸ªäº‹ä»¶',
-    calEarnings: 'è´¢æŠ¥',
-    calIpos: 'IPO',
-    calDividends: 'åˆ†çº¢',
-    colDate: 'æ—¥æœŸ',
-    colEpsPrev: 'ä¸ŠæœŸ EPS',
-    colEpsEst: 'é¢„æœŸ EPS',
-    colExchange: 'äº¤æ˜“æ‰€',
-    colExDate: 'é™¤æ¯æ—¥',
-    colDivAmount: 'é‡‘é¢',
-    colPayDate: 'æ´¾æ¯æ—¥',
-    boardMacro: 'å®è§‚',
-    macroSubtitle: 'åˆ©ç‡ã€å°±ä¸šã€é€šèƒ€ã€æ²¹ä»·ä¸ç¾å…ƒâ€”â€”å¸‚åœº regime çš„è¾“å…¥é¡¹ã€‚',
-    macroFedFunds: 'è”é‚¦åŸºé‡‘åˆ©ç‡',
-    macro2y: '2 å¹´æœŸç¾å€º',
-    macro10y: '10 å¹´æœŸç¾å€º',
-    macroSpread: '10Yâ€“2Y åˆ©å·®',
-    macroUnemployment: 'å¤±ä¸šç‡',
-    macroCpiYoy: 'CPI åŒæ¯”',
-    macroClaims: 'åˆè¯·å¤±ä¸šé‡‘',
-    macroWti: 'WTI åŸæ²¹',
-    macroDollar: 'ç¾å…ƒæŒ‡æ•°(å¹¿ä¹‰)',
-    macroPayrolls: 'éå†œå°±ä¸š',
-    macroM2: 'M2 è´§å¸ä¾›åº”',
-    macroSentiment: 'å¯†æ­‡æ ¹æ¶ˆè´¹è€…ä¿¡å¿ƒ',
-    macroBreakeven: '10Y ç›ˆäºå¹³è¡¡é€šèƒ€',
-    macroSloos: 'é“¶è¡Œä¿¡è´·æ”¶ç´§(SLOOS)',
-    boardTermStructure: 'æœŸé™ç»“æ„',
-    termSubtitle: 'BTC / ETH æœŸè´§æ›²çº¿,æ ‡æ³¨å¯¹æ°¸ç»­çš„å¹´åŒ–åŸºå·®ã€‚',
-    termSpotPerp: 'æ°¸ç»­',
-    termContango: 'Contango(å‡æ°´)',
-    termBackwardation: 'Backwardation(è´´æ°´)',
-    termBasisNote: 'å¾½æ ‡ = å¯¹æ°¸ç»­çš„å¹´åŒ–åŸºå·®',
-    valuationTitle: 'æ ‡æ™® 500 ä¼°å€¼',
-    valPe: 'æ ‡æ™® 500 PE',
-    valCape: 'å¸­å‹’ PE(CAPE)',
-    valEarningsYield: 'ç›ˆåˆ©æ”¶ç›Šç‡',
-    valDividendYield: 'è‚¡æ¯ç‡',
-    boardGlobalMacro: 'å…¨çƒå®è§‚',
-    globalMacroSubtitle: 'è·¨å›½é€šèƒ€ã€çŸ­ç«¯åˆ©ç‡ä¸ OECD é¢†å…ˆæŒ‡æ ‡å¯¹æ¯”ã€‚',
-    colCountry: 'å›½å®¶',
-    colCpiYoy: 'CPI åŒæ¯”',
-    colShortRate: 'çŸ­ç«¯åˆ©ç‡(3M)',
-    colCli: 'CLI',
-    globalMacroNote: 'CLI:100 = é•¿æœŸè¶‹åŠ¿;é«˜äºä¸”ä¸Šè¡Œ = æ‰©å¼ ã€‚æ‚¬åœå•å…ƒæ ¼å¯è§è§‚æµ‹æ—¥æœŸã€‚',
-    boardFed: 'ç¾è”å‚¨',
-    fedSubtitle: 'èµ„äº§è´Ÿå€ºè¡¨ã€ä¸€çº§äº¤æ˜“å•†æŒä»“ä¸ FOMC æ–‡ä»¶â€”â€”æ”¿ç­–çš„ç®¡é“å±‚ã€‚',
-    fedTotalAssets: 'ç¾è”å‚¨æ€»èµ„äº§',
-    fedTreasuries: 'æŒæœ‰å›½å€º',
-    fedMbs: 'æŒæœ‰ MBS',
-    fedDealerNet: 'äº¤æ˜“å•†å‡€æŒä»“',
-    fedDealerTreasuries: 'äº¤æ˜“å•†å‡€æŒå›½å€º',
-    fedDocuments: 'FOMC æ–‡ä»¶',
-    colHousePrice: 'æˆ¿ä»·(2015=100)',
-    colSharePrice: 'è‚¡æŒ‡(2015=100)',
-    boardShipping: 'èˆªè¿',
-    shippingSubtitle: 'å…¨çƒå…³é”®æµ·è¿å’½å–‰ç‚¹çš„æ—¥åº¦è¿‡èˆªé‡(å«æ˜Ÿ AIS,æ¯å‘¨æ›´æ–°)ã€‚',
-    shippingVessels: 'è‰˜',
-  },
-  portfolio: {
-    overview: 'æ¦‚è§ˆ',
-    allAccounts: 'å…¨éƒ¨è´¦æˆ·',
-    accounts: 'è´¦æˆ·',
-    noAccountsYet: 'è¿˜æ²¡æœ‰è´¦æˆ·ã€‚åœ¨ è®¾ç½® â†’ äº¤æ˜“ ä¸­æ·»åŠ ã€‚',
-  },
-  automation: {
-    runs: 'è¿è¡Œ',
-    runsDescription: 'æŸ¥çœ‹è·¨å·¥ä½œåŒºçš„æ— å¤´ Agent è¿è¡ŒåŠå·¥ä½œè¿›åº¦ã€‚',
-    api: 'API',
-    apiDescription: 'ä»å¤–éƒ¨è§¦å‘å·¥ä½œåŒºè‡ªåŠ¨åŒ–ï¼Œå¹¶æŸ¥çœ‹è°ƒåº¦æ–‡ä»¶æ ¼å¼ã€‚',
-  },
-  activityToast: {
-    agent: 'Agent',
-    conversationRunning: '{{agent}} æ­£åœ¨å¤„ç†å¦ä¸€ä¸ª Agent çš„è¯·æ±‚',
-    conversationFailed: '{{agent}} æœªèƒ½å®Œæˆ Agent è¯·æ±‚',
-    inboxDelivered: '{{agent}} å·²å‘é€ä¸€æ¡ Inbox æ¶ˆæ¯',
-    newsIngested: '{{source}} æœ‰ä¸€æ¡æ–°èµ„è®¯',
-    newsSource: 'æ–°é—»æº',
-    viewInbox: 'æŸ¥çœ‹ Inbox',
-    viewNews: 'æŸ¥çœ‹æ–°é—»',
-  },
-  office: {
-    description: 'æŠŠåˆ†æ•£çš„å·¥ä½œä¿¡å·æ’æˆä¸‹ä¸€é¡¹æ­£ç¡®è¡ŒåŠ¨ï¼Œè®©è¯¥åšçš„æ£€æŸ¥å˜æˆæ—¥å¸¸ä¹ æƒ¯ã€‚',
-    commandCenter: 'OpenAlice è¡ŒåŠ¨ä¸­å¿ƒ',
-    liveFloor: 'Agent å®æ—¶æ¥¼å±‚',
-    pauseMenu: 'èœå•',
-    activeAgentRatio: '{{active}}/{{total}} å Agent æ´»è·ƒ',
-    liveAgentSummary: '{{working}} å·¥ä½œä¸­ Â· {{awake}} å·²å”¤é†’',
-    nextDuty: 'ä¸‹ä¸€å€¼ç­é¡¹',
-    nextDutyPending: 'ä¸‹ä¸€å€¼ç­é¡¹ï¼š{{name}}ï¼Œå¾…å¤„ç† {{countLabel}} æ¡',
-    shiftLabel: 'æœ¬ç­',
-    shiftDutyPending: 'æœ¬ç­ç¬¬ {{position}}/{{total}} é¡¹ï¼š{{name}}ï¼Œå‰©ä½™çº¦ {{minutes}} åˆ†é’Ÿ',
-    shiftTimeRemaining: 'çº¦ {{minutes}} åˆ†é’Ÿ',
-    shiftDeferredNext: 'å·²å°†â€œ{{deferred}}â€æ’åˆ°æœ¬ç­ç¨åã€‚ä¸‹ä¸€é¡¹æ˜¯â€œ{{next}}â€ï¼Œè¿›åº¦ä»ä¸º {{position}}/{{total}}ã€‚',
-    shiftDeferredOnly: 'æœ¬ç­åªå‰©â€œ{{name}}â€è¿™ä¸€é¡¹ã€‚å·²è¿”å›æ¥¼å±‚ï¼Œå®ƒä»æ˜¯å½“å‰åŠŸè¯¾ã€‚',
-    shiftQuiet: 'æœ¬ç­æš‚æ— åˆ°æœŸåŠŸè¯¾',
-    shiftComplete: 'æœ¬ç­å®Œæˆ',
-    shiftCarryover: 'æœ¬ç­å·²å¤æ ¸ Â· {{count}} é¡¹ä»å¾…å¤„ç†',
-    shiftReviewed: 'æœ¬ç­å·²å¤æ ¸',
-    cadenceFollowUpAction: 'è·Ÿè¿›',
-    cadenceFollowUpIssue: 'è·Ÿè¿›å®šæ—¶ Issueâ€œ{{name}}â€',
-    cadenceFollowUpDuty: 'æœ¬ç­å·²å¤æ ¸ï¼Œä»æœ‰ {{count}} é¡¹å®šæ—¶ Issue æœªè§£å†³ã€‚è·Ÿè¿› {{workspace}} çš„â€œ{{name}}â€ã€‚',
-    operationsFollowUpPending: 'è¡ŒåŠ¨çœ‹æ¿ Â· {{count}} é¡¹å®šæ—¶ Issue å¾…è·Ÿè¿›',
-    startNextShift: 'æœ¬ç­å·²å®Œæˆï¼Œå¦æœ‰ {{count}} é¡¹å¾…æ’ã€‚å¼€å§‹ä¸‹ä¸€ç­',
-    startNextShiftShort: 'å¼€å§‹ä¸‹ä¸€ç­',
-    startingNextShift: 'æ­£åœ¨å¼€å§‹ä¸‹ä¸€ç­â€¦',
-    startNextShiftFailed: 'ä¸‹ä¸€ç­æœªå¼€å§‹ Â· é‡è¯•',
-    shiftClear: 'å€¼ç­å·²æ¸…',
-    shiftCloseoutAction: 'æŸ¥çœ‹æ”¶ç­ç°¿',
-    shiftCloseoutReady: 'å·¡æ£€å®Œæˆ Â· æŸ¥çœ‹æ”¶ç­',
-    shiftCloseoutClear: 'ä»Šæ—¥å€¼ç­å·²æ¸… Â· æŸ¥çœ‹æ”¶ç­',
-    shiftCloseoutBacklog: '{{count}} é¡¹ç•™å¾…ä¸‹ä¸€ç­',
-    shiftCloseoutDuty: 'æ”¶ç­ç°¿ï¼šæœ¬ç­å·²ç»“ç®— {{completed}}/{{total}}',
-    shiftCloseoutFinishedClear: 'ä»Šæ—¥æ”¶ç­ Â· å·²å…¨éƒ¨æ¸…æ¥š',
-    shiftCloseoutFinishedCarry: 'æœ¬ç­å·²æ”¶ Â· ç•™å¾…äº‹é¡¹å·²è®°æ˜',
-    shiftCloseoutBoard: 'è¡ŒåŠ¨çœ‹æ¿ Â· æ”¶ç­ç°¿',
-    shiftCloseoutSourcePendingHint: 'æœ€ç»ˆæ¥æºä»åœ¨åŒæ­¥ã€‚æœ¬ç­å·¡æ£€å·²ç»ç»“ç®—ï¼Œä½† Office è¿˜ä¸èƒ½å®£ç§°å…¨éƒ¨æ¸…æ¥šã€‚',
-    shiftCloseoutSourceErrorHint: 'éƒ¨åˆ†æœ€ç»ˆæ¥æºæš‚ä¸å¯ç”¨ã€‚ä¿ç•™æœªå†³äº‹å®ï¼›è¿™ä¸æ˜¯ä¸€ä»½â€œå…¨éƒ¨æ¸…æ¥šâ€çš„æ”¶ç­æŠ¥å‘Šã€‚',
-    shiftCloseoutPatrolLabel: 'è¯æ®å·¡æ£€',
-    shiftCloseoutPatrolValue: 'å·²ç»“ç®— {{completed}} / {{total}}',
-    shiftCloseoutJudgmentLabel: 'ä»Šæ—¥æ˜ç¡®åˆ¤æ–­',
-    shiftCloseoutJudgmentValue: 'å·²è®°å½• {{count}} é¡¹',
-    shiftCloseoutMaintainCount: 'ç»´æŒè®¡åˆ’ {{count}} é¡¹',
-    shiftCloseoutReviseCount: 'è°ƒæ•´è®¡åˆ’ {{count}} é¡¹',
-    shiftCloseoutEvidenceUnavailableLabel: 'è¯æ®ä¸å¯ç”¨',
-    shiftCloseoutEvidenceUnavailableHint: 'å•ç‹¬è®°å½• Â· ä¸è®¡ä½œå®Œæˆåˆ¤æ–­',
-    shiftCloseoutOutstandingTitle: 'å¦‚å®ç•™å¾…',
-    shiftCloseoutPendingDecisions: 'å†³ç­–å°ä»æœ‰ {{count}} é¡¹',
-    shiftCloseoutCadenceFollowUps: '{{count}} é¡¹å·²å¤æ ¸ä¾‹è¡Œä»»åŠ¡ä»éœ€è·Ÿè¿›',
-    shiftCloseoutFinishForNow: 'æœ¬ç­å…ˆåˆ°è¿™é‡Œ',
-    dutyReceipt: 'ç›–ç« ï¼šæœ¬æ‰¹å·²å¤æ ¸ Â· {{name}} Ã—{{countLabel}}',
-    inboxDutyOpenTitle: 'å¤æ ¸è¿™ä»½äº¤ä»˜',
-    inboxDutyOpenHint: 'è¿™ä»½äº¤ä»˜åŒ…å« {{count}} ä¸ªæ–‡æ¡£ã€‚è¯·å…ˆæ‰“å¼€å‡†ç¡®çš„ Inbox æ¡ç›®ï¼Œå†å›æ¥ç›–ç« ã€‚',
-    inboxDutyOpenAction: 'å¤æ ¸å‡†ç¡®äº¤ä»˜',
-    inboxDutyReturnTitle: 'å·²æ‰“å¼€äº¤ä»˜',
-    inboxDutyReturnHint: 'ä½ å·²ä»å‡†ç¡®äº¤ä»˜è¿”å›ã€‚ç¡®è®¤çœ‹è¿‡å…¶ä¸­ {{count}} ä¸ªæ–‡æ¡£åå†ç›–ç« ã€‚',
-    inboxDutyReceipt: 'ç›–ç« ï¼šè¿™ä»½äº¤ä»˜å·²å¤æ ¸',
-    inboxDutyReviewed: 'Inbox äº¤ä»˜',
-    inboxBacklogReview: 'Inbox å€¼ç­',
-    excursionEyebrow: 'Office å€¼ç­ {{position}}/{{total}}',
-    excursionInbox: 'Inbox è¯æ®',
-    excursionReturn: 'è¿”å› Office',
-    excursionAriaLabel: 'Office å€¼ç­ç¬¬ {{position}} é¡¹ï¼Œå…± {{total}} é¡¹ã€‚æ­£åœ¨æŸ¥çœ‹{{type}}ï¼š{{title}}ã€‚',
-    inboxBacklogConfirmStep: 'ç¬¬ 2 æ­¥ Â· ç¡®è®¤',
-    inboxBacklogConfirm: 'ç¡®è®¤è¿™ä»½äº¤ä»˜',
-    inboxBacklogRemaining: 'Inbox å…±æœ‰ {{count}} æ¡å¾…é˜…',
-    inboxBacklogReturnHint: 'ä½ å·²ä»å‡†ç¡®çš„ Inbox æ¡ç›®è¿”å›ã€‚è¯·ç¡®è®¤è¯»è¿‡äº¤ä»˜å†…å®¹åå†ç›–ç« ã€‚',
-    inboxBacklogReceived: 'é€è¾¾æ—¶é—´',
-    inboxBacklogDocuments: 'æ–‡æ¡£',
-    inboxBacklogMoreDocuments: 'å¦æœ‰ {{count}} ä¸ªæ–‡æ¡£',
-    inboxBacklogSignalLost: 'Inbox çŠ¶æ€æš‚æ—¶ä¸å¯ç”¨ï¼Œç›®å‰ä¸èƒ½ç»™è¿™ä»½èŒè´£ç›–ç« ã€‚',
-    inboxBacklogChanged: 'äº¤ä»˜åœ¨æ‰“å¼€æœŸé—´å‘ç”Ÿäº†å˜åŒ–ï¼Œè¯·å¤æ ¸æœ€æ–°ç‰ˆæœ¬åå†ç›–ç« ã€‚',
-    inboxBacklogAlreadyRead: 'è¿™æ¡ Inbox å·²ç»è¢«æ ‡è®°ä¸ºå·²è¯»ï¼Œå¯ä»¥ç»§ç»­ä¸‹ä¸€é¡¹èŒè´£ã€‚',
-    inboxBacklogReceiptNote: 'ç›–ç« åªä¼šæŠŠè¿™ä¸€æ¡ Inbox æ ‡ä¸ºå·²è¯»ï¼Œç»ä¸ä¼šé¡ºå¸¦æ¸…ç©ºå…¶ä½™é˜Ÿåˆ—ã€‚',
-    inboxBacklogLater: 'ç¨åå¤„ç†',
-    inboxBacklogOpenAgain: 'å†æ¬¡æ‰“å¼€',
-    inboxBacklogOpenLatest: 'å¤æ ¸æœ€æ–°ç‰ˆæœ¬',
-    inboxBacklogSaving: 'æ­£åœ¨ä¿å­˜å›æ‰§â€¦',
-    inboxBacklogStamp: 'ç›–ç« ï¼šå·²å¤æ ¸',
-    inboxBacklogSaveFailed: 'å›æ‰§ä¿å­˜å¤±è´¥ï¼Œè¿™ä»½äº¤ä»˜ä»ç„¶ç•™åœ¨æœ¬ç­èŒè´£ä¸­ã€‚',
-    routineReport: 'ä¾‹è¡ŒæŠ¥å‘Š',
-    routineReportDetails: 'ä¾‹è¡ŒæŠ¥å‘Šè¯¦æƒ…',
-    routineScheduledIssue: 'å®šæ—¶ Issue',
-    routinePriority: 'ä¼˜å…ˆçº§',
-    routineNextRun: 'ä¸‹æ¬¡è®¡åˆ’è¿è¡Œ',
-    routineNextRunNone: 'å°šæœªå®‰æ’ä¸‹æ¬¡è¿è¡Œ',
-    routineOlderUnread_one: 'å¦æœ‰ {{count}} ä¸ªæ›´æ—©çš„æœªè¯»æŠ¥å‘Šç‰ˆæœ¬ä»å¾…å¤æ ¸ã€‚',
-    routineOlderUnread_other: 'å¦æœ‰ {{count}} ä¸ªæ›´æ—©çš„æœªè¯»æŠ¥å‘Šç‰ˆæœ¬ä»å¾…å¤æ ¸ã€‚',
-    routineOpenReport: 'æ‰“å¼€æŠ¥å‘Š',
-    routineDecideNextStep: 'å†³å®šä¸‹ä¸€æ­¥',
-    routineDecisionStep: 'ç¬¬ 3 æ­¥ Â· å†³ç­–',
-    routineDecision: 'é€‰æ‹©ä¸‹ä¸€æ­¥',
-    routineDecisionSummaryHint: 'å…ˆçœ‹å®Œä¾‹è¡ŒæŠ¥å‘Šï¼Œå†å†³å®šå®ƒæ˜¯å¦ä¼šæ”¹å˜ä»Šå¤©çš„å·¥ä½œã€‚æ‰“å¼€æŠ¥å‘Šæˆ–ç¨åå¤„ç†éƒ½ä¼šè®©å®ƒç»§ç»­ç•™åœ¨å·¡æ£€ä¸­ã€‚',
-    routineDecisionPrompt: 'éœ€è¦æ·±å…¥åˆ¤æ–­æ—¶ï¼ŒæŠŠæŠ¥å‘Šå¸¦åˆ°å†³ç­–å°ï¼›å¦‚æœæ²¡æœ‰å¸¦æ¥å˜åŒ–ï¼Œå°±æ ‡è®°å·²å¤æ ¸ã€‚',
-    routineDecisionBack: 'è¿”å›',
-    routineCarryToDecisionDesk: 'å¸¦åˆ°å†³ç­–å°',
-    routineNoChange: 'æ²¡æœ‰å˜åŒ– Â· æ ‡è®°å·²å¤æ ¸',
-    routineCarrySaving: 'æ­£åœ¨äº¤æ¥åˆ°å†³ç­–å°â€¦',
-    routineCarryFailed: 'å†³ç­–äº¤æ¥æˆ–å‡†ç¡® Inbox å›æ‰§å°šæœªå®Œæˆã€‚å¦‚æœæŠ¥å‘Šå·²è¿›å…¥å†³ç­–å°ï¼Œé‡è¯•åªä¼šè¡¥å®Œå›æ‰§ï¼Œä¸ä¼šé‡å¤åˆ›å»ºè·Ÿè¿›é¡¹ã€‚',
-    routineCarriedShort: 'å·²äº¤æ¥',
-    routineCarriedAnnouncement: 'å·²å°†â€œ{{name}}â€é€å…¥å†³ç­–å°ï¼Œå¹¶å®Œæˆå‡†ç¡®çš„ Inbox å›æ‰§ã€‚',
-    routineCarrySaved: 'å†³ç­–å°å·²ä¿ç•™è¿™ä»½æŠ¥å‘Š',
-    routineCarryFinish: 'å®Œæˆäº¤æ¥ Â· æ ‡è®°å·²å¤æ ¸',
-    routineCarryRecoveryPrompt: 'è¿™ä»½æŠ¥å‘Šå·²åœ¨å†³ç­–å°ï¼Œä¸èƒ½æ”¹é€‰â€œæ²¡æœ‰å˜åŒ–â€ã€‚è¯·å®Œæˆè¿™æ¡ Inbox çš„å‡†ç¡®å›æ‰§ï¼›é‡è¯•ä¸ä¼šé‡å¤äº¤æ¥ã€‚',
-    routineIssueSyncing: 'æ­£åœ¨æ ¸å¯¹å®šæ—¶ä»»åŠ¡ã€‚å¸¦å…¥å†³ç­–å°éœ€è¦ç­‰å¾…ï¼›â€œæ²¡æœ‰å˜åŒ–â€ä»å¯ç¡®è®¤ã€‚',
-    routineIssueSignalLost: 'å®šæ—¶ä»»åŠ¡æš‚ä¸å¯ç”¨ã€‚å¸¦å…¥å†³ç­–å°éœ€è¦ç­‰å¾…ï¼›â€œæ²¡æœ‰å˜åŒ–â€ä»å¯ç¡®è®¤ã€‚',
-    routineFollowUpSyncing: 'æ­£åœ¨æ ¸å¯¹å†³ç­–å°ï¼Œå®Œæˆå‰æš‚ä¸èƒ½å¸¦å…¥æŠ¥å‘Šâ€¦',
-    routineFollowUpSignalLost: 'å†³ç­–å°å­˜å‚¨æš‚ä¸å¯ç”¨ã€‚æ–°å¸¦å…¥å’Œå·²ä¿å­˜äº¤æ¥çš„æ¢å¤éœ€è¦ç­‰å¾…ï¼›å°šæœªå¸¦å…¥çš„æŠ¥å‘Šä»å¯é€‰æ‹©â€œæ²¡æœ‰å˜åŒ–â€ã€‚',
-    decisionDeskTitle: 'å†³ç­–å°',
-    decisionDeskDuty: 'å†³ç­–å° Â· {{count}} é¡¹å¾…å¤„ç†',
-    decisionDeskAction: 'æŸ¥çœ‹å†³ç­–å°',
-    decisionDeskPending: 'å†³ç­–å°æœ‰ {{count}} é¡¹å¾…å¤„ç†è·Ÿè¿›',
-    decisionDeskStep: 'ä½œå‡ºå¸¦å…¥åˆ¤æ–­',
-    decisionDeskQueue: 'è·Ÿè¿› {{position}} / {{count}}',
-    decisionDeskQueueLabel: 'å†³ç­–è·Ÿè¿›é˜Ÿåˆ—',
-    decisionDeskIntro: 'å…ˆé˜…è¯»å‡†ç¡®æŠ¥å‘Šï¼Œå†å’Œå¯¹åº”çš„å®šæ—¶ Issue å¯¹ç…§ï¼Œç„¶åå†³å®šè¿˜æœ‰ä»€ä¹ˆéœ€è¦ç»§ç»­åˆ¤æ–­ã€‚',
-    decisionDeskReportLabel: 'å‡†ç¡® Inbox æŠ¥å‘Š',
-    decisionDeskReportWorkspace: 'æŠ¥å‘Š Workspace',
-    decisionDeskReportReceived: 'æŠ¥å‘Šé€è¾¾',
-    decisionDeskReportNoPreview: 'å½“å‰æ²¡æœ‰æŠ¥å‘Šæ‘˜è¦ï¼›è¯·æ‰“å¼€å‡†ç¡® Inbox æ¡ç›®æŸ¥çœ‹è¯æ®ã€‚',
-    decisionDeskReportUnavailable: 'å‡†ç¡® Inbox æŠ¥å‘Šæš‚ä¸å¯ç”¨ã€‚è·Ÿè¿›ä»å·²ä¿å­˜ï¼›ä½ å¯ä»¥ç•™å¾…ç¨åï¼Œæˆ–è®°å½•è¿™ä»½è¯æ®ä¸å¯ç”¨ã€‚',
-    decisionDeskUnavailableShort: 'ä¸å¯ç”¨',
-    decisionDeskCarriedAt: 'å¸¦å…¥æ—¶é—´',
-    decisionDeskSyncing: 'æ­£åœ¨åˆ·æ–°å†³ç­–å°â€¦',
-    decisionDeskSignalLost: 'å†³ç­–å°ä¿¡å·æš‚ä¸å¯ç”¨ã€‚',
-    decisionDeskSourceHint: 'åˆ·æ–°æ¢å¤åï¼Œå·²ä¿å­˜çš„è·Ÿè¿›ä¼šé‡æ–°æ˜¾ç¤ºã€‚',
-    decisionDeskIssueUnavailable: 'æ‰¾ä¸åˆ°å‡†ç¡®å¯¹åº”çš„å®šæ—¶ Issueã€‚è¿™ä»½è¯æ®ä¸è¶³ä»¥æ”¯æŒåˆ¤æ–­ï¼Œä½†è·Ÿè¿›å¯ä»¥ç•™å¾…ç¨åã€‚',
-    decisionDeskIssueUnknown: 'å°šæœªéªŒè¯å‡†ç¡®å¯¹åº”çš„å®šæ—¶ Issueã€‚è¯·ç­‰å¾… Issue æ•°æ®æºæ¢å¤åå†è®°å½•ä»»ä½•ç»“æœã€‚',
-    decisionDeskReportUnknown: 'å°šæœªéªŒè¯å‡†ç¡® Inbox æŠ¥å‘Šã€‚è¯·ç­‰å¾… Inbox æ•°æ®æºæ¢å¤åå†è®°å½•ä»»ä½•ç»“æœã€‚',
-    decisionDeskResolveFailed: 'åˆ¤æ–­æ²¡æœ‰ä¿å­˜æˆåŠŸã€‚è¿™é¡¹è·Ÿè¿›ä»ç•™åœ¨å†³ç­–å°ï¼Œå¯ä»¥å®‰å…¨é‡è¯•ã€‚',
-    decisionDeskReceiptNote: 'ä¿å­˜åªä¼šè®°å½•ä½ çš„æ˜ç¡®åˆ¤æ–­å¹¶ç§»é™¤è¿™é¡¹è·Ÿè¿›ï¼Œä¸ä¼šæ›´æ”¹æŠ¥å‘Šå›æ‰§ã€Issue çŠ¶æ€ï¼Œä¹Ÿä¸ä¼šå¯åŠ¨ Agent å·¥ä½œã€‚',
-    decisionDeskJudgmentTitle: 'è®°å½•è¿™æ¬¡åˆ¤æ–­',
-    decisionDeskJudgmentHint: 'æ ¹æ®å‡†ç¡®æŠ¥å‘Šå’Œå®šæ—¶ Issueï¼Œé€‰æ‹©å®ƒå¯¹å½“å‰è®¡åˆ’æ„å‘³ç€ä»€ä¹ˆã€‚',
-    decisionDeskMaintainPlan: 'ç»´æŒå½“å‰è®¡åˆ’',
-    decisionDeskRevisePlan: 'è°ƒæ•´è§‚å¯Ÿæ¡ä»¶ / è®¡åˆ’',
-    decisionDeskRevisionLabel: 'éœ€è¦è°ƒæ•´ä»€ä¹ˆï¼Ÿ',
-    decisionDeskRevisionHelp: 'å¿…å¡«ï¼›å»é™¤é¦–å°¾ç©ºæ ¼åéœ€ä¸º 1â€“280 ä¸ªå­—ç¬¦ã€‚',
-    decisionDeskRevisionCount: '{{count}} / {{max}}',
-    decisionDeskRevisionCancel: 'è¿”å›åˆ¤æ–­é€‰é¡¹',
-    decisionDeskRevisionSave: 'ä¿å­˜è°ƒæ•´åçš„è®¡åˆ’',
-    decisionDeskSaving: 'æ­£åœ¨ä¿å­˜åˆ¤æ–­â€¦',
-    decisionDeskEvidenceUnavailableTitle: 'è¯æ®ä¸å®Œæ•´',
-    decisionDeskEvidenceUnavailableHint: 'ç¼ºå°‘å‡†ç¡®æŠ¥å‘Šæˆ–å®šæ—¶ Issue æ—¶ï¼Œä¸èƒ½æ®æ­¤è®°å½•åˆ¤æ–­ã€‚',
-    decisionDeskEvidenceUnavailableReceipt: 'ç§»é™¤æ—¶åªä¼šè®°å½•â€œè¯æ®ä¸å¯ç”¨â€ï¼Œä¸è®¡ä½œä¸€æ¬¡åˆ¤æ–­ï¼Œä¹Ÿä¸ä¼šæ”¹åŠ¨æŠ¥å‘Šã€Issue æˆ– Agent å·¥ä½œã€‚',
-    decisionDeskEvidenceUnknownTitle: 'è¯æ®çŠ¶æ€å°šæœªç¡®è®¤',
-    decisionDeskEvidenceUnknownHint: 'æ•°æ®æºä»åœ¨åŠ è½½æˆ–æš‚ä¸å¯ç”¨ï¼Œè¿™ä¸èƒ½è¯æ˜è¯æ®å·²ç»ç¼ºå¤±ã€‚',
-    decisionDeskEvidenceUnknownReceipt: 'è¯·å…ˆç•™å¾…ç¨åï¼›åœ¨ä¸¤ä¸ªæ•°æ®æºéƒ½å®ŒæˆéªŒè¯å‰ï¼Œä¸èƒ½è®°å½•åˆ¤æ–­æˆ–â€œè¯æ®ä¸å¯ç”¨â€ã€‚',
-    decisionDeskRemoveUnavailable: 'è®°å½•è¯æ®ä¸å¯ç”¨ Â· ç§»å‡º',
-    decisionDeskSavingUnavailable: 'æ­£åœ¨è®°å½•è¯æ®ä¸å¯ç”¨â€¦',
-    decisionDeskPrevious: 'ä¸Šä¸€é¡¹',
-    decisionDeskNext: 'ä¸‹ä¸€é¡¹',
-    decisionDeskKeep: 'ç•™å¾…ç¨å',
-    decisionDeskOpenReport: 'æ‰“å¼€å‡†ç¡®æŠ¥å‘Š',
-    decisionDeskOpenIssue: 'æ‰“å¼€å‡†ç¡® Issue',
-    decisionDeskEmpty: 'å†³ç­–å°å·²æ¸…ç©º',
-    decisionDeskEmptyHint: 'å½“å‰æ²¡æœ‰ç­‰å¾…å†³ç­–çš„å·²å¸¦å…¥ä¾‹è¡ŒæŠ¥å‘Šã€‚',
-    decisionDeskReturn: 'è¿”å›æ¥¼å±‚',
-    dutySyncing: 'æ­£åœ¨æ£€æŸ¥å€¼ç­é¡¹â€¦',
-    dutySignalInterrupted: 'å€¼ç­ä¿¡å·ä¸å¯ç”¨',
-    cadenceEvery: 'æ¯ {{cadence}}',
-    cadenceReview: 'å®šæ—¶ Issue å¤æ ¸',
-    cadenceStepException: 'ç¬¬ 1 æ­¥ Â· å¼‚å¸¸',
-    cadenceStepEvidence: 'ç¬¬ 2 æ­¥ Â· è¯æ®',
-    cadenceException: 'å¼‚å¸¸',
-    cadenceEvidence: 'è¯æ®',
-    cadenceWorkspace: 'Workspace',
-    cadenceAssignee: 'è´Ÿè´£äºº',
-    cadenceSchedule: 'æ’æœŸ',
-    cadenceLastRun: 'ä¸Šæ¬¡è§¦å‘',
-    cadenceNextDue: 'ä¸‹æ¬¡åˆ°æœŸ',
-    cadenceNever: 'ä»æœª',
-    cadenceNone: 'æ— ',
-    cadenceReviewEvidence: 'å¤æ ¸è¯æ®',
-    cadenceSignalStale: 'Issue ä¿¡å·ä¸å¯ç”¨ï¼Œè¿™ä»½è¯æ®å¯èƒ½å·²è¿‡æ—¶ï¼›å½“å‰æ— æ³•ç¡®è®¤å€¼ç­å·²æ¸…ã€‚',
-    cadenceEvidenceChanged: 'å¤æ ¸æœŸé—´è¯æ®å·²å˜åŒ–ã€‚è¯·å…ˆæŸ¥çœ‹æœ€æ–°çŠ¶æ€ï¼Œå†ç›–ç« ã€‚',
-    cadenceResolved: 'è¿™ä¸ª Issue å·²ä¸å†æ˜¯å®šæ—¶å¼‚å¸¸ã€‚',
-    cadenceLoadingEvidence: 'æ­£åœ¨åŠ è½½ç²¾ç¡® Issue è¯æ®â€¦',
-    cadenceRunEvidence: 'æœ€è¿‘å—å½±å“çš„è¿è¡Œ',
-    cadenceScheduleEvidence: 'æ’æœŸä¸è´Ÿè´£äººè¯æ®',
-    cadenceTask: 'ä»»åŠ¡',
-    cadenceNoRun: 'æ²¡æœ‰å—å½±å“çš„è¿è¡Œ',
-    cadenceIssueStatus: 'Issue çŠ¶æ€',
-    cadenceRuntime: 'è¿è¡Œæ—¶',
-    cadenceReceiptNote: 'è¿™åªä¼šæ¸…é™¤æœ¬æ¬¡å€¼ç­çš„ Office æé†’ï¼›ä¿®å¤å‰ï¼ŒIssue ä»ä¿æŒâ€œ{{state}}â€ã€‚',
-    cadenceBack: 'è¿”å›',
-    cadenceOpenIssue: 'æ‰“å¼€å®Œæ•´ Issue',
-    cadenceReviewLatest: 'å¤æ ¸æœ€æ–°è¯æ®',
-    cadenceStamp: 'ç›–ç« ï¼šæœ¬æ¬¡å€¼ç­å·²å¤æ ¸',
-    cadenceSaving: 'æ­£åœ¨ä¿å­˜å€¼ç­å›æ‰§â€¦',
-    cadenceSaveFailed: 'å€¼ç­å›æ‰§ä¿å­˜å¤±è´¥ï¼Œè¿™é¡¹è¯æ®ä»ç•™åœ¨æœ¬ç­ã€‚',
-    cadenceReviewedShort: 'å·²å¤æ ¸',
-    cadenceDeletedSession: 'æŒ‡å®šçš„ä¼šè¯å·²åˆ é™¤ã€‚è¯·åœ¨ä¸‹æ¬¡è¿è¡Œå‰é‡æ–°åˆ†é… Issueã€‚',
-    cadenceInterruptedDefault: 'OpenAlice åœ¨è¿™æ¬¡è¿è¡ŒæœŸé—´åœæ­¢ï¼Œç³»ç»Ÿæ²¡æœ‰è‡ªåŠ¨é‡è¯•ã€‚',
-    cadenceFailedDefault: 'æœ€è¿‘ä¸€æ¬¡è®¡åˆ’è¿è¡Œå¤±è´¥ã€‚è¯·å…ˆæ£€æŸ¥è¿è¡Œè¯æ®ï¼Œå†å†³å®šæ˜¯å¦é‡è¯•ã€‚',
-    cadenceExpandObjective: 'å±•å¼€å®Œæ•´ä»»åŠ¡å†…å®¹',
-    cadenceCollapseObjective: 'æ”¶èµ·ä»»åŠ¡å†…å®¹',
-    cadenceContinue: 'è¿”å›ä¸‹ä¸€å€¼ç­é¡¹',
-    cadenceReviewedNext: 'å·²å¤æ ¸â€œ{{reviewed}}â€ã€‚ä¸‹ä¸€å€¼ç­é¡¹ï¼š{{name}}ã€‚',
-    cadenceReviewedNextFollowUp: 'å·²å¤æ ¸â€œ{{reviewed}}â€ï¼›è¯¥ Issue ä»å¾…è·Ÿè¿›ã€‚ä¸‹ä¸€å€¼ç­é¡¹ï¼š{{name}}ã€‚',
-    cadenceReviewedClear: 'å·²å¤æ ¸â€œ{{reviewed}}â€ã€‚å€¼ç­å·²æ¸…ã€‚',
-    cadenceReviewedComplete: 'å·²å¤æ ¸â€œ{{reviewed}}â€ã€‚æœ¬ç­å®Œæˆï¼Œä»æœ‰ {{count}} é¡¹å¾…å¤„ç†ã€‚',
-    cadenceReviewedCompleteFollowUp: 'å·²å¤æ ¸â€œ{{reviewed}}â€ã€‚æœ¬ç­å®Œæˆï¼›ä»æœ‰ {{count}} é¡¹å®šæ—¶ Issue å¾…è·Ÿè¿›ã€‚',
-    cadenceReviewedUnknown: 'å·²å¤æ ¸â€œ{{reviewed}}â€ã€‚å…¶ä½™å€¼ç­çŠ¶æ€ä»æœªçŸ¥ã€‚',
-    rooms: 'æˆ¿é—´',
-    groups: 'å°ç»„',
-    floorView: 'æ¥¼å±‚è§†å›¾',
-    mapLabel: 'Office åœ°å›¾ã€‚æ‹–åŠ¨æŸ¥çœ‹åœ°å›¾ï¼Œä½¿ç”¨æ–¹å‘é”®æˆ– WASD ç§»åŠ¨ Aliceï¼Œé è¿‘å¯¹è±¡åæŒ‰å›è½¦æˆ–ç©ºæ ¼äº’åŠ¨ã€‚',
-    mapLabelFixed: 'Office åœ°å›¾ã€‚ä½¿ç”¨æ–¹å‘é”®æˆ– WASD ç§»åŠ¨ Aliceï¼Œé è¿‘å¯¹è±¡åæŒ‰å›è½¦æˆ–ç©ºæ ¼äº’åŠ¨ã€‚',
-    replayMapLabel: 'é‡æ”¾æ¥¼å±‚ã€‚ç§»åŠ¨ Alice æŸ¥çœ‹å¿«ç…§ï¼›ä½¿ç”¨è¿è¥é¢æ¿å›çœ‹ï¼Œæˆ–è¿”å›ç›´æ’­ã€‚',
-    replaySnapshot: 'å¿«ç…§',
-    replayLockedHint: 'è¿™æ˜¯å†å²å¿«ç…§ã€‚è¿”å›ç›´æ’­åæ‰èƒ½ä½¿ç”¨ã€‚',
-    mapHint: 'WASD/æ–¹å‘é”® Â· Shift å¥”è·‘ Â· Esc èœå•',
-    controls: 'æ“ä½œ',
-    controlMove: 'ç§»åŠ¨',
-    controlRun: 'å¥”è·‘',
-    controlInteract: 'äº¤äº’',
-    controlMenuCancel: 'èœå• / å–æ¶ˆ',
-    touchControls: 'ç§»åŠ¨ Alice',
-    moveAliceUp: 'å‘ä¸Šç§»åŠ¨ Alice',
-    moveAliceRight: 'å‘å³ç§»åŠ¨ Alice',
-    moveAliceDown: 'å‘ä¸‹ç§»åŠ¨ Alice',
-    moveAliceLeft: 'å‘å·¦ç§»åŠ¨ Alice',
-    routeMode: 'è‡ªåŠ¨ç§»åŠ¨',
-    routeCancelHint: 'å–æ¶ˆ',
-    routeCancelTouchHint: 'ç§»åŠ¨ä»¥å–æ¶ˆ',
-    walkingTo: 'æ­£åœ¨å‰å¾€ {{name}}',
-    enteringWorkspace: 'æ­£åœ¨è¿›å…¥ {{name}}â€¦',
-    centerMapOnAlice: 'å°†åœ°å›¾è§†è§’å¯¹å‡† Alice',
-    aliceAvatar: 'Office åœ°å›¾ä¸Šçš„ Alice',
-    activeRooms: 'æ´»è·ƒæˆ¿é—´',
-    awakeRooms: 'æ¸…é†’æˆ¿é—´',
-    awakeRoomCount: '{{total}} é—´ä¸­æœ‰ {{awake}} é—´æ¸…é†’',
-    awakeGroups: 'æ¸…é†’å°ç»„',
-    awakeGroupCount: '{{total}} ä¸ªå°ç»„ä¸­æœ‰ {{awake}} ä¸ªæ¸…é†’',
-    liveMap: 'å½“å‰åœ°å›¾',
-    currentView: 'å½“å‰',
-    currentFloorView: 'å½“å‰æ¥¼å±‚è§†å›¾ï¼š{{view}}',
-    visibleGroupSummary: 'æ¥¼å±‚ {{visible}} Â· è¿‘æœŸ {{recent}} Â· å…± {{total}}',
-    allRooms: 'æ‰€æœ‰æˆ¿é—´',
-    allGroups: 'æ‰€æœ‰å°ç»„',
-    sleepingGroups_one: '{{count}} ä¸ªä¼‘çœ å°ç»„',
-    sleepingGroups_other: '{{count}} ä¸ªä¼‘çœ å°ç»„',
-    floorQuiet: 'æ‰€æœ‰å°ç»„éƒ½å·²ä¼‘çœ ',
-    floorQuietHint: 'æœ€è¿‘ {{days}} å¤©æ²¡æœ‰ Workspace å°ç»„å‘ç”Ÿäº¤äº’ã€‚æ‰“å¼€æ‰€æœ‰å°ç»„å¯æŸ¥çœ‹ä¼‘çœ ä¸­çš„ Workspaceã€‚',
-    roomActive: 'æ£€æµ‹åˆ°æ´»åŠ¨',
-    roomQuiet: 'å¾…å‘½ä¸­',
-    roomSleeping: 'ä¼‘çœ ä¸­',
-    agentCount_one: '{{count}} å Agent',
-    agentCount_other: '{{count}} å Agent',
-    roomAwakeCount: 'å”¤é†’ {{awake}}/{{total}}',
-    roomActiveCount: 'æ´»è·ƒ {{active}}/{{total}}',
-    groupCount_one: '{{count}} ä¸ªå°ç»„',
-    groupCount_other: '{{count}} ä¸ªå°ç»„',
-    moreAgents: 'å¦å¤– {{count}} å Agent',
-    harness: {
-      chat: 'Chat',
-      'auto-quant': 'AutoQuant',
-      prediction: 'é¢„æµ‹',
-      other: 'å…¶ä»–',
-    },
-    empty: 'è¿˜æ²¡æœ‰å ç”¨è®°å½•ã€‚äº¤äº’ Sessionã€æ— å¤´è¿è¡Œã€Play å’Œè¢«æ‹’ç»çš„äº’æ‹‰ä¼šå‡ºç°åœ¨è¿™é‡Œã€‚',
-    emptyFloor: 'è¿™é—´åŠå…¬å®¤è¿˜æ²¡æœ‰äººåå·¥ä½ã€‚åœ¨èŒ Session ä¼šå‡ºç°åœ¨è¿™é‡Œã€‚',
-    loading: 'æ­£åœ¨åŠ è½½å ç”¨è®°å½•â€¦',
-    loadingFloor: 'æ­£åœ¨æ‰“å¼€å„é—´åŠå…¬å®¤â€¦',
-    loadingFloorHint: 'æ­£åœ¨åŒæ­¥æˆ¿é—´ã€å·¥ä½ä¸ Agent ä¿¡å·ã€‚',
-    connectionKicker: 'æ¥¼å±‚æ¥æ”¶æœº',
-    loadFailed: 'æ— æ³•è¿æ¥ Office æ¥¼å±‚',
-    connectionFailedHint: 'æ¥æ”¶æœºä¼šåœ¨åå°ç»§ç»­å°è¯•ï¼Œä½ ä¹Ÿå¯ä»¥ç«‹å³é‡æ–°è¿æ¥ã€‚',
-    connectionLost: 'æ¥¼å±‚ä¿¡å·ä¸­æ–­',
-    retryFloor: 'é‡æ–°è¿æ¥',
-    reconnectingFloor: 'æ­£åœ¨é‡è¿â€¦',
-    paused: 'å®æ—¶æ›´æ–°å·²æš‚åœ',
-    openRun: 'æ‰“å¼€è¿è¡Œ',
-    pickWorkspace: 'åŠå…¬å®¤',
-    noWorkspace: 'è¿˜æ²¡æœ‰ Workspace',
-    roomTitle: '{{name}} åŠå…¬å®¤',
-    workspaceSignHint: 'è¿›å…¥è¿™ä¸ª Workspaceã€‚',
-    cabinet: 'æ¡£æ¡ˆæŸœ',
-    cabinetHint: 'æŸ¥çœ‹è¿™é—´åŠå…¬å®¤å½’æ¡£çš„è®°å½•ä¸ Workspace æ–‡ä»¶ã€‚',
-    cabinetRecords_one: '{{count}} ä»½å½’æ¡£è®°å½•',
-    cabinetRecords_other: '{{count}} ä»½å½’æ¡£è®°å½•',
-    cabinetPosition: 'ç¬¬ {{index}} ä»½ï¼Œå…± {{count}} ä»½',
-    cabinetInspectHint: 'å·¥ä½è®°å½•ä¼šç•™åœ¨ Officeï¼Œç›´åˆ°ä½ é€‰æ‹©ç»§ç»­å‰å¾€ã€‚',
-    cabinetKeyboardHint: 'æ–¹å‘é”®é€‰æ‹© Â· PgUp/PgDn ç¿»é¡µ Â· Home/End è·³è½¬ Â· Enter / Space æ‰“å¼€',
-    cabinetEmptyKeyboardHint: 'Enter / Space æ‰“å¼€ Workspace æ–‡ä»¶',
-    cabinetRecordOwner: '{{name}} å½’æ¡£',
-    drawerOpenRecord: 'åœ¨å·¥ä½œåŒºä¸­æ‰“å¼€ {{record}}ï¼Œ{{kind}}ï¼Œ{{time}}',
-    drawerRecordAction: 'æ‰“å¼€',
-    drawerKindReport: 'æŠ¥å‘Š',
-    drawerKindIssue: 'Issue',
-    drawerKindInbox: 'Inbox',
-    drawerKindTradeDecision: 'å†³ç­–',
-    drawerInboxRecord: 'Inbox äº¤ä»˜',
-    drawerRepeatedRecord: '{{record}} Â· {{index}}/{{count}}',
-    drawerTradeDecisionRecord: 'äº¤æ˜“å†³ç­–',
-    cabinetEmpty: 'è¿™é‡Œè¿˜æ²¡æœ‰å½’æ¡£ä»»ä½•å·¥ä½è®°å½•ã€‚',
-    openWorkspaceFiles: 'è¿›å…¥ Workspace æ–‡ä»¶',
-    interactKey: 'å›è½¦',
-    touchActionKey: 'A',
-    touchActionUnavailable: 'é™„è¿‘æ²¡æœ‰å¯æ‰§è¡ŒåŠ¨ä½œ',
-    interactNow: 'äº’åŠ¨ï¼š{{action}}',
-    interactTalk: 'å’Œ {{name}} å¯¹è¯',
-    interactCheck: 'æŸ¥çœ‹ {{name}}',
-    interactFailure: 'å¤ç›˜ {{name}} çš„å¤±è´¥è¿è¡Œ',
-    interactResult: 'æŸ¥çœ‹ {{name}} çš„æœ€æ–°ç»“æœ',
-    interactDutyRun: 'å¤ç›˜ {{name}} çš„è¿™æ¬¡è¿è¡Œ',
-    interactWorkspace: 'è¿›å…¥ {{name}} Workspace',
-    interactFiles: 'æŸ¥çœ‹ {{name}} æ–‡ä»¶',
-    interactRoster: 'æŸ¥çœ‹ {{name}} åå†Œ',
-    interactOperations: 'æŸ¥çœ‹å®æ—¶è¡ŒåŠ¨',
-    interactTerminal: 'æ‰“å¼€æ¥¼å±‚ç»ˆç«¯',
-    interactActionTalk: 'å¯¹è¯',
-    interactActionCheck: 'æŸ¥çœ‹',
-    interactActionReview: 'å¤ç›˜',
-    interactActionFiles: 'æ–‡ä»¶',
-    interactActionRoster: 'åå†Œ',
-    interactActionOperations: 'è¡ŒåŠ¨',
-    interactActionTerminal: 'æ—¥å¿—',
-    interactActionInbox: 'æŸ¥æ”¶',
-    interactActionNews: 'é˜…è¯»',
-    interactInbox: 'æ‰“å¼€ Inbox',
-    interactNews: 'æ‰“å¼€æ–°é—»',
-    floorTerminal: 'æ¥¼å±‚ç»ˆç«¯',
-    floorTerminalHint: 'æ‰“å¼€å®Œæ•´çš„ Office æ´»åŠ¨æ—¥å¿—ã€‚',
-    operationsBoard: 'è¡ŒåŠ¨çœ‹æ¿',
-    operationsBoardHint: 'æŸ¥çœ‹å®æ—¶äº§å“æ´»åŠ¨æ—¥å¿—å’Œé‡æ”¾ã€‚',
-    agentMilestoneBorn: 'æ–° Session è¿›å…¥æ¥¼å±‚',
-    agentMilestoneStarted: 'Agent å¼€å§‹å·¥ä½œ',
-    agentMilestoneCompleted: 'Agent å®Œæˆäº†æœ¬æ¬¡è¿è¡Œ',
-    agentMilestonePaused: 'Agent å·²æš‚åœ',
-    agentMilestoneInterrupted: 'Agent è¢«ä¸­æ–­',
-    agentMilestoneStopped: 'Agent å·²åœæ­¢',
-    agentMilestoneSpawnFailed: 'Agent å¯åŠ¨å¤±è´¥',
-    agentMilestoneRejected: 'Agent å¯åŠ¨è¢«æ‹’ç»',
-    agentMilestoneError: 'Agent æŠ¥å‘Šäº†é”™è¯¯',
-    agentMilestoneTest: 'æ”¶åˆ°æµ‹è¯•é‡Œç¨‹ç¢‘',
-    inboxStation: 'Inbox æ”¶ä»¶å°',
-    inboxStationHint: 'èµ°è¿‡å»æŸ¥çœ‹ Agent é€è¾¾çš„æŠ¥å‘Šã€‚',
-    newsStation: 'æ–°é—»ç»ˆç«¯',
-    newsStationHint: 'èµ°è¿‡å»æŸ¥çœ‹åˆšåˆšå…¥åº“çš„æ–°é—»ã€‚',
-    serviceNeedsAttention: '{{name}} Â· æœ‰æ–°åŠ¨æ€',
-    servicePendingActivity: '{{name}} Â· å¾…å¤„ç† {{count}} æ¡',
-    servicePendingActivityMore: '{{name}} Â· å¾…å¤„ç† {{count}}+ æ¡',
-    roster: 'å°ç»„åå†Œ',
-    rosterAdditional: 'è¿˜æœ‰ {{count}} ä½åŒäº‹',
-    rosterHint: 'æŸ¥çœ‹åˆ†é…åˆ°è¿™ä¸ª Workspace å°ç»„çš„å…¨éƒ¨ Sessionã€‚',
-    rosterCount_one: '{{count}} åæˆå‘˜',
-    rosterCount_other: '{{count}} åæˆå‘˜',
-    rosterPosition: 'ç¬¬ {{index}} åï¼Œå…± {{count}} å',
-    rosterSelectHint: 'é€‰æ‹©ä¸€ååŒäº‹ï¼ŒæŸ¥çœ‹ Agent æ¡£æ¡ˆã€‚',
-    rosterKeyboardHint: 'æ–¹å‘é”®é€‰æ‹© Â· PgUp/PgDn ç¿»é¡µ Â· Home/End è·³è½¬ Â· Enter æŸ¥çœ‹',
-    backToRoster: 'è¿”å›å°ç»„åå†Œ',
-    emptyDesk: '{{name}} åŠå…¬å®¤çš„ç©ºå·¥ä½',
-    selectDesk: 'ç‚¹ä¸€å¼ æ¡Œå­ï¼ŒæŸ¥çœ‹è¿™åå‘˜å·¥ã€‚',
-    selectDeskHint: 'Agent çŠ¶æ€ã€å½“å‰å·¥ä½œå’Œæœ€è¿‘äº‹ä»¶ä¼šæ˜¾ç¤ºåœ¨è¿™é‡Œã€‚',
-    employeeFile: 'Agent æ¡£æ¡ˆ',
-    status: 'çŠ¶æ€',
-    location: 'åŠå…¬å®¤',
-    surface: 'æ¥æº',
-    deskDrawers: 'å·¥ä½æŠ½å±‰',
-    openSession: 'æ‰“å¼€ Session',
-    reviewActivity: 'æŸ¥çœ‹æ´»åŠ¨',
-    reviewDutyResult: 'å¤æ ¸è¿™æ¬¡ç»“æœ',
-    reviewDutyRun: 'å¤ç›˜è¿™æ¬¡è¿è¡Œ',
-    showFullTitle: 'å±•å¼€å®Œæ•´æ ‡é¢˜',
-    collapseTitle: 'æ”¶èµ·æ ‡é¢˜',
-    showFullAssignment: 'é˜…è¯»å®Œæ•´å§”æ‰˜',
-    collapseAssignment: 'æ”¶èµ·å§”æ‰˜',
-    showFullReport: 'å±•å¼€å®Œæ•´æŠ¥å‘Š',
-    collapseReport: 'æ”¶èµ·æŠ¥å‘Š',
-    amenityCoffee: 'èŒ¶æ°´è½¦',
-    amenityPlant: 'ç›†æ ½',
-    timeline: 'æ´»åŠ¨æ—¥å¿—',
-    logChannels: 'åŠ¨æ€é¢‘é“',
-    logKeyboardHint: 'â†/â†’ åˆ‡æ¢é¢‘é“ Â· â†‘/â†“ é€‰æ‹©è®°å½• Â· PgUp/PgDn ç¿»é¡µ',
-    logPosition: 'ç¬¬ {{index}} æ¡ï¼Œå…± {{total}} æ¡',
-    logBackToRecords: 'è¿”å›è®°å½•åˆ—è¡¨',
-    logChannelOverview: 'æ¦‚è§ˆ',
-    logChannelAgent: 'Agent',
-    logChannelInbox: 'Inbox',
-    logChannelNews: 'æ–°é—»',
-    logChannelEmpty: 'å½“å‰æ—¥å¿—é¡µæ²¡æœ‰{{channel}}åŠ¨æ€ã€‚',
-    logEventBorn: 'æ–° Agent',
-    logEventStarted: 'ä»»åŠ¡å¼€å§‹',
-    logEventSpawnFailed: 'å¯åŠ¨å¤±è´¥',
-    logEventCompleted: 'ä»»åŠ¡å®Œæˆ',
-    logEventFailed: 'ä»»åŠ¡å¤±è´¥',
-    logEventInterrupted: 'ä»»åŠ¡ä¸­æ–­',
-    logEventPaused: 'ä»»åŠ¡æš‚åœ',
-    logEventStopped: 'ä»»åŠ¡åœæ­¢',
-    logEventRejected: 'éœ€è¦å¤„ç†',
-    logEventReport: 'Agent æŠ¥å‘Š',
-    logEventTool: 'å·¥å…·æ“ä½œ',
-    logEventError: 'ä»»åŠ¡é”™è¯¯',
-    logEventTest: 'æµ‹è¯•ä¿¡å·',
-    logEventInbox: 'æ”¶åˆ° Inbox',
-    logEventNews: 'æ–°é—»å…¥åº“',
-    logBeatUpdates_one: '{{count}} æ¬¡æ›´æ–°',
-    logBeatUpdates_other: '{{count}} æ¬¡æ›´æ–°',
-    showBeatUpdates_one: 'å±•å¼€ {{count}} æ¬¡æ›´æ–°',
-    showBeatUpdates_other: 'å±•å¼€ {{count}} æ¬¡æ›´æ–°',
-    collapseBeatUpdates: 'æ”¶èµ·æ›´æ–°',
-    logStatusDone: 'å·²å®Œæˆ',
-    logStatusFailed: 'å¤±è´¥',
-    logFailureNoReport: 'æœ¬æ¬¡è¿è¡Œåœ¨åŒäº‹æäº¤æœ€ç»ˆæŠ¥å‘Šå‰ç»“æŸäº†ã€‚',
-    logStatusInterrupted: 'å·²ä¸­æ–­',
-    logStatusPaused: 'å·²æš‚åœ',
-    logToolStatusRunning: 'è¿è¡Œä¸­',
-    toolActionRunCommand: 'æ‰§è¡Œç»ˆç«¯å‘½ä»¤',
-    toolActionReadResult: 'æŸ¥çœ‹å‘½ä»¤ç»“æœ',
-    eventDetails: 'äº‹ä»¶è¯¦æƒ…',
-    eventRunMode: 'è¿è¡Œæ–¹å¼',
-    runModeBackground: 'åå°ä»»åŠ¡',
-    runModeTerminal: 'ç»ˆç«¯ä¼šè¯',
-    runModeWorkspace: 'å·¥ä½œåŒºä¼šè¯',
-    assignment: 'å½“å‰å§”æ‰˜',
-    latestResult: 'æœ€è¿‘ç»“æœ',
-    eventResult: 'ç»“æœ',
-    showFullResult: 'é˜…è¯»å®Œæ•´ç»“æœ',
-    collapseResult: 'æ”¶èµ·ç»“æœ',
-    eventTrigger: 'å¯åŠ¨æ¥æº',
-    eventTriggerIssue: 'Issue Â· {{id}}',
-    eventTriggerConversation: 'æ¥è‡ª {{from}} çš„è¯·æ±‚',
-    eventTriggerManual: 'æ‰‹åŠ¨å¯åŠ¨',
-    eventTriggerExternal: 'å¤–éƒ¨è¯·æ±‚',
-    eventOutput: 'è¾“å‡º',
-    eventReason: 'è¯´æ˜',
-    eventErrorCode: 'é”™è¯¯ä»£ç ',
-    eventDocuments: 'æ–‡æ¡£',
-    eventSource: 'æ¥æº',
-    eventPublished: 'å‘å¸ƒæ—¶é—´',
-    eventTextBlocks_one: '{{count}} æ¡æ–‡æœ¬',
-    eventTextBlocks_other: '{{count}} æ¡æ–‡æœ¬',
-    eventToolCalls_one: '{{count}} æ¬¡å·¥å…·è°ƒç”¨',
-    eventToolCalls_other: '{{count}} æ¬¡å·¥å…·è°ƒç”¨',
-    eventToolFailures_one: '{{count}} æ¬¡å¤±è´¥',
-    eventToolFailures_other: '{{count}} æ¬¡å¤±è´¥',
-    log: 'æ—¥å¿—',
-    replay: 'é‡æ”¾',
-    replayInspectAction: 'æŸ¥çœ‹äº‹ä»¶',
-    replayInspect: 'åœ¨æ´»åŠ¨æ—¥å¿—ä¸­æŸ¥çœ‹åºå· {{seq}}',
-    replayLive: 'ç›´æ’­',
-    replayReturnLive: 'è¿”å›ç›´æ’­',
-    replayAt: 'åºå· {{seq}}',
-    replayFloor: 'é‡æ”¾ Â· åºå· {{seq}}',
-    replayViewFloor: 'æŸ¥çœ‹é‡æ”¾æ¥¼å±‚',
-    replayEvent: 'å®šä½åˆ°æ¥¼å±‚',
-    replayPrevious: 'ä¸Šä¸€ä¸ªé‡æ”¾äº‹ä»¶',
-    replayNext: 'ä¸‹ä¸€ä¸ªé‡æ”¾äº‹ä»¶',
-    bubbleToolWorkspace: 'æŸ¥çœ‹åŠå…¬å®¤â€¦',
-    bubbleToolResearch: 'è°ƒç ”ä¸­â€¦',
-    bubbleToolRead: 'æŸ¥çœ‹æ¡£æ¡ˆâ€¦',
-    bubbleToolWrite: 'æ•´ç†æˆæœâ€¦',
-    bubbleToolRun: 'æ‰§è¡Œä»»åŠ¡â€¦',
-    bubbleTool: 'ä½¿ç”¨ {{name}}â€¦',
-    bubbleRejected: 'æ²¡æ´¾æˆ',
-    employeeLabel: '{{name}} @{{resumeId}}ï¼Œ{{mood}}ï¼Œ{{power}}',
-    power: {
-      awake: 'å·²å”¤é†’',
-      asleep: 'ä¼‘çœ ',
-      replayActive: 'å›æ”¾æ—¶æ´»è·ƒ',
-    },
-    mood: {
-      idle: 'ç©ºé—²',
-      working: 'å·¥ä½œä¸­',
-      talking: 'è¯´è¯',
-      waiting: 'ç­‰å¾…',
-      review: 'å¾…å®¡',
-      failed: 'å¤±è´¥',
-    },
-    moodDialogue: {
-      resting: 'å·²ç»ä¸‹ç­ã€‚æ¥¼å±‚å”¤é†’æ—¶éšæ—¶å›æ¥ã€‚',
-      idle: 'æ­£åœ¨å¾…å‘½ï¼Œç­‰å€™ä¸‹ä¸€é¡¹ä»»åŠ¡ã€‚',
-      working: 'æ­£åœ¨æ¨è¿›å½“å‰ä»»åŠ¡ã€‚',
-      talking: 'æ­£åœ¨æ±‡æŠ¥å½“å‰ä»»åŠ¡çš„è¿›å±•ã€‚',
-      waiting: 'æ­£åœ¨ç­‰å¾…ä¸‹ä¸€æ­¥æŒ‡ä»¤ã€‚',
-      review: 'æ­£åœ¨æ£€æŸ¥æœ€æ–°ç»“æœã€‚',
-      failed: 'ä¸Šä¸€æ¬¡è¿è¡Œéœ€è¦å¤„ç†ã€‚',
-    },
-  },
-  tradingModeGate: {
-    liteMode: 'ç²¾ç®€æ¨¡å¼',
-    openPermissions: 'æ‰“å¼€æ™ºèƒ½ä½“æƒé™',
-  },
-  tradingReview: {
-    description: 'åœ¨å°†æ™ºèƒ½ä½“æš‚å­˜çš„åˆ¸å•†å†™å…¥æ¨é€åˆ°äº¤æ˜“åœºæ‰€å‰è¿›è¡Œå®¡é˜…ã€‚',
-    liteTitle: 'ç²¾ç®€æ¨¡å¼ä¸‹æ— æ³•ä½¿ç”¨â€œäº¤æ˜“å³ Gitâ€ã€‚',
-    liteDescription: 'ç²¾ç®€æ¨¡å¼ä¼šä¿æŒ UTA æ–­å¼€ï¼Œå› æ­¤ Alice æ— æ³•å®¡é˜…åˆ¸å•†å†™å…¥ææ¡ˆã€‚è¯·åœ¨â€œæ™ºèƒ½ä½“æƒé™â€ä¸­åˆ‡æ¢äº¤æ˜“æ¨¡å¼ä»¥è¿æ¥ UTAã€‚',
-    noAccounts: 'æ²¡æœ‰äº¤æ˜“è´¦æˆ·',
-    noAccountsDescription: 'è¯·å…ˆåœ¨â€œè®¾ç½® â†’ äº¤æ˜“â€ä¸­è¿æ¥åˆ¸å•†è´¦æˆ·ï¼Œå†å®¡æ‰¹æš‚å­˜çš„åˆ¸å•†å†™å…¥ã€‚',
-    pushFailed: 'æ¨é€å¤±è´¥',
-    rejectFailed: 'æ‹’ç»å¤±è´¥',
-    pendingPush: 'ç­‰å¾…åˆ¸å•†æ¨é€',
-    stagedOperations: 'æš‚å­˜æ“ä½œ',
-    dismiss: 'å…³é—­',
-    pushedAgo: 'æ¨é€äº{{time}}',
-    proposedOperations_one: '{{count}} é¡¹æ‹Ÿè®®åˆ¸å•†æ“ä½œ Â· HEAD {{head}}',
-    proposedOperations_other: '{{count}} é¡¹æ‹Ÿè®®åˆ¸å•†æ“ä½œ Â· HEAD {{head}}',
-    pushing: 'æ¨é€ä¸­â€¦',
-    confirmPush: 'ç¡®è®¤æ¨é€',
-    cancel: 'å–æ¶ˆ',
-    approvePush: 'æ‰¹å‡†å¹¶æ¨é€',
-    rejecting: 'æ‹’ç»ä¸­â€¦',
-    reject: 'æ‹’ç»',
-    operationDiff: 'æ“ä½œå·®å¼‚',
-    stagedWarning: 'è¿™äº›æ“ä½œå·²ç»æš‚å­˜ï¼Œä½†è¿˜æ²¡æœ‰æäº¤ä¿¡æ¯ã€‚æ™ºèƒ½ä½“ä»éœ€å®Œæˆæäº¤åæ‰èƒ½æ¨é€ã€‚',
-    approvalWarning: 'æ‰¹å‡†åï¼Œè¿™äº›æ“ä½œä¼šè¢«æ¨é€åˆ°åˆ¸å•†è´¦æˆ·ã€‚ç¡®è®¤å‰è¯·æ ¸å¯¹è´¦æˆ·ã€æ–¹å‘ã€æ•°é‡å’Œè®¢å•ç±»å‹ã€‚',
-    result: 'å·²æäº¤ {{submitted}} é¡¹ï¼Œå·²æ‹’ç» {{rejected}} é¡¹',
-    queue: {
-      waitingApproval_one: '{{count}} ä¸ªæäº¤ç­‰å¾…å®¡æ‰¹',
-      waitingApproval_other: '{{count}} ä¸ªæäº¤ç­‰å¾…å®¡æ‰¹',
-      stagedWaiting_one: '{{count}} ç»„æš‚å­˜æ“ä½œç­‰å¾…æäº¤',
-      stagedWaiting_other: '{{count}} ç»„æš‚å­˜æ“ä½œç­‰å¾…æäº¤',
-      clean: 'å·¥ä½œæ ‘å¹²å‡€',
-      needs: 'å¾…å®¡æ‰¹',
-      staged: 'å·²æš‚å­˜',
-      pushed: 'å·²æ¨é€',
-      accountFilter: 'è´¦æˆ·ç­›é€‰',
-      all: 'å…¨éƒ¨',
-      backToQueue: 'è¿”å›é˜Ÿåˆ—',
-      review: 'å®¡é˜…',
-      stagedBadge: 'å·²æš‚å­˜',
-      operationCount_one: '{{count}} é¡¹æ“ä½œ',
-      operationCount_other: '{{count}} é¡¹æ“ä½œ',
-      cleanDescription: 'æ²¡æœ‰ç­‰å¾…å®¡æ‰¹çš„åˆ¸å•†å†™å…¥ã€‚',
-      cleanDetailDescription: 'æ²¡æœ‰ç­‰å¾…å®¡æ‰¹çš„åˆ¸å•†å†™å…¥ã€‚æœ€è¿‘æ¨é€çš„æäº¤ä¼šæ˜¾ç¤ºåœ¨è¿™é‡Œã€‚',
-      verificationUnknown: 'å®¡æ‰¹çŠ¶æ€å°šæœªéªŒè¯',
-      verificationCount: 'å·²éªŒè¯ {{verified}} / {{total}} ä¸ªè´¦æˆ·',
-      verificationDescription: 'éƒ¨åˆ†è´¦æˆ·æ— æ³•æ£€æŸ¥ã€‚æœ€è¿‘ä¸€æ¬¡å·²çŸ¥çš„å®¡é˜…é¡¹ç›®ä»ä¼šä¿ç•™ï¼›è¯·é‡è¯•åå†åˆ¤æ–­é˜Ÿåˆ—æ˜¯å¦å¹²å‡€ã€‚',
-      listUnavailableDescription: 'æ— æ³•åŠ è½½äº¤æ˜“è´¦æˆ·ã€‚æœ€è¿‘ä¸€æ¬¡å·²çŸ¥çš„å®¡é˜…çŠ¶æ€ä»ä¼šä¿ç•™ã€‚',
-      failedAccounts: 'æ— æ³•éªŒè¯ï¼š{{accounts}}',
-      retry: 'é‡è¯•',
-      retrying: 'æ­£åœ¨é‡è¯•â€¦',
-    },
-    status: {
-      needsApproval: 'éœ€è¦å®¡æ‰¹',
-      staged: 'å·²æš‚å­˜',
-      pushed: 'å·²æ¨é€',
-    },
-    summary: {
-      title: 'å®¡é˜…æ‘˜è¦',
-      account: 'è´¦æˆ·',
-      operations: 'æ“ä½œ',
-      symbols: 'æ ‡çš„',
-      none: 'æ— ',
-      buys: 'ä¹°å…¥',
-      sellsCancels: 'å–å‡º / å–æ¶ˆ',
-      modifySync: 'ä¿®æ”¹ / åŒæ­¥',
-      head: 'HEAD',
-    },
-    operation: {
-      buy: 'ä¹°å…¥',
-      sell: 'å–å‡º',
-      order: 'è®¢å•',
-      quantityShort: 'æ•°é‡ {{value}}',
-      limitPrice: 'é™ä»· {{value}}',
-      auxPrice: 'è¾…åŠ©ä»· {{value}}',
-      placeTitle: '{{side}} {{symbol}}',
-      unknown: 'æœªçŸ¥æ ‡çš„',
-      closeTitle: 'å¹³ä»“ {{symbol}}',
-      position: 'æŒä»“',
-      quantity: 'æ•°é‡ {{value}}',
-      modifyTitle: 'ä¿®æ”¹ {{order}}',
-      cancelTitle: 'å–æ¶ˆ {{order}}',
-      syncOrders: 'åŒæ­¥è®¢å•',
-    },
-    operationStatus: {
-      submitted: 'å·²æäº¤',
-      filled: 'å·²æˆäº¤',
-      rejected: 'å·²æ‹’ç»',
-      userRejected: 'ç”¨æˆ·å·²æ‹’ç»',
-      cancelled: 'å·²å–æ¶ˆ',
-    },
-  },
-  news: {
-    allNews: 'å…¨éƒ¨èµ„è®¯',
-    groupEquities: 'è‚¡ç¥¨å¸‚åœº',
-    groupTopics: 'ä¸»é¢˜ä¸è¡Œä¸š',
-    groupAssets: 'å…¶ä»–èµ„äº§',
-    groupMacro: 'å®è§‚ä¸è´¢å¯Œ',
-    pageDescription: 'é«˜å¯†åº¦å¸‚åœºæ–°é—»æµï¼Œæ”¯æŒæŒ‰é¢‘é“ã€æ—¥æœŸã€æ ‡çš„å’Œå…³é”®è¯å¿«é€Ÿç­›é€‰ã€‚',
-    filtersLabel: 'æ–°é—»ç­›é€‰',
-    startDate: 'å¼€å§‹æ—¥æœŸ',
-    endDate: 'ç»“æŸæ—¥æœŸ',
-    symbolFilter: 'æ ‡çš„',
-    keywordFilter: 'å…³é”®è¯',
-    search: 'æœç´¢',
-    clear: 'æ¸…é™¤',
-    dateRangeError: 'å¼€å§‹æ—¥æœŸå¿…é¡»æ—©äºæˆ–ç­‰äºç»“æŸæ—¥æœŸã€‚',
-    imageAlt: '{{title}} ç¼©ç•¥å›¾',
-    importantTag: 'é‡è¦',
-    showMore: 'æ˜¾ç¤ºæ›´å¤š',
-    showLess: 'æ˜¾ç¤ºæ›´å°‘',
-    resultLimit: 'æ˜¾ç¤º {{count}} æ¡ç»“æœ',
-    liveStream: 'å®æ—¶å¿«è®¯',
-    viewsLabel: 'æ–°é—»è§†å›¾',
-    categoriesLabel: 'æ–°é—»åˆ†ç±»',
-    viewLatest: 'æœ€æ–°',
-    viewImportant: 'é‡è¦',
-    viewPositive: 'æ­£é¢',
-    viewNegative: 'è´Ÿé¢',
-    viewWatchlist: 'è‡ªé€‰è‚¡',
-    viewCategories: 'åˆ†ç±»',
-    categoryThemes: 'é¢˜æ',
-    categoryAShares: 'Aè‚¡',
-    categoryChiNext: 'åˆ›ä¸šæ¿',
-    categoryStar: 'ç§‘åˆ›æ¿',
-    categoryBse: 'åŒ—äº¤æ‰€',
-    categoryNeeq: 'æ–°ä¸‰æ¿',
-    categoryHk: 'æ¸¯è‚¡',
-    categoryChinaConcepts: 'ä¸­æ¦‚è‚¡',
-    categoryUs: 'ç¾è‚¡',
-    categoryIpo: 'æ–°è‚¡',
-    categoryIndustries: 'è¡Œä¸š',
-    categoryFunds: 'åŸºé‡‘',
-    categoryBonds: 'å€ºåˆ¸',
-    categoryFutures: 'æœŸè´§',
-    categoryMacro: 'å®è§‚',
-    categoryFx: 'å¤–æ±‡',
-    categoryWealth: 'ç†è´¢',
-    categoryOptions: 'æœŸæƒ',
-    categoryWarrants: 'æƒè¯',
-    streamLabel: 'æ–°é—»å¿«è®¯',
-    refresh: 'åˆ·æ–°æ–°é—»',
-    noSummary: 'è¯¥æ¡èµ„è®¯æ²¡æœ‰æ‘˜è¦ï¼Œè¯·æ‰“å¼€åŸæ–‡æŸ¥çœ‹å®Œæ•´å†…å®¹ã€‚',
-
-    lookback1h: '1 å°æ—¶',
-    lookback12h: '12 å°æ—¶',
-    lookback24h: '24 å°æ—¶',
-    lookback7d: '7 å¤©',
-    lookbackLabel: 'æ–°é—»æ—¶é—´èŒƒå›´',
-    allSources: 'å…¨éƒ¨æ¥æº',
-    sourceLabel: 'æ–°é—»æ¥æº',
-    articleCount_one: '{{count}} ç¯‡æ–‡ç« ',
-    articleCount_other: '{{count}} ç¯‡æ–‡ç« ',
-    noArticles: 'æ— æ–‡ç« ',
-    noArticlesDescription: 'è¯¥æ—¶é—´èŒƒå›´å†…æ²¡æœ‰æ‰¾åˆ°æ–°é—»ã€‚',
-    loadErrorTitle: 'æ— æ³•åŠ è½½æ–°é—»',
-    loadErrorDescription: 'OpenAlice æš‚æ—¶æ— æ³•åˆ·æ–°æ–°é—»æµã€‚è¯·æ£€æŸ¥ä¸ OpenAlice åç«¯çš„è¿æ¥ï¼Œç„¶åé‡è¯•ã€‚',
-    stale: 'å®æ—¶åˆ·æ–°å¤±è´¥â€”â€”å½“å‰æ˜¾ç¤ºè¿™äº›ç­›é€‰æ¡ä»¶ä¸‹ä¸Šæ¬¡æˆåŠŸåŠ è½½çš„æ–°é—»ã€‚',
-    openOriginal: 'æŸ¥çœ‹åŸæ–‡',
-  },
-  tracked: {
-    nothingTrackedYet: 'è¿˜æ²¡æœ‰è¿½è¸ªä»»ä½•ä¸œè¥¿ã€‚',
-    listLoadErrorTitle: 'æ— æ³•åŠ è½½è¿½è¸ªåˆ—è¡¨',
-    listLoadErrorDescription: 'OpenAlice æš‚æ—¶æ— æ³•åˆ·æ–°è¿½è¸ªçš„èµ„äº§å’Œä¸»é¢˜ã€‚ç°æœ‰å†…å®¹æ²¡æœ‰è¢«åˆ é™¤ã€‚',
-    listStale: 'å®æ—¶åˆ·æ–°å¤±è´¥â€”â€”å½“å‰æ˜¾ç¤ºä¸Šæ¬¡æˆåŠŸåŠ è½½çš„è¿½è¸ªé¡¹ã€‚',
-    detailLoadErrorTitle: 'æ— æ³•åŠ è½½ {{name}}',
-    detailLoadErrorDescription: 'è¿™ä¸ªè¿½è¸ªå®ä½“å¯èƒ½å·²ç»å˜æ›´ï¼Œæˆ– OpenAlice æš‚æ—¶ä¸å¯ç”¨ã€‚',
-    backlinksTooltip: '{{count}} æ¡ç¬”è®°é“¾æ¥åˆ°æ­¤',
-    assets: 'æ ‡çš„',
-    topics: 'ä¸»é¢˜',
-    issues: 'Issue',
-    issue: 'Issue',
-    pageDescription: '{{count}} ä¸ªè¿½è¸ªé”šç‚¹ Â· æ ‡çš„ã€ä¸»é¢˜ä¸ Issue',
-    viewModeLabel: 'è¿½è¸ªè§†å›¾',
-    detailView: 'è¯¦æƒ…',
-    graphView: 'å›¾è°±',
-    selectFromSidebar: 'ä»ä¾§æ é€‰æ‹©ä¸€ä¸ªè¿½è¸ªé”šç‚¹ã€‚',
-    issueNoDescription: 'è¿™ä¸ª Issue è¿˜æ²¡æœ‰æè¿°ã€‚',
-    openIssueDetails: 'æŸ¥çœ‹è¯¦æƒ…',
-    referencedIn_one: 'è¢« {{count}} æ¡ç¬”è®°å¼•ç”¨',
-    referencedIn_other: 'è¢« {{count}} æ¡ç¬”è®°å¼•ç”¨',
-    graph: {
-      all: 'å…¨å±€',
-      related: 'å…³è”',
-      scopeLabel: 'å›¾è°±èŒƒå›´',
-      filters: 'å›¾è°±ç­›é€‰',
-      filtersDescription: 'é€‰æ‹©è¦æ˜¾ç¤ºçš„è¿½è¸ªé”šç‚¹å’Œæ¥æºææ–™ã€‚',
-      materials: 'ç¬”è®°ä¸ Issue',
-      showUnlinked: 'æ˜¾ç¤ºæœªè¿æ¥å®ä½“',
-      visibleCount: '{{nodes}} ä¸ªèŠ‚ç‚¹ Â· {{edges}} æ¡è¿æ¥',
-      zoomOut: 'ç¼©å°',
-      zoomIn: 'æ”¾å¤§',
-      fit: 'é€‚åº”ç”»å¸ƒ',
-      canvasLabel: 'è¿½è¸ªå…³ç³»å›¾ã€‚æ‹–åŠ¨å¯å¹³ç§»ï¼Œæ»šè½®å¯ç¼©æ”¾ï¼Œæ¿€æ´»èŠ‚ç‚¹å¯æ‰“å¼€å†…å®¹ã€‚',
-      asset: 'èµ„äº§',
-      topic: 'ä¸»é¢˜',
-      note: 'ç¬”è®°',
-      issue: 'Issue',
-      openDetails: 'æ‰“å¼€è¯¦æƒ…',
-      entityNodeLabel_one: '{{name}}ï¼Œè¿æ¥ {{count}} ä»½ææ–™',
-      entityNodeLabel_other: '{{name}}ï¼Œè¿æ¥ {{count}} ä»½ææ–™',
-      artifactNodeLabel: '{{name}}ï¼Œæ¥è‡ª {{workspace}} çš„ææ–™',
-      loadErrorTitle: 'æ— æ³•åŠ è½½å…³ç³»å›¾',
-      loadErrorDescription: 'è¿½è¸ªåˆ—è¡¨ä»å¯ä½¿ç”¨ã€‚åç«¯æ¢å¤åå¯é‡è¯•åŠ è½½å›¾è°±ã€‚',
-    },
-  },
-  connectorSettings: {
-    title: 'è¿æ¥å™¨',
-    description: 'è¿æ¥ç§æœ‰é¢‘é“ï¼Œç”¨äºæ”¶ä»¶ç®±æŠ•é€’å’Œå·¥ä½œåŒºå¯¹è¯ã€‚',
-    channelNavigation: 'é¢‘é“è®¾ç½®',
-    channelNavigationDescription: 'ç›´æ¥å‰å¾€å¯¹åº”é¢‘é“ã€‚',
-    channelNavigationAction: '{{name}} è®¾ç½®ï¼Œ{{status}}',
-    serviceDescription: 'ç»Ÿä¸€ç®¡ç†æ‰€æœ‰é¢‘é“çš„æŠ•é€’ã€‚',
-    runService: 'å…è®¸å¤–éƒ¨æŠ•é€’',
-    runServiceDescription: 'ç»Ÿä¸€æš‚åœæˆ–æ¢å¤æ‰€æœ‰é¢‘é“çš„æŠ•é€’ã€‚è¿æ¥ä¿¡æ¯å’ŒèŠå¤©è®¾ç½®ä¿æŒå¯ç”¨ã€‚',
-    runServiceAria: 'å…è®¸æ‰€æœ‰è¿æ¥å™¨è¿›è¡Œå¤–éƒ¨æŠ•é€’',
-    adapterDescription: 'å°†æ”¶ä»¶ç®±é€šçŸ¥æŠ•é€’åˆ°ä½ çš„ç§æœ‰ {{name}} ä¼šè¯ã€‚',
-    serviceStopped: 'å·²åœæ­¢',
-    serviceOnline: 'åœ¨çº¿',
-    serviceUnavailable: 'ä¸å¯ç”¨',
-    serviceUnavailableDescription: 'è¿æ¥å™¨æœåŠ¡ä¸å¯ç”¨ï¼›Alice å’Œæ”¶ä»¶ç®±ä»ä¿æŒåœ¨çº¿ã€‚',
-    connectionDetails: 'è¿æ¥ä¿¡æ¯',
-    saved: 'å·²ä¿å­˜',
-    required: 'å¿…å¡«',
-    hide: 'æ”¶èµ·',
-    manage: 'ç®¡ç†',
-    hideConnectionDetailsAria: 'æ”¶èµ· {{name}} è¿æ¥ä¿¡æ¯',
-    manageConnectionDetailsAria: 'ç®¡ç† {{name}} è¿æ¥ä¿¡æ¯',
-    secretsNote: 'å·²ä¿å­˜çš„ä»¤ç‰Œä¼šåœ¨æœ¬åœ°åŠ å¯†ï¼Œä¹Ÿä¸ä¼šå›ä¼ ã€‚ä»…åœ¨éœ€è¦æ ¸å¯¹ç²˜è´´å†…å®¹æ—¶æ˜¾ç¤ºè‰ç¨¿ã€‚',
-    setupGuide: {
-      title: 'å…ˆå‡†å¤‡å¥½ {{name}}',
-      description: 'åˆ›å»ºæˆ–æ‰“å¼€ä½ çš„ {{name}} åº”ç”¨ï¼Œå†å¸¦ç€è¿æ¥ä¿¡æ¯å›åˆ°è¿™é‡Œã€‚',
-      openSetup: 'æ‰“å¼€ {{name}} è®¾ç½®',
-      openSetupAria: 'åœ¨æ–°æ ‡ç­¾é¡µæ‰“å¼€{{label}}',
-      links: {
-        discordPortal: 'Discord å¼€å‘è€…åå°',
-        telegramBotFather: 'æ‰“å¼€ @BotFather',
-        slackPortal: 'Slack åº”ç”¨è®¾ç½®',
-        feishuPortal: 'é£ä¹¦å¼€å‘è€…åå°',
-        larkPortal: 'Lark å¼€å‘è€…åå°',
-      },
-    },
-    setupGuides: {
-      discord: {
-        description: 'ä½¿ç”¨å¯ç”±ç”¨æˆ·å®‰è£…çš„ Discord åº”ç”¨ï¼›æœºå™¨äººå¯åŠ¨æ—¶ï¼ŒOpenAlice ä¼šè‡ªåŠ¨å‘å¸ƒæ–œæ å‘½ä»¤ã€‚',
-        step1: 'åˆ›å»ºåº”ç”¨å¹¶å¤åˆ¶ Application IDã€‚',
-        step2: 'è¿›å…¥ Bot é¡µé¢ï¼Œé‡ç½®æˆ–å¤åˆ¶æœºå™¨äººä»¤ç‰Œï¼Œå¹¶å¦¥å–„ä¿ç®¡ã€‚',
-        step3: 'åœ¨ Installation ä¸­å¼€å¯ User Install ä¸ applications.commandsï¼Œå†æŠŠåº”ç”¨å®‰è£…åˆ°ä½ çš„è´¦å·ã€‚',
-      },
-      telegram: {
-        description: 'BotFather ä¼šåˆ›å»ºç”± OpenAlice ä¸ºä½ è¿è¡Œçš„ç§æœ‰æœºå™¨äººã€‚',
-        step1: 'åœ¨ Telegram ä¸­æ‰“å¼€ @BotFatherï¼Œå¹¶å‘é€ /newbotã€‚',
-        step2: 'è®¾ç½®åç§°å’Œä»¥â€œbotâ€ç»“å°¾çš„ç”¨æˆ·åï¼Œç„¶åå¤åˆ¶ç”Ÿæˆçš„ä»¤ç‰Œã€‚',
-        step3: 'åœ¨ä¸‹æ–¹ç²˜è´´ä»¤ç‰Œï¼›OpenAlice å¯åŠ¨æœºå™¨äººåä¼šå¼•å¯¼ä½ å‘é€ /linkã€‚',
-      },
-      slack: {
-        description: 'ä½¿ç”¨å®‰è£…åˆ°å·¥ä½œåŒºçš„ Socket Mode åº”ç”¨ï¼›OpenAlice ä¸éœ€è¦å…¬ç½‘ Request URLã€‚',
-        step1: 'åœ¨ä½ å‡†å¤‡ä½¿ç”¨çš„ Slack å·¥ä½œåŒºä¸­ä»å¤´åˆ›å»ºä¸€ä¸ªåº”ç”¨ã€‚',
-        step2: 'æ·»åŠ  chat:writeã€im:writeã€files:write Bot æƒé™ï¼Œå®‰è£…åº”ç”¨å¹¶å¤åˆ¶ xoxb ä»¤ç‰Œã€‚',
-        step3: 'å¼€å¯ Socket Modeï¼Œåˆ›å»ºå¸¦ connections:write çš„ xapp ä»¤ç‰Œï¼Œå¹¶æ·»åŠ  /linkã€/statusã€/testã€/inboxã€/settingsã€/uta å‘½ä»¤ã€‚',
-      },
-      feishu: {
-        description: 'ä½¿ç”¨å¸¦æœºå™¨äººå’Œé•¿è¿æ¥çš„ä¼ä¸šè‡ªå»ºåº”ç”¨ï¼›ç¾¤æœºå™¨äºº Webhook æ— æ³•æ¥æ”¶ /linkã€‚',
-        step1: 'åœ¨é£ä¹¦æˆ– Lark å¼€å‘è€…åå°åˆ›å»ºä¼ä¸šè‡ªå»ºåº”ç”¨ï¼Œå¹¶å¼€å¯æœºå™¨äººèƒ½åŠ›ã€‚',
-        step2: 'æˆäºˆæ¶ˆæ¯æƒé™ï¼Œé€šè¿‡é•¿è¿æ¥è®¢é˜… im.message.receive_v1ï¼Œç„¶åå‘å¸ƒåº”ç”¨ã€‚',
-        step3: 'å¤åˆ¶ App ID ä¸ App Secretï¼Œå¹¶åœ¨ä¸‹æ–¹é€‰æ‹©ä¸åå°ä¸€è‡´çš„é£ä¹¦æˆ– Lark å¹³å°ã€‚',
-      },
-    },
-    showDraft: 'æ˜¾ç¤ºè‰ç¨¿',
-    hideDraft: 'éšè—è‰ç¨¿',
-    fields: {
-      applicationId: 'åº”ç”¨ ID',
-      appId: 'åº”ç”¨ ID',
-      appSecret: 'åº”ç”¨å¯†é’¥',
-      botToken: 'æœºå™¨äººä»¤ç‰Œ',
-      appToken: 'åº”ç”¨çº§ä»¤ç‰Œ',
-      domain: 'å¼€æ”¾å¹³å°',
-      inboxPush: 'æ¨é€ Inbox é€šçŸ¥',
-    },
-    fieldDescriptions: {
-      domain: 'é€‰æ‹©åˆ›å»ºè¿™ä¸ªåº”ç”¨æ—¶ä½¿ç”¨çš„å¹³å°ã€‚',
-      inboxPush: 'å…³é—­åï¼Œæ–°çš„ Inbox æ¡ç›®ç•™åœ¨ OpenAliceï¼Œéœ€è¦æ—¶å†æŸ¥çœ‹ã€‚',
-    },
-    fieldOptions: {
-      domain: {
-        feishu: { label: 'é£ä¹¦', description: 'open.feishu.cn Â· ä¸­å›½' },
-        lark: { label: 'Lark', description: 'open.larksuite.com Â· å…¨çƒ' },
-      },
-    },
-    placeholders: {
-      applicationId: 'Discord åº”ç”¨ ID',
-      appId: 'é£ä¹¦æˆ– Lark å¼€å‘è€…åå°ä¸­çš„ cli_â€¦',
-      appSecret: 'ä»…åœ¨æœ¬åœ°åŠ å¯†ä¿å­˜',
-      botToken: 'ä»…åœ¨æœ¬åœ°åŠ å¯†ä¿å­˜',
-      appToken: 'å¸¦ connections:write çš„ xapp ä»¤ç‰Œ',
-    },
-    configuredPlaceholder: 'å·²é…ç½®â€”â€”è¾“å…¥æ–°å€¼ä»¥æ›¿æ¢',
-    saving: 'ä¿å­˜ä¸­â€¦',
-    replaceToken: 'æ›¿æ¢ä»¤ç‰Œ',
-    saveToken: 'ä¿å­˜ä»¤ç‰Œ',
-    saveConnection: 'ä¿å­˜è¿æ¥',
-    savingConnection: 'æ­£åœ¨ä¿å­˜è¿æ¥â€¦',
-    saveConnectionHint: 'ä¸Šæ–¹å¡«å†™çš„å‡­æ®ä¼šä¸€èµ·ä¿å­˜ã€‚',
-    missingConnectionFields: 'è¿˜éœ€è¦å¡«å†™ï¼š{{fields}}ã€‚',
-    enterCredentialToSave: 'è¯·åœ¨ä¸Šæ–¹å¡«å†™è¦ä¿å­˜çš„å‡­æ®ã€‚',
-    connectionSaveError: 'è¿æ¥æœªä¿å­˜ï¼š{{error}}',
-    removeToken: 'ç§»é™¤ä»¤ç‰Œ',
-    tokenTooShort: 'è¯·è¾“å…¥è‡³å°‘ 20 ä¸ªéç©ºç™½å­—ç¬¦ã€‚',
-    replaceSecretTitle: 'æ›¿æ¢ {{name}} ä»¤ç‰Œï¼Ÿ',
-    replaceSecretMessage: 'è¿™ä¼šè¦†ç›–å·²åŠ å¯†ä¿å­˜çš„ä»¤ç‰Œã€‚è¿‡çŸ­æˆ–è¯¯è¾“å…¥çš„å†…å®¹æ— æ³•æ¢å¤ã€‚',
-    removing: 'æ­£åœ¨ç§»é™¤â€¦',
-    tokenSaveError: 'ä»¤ç‰Œæœªä¿å­˜ï¼š{{error}}',
-    sendTest: 'å‘é€æµ‹è¯•',
-    sending: 'å‘é€ä¸­â€¦',
-    testSendingFeedback: 'æ­£åœ¨å‘ {{name}} å‘é€æµ‹è¯•æ¶ˆæ¯â€¦',
-    testFailed: 'æµ‹è¯•æ¶ˆæ¯æœªèƒ½å‘é€ï¼š{{error}}',
-    reconnectFailed: 'æœªèƒ½é‡æ–°è¿æ¥ {{name}}ï¼š{{error}}',
-    useConnector: 'å¯ç”¨ {{name}}',
-    useConnectorAria: 'å¼€å¯æˆ–å…³é—­ {{name}}',
-    linkedAccount: 'å·²å…³è”çš„ç§èŠ',
-    linkedAccountHint: 'è§£é™¤å…³è”åå¯è¿æ¥å¦ä¸€ä¸ªç§èŠï¼Œå·²ä¿å­˜çš„å‡­æ®ä¼šä¿ç•™ã€‚',
-    stop: 'åœæ­¢',
-    startForLinking: 'å¯åŠ¨æœºå™¨äººå¹¶å…³è”',
-    startConnector: 'å¯åŠ¨è¿æ¥å™¨',
-    unlink: 'å–æ¶ˆå…³è”',
-    unlinking: 'æ­£åœ¨å–æ¶ˆå…³è”â€¦',
-    unlinkTitle: 'å–æ¶ˆå…³è” {{name}}ï¼Ÿ',
-    unlinkMessage: 'æ”¶ä»¶ç®±é€šçŸ¥å°†ä¸å†å‘åˆ°å½“å‰ {{name}} è´¦å·ã€‚æœºå™¨äººä»¤ç‰Œä¼šä¿ç•™ï¼Œä½ å¯ä»¥ç«‹åˆ»åœ¨å¦ä¸€ä¸ªç§èŠé‡Œå‘é€ /linkã€‚',
-    linkStepOpen: 'æ‰“å¼€ä½ ä¸ {{name}} æœºå™¨äººçš„ç§èŠã€‚',
-    linkStepSendBefore: 'å‘é€',
-    linkStepWait: 'ä¿æŒæ­¤é¡µé¢æ‰“å¼€ï¼›OpenAlice ä¼šè‡ªåŠ¨æ£€æµ‹å·²å…³è”çš„ç§èŠã€‚',
-    testSent: 'æµ‹è¯•å·²å‘é€ï¼Œè¯·æ£€æŸ¥ä½ çš„ {{name}} ç§èŠã€‚',
-    testDetails: 'æµ‹è¯•è¯¦æƒ…',
-    deliveryReference: 'æŠ•é€’å‚è€ƒï¼š',
-    loadError: 'æ— æ³•åŠ è½½è¿æ¥å™¨è®¾ç½®ã€‚',
-    loading: 'æ­£åœ¨åŠ è½½è¿æ¥è®¾ç½®',
-    loadErrorTitle: 'æš‚æ—¶æ— æ³•è¯»å–è¿æ¥è®¾ç½®',
-    loadErrorDescription: 'OpenAlice æ— æ³•è¯»å–è¿™äº›è®¾ç½®ã€‚å½“å‰é…ç½®æ²¡æœ‰å‘ç”Ÿå˜åŒ–ï¼›æœ¬åœ°æœåŠ¡æ¢å¤åå¯ä»¥é‡è¯•ã€‚',
-    refreshError: 'æ— æ³•åˆ·æ–°å®æ—¶è¿æ¥çŠ¶æ€ï¼Œå½“å‰è®¾ç½®ä»å¯ç»§ç»­æŸ¥çœ‹ã€‚',
-    removeSecretTitle: 'ç§»é™¤ {{name}} ä»¤ç‰Œï¼Ÿ',
-    removeSecretBefore: 'OpenAlice å°†æ°¸ä¹…åˆ é™¤å·²åŠ å¯†ä¿å­˜çš„',
-    removeSecretAfter: 'åœ¨ä¿å­˜æ›¿ä»£ä»¤ç‰Œå‰ï¼Œè¿æ¥å™¨å°†åœæ­¢è¿è¡Œã€‚ç§»é™¤å OpenAlice æ— æ³•æ¢å¤æ­¤ä»¤ç‰Œã€‚',
-    desk: {
-      title: 'åœ¨ {{name}} ä¸ŠèŠå¤©',
-      description: 'è®©è¿™ä¸ªç§èŠåœ¨æ‰€é€‰å·¥ä½œåŒºä¸­ç»§ç»­å¯¹è¯ã€‚',
-      loading: 'æ­£åœ¨åŠ è½½èŠå¤©è®¾ç½®â€¦',
-      needLink: 'è¯·å…ˆå®Œæˆæœºå™¨äººå…³è”ï¼Œå†å¼€å¯èŠå¤©ã€‚',
-      afterLink: 'å…³è”åå¯ç”¨',
-      on: 'å·²å¼€å¯',
-      waiting: 'ç­‰å¾…è¿æ¥å™¨',
-      off: 'æœªå¼€å¯',
-      toggleAria: 'å¼€å¯æˆ–å…³é—­åœ¨ {{name}} ä¸ŠèŠå¤©',
-      turnOnHint: 'å¼€å¯åï¼Œ{{name}} ç§èŠä¼šåœ¨è¿™ä¸ªå·¥ä½œåŒºä¸­å¯åŠ¨å¯¹è¯ã€‚',
-      turnOnWhileOfflineHint: 'ç°åœ¨å¯ä»¥å…ˆé€‰æ‹©å·¥ä½œåŒºï¼›{{name}} ä¸Šçº¿åæ‰ä¼šå¼€å§‹å¯¹è¯ã€‚',
-      workspace: 'å·¥ä½œåŒº',
-      workspaceDescription: 'é»˜è®¤ä½¿ç”¨ Ask Alice çš„ Chat å·¥ä½œåŒºã€‚å¼€å¯èŠå¤©å‰ï¼Œé€‰æ‹©å¯¹è¯è¦åœ¨å“ªä¸ªå·¥ä½œåŒºç»§ç»­ã€‚',
-      enable: 'å¼€å¯èŠå¤©',
-      enabling: 'æ­£åœ¨å¯ç”¨â€¦',
-      disable: 'å…³é—­èŠå¤©',
-      disabling: 'æ­£åœ¨åœç”¨â€¦',
-      disableTitle: 'å…³é—­åœ¨ {{name}} ä¸ŠèŠå¤©ï¼Ÿ',
-      disableMessage: 'å®šæ—¶å”¤é†’å°†åœæ­¢ã€‚å¯¹è¯ä»ä¿ç•™åœ¨åŸå·¥ä½œåŒºï¼Œå†å²è¯„è®ºä¸ä¼šåˆ é™¤ã€‚',
-      boundWorkspace: 'å¯¹è¯è¿è¡Œäº {{workspace}}',
-      waitingForConnector: 'å·²åœ¨ {{workspace}} ä¸­å‡†å¤‡å¥½ï¼›{{name}} ä¸Šçº¿åæ¢å¤å¯¹è¯ã€‚',
-      advanced: 'å®šæ—¶è·Ÿè¿›',
-      what: 'è·Ÿè¿›æç¤ºè¯',
-      whatDescription: 'æ¯æ¬¡å®šæ—¶è·Ÿè¿›æ—¶åŸæ ·å‘é€ã€‚å®ƒåªæŒ‡å¯¼è¿™æ¬¡è·Ÿè¿›ï¼Œä¸æ˜¯æ‰€æœ‰å¯¹è¯çš„å¸¸é©»è§„åˆ™ã€‚',
-      whatPlaceholder: 'è¯´æ˜ Alice æ¯æ¬¡å®šæ—¶è·Ÿè¿›æ—¶åº”è¯¥åšä»€ä¹ˆâ€¦',
-      cadence: 'è·Ÿè¿›é¢‘ç‡',
-      cadenceDescription: 'Alice å¤šä¹…æŸ¥çœ‹ä¸€æ¬¡è¿™ä¸ªèŠå¤©ã€‚æ²¡æœ‰å†…å®¹è¦å‘é€æ—¶ï¼Œåº”å›å¤ [[no-reply]]ã€‚',
-      cadenceEvery: 'æ¯ {{every}}',
-      cadenceCustom: 'å½“å‰æ—¥ç¨‹',
-      open: 'æ‰“å¼€èŠå¤©è®°å½•',
-      noWorkspaces: 'è¯·å…ˆåˆ›å»ºä¸€ä¸ªå·¥ä½œåŒºã€‚',
-      actionError: 'èŠå¤©è®¾ç½®æœªèƒ½æ›´æ–°ï¼š{{error}}',
-    },
-    stage: {
-      needsCredentials: {
-        title: 'éœ€è¦å‡­æ®',
-        badge: 'è®¾ç½®',
-        description: 'æœºå™¨äººå¯åŠ¨å‰ï¼Œè¯·å…ˆå¡«å†™å¿…éœ€çš„ {{name}} è¿æ¥ä¿¡æ¯ã€‚',
-      },
-      readyToLink: {
-        title: 'å¯ä»¥å¼€å§‹å…³è”',
-        badge: 'æœªå…³è”',
-        description: 'å‡­æ®å·²ä¿å­˜ã€‚å¯åŠ¨æœºå™¨äººåï¼Œå®ƒæ‰èƒ½åœ¨ä½ çš„ç§æœ‰ {{name}} ä¼šè¯ä¸­æ¥æ”¶ {{command}}ã€‚',
-      },
-      starting: {
-        title: 'æœºå™¨äººå¯åŠ¨ä¸­â€¦',
-        badge: 'å¯åŠ¨ä¸­',
-        description: 'OpenAlice æ­£åœ¨å¯åŠ¨ {{name}} é€‚é…å™¨ã€‚ä¸Šçº¿åä¼šç«‹å³æ˜¾ç¤º {{command}} æ“ä½œè¯´æ˜ã€‚',
-      },
-      awaitingLink: {
-        title: 'æœºå™¨äººåœ¨çº¿â€”â€”å®Œæˆå…³è”',
-        badge: 'ç­‰å¾… /link',
-        description: '{{name}} æœºå™¨äººæ­£åœ¨è¿è¡Œï¼Œä½†å°šæœªå…³è”ç§èŠã€‚è¯·å®Œæˆä»¥ä¸‹ä¸‰æ­¥ã€‚',
-      },
-      linked: {
-        title: 'å¯ä»¥æŠ•é€’',
-        badge: 'å°±ç»ª',
-        description: '{{name}} æœºå™¨äººå·²åœ¨çº¿ï¼Œå¯ä»¥æŠ•é€’æ”¶ä»¶ç®±é€šçŸ¥ã€‚',
-      },
-      linkedOffline: {
-        title: 'è¿æ¥å™¨å·²åœæ­¢',
-        badge: 'ç¦»çº¿',
-        description: '{{name}} ç§èŠä»ç„¶ä¿æŒå…³è”ã€‚éœ€è¦å¤–éƒ¨æŠ•é€’æ—¶å†å¯åŠ¨è¿æ¥å™¨ã€‚',
-      },
-      error: {
-        title: 'éœ€è¦å¤„ç†',
-        badge: 'ä¸å¯ç”¨',
-        configuredNotRunning: '{{name}} æœºå™¨äººå·²é…ç½®ï¼Œä½†å½“å‰æœªè¿è¡Œã€‚',
-        description: '{{name}} æ— æ³•è¿æ¥ã€‚è¯·ç«‹å³é‡æ–°è¿æ¥ï¼›å¦‚æœä»ç„¶å¤±è´¥ï¼Œè¯·æ£€æŸ¥ä¸‹æ–¹è¿æ¥è¯¦æƒ…ã€‚',
-      },
-    },
-  },
-  connectorStatus: {
-    title: 'è¿æ¥å™¨',
-    description: 'æŠŠä½ çš„ç§èŠæ¸ é“è¿æ¥åˆ°æ”¶ä»¶ç®±æŠ•é€’ä¸å·¥ä½œåŒºå¯¹è¯ã€‚',
-    updated: 'æ›´æ–°äº {{time}}',
-    refresh: 'åˆ·æ–°',
-    loadError: 'æ— æ³•è¯»å–è¿æ¥å™¨çŠ¶æ€ã€‚',
-    loading: 'æ­£åœ¨åŠ è½½èŠå¤©æ¸ é“',
-    loadErrorTitle: 'æš‚æ—¶æ— æ³•åŠ è½½èŠå¤©æ¸ é“',
-    loadErrorDescription: 'OpenAlice æ— æ³•è¯»å–æŠ•é€’çŠ¶æ€ï¼Œä½†æ”¶ä»¶ç®±ä»å¯æ­£å¸¸ä½¿ç”¨ã€‚æœ¬åœ°æœåŠ¡æ¢å¤åå¯ä»¥é‡è¯•ã€‚',
-    refreshError: 'æ— æ³•åˆ·æ–°æ¸ é“çŠ¶æ€ï¼Œå½“å‰å±•ç¤ºçš„æ˜¯ä¸Šæ¬¡è·å–çš„çŠ¶æ€ã€‚',
-    serviceTitle: 'æŠ•é€’æœåŠ¡',
-    checked: 'æ£€æŸ¥äº {{time}}',
-    deliveryTitle: 'ä½ çš„èŠå¤©æ¸ é“',
-    deliveryDescription: 'ç®¡ç†å·²è¿æ¥æˆ–æ­£åœ¨è®¾ç½®çš„èŠå¤©æ¸ é“ã€‚',
-    availableTitle: 'å¯ç”¨æ¸ é“',
-    availableDescription: 'éœ€è¦æ—¶å†è®¾ç½®ä¸€ä¸ªæ–°çš„ç§èŠæ¸ é“ã€‚',
-    chooseTitle: 'é€‰æ‹©èŠå¤©æ¸ é“',
-    chooseDescription: 'è¿æ¥ä½ å·²ç»åœ¨ç”¨çš„ç§èŠï¼›ä¹‹åå¯ä»¥ç»§ç»­æ·»åŠ å…¶ä»–æ¸ é“ã€‚',
-    capabilityDelivery: 'æ”¶ä»¶ç®±æŠ•é€’',
-    capabilityChat: 'å·¥ä½œåŒºèŠå¤©',
-    configuredCount: 'å·²é…ç½® {{count}} ä¸ª',
-    activeCount: 'è¿è¡Œä¸­ {{count}} ä¸ª',
-    attentionCount: 'éœ€å¤„ç† {{count}} ä¸ª',
-    technicalDetails: 'æŠ€æœ¯è¯¦æƒ…',
-    privateChatLinked: 'å·²å…³è”ç§èŠ',
-    privateChatNotLinked: 'å°šæœªå…³è”ç§èŠ',
-    lastDelivered: '{{time}}æŠ•é€’',
-    configuration: 'é…ç½®',
-    delivery: 'æŠ•é€’',
-    owner: 'å·²å…³è”è´¦å·',
-    lastSuccess: 'æœ€è¿‘æˆåŠŸ',
-    nextRetry: 'ä¸‹æ¬¡é‡è¯•',
-    nextRetryAt: '{{time}} Â· ç¬¬ {{count}} æ¬¡',
-    ready: 'å·²å°±ç»ª',
-    needsSetup: 'éœ€è¦è®¾ç½®',
-    enabled: 'å·²å¯ç”¨',
-    disabled: 'å·²åœç”¨',
-    notLinked: 'æœªå…³è”',
-    noDeliveryYet: 'å°šæ— æŠ•é€’',
-    configureAdapter: 'è®¾ç½® {{name}}',
-    startChannel: 'å¯åŠ¨ {{name}}',
-    setupDetails: 'æŸ¥çœ‹ {{name}} è®¾ç½®è¯¦æƒ…',
-    linkingSteps: 'æŸ¥çœ‹ {{name}} å…³è”æ­¥éª¤',
-    viewProgress: 'æŸ¥çœ‹ {{name}} è¿›åº¦',
-    reviewAdapter: 'æ£€æŸ¥ {{name}}',
-    manageAdapter: 'ç®¡ç† {{name}}',
-    configurationDialogTitle: 'é…ç½® {{name}}',
-    configurationDialogDescription: '{{name}} çš„è¿æ¥ã€æŠ•é€’ä¸èŠå¤©è®¾ç½®ã€‚',
-    configurationDialogDescriptionDelivery: '{{name}} çš„è¿æ¥ä¸æŠ•é€’è®¾ç½®ã€‚',
-    reconnect: 'é‡æ–°è¿æ¥',
-    reconnecting: 'æ­£åœ¨é‡æ–°è¿æ¥â€¦',
-    reconnectingChannel: 'æ­£åœ¨é‡æ–°è¿æ¥ {{name}}â€¦',
-    turningOn: 'æ­£åœ¨å¯ç”¨ {{name}}â€¦',
-    turningOff: 'æ­£åœ¨åœç”¨ {{name}}â€¦',
-    reconnectFailed: 'æœªèƒ½é‡æ–°è¿æ¥ {{name}}ï¼š{{error}}',
-    turnOnFailed: 'æœªèƒ½å¯ç”¨ {{name}}ï¼š{{error}}',
-    turnOffFailed: 'æœªèƒ½åœç”¨ {{name}}ï¼š{{error}}',
-    service: {
-      off: 'å·²å…³é—­',
-      offDescription: 'æ‰€æœ‰å¤–éƒ¨æŠ•é€’å‡å·²æš‚åœï¼ŒOpenAlice æ”¶ä»¶ç®±ä¸å—å½±å“ã€‚',
-      healthy: 'æ­£å¸¸',
-      healthyDescription: 'æ‰€æœ‰å·²å¯ç”¨æ¸ é“å‡å¯æ­£å¸¸æŠ•é€’ã€‚',
-      running: 'è¿è¡Œä¸­',
-      runningDescription: 'æœåŠ¡ä»ä¼šä¸ºæ­£å¸¸æ¸ é“æŠ•é€’ï¼›è¯·æ£€æŸ¥ä¸‹æ–¹æ ‡è®°çš„æ¸ é“ã€‚',
-      unavailable: 'ä¸å¯ç”¨',
-      unavailableDescription: 'OpenAlice æ— æ³•è¿æ¥æŠ•é€’æœåŠ¡ï¼Œä½†æ”¶ä»¶ç®±ä»å¯æ­£å¸¸ä½¿ç”¨ã€‚',
-    },
-    adapter: {
-      off: 'å·²æš‚åœ',
-      offDescription: 'æŠ•é€’å·²æš‚åœï¼›å¼€å¯æ­¤æ¸ é“å³å¯æ¢å¤ã€‚',
-      needsSetup: 'éœ€è¦è®¾ç½®',
-      needsSetupDescription: 'æ·»åŠ  {{name}} å‡­è¯å³å¯å¼€å§‹ä½¿ç”¨ã€‚',
-      readyToLink: 'å¯ä»¥å…³è”',
-      readyToLinkDescription: 'å‡­è¯å·²ä¿å­˜ã€‚å¯åŠ¨ {{name}}ï¼Œç„¶åå…³è”ä½ çš„ç§èŠã€‚',
-      connected: 'å·²è¿æ¥',
-      connectedDescription: 'æ”¶ä»¶ç®±åŠ¨æ€æ­£åœ¨é€šè¿‡æ­¤æ¸ é“æŠ•é€’ã€‚',
-      awaitingLink: 'ç­‰å¾… /link',
-      awaitingLinkDescription: 'åœ¨ {{name}} ä¸­å‘é€ /linkï¼Œå®Œæˆç§èŠå…³è”ã€‚',
-      needsAttention: 'éœ€è¦å¤„ç†',
-      needsAttentionDescription: 'ç«‹å³é‡æ–°è¿æ¥æˆ–æ£€æŸ¥è¿æ¥è¯¦æƒ…ï¼›å·²ä¿å­˜çš„è®¾ç½®ä¸ä¼šä¸¢å¤±ã€‚',
-      starting: 'æ­£åœ¨å¯åŠ¨',
-      startingDescription: '{{name}} æ­£åœ¨å¯åŠ¨ï¼Œé€šå¸¸åªéœ€è¦ä¸€ç‚¹æ—¶é—´ã€‚',
-      startingLinkedDescription: '{{name}} æ­£åœ¨é‡æ–°è¿æ¥ï¼›å‡†å¤‡å°±ç»ªåä¼šæ¢å¤æŠ•é€’ã€‚',
-    },
-    time: {
-      justNow: 'åˆšåˆš',
-      minutesAgo: '{{count}} åˆ†é’Ÿå‰',
-      hoursAgo: '{{count}} å°æ—¶å‰',
-      daysAgo: '{{count}} å¤©å‰',
-    },
-  },
-  fileViewer: {
-    back: 'è¿”å›',
-    backToWorkspace: 'è¿”å› {{workspace}}',
-    backToTracked: 'è¿”å›è¿½è¸ª',
-  },
-  inbox: {
-    noMessages: 'æ”¶ä»¶ç®±ä¸ºç©ºã€‚',
-    emptyHint: 'å·¥ä½œåŒºä¼šæŠŠçŠ¶æ€æ›´æ–°æ¨é€åˆ°è¿™é‡Œã€‚',
-    untitledUpdate: 'æ²¡æœ‰æ‘˜è¦çš„æ›´æ–°',
-    unread: 'æœªè¯»',
-    moreAttachments: 'å¦æœ‰ {{count}} ä¸ª',
-    dateToday: 'ä»Šå¤©',
-    dateYesterday: 'æ˜¨å¤©',
-    dateThisWeek: 'æœ¬å‘¨',
-    dateOlder: 'æ›´æ—©',
-    pageDescription: 'å…± {{count}} æ¡ Â· å·¥ä½œåŒºçŠ¶æ€æ›´æ–°',
-    selectFromSidebar: 'ä»ä¾§æ é€‰æ‹©ä¸€æ¡ã€‚',
-    commentsSection: 'è¯„è®º',
-    documentsSection: 'é™„ä»¶',
-    docExpand: 'å±•å¼€',
-    docCollapse: 'æ”¶èµ·',
-    docNoPreview: 'æš‚æ— é¢„è§ˆ â€”â€” å±•å¼€æŸ¥çœ‹ã€‚',
-    docExpandAria: 'é¢„è§ˆé™„ä»¶ {{name}}',
-    docCollapseAria: 'æ”¶èµ·é™„ä»¶ {{name}}',
-    docRevisionTitle: 'æ¨é€æ—¶ç‰ˆæœ¬ {{revision}}',
-    docTypeHtml: 'HTML æŠ¥å‘Š',
-    docTypeMarkdown: 'Markdown',
-    workspaceRoot: 'å·¥ä½œåŒºæ ¹ç›®å½•',
-    docCopyMarkdown: 'å¤åˆ¶ Markdown',
-    docCopiedMarkdown: 'å·²å¤åˆ¶ Markdown',
-    docDownloadMarkdown: 'ä¸‹è½½ Markdown',
-    viewTime: 'æ—¶é—´ â€”â€” æœ€æ–°åœ¨å‰',
-    viewWorkspace: 'æŒ‰å·¥ä½œåŒºåˆ†ç»„',
-    searchPlaceholder: 'æœç´¢æ”¶ä»¶ç®±â€¦',
-    clearSearch: 'æ¸…é™¤æ”¶ä»¶ç®±æœç´¢',
-    searchResults: 'æ˜¾ç¤º {{count}} / {{total}} æ¡æ›´æ–°',
-    noSearchResults: 'æ²¡æœ‰ä¸â€œ{{query}}â€åŒ¹é…çš„æ›´æ–°ã€‚',
-    workspaceNotExists: 'å·¥ä½œåŒºå·²ä¸å­˜åœ¨',
-    fromSender: 'æ¥è‡ª {{sender}}',
-    senderIdentityTitle: 'å‘é€è€…èº«ä»½ï¼š{{sender}}',
-    showSenderDetails: 'æŸ¥çœ‹ {{sender}} çš„å‘é€è€…ä¿¡æ¯',
-    senderSession: 'Session',
-    fromIssue: 'æ¥è‡ª {{issue}}',
-    fromIssueTitle: 'æ¥è‡ª Issue {{issue}}',
-    followUpSender: 'ç»§ç»­å’Œå‘é€è€…æ²Ÿé€š',
-    followUpWorkspace: 'åœ¨æ­¤å·¥ä½œåŒºç»§ç»­',
-    followUpSenderDescription: 'å¯ä»¥åœ¨åå°è¿½é—®ï¼Œä¹Ÿå¯ä»¥æ‰“å¼€åŸä¼šè¯å½“é¢ç»§ç»­ã€‚',
-    followUpWorkspaceDescription: 'è¿™æ¡æ¶ˆæ¯æ²¡æœ‰è®°å½•å‘é€è€…ä¼šè¯ã€‚å¯ä»¥è®© {{workspace}} é‡Œçš„æ–° Agent å›çœ‹ï¼Œä¹Ÿå¯ä»¥è‡ªè¡Œæ‰“å¼€å·¥ä½œåŒºã€‚',
-    followUpPlaceholder: 'é’ˆå¯¹è¿™æ¡æ¶ˆæ¯ç»§ç»­è¿½é—®â€¦',
-    askInBackground: 'åå°è¿½é—®',
-    askWorkspace: 'è¯¢é—®å·¥ä½œåŒº',
-    openConversation: 'æ‰“å¼€ä¼šè¯',
-    openConversationShort: 'æ‰“å¼€ä¼šè¯',
-    openWorkspace: 'æ‰“å¼€å·¥ä½œåŒº',
-    openWorkspaceShort: 'å·¥ä½œåŒº',
-    repliesTitle: 'å›å¤',
-    repliesDescription: 'åœ¨è¿™é‡Œå›å¤ {{sender}}ï¼Œæ— éœ€ç¦»å¼€æ”¶ä»¶ç®±ã€‚',
-    repliesWorkspaceDescription: 'è¿™æ¡æ¶ˆæ¯æ²¡æœ‰è®°å½•å‘é€è€…ä¼šè¯ï¼Œå°†ç”± {{workspace}} ä¸­çš„æ–° Agent å›çœ‹ä¸Šä¸‹æ–‡ã€‚',
-    repliesLoading: 'æ­£åœ¨åŠ è½½å›å¤â€¦',
-    replyPlaceholder: 'å›å¤è¿™æ¡æ¶ˆæ¯â€¦',
-    replyAction: 'å›å¤',
-    replySending: 'å‘é€ä¸­â€¦',
-    replyDeliveryHint: 'Enter å‘é€ Â· Shift+Enter æ¢è¡Œã€‚å°†åœ¨åå°å‘é€ç»™åŸ Sessionã€‚',
-    replyWorkspaceHint: 'Enter å‘é€ Â· Shift+Enter æ¢è¡Œã€‚å°†ç”±æ–° Agent å›çœ‹ä¸Šä¸‹æ–‡ã€‚',
-    replyYou: 'ä½ ',
-    replyAgent: '{{agent}} å›å¤äº†',
-    replyAgentWorking: '{{agent}} æ­£åœ¨å›å¤',
-    replyReconstructed: 'å·¥ä½œåŒºå›çœ‹',
-    replyWaiting: 'æ­£åœ¨å‡†å¤‡å›å¤â€¦',
-    replyFailed: 'æœªèƒ½å–å¾—å›å¤ã€‚',
-    replyNoAnswer: 'ä»»åŠ¡ç»“æŸï¼Œä½†æ²¡æœ‰ç•™ä¸‹å›å¤ã€‚',
-    continueSession: 'ç»§ç»­åŸä¼šè¯â€¦',
-    continueRun: 'å›åˆ°æ­¤æ¬¡ä»»åŠ¡çš„ä¼šè¯ç»§ç»­â€¦',
-    continuingSession: 'æ­£åœ¨æ‰“å¼€åŸä¼šè¯â€¦',
-    replyInWorkspace: 'åœ¨ {{label}} ä¸­å›å¤â€¦',
-    cannotReplyWorkspaceGone: 'å·¥ä½œåŒºå·²ä¸å­˜åœ¨â€”â€”æ— å¤„å›å¤ã€‚',
-    deleteEntryTitle: 'åˆ é™¤æ­¤æ¡ï¼ˆDelete / Backspaceï¼‰',
-    deleteEntryAriaLabel: 'åˆ é™¤æ­¤æ”¶ä»¶ç®±æ¡ç›®',
-    deleteConfirmTitle: 'åˆ é™¤è¿™æ¡æ”¶ä»¶ç®±æ¶ˆæ¯ï¼Ÿ',
-    deleteConfirmMessage: 'è¿™ä¼šä»æ”¶ä»¶ç®±ä¸­æ°¸ä¹…åˆ é™¤æ­¤æ›´æ–°ï¼Œä½†ä¸ä¼šåˆ é™¤ {{workspace}} ä¸­é“¾æ¥çš„æ–‡ä»¶ã€‚',
-    deleting: 'æ­£åœ¨åˆ é™¤â€¦',
-    deleteFailed: 'æ— æ³•åˆ é™¤è¿™æ¡æ”¶ä»¶ç®±æ¶ˆæ¯ã€‚æ¶ˆæ¯ä»ç„¶ä¿ç•™ï¼Œè¯·é‡è¯•ã€‚',
-  },
-  turnProgress: {
-    liveLabel: 'æ­£åœ¨å›å¤',
-    status: {
-      running: 'è¿›è¡Œä¸­',
-      completed: 'å®Œæˆ',
-      failed: 'å¤±è´¥',
-    },
-  },
-  templates: {
-    catalogTitle: 'å·¥ä½œåŒºæ¨¡æ¿',
-    catalogDescription:
-      'æ¯ä¸ªæ¨¡æ¿ç”Ÿæˆä¸€ç§ç‰¹å®šå½¢æ€çš„å·¥ä½œåŒºâ€”â€”agent æœ‰å“ªäº›å·¥å…·ã€ç›®å½•é‡Œæœ‰ä»€ä¹ˆåˆå§‹æ–‡ä»¶ã€ä¸ºå“ªç±»å·¥ä½œè€Œè®¾ã€‚ç‚¹å¼€æŸ¥çœ‹è¯¦æƒ…ï¼Œç„¶ååˆ›å»ºä¸€ä¸ªå®ä¾‹ã€‚',
-    emptyTitle: 'æ¨¡æ¿',
-    emptyBody: 'æœªå‘ç°ä»»ä½•æ¨¡æ¿ã€‚è¯·æ£€æŸ¥å‘å°„æ¶çš„æ¨¡æ¿ç›®å½•ã€‚',
-    communityTitle: 'ç¤¾åŒº',
-    communityDescription:
-      'ç¬¬ä¸‰æ–¹ç”Ÿæ€çš„æ‰“åŒ…æ¨¡æ¿â€”â€”åˆ›å»ºå·¥ä½œåŒºæ—¶ä»ä¸Šæ¸¸ä»“åº“å…¨æ–° cloneï¼Œç”±åŸä½œè€…ç»´æŠ¤ï¼Œè€Œé OpenAliceã€‚',
-    communityBadge: 'ç¤¾åŒº',
-    agentsLabel: 'Agents',
-    agentNotInstalled: 'æœ¬æœºæœªå®‰è£…',
-    readmeLabel: 'Readme',
-    loadingReadme: 'æ­£åœ¨åŠ è½½ READMEâ€¦',
-    noReadme: 'è¯¥æ¨¡æ¿è¿˜æ²¡æœ‰ READMEã€‚',
-    notFoundTitle: 'æœªæ‰¾åˆ°æ¨¡æ¿',
-    notFoundBody: 'æ²¡æœ‰åä¸º {{name}} çš„æ¨¡æ¿ã€‚',
-  },
-  workspace: {
-    sessionNotFound: 'è¿™ä¸ªä¼šè¯å·²ä¸å­˜åœ¨ã€‚',
-    sessionOpening: 'æ­£åœ¨æ‰“å¼€ä¼šè¯â€¦',
-    sessionDisconnected: 'äº¤äº’è¿æ¥å·²æ–­å¼€ã€‚',
-    interactiveOwnership: {
-      background: 'æ­¤ä¼šè¯æ­£åœ¨åå°æ‰§è¡Œä»»åŠ¡ï¼Œäº¤äº’è¿æ¥å·²é‡Šæ”¾ã€‚',
-      title: 'æ‰“å¼€äº¤äº’è¿æ¥ï¼Ÿ',
-      message: 'æ­¤ä¼šè¯è´Ÿè´£ Connector æ¶ˆæ¯æˆ–å·²åˆ†é…çš„ Issueã€‚æ‰“å¼€åä½ å°†æ¥ç®¡äº¤äº’ï¼›æ”¶åˆ°æ–°æ¶ˆæ¯ã€Issue è¯„è®ºæˆ–è‡ªåŠ¨åŒ–è§¦å‘æ—¶ï¼Œæ­¤è¿æ¥ä¼šè‡ªåŠ¨æ–­å¼€ï¼Œè®©åå°ä»»åŠ¡ç»§ç»­ã€‚ä¼šè¯å†å²ä¼šä¿ç•™ã€‚',
-      confirm: 'æ‰“å¼€è¿æ¥',
-      actions: 'ä¼šè¯æ“ä½œ',
-      disconnect: 'æ–­å¼€äº¤äº’è¿æ¥',
-    },
-    newWorkspace: 'æ–°å»ºå·¥ä½œåŒº',
-    overview: 'æ€»è§ˆ',
-    templates: 'æ¨¡æ¿',
-    overviewNavTitle: 'ä»¥å¡ç‰‡æ€»è§ˆæ‰€æœ‰å·¥ä½œåŒº',
-    templatesNavTitle: 'æµè§ˆå·¥ä½œåŒºæ¨¡æ¿',
-    emptySidebar: 'è¿˜æ²¡æœ‰å·¥ä½œåŒº',
-    deleteConfirm: 'è®©å·¥ä½œåŒºç¦»èŒï¼Ÿæ–‡ä»¶ä¼šç§»å…¥â€œå·²ç¦»èŒå·¥ä½œåŒºâ€ï¼Œä»¥åä»å¯æ¢å¤ã€‚',
-    offboardTitle: 'åŠç†å·¥ä½œåŒºç¦»èŒ',
-    offboardDescription: 'å°† {{workspace}} ç§»å‡ºæ´»è·ƒåŠå…¬åŒºï¼Œå¹¶ç”Ÿæˆå·¥ä½œäº¤æ¥è®°å½•ã€‚',
-    offboardLoading: 'æ­£åœ¨æ¸…ç‚¹å·¥ä½œç°åœºâ€¦',
-    offboardBlocked: 'è¯·å…ˆç»“æŸä»åœ¨æ‰§è¡Œçš„å·¥ä½œ',
-    offboardHandoffSnapshot: 'äº¤æ¥å¿«ç…§',
-    offboardSessions: 'Session è®°å½•',
-    offboardSignatures: 'ç­¾å',
-    offboardOpenIssues: 'æœªç»“ Issue',
-    offboardScheduledIssues: 'å®šæ—¶ Issue',
-    offboardDirtyFiles: 'æœªæäº¤æ–‡ä»¶',
-    offboardRunning: 'è¿è¡Œä¸­ Headless',
-    offboardReason: 'ç¦»èŒåŸå› ',
-    offboardReasonPlaceholder: 'ä¸ºä»€ä¹ˆè¿™ä¸ªå·¥ä½œåŒºè¦ç¦»å¼€æ´»è·ƒåŠå…¬åŒºï¼Ÿ',
-    offboardNotes: 'äº¤æ¥å¤‡æ³¨',
-    offboardNotesPlaceholder: 'æœªæ¥æ¢å¤è€…æˆ–ç»§ä»»è€…éœ€è¦çŸ¥é“ä»€ä¹ˆï¼Ÿ',
-    offboardWorking: 'æ­£åœ¨åŠç†ç¦»èŒâ€¦',
-    offboardConfirm: 'ç¡®è®¤åŠç†ç¦»èŒ',
-    runningCount: '{{count}} ä¸ªè¿è¡Œä¸­',
-    idle: 'ç©ºé—²',
-    rename: 'é‡å‘½åå·¥ä½œåŒº',
-    displayNamePrompt: 'å·¥ä½œåŒºæ˜¾ç¤ºåç§°',
-    spawnAgent: 'æ–°å»º {{agent}} ä¼šè¯',
-    spawn: 'æ–°å»ºä¼šè¯â€¦',
-    chooseAgent: 'é€‰æ‹©æ–°ä¼šè¯è¿è¡Œæ—¶',
-    configure: 'é…ç½®æ­¤å·¥ä½œåŒº',
-    deleteWorkspace: 'åŠç†å·¥ä½œåŒºç¦»èŒ',
-    headless: 'è‡ªåŠ¨ä»»åŠ¡',
-    headlessRunning: 'è‡ªåŠ¨ä»»åŠ¡â€”â€”{{count}} ä¸ªè¿è¡Œä¸­',
-    headlessAutomation: 'è‡ªåŠ¨ä»»åŠ¡',
-    openRun: 'å°†æ­¤æ¬¡ä»»åŠ¡ä½œä¸ºäº¤äº’ä¼šè¯æ‰“å¼€',
-    paused: 'å·²æš‚åœ',
-    active: 'è¿è¡Œä¸­',
-    running: 'è¿è¡Œä¸­',
-    resumeSession: 'ç»§ç»­â€œ{{title}}â€',
-    sessionRunning: 'è¿è¡Œä¸­ Â· {{title}}',
-    sessionNotResumable: 'æ— æ³•ç»§ç»­â€œ{{title}}â€',
-    archiveSession: 'å½’æ¡£â€œ{{title}}â€',
-    archiveSessionAction: 'å½’æ¡£',
-    restoreSession: 'æ¢å¤â€œ{{title}}â€',
-    restoreSessionAction: 'æ”¾å›åå†Œ',
-    sessionPresenceFailed: 'æ— æ³•æ›´æ–°è¿™ä¸ª Sessionã€‚',
-    sessionSource: {
-      issue: 'è®®é¢˜',
-      headless: 'åå°',
-      conversation: 'å¯¹è¯',
-    },
-    sessionSettings: {
-      action: 'è®¾ç½®',
-      openFor: 'â€œ{{title}}â€çš„è®¾ç½®',
-      title: 'Session è®¾ç½®',
-      description: 'é…ç½® {{name}} çš„æ˜¾ç¤ºåç§°ï¼Œä»¥åŠä¸‹æ¬¡æ¢å¤æ—¶ä½¿ç”¨çš„ AI ç»‘å®šã€‚',
-      displayName: 'æ˜¾ç¤ºåç§°',
-      displayNameHelp: 'åå†Œä¸Šçš„åŒäº‹åç‰Œã€‚ç•™ç©ºåˆ™å›é€€åˆ°ä¼šè¯æ ‡é¢˜ã€‚',
-      aiSection: 'è®¿é—®ã€æ¨¡å‹ä¸æ¨ç†å¼ºåº¦ Â· {{runtime}}',
-      aiPausedHint: 'åªæ”¹è¿™ä¸ªå·²æš‚åœçš„ Sessionã€‚å®ƒä¼šä¿æŒæš‚åœï¼Œæ–°é…ç½®åœ¨ä¸‹æ¬¡æ¢å¤æ—¶ç”Ÿæ•ˆã€‚',
-      pauseRequired: 'è¯·å…ˆæš‚åœè¿™ä¸ª Sessionï¼Œå†æ”¹ credentialã€æ¨¡å‹æˆ–æ¨ç†å¼ºåº¦ã€‚',
-      pauseAction: 'æš‚åœ',
-      save: 'ä¿å­˜æ›´æ”¹',
-      saving: 'ä¿å­˜ä¸­â€¦',
-    },
-    stopSession: 'æš‚åœâ€œ{{title}}â€',
-    deleteSession: 'åˆ é™¤â€œ{{title}}â€',
-    deleteSessionAction: 'åˆ é™¤ä¼šè¯',
-    notFound: 'æœªæ‰¾åˆ°å·¥ä½œåŒºï¼Œå®ƒå¯èƒ½å·²è¢«åˆ é™¤ã€‚',
-    newSession: 'æ–°ä¼šè¯',
-    newSessionTitle: 'åœ¨æ­¤å·¥ä½œåŒºä¸­æ–°å»ºä¼šè¯ï¼ˆâŒ˜Tï¼‰',
-    files: 'æ–‡ä»¶',
-    hideFilesTitle: 'éšè—æ–‡ä»¶é¢æ¿ï¼ˆç»ˆç«¯å…¨å®½ï¼‰',
-    showFilesTitle: 'æ˜¾ç¤ºæ–‡ä»¶é¢æ¿',
-    settings: 'è®¾ç½®',
-    emptyTitle: 'å·¥ä½œåŒº',
-    emptyBody: 'è¿˜æ²¡æœ‰å·¥ä½œåŒºã€‚è¯·ä»ä¾§æ æ–°å»ºï¼›æ¯ä¸ªå·¥ä½œåŒºéƒ½æ˜¯éš”ç¦»çš„ Git ç›®å½•ï¼Œå¹¶å¸¦æœ‰æŒä¹…ç»ˆç«¯ä¼šè¯ã€‚',
-    createFromTemplates: 'æµè§ˆæ¨¡æ¿',
-    dataUnavailableEyebrow: 'å·¥ä½œåŒºè¿æ¥',
-    dataUnavailableTitle: 'æš‚æ—¶æ— æ³•è¯»å–å·¥ä½œåŒº',
-    dataUnavailableDescription: 'OpenAlice æ— æ³•è¯»å–æ´»è·ƒå·¥ä½œåŒºæ¸…å•ã€‚è¿™é‡Œä¸ä¼šæŠŠå¤±è´¥è¯¯å½“æˆç©ºæ¸…å•ï¼Œä¹Ÿä¸ä¼šæŠŠç°æœ‰å·¥ä½œåŒºè§†ä¸ºå·²åˆ é™¤ã€‚',
-    dataUnavailableSidebar: 'æš‚æ—¶æ— æ³•è¯»å–å·¥ä½œåŒºæ¸…å•ã€‚ç°æœ‰å¯¹è¯æ²¡æœ‰è¢«æ¸…ç©ºã€‚',
-    dataStale: 'å®æ—¶åˆ·æ–°å¤±è´¥ï¼Œå½“å‰æ˜¾ç¤ºçš„æ˜¯æœ€è¿‘ä¸€æ¬¡æˆåŠŸè¯»å–çš„å·¥ä½œåŒºæ•°æ®ã€‚',
-    templatesUnavailableTitle: 'æš‚æ—¶æ— æ³•è¯»å–å·¥ä½œåŒºæ¨¡æ¿',
-    templatesUnavailableDescription: 'OpenAlice æ— æ³•è¯»å–æ¨¡æ¿ç›®å½•ã€‚åœ¨æ¢å¤ä¹‹å‰ï¼ŒAutoQuant åˆå§‹åŒ–å’Œæ–°å»ºå·¥ä½œåŒºå°†æš‚åœã€‚',
-    templatesUnavailableSidebar: 'æš‚æ—¶æ— æ³•è¯»å–å·¥ä½œåŒºæ¨¡æ¿ç›®å½•ã€‚',
-    templatesStale: 'æ¨¡æ¿ç›®å½•åˆ·æ–°å¤±è´¥ï¼›ç°æœ‰å·¥ä½œåŒºä»å¯ç»§ç»­ä½¿ç”¨ã€‚',
-    activeInventoryUnavailable: 'æ´»è·ƒå·¥ä½œåŒºæ¸…å•æš‚æ—¶ä¸å¯ç”¨ï¼›å·²ç¦»èŒè®°å½•ä»å¯æŸ¥çœ‹ã€‚',
-    activeCountUnavailable: 'æ´»è·ƒæ•°é‡ä¸å¯ç”¨',
-    overviewTitle: 'å·¥ä½œåŒºæ€»è§ˆ',
-    workspaceSingular: '{{count}} ä¸ªå·¥ä½œåŒº',
-    workspacePlural: '{{count}} ä¸ªå·¥ä½œåŒº',
-    other: 'å…¶ä»–',
-    departedTitle: 'å·²ç¦»èŒå·¥ä½œåŒº',
-    departedDescription: 'å·²ç¦»èŒå·¥ä½œåŒºä½äºæ´»è·ƒå·¥ä½œåŒºç›®å½•ä¹‹å¤–ã€‚æ¢å¤ä¼šå¸¦å›åŸæ£€å‡ºå’Œä¼šè¯ç­¾åï¼›æ°¸ä¹…æ¸…ç†ä¼šåˆ é™¤æ–‡ä»¶ï¼Œä½†ä¿ç•™å†å²å¢“ç¢‘ã€‚',
-    departedNoReason: 'æœªè®°å½•ç¦»èŒåŸå› ã€‚',
-    departedAbsorbedInto: 'å·¥ä½œæ–‡ä»¶å·²å®¡æ ¸å¹¶åˆå¹¶åˆ°',
-    departedSessionSingular: '{{count}} ä¸ªä¼šè¯',
-    departedSessionPlural: '{{count}} ä¸ªä¼šè¯',
-    departedOpenIssueSingular: '{{count}} ä¸ªæœªç»“è®®é¢˜',
-    departedOpenIssuePlural: '{{count}} ä¸ªæœªç»“è®®é¢˜',
-    departedLegacyImport: 'æ—§ç‰ˆå¯¼å…¥',
-    departedLifecycle: {
-      active: 'æ´»è·ƒ',
-      offboarding: 'æ­£åœ¨åŠç†ç¦»èŒ',
-      departed: 'å·²ç¦»èŒ',
-      restoring: 'æ­£åœ¨æ¢å¤',
-      purging: 'æ­£åœ¨æ°¸ä¹…æ¸…ç†',
-      purged: 'å·²æ°¸ä¹…æ¸…ç†',
-    },
-    restoreWorkspace: 'æ¢å¤',
-    restoreWorkspaceAria: 'æ¢å¤ {{workspace}}',
-    restoringWorkspace: 'æ­£åœ¨æ¢å¤â€¦',
-    purgeFiles: 'æ°¸ä¹…æ¸…ç†æ–‡ä»¶',
-    purgeFilesAria: 'æ°¸ä¹…æ¸…ç† {{workspace}} çš„æ–‡ä»¶',
-    purgeWorking: 'æ­£åœ¨æ°¸ä¹…æ¸…ç†â€¦',
-    purgeConfirmTitle: 'æ°¸ä¹…æ¸…ç† {{workspace}}ï¼Ÿ',
-    purgeConfirmMessage: 'è¿™ä¼šæ°¸ä¹…åˆ é™¤ {{workspace}} çš„å½’æ¡£æ£€å‡ºã€äº¤äº’ä¼šè¯è®°å½•å’Œ Shell å†å²è¾“å‡ºï¼Œä¸”æ— æ³•æ¢å¤ã€‚OpenAlice ä»ä¼šä¿ç•™ç›®å½•å¢“ç¢‘ã€å·²é€€å½¹èº«ä»½ã€æ— å¤´è¿è¡Œå†å²ã€æ”¶ä»¶ç®±æ¡ç›®å’Œäº§ç‰©æº¯æºã€‚',
-    activeAgo: 'æ´»è·ƒäº{{time}}',
-    sessions: 'ä¼šè¯',
-    noSessions: 'è¿˜æ²¡æœ‰ä¼šè¯',
-    viewAllSessions: 'æŸ¥çœ‹å…¨éƒ¨ {{count}} ä¸ªä¼šè¯',
-    fromTemplate: 'æ¥è‡ª {{template}} v{{version}}',
-    override: 'å·¥ä½œåŒºè¦†ç›–é…ç½® Â· {{agents}}',
-    templateUpgrade: 'æŸ¥çœ‹ v{{from}} â†’ v{{to}} çš„æ¨¡æ¿èµ„äº§å˜æ›´ã€‚',
-    upgradeLoading: 'æ­£åœ¨ç”Ÿæˆä¸‰æ–¹å‡çº§é¢„è§ˆâ€¦',
-    upgradeUnavailableTitle: 'æ­¤æ¨¡æ¿ä¸æ”¯æŒåŸåœ°å‡çº§',
-    upgradeManagedAssets: 'æ¨¡æ¿ç®¡ç†èµ„äº§',
-    upgradeCurrentDescription: 'æ­¤å·¥ä½œåŒºå·²ä½¿ç”¨æœ€æ–°çš„æ¨¡æ¿åŸºçº¿ï¼›å®ƒè‡ªå·±çš„å®šåˆ¶å†…å®¹ä»ä¿æŒç‹¬ç«‹ã€‚',
-    upgradeDescription: 'è¿™é‡Œåªæ¯”è¾ƒç”± OpenAlice ç®¡ç†çš„è¯´æ˜å’Œ Skillã€‚ç ”ç©¶ã€æŠ¥å‘Šã€Issueã€å‡­æ®åŠå…¶ä»–å·¥ä½œäº§ç‰©ä¸ä¼šå‚ä¸å‡çº§ã€‚',
-    upgradeRefresh: 'åˆ·æ–°é¢„è§ˆ',
-    upgradeReadyShort: 'å¯æ›´æ–°',
-    upgradePreservedShort: 'ä¿ç•™',
-    upgradeConflictsShort: 'å¾…é€‰æ‹©',
-    upgradeLegacyBaseline: 'è¿™ä¸ªè€å·¥ä½œåŒºæ²¡æœ‰ä¿å­˜è¿‡æ¨¡æ¿å¿«ç…§ï¼Œå› æ­¤ OpenAlice å…ˆä»å®ƒçš„ Git æ ¹æäº¤é‡å»ºåŸºçº¿ï¼Œå†æ¯”è¾ƒæœ¬æ¬¡å˜æ›´ã€‚',
-    upgradeBlockedTitle: 'åº”ç”¨å‰éœ€è¦å…ˆæ•´ç†å·¥ä½œåŒº',
-    sourceUpgradeLoading: 'æ­£åœ¨ç”Ÿæˆ Harness æºç åˆå¹¶é¢„è§ˆâ€¦',
-    sourceUpgradeTitle: 'Harness æºç å‡çº§',
-    sourceUpgradeVerified: 'å·²é€šè¿‡ OpenAlice è®¤è¯',
-    sourceUpgradeUnverified: 'æœªç» OpenAlice è®¤è¯',
-    sourceUpgradeUnverifiedTitle: 'æ­¤ç‰ˆæœ¬å°šæœªé€šè¿‡ OpenAlice è®¤è¯',
-    sourceUpgradeUnverifiedDescription: 'å®ƒæ˜¯ Harness ä»“åº“ä¸­ä¸å¯å˜çš„ç¨³å®š tagï¼Œä¹Ÿé€šè¿‡äº†æ¸…å•æ ¡éªŒï¼Œä½† OpenAlice å°šæœªéªŒè¯å…¶è¿è¡Œè¡Œä¸ºã€‚ç»§ç»­å‰è¯·å®¡é˜…ä¿®æ”¹ã€‚',
-    sourceUpgradeChanges: 'ä¸Šæ¸¸ä¿®æ”¹äº† {{count}} ä¸ªæ–‡ä»¶',
-    sourceUpgradeChangesDescription: 'å‡çº§ä¼šæŠŠè¿™ä¸ªç²¾ç¡®çš„ä¸Šæ¸¸æäº¤åˆå¹¶è¿› Workspace åˆ†æ”¯ï¼›ä½ å·²ç»æäº¤çš„ Workspace å†å²ä¼šå®Œæ•´ä¿ç•™ã€‚',
-    sourceUpgradeApply: 'å®¡é˜…å®Œæˆï¼Œåº”ç”¨å·²è®¤è¯å‡çº§',
-    sourceUpgradeApplyUnverified: 'æˆ‘å·²äº†è§£ï¼Œåº”ç”¨æœªè®¤è¯å‡çº§',
-    sourceUpgradeComplete: 'Harness æºç å·²å‡çº§',
-    sourceUpgradeBlocker: {
-      active_runtime: 'è¯·å…ˆåœæ­¢æ´»è·ƒ Sessionã€headless ä»»åŠ¡å’Œ Studioã€‚',
-      working_tree_changes: 'è¯·å…ˆæäº¤æˆ–ä¸¢å¼ƒå·¥ä½œåŒºä¿®æ”¹ã€‚',
-      merge_conflicts: 'Workspace æäº¤ä¸ä¸Šæ¸¸å†²çªï¼Œéœ€è¦è®© Coding Agent å¤„ç†ã€‚',
-      incompatible_manifest: 'ç›®æ ‡ç‰ˆæœ¬æ²¡æœ‰å®ç°å—æ”¯æŒçš„ harness.json åè®®ã€‚',
-    },
-    upgradeBlockedSessions: 'è¯·æš‚åœå…¶ä¸­æ‰“å¼€çš„ Session å’Œ Headless å·¥ä½œï¼Œé¿å… Agent è¿è¡Œæ—¶è„šä¸‹çš„è¯´æ˜æ–‡ä»¶å‘ç”Ÿå˜åŒ–ã€‚',
-    upgradeBlockedSessionItem: '{{name}} Â· {{agent}} Â· {{surface}} ä»åœ¨æ‰“å¼€ã€‚',
-    upgradeBlockedHeadlessItem: '{{agent}} çš„ Headless è¿è¡Œ {{run}} ä»åœ¨å·¥ä½œã€‚',
-    upgradeSynchronousRun: 'åŒæ­¥è¿è¡Œ',
-    upgradeBlockedStaged: 'è¯·å…ˆæäº¤æˆ–å–æ¶ˆæš‚å­˜æ–‡ä»¶ï¼Œè®©æ¨¡æ¿å‡çº§æ‹¥æœ‰ä¸€æ¡å¹²å‡€ã€ç‹¬ç«‹çš„ Git æäº¤ã€‚',
-    upgradeReadyTitle: 'å¯ä»¥ç›´æ¥æ›´æ–°',
-    upgradeReadyDescription: 'æ¨¡æ¿ä¿®æ”¹äº†è¿™äº›æ–‡ä»¶ï¼Œè€Œå·¥ä½œåŒºæ²¡æœ‰ä¿®æ”¹ï¼›å®ƒä»¬ä¼šè‡ªåŠ¨åº”ç”¨ã€‚',
-    upgradePreservedTitle: 'ä¿ç•™ä½ çš„å®šåˆ¶',
-    upgradePreservedDescription: 'åªæœ‰å·¥ä½œåŒºæ”¹è¿‡è¿™äº›æ–‡ä»¶ï¼ŒOpenAlice ä¸ä¼šç¢°å®ƒä»¬ã€‚',
-    upgradeConflictTitle: 'éœ€è¦ä½ æ¥é€‰æ‹©',
-    upgradeMerged: 'å·²åˆå¹¶',
-    upgradeBaseCopy: 'æ—§ç‰ˆåŸºçº¿',
-    upgradeResolveInChat: 'åœ¨èŠå¤©ä¸­å¤„ç†',
-    upgradeConflictDescription: 'Git æ— æ³•è‡ªåŠ¨åˆå¹¶è¿™äº›ä¿®æ”¹ã€‚å¯ä»¥è®©å·¥ä½œåŒº AI åˆå¹¶å†²çªï¼Œä¹Ÿå¯ä»¥åœ¨ä¸‹æ–¹é€‰æ‹©ä¿ç•™å“ªä¸ªç‰ˆæœ¬ã€‚',
-    upgradeCompleteTitle: 'æ¨¡æ¿å‡çº§å®Œæˆ',
-    upgradeCompleteDescription: 'å·²åœ¨ Git æäº¤ {{commit}} ä¸­æ›´æ–° {{count}} ä¸ªç®¡ç†æ–‡ä»¶ï¼›å·¥ä½œåŒºä¸“å±ä¿®æ”¹å‡å·²ä¿ç•™ã€‚',
-    upgradeUnresolved: 'è¿˜æœ‰ {{count}} ä¸ªæ–‡ä»¶éœ€è¦é€‰æ‹©',
-    upgradeAllResolved: 'æ‰€æœ‰å†²çªéƒ½å·²é€‰æ‹©ã€‚',
-    upgradeNoConflicts: 'æ²¡æœ‰å†²çªï¼Œå¯ä»¥å®‰å…¨åº”ç”¨ã€‚',
-    upgradeApplying: 'æ­£åœ¨åº”ç”¨â€¦',
-    upgradeApply: 'åº”ç”¨å¹¶æäº¤',
-    upgradeKeepWorkspace: 'ä¿ç•™å·¥ä½œåŒº',
-    upgradeUseTemplate: 'é‡‡ç”¨æ¨¡æ¿',
-    upgradeCompare: 'æ¯”è¾ƒä¸¤ä¸ªç‰ˆæœ¬',
-    upgradeWorkspaceCopy: 'å·¥ä½œåŒºç‰ˆæœ¬',
-    upgradeTemplateCopy: 'æ¨¡æ¿ç‰ˆæœ¬',
-    upgradePreviewTruncated: 'é¢„è§ˆå·²æˆªçŸ­',
-    upgradeFileMissing: '[æ–‡ä»¶ä¸å­˜åœ¨]',
-    filterSessions: 'ç­›é€‰ä¼šè¯',
-    filterAll: 'å…¨éƒ¨',
-    filterRunning: 'è¿è¡Œä¸­',
-    filterPaused: 'å·²æš‚åœ',
-    filterArchived: 'å·²å½’æ¡£',
-    pickUp: 'ç»§ç»­ä¸Šæ¬¡çš„å·¥ä½œ',
-    or: 'æˆ–è€…',
-    continue: 'ç»§ç»­',
-    fromHarnessSource: 'Harness æ¥æº {{version}} Â· {{commit}}',
-  },
-  createWorkspace: {
-    dialogTitle: 'æ–°å»ºå·¥ä½œåŒº',
-    dialogSubtitle: 'åˆ›å»ºä¸€ä¸ªæ‹¥æœ‰ç‹¬ç«‹æ–‡ä»¶ã€Issue å’Œæ™ºèƒ½ä½“ä¸Šä¸‹æ–‡çš„æŒä¹…å·¥ä½œåŒºã€‚',
-    templateLabel: 'æ¨¡æ¿',
-    sourceVersionLabel: 'Harness ç‰ˆæœ¬',
-    sourceVersionHint: 'æ–°å·¥ä½œåŒºä¼šé”å®šåˆ°è¿™ä¸ªç²¾ç¡®çš„ä¸Šæ¸¸ç‰ˆæœ¬ã€‚',
-    communitySuffix: 'ï¼ˆç¤¾åŒºï¼‰',
-    tagLabel: 'Tag',
-    cancel: 'å–æ¶ˆ',
-    creating: 'åˆ›å»ºä¸­â€¦',
-    create: 'åˆ›å»ºå·¥ä½œåŒº',
-  },
-  auth: {
-    heading: 'ç™»å½• OpenAlice',
-    instruction: 'ç²˜è´´é¦–æ¬¡å¯åŠ¨æ—¶æ˜¾ç¤ºçš„ç®¡ç†å‘˜ä»¤ç‰Œã€‚',
-    adminTokenLabel: 'ç®¡ç†å‘˜ä»¤ç‰Œ',
-    signingIn: 'ç™»å½•ä¸­â€¦',
-    signIn: 'ç™»å½•',
-    noTokenHeading: 'æœªé…ç½®ç®¡ç†å‘˜ä»¤ç‰Œ',
-    loginFailed: 'ç™»å½•å¤±è´¥',
-    reconnecting: 'æ­£åœ¨é‡æ–°è¿æ¥ OpenAliceâ€¦',
-    backendUnavailableEyebrow: 'æ ¸å¿ƒæœåŠ¡ç¦»çº¿',
-    backendUnavailableHeading: 'OpenAlice å·²å¤±å»åç«¯è¿æ¥',
-    backendUnavailableRemoteHeading: 'OpenAlice å·²æ–­å¼€ä¸ {{target}} çš„è¿æ¥',
-    backendUnavailableDescription:
-      'è¿™ä¸æ˜¯æŸä¸ªé¡µé¢çš„æ•°æ®é”™è¯¯ã€‚å·¥ä½œåŒºã€è‡ªåŠ¨åŒ–å’Œäº¤æ˜“æ“ä½œéƒ½ä¾èµ– OpenAlice åç«¯ï¼Œå› æ­¤åœ¨æœåŠ¡æ¢å¤å“åº”å‰ï¼Œæ•´ä¸ªåº”ç”¨ä¼šæš‚æ—¶åœç”¨ã€‚',
-    backendUnavailableRemoteDescription:
-      'æœ¬åœ°æµè§ˆå™¨ä»åœ¨è¿è¡Œï¼Œä½† SSH éš§é“å·²ç»æ— æ³•è®¿é—®è¿œç«¯ OpenAlice Runtimeã€‚è¿œç«¯å·¥ä½œåŒºã€è‡ªåŠ¨åŒ–å’Œäº¤æ˜“æ“ä½œç°å·²æš‚åœã€‚',
-    backendUnavailableImpact:
-      'è¯·ä¿æŒæ­¤çª—å£æ‰“å¼€ã€‚è¿æ¥æ¢å¤åï¼Œä½ ä¼šè‡ªåŠ¨å›åˆ°å½“å‰é¡µé¢ã€‚',
-    backendUnavailableHelp:
-      'è¯·æ£€æŸ¥æ‰¿è½½æ­¤é¡µé¢çš„ OpenAlice è¿è¡Œæ—¶ï¼Œç„¶åé‡è¯•ã€‚å¦‚æœæ˜¯ä»ç»ˆç«¯å¯åŠ¨çš„ï¼Œè¯·ç¡®è®¤ pnpm dev æˆ– openalice up ä»åœ¨è¿è¡Œã€‚',
-    backendUnavailableRemoteHelp:
-      'è¯·æ£€æŸ¥æŒæœ‰æ­¤éš§é“çš„ç»ˆç«¯ï¼Œæˆ–é‡æ–°è¿è¡Œ openalice remote {{target}}ï¼Œç„¶åé‡è¯•ã€‚',
-    reconnectingRemote: 'æ­£åœ¨é‡æ–°è¿æ¥ {{target}}â€¦',
-    connectionType: 'è¿æ¥æ–¹å¼',
-    sshTunnel: 'SSH éš§é“',
-    remoteTarget: 'è¿œç«¯ç›®æ ‡',
-    localTunnelEndpoint: 'æœ¬åœ°éš§é“',
-    remoteRuntimeEndpoint: 'è¿œç«¯ Runtime',
-    retryNow: 'ç«‹å³é‡è¯•',
-  },
-  workbench: {
-    browser: 'æµè§ˆå™¨',
-    address: 'è¾“å…¥ç½‘å€ï¼ˆhttps://â€¦ï¼‰',
-    startBrowsing: 'å¼€å§‹æµè§ˆ',
-    enterAddress: 'è¾“å…¥ URL ä»¥æ‰“å¼€é¡µé¢',
-    invalidAddress: 'è¯·è¾“å…¥æœ‰æ•ˆçš„ HTTP æˆ– HTTPS åœ°å€ã€‚',
-    back: 'ä¸Šä¸€ä¸ªåœ°å€',
-    forward: 'ä¸‹ä¸€ä¸ªåœ°å€',
-    studioActions: 'Studio æ“ä½œ',
-
-    closeNamed: 'å…³é—­ {{name}}',
-    title: 'å·¥ä½œé¢æ¿',
-    resize: 'è°ƒæ•´å·¥ä½œé¢æ¿å®½åº¦',
-    tabs: 'å·¥ä½œé¢æ¿æ ‡ç­¾é¡µ',
-    add: 'åœ¨å·¥ä½œé¢æ¿æ‰“å¼€',
-    closeTab: 'å…³é—­å½“å‰æ ‡ç­¾é¡µ',
-    collapse: 'è¿”å›å¯¹è¯ / æŠ˜å é¢æ¿',
-  },
-}
+YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíë}uÑ:-jZ.¶›­–)Ş³V–×÷'BG—R²&W6÷W&6W2Òg&öÒrâöVâp ¢ò¢¢zèKÙ>KŠŞihrâG—VB2&W6÷W&6W6(i"×W7BÖF6‚Vâw2¶W’7G'V7GW&RW†7FÇ’â¢ğ¦W‡÷'B6öç7B¦ƒ¢&W6÷W&6W2Ò°¢7F–6¶W'3¢°¢&ÖVæ–ær#¢.Y
+¾K˜ûÈXúş˜ûÈ’"À¢'F—FÆR#¢.Šh8^XÈR"À¢&†–çB#¢%&ö¦V7BhùKé¾Šh8^‹XNk©ûÈÎ˜	®‹ø~Xúş˜’6¶–ÆÂYÊ‚6†BKŠŞKÛşyJûÈÎKˆŞY	tTåE2æÖBk{¾Xª[É^ZûÎ8""À¢&–×÷'D†–çB#¢.˜hºKˆ[Êh‰nZI®[ÊärõvV%ûÈÎjøş[ÊiÈZI¢S"¶”.ûÈÎh¾ŠêiÈZI¢3"Ö”.8.XúşZ¾XiY»îx˜~Y
+¾K˜ûÉ¾y»YÂ”BXúşXù[ˆ>ikx˜8""À¢'v÷&·76T†–çB#¢.ik6†B›¹ŠêNZèŠ8^h˜˜Šh8^XÈ^ûÉ¾[{.iÈ[z^KÙÎXË®Xú®YÊzîŠêN[©NyJYîiKXù8""À¢&V×G’#¢.‹ùk*iÈ’6†B[z^KÙÎXË®8""À¢&FVfVÇB#¢.›¹ŠêB"À¢&f–Æ&ÆR#¢.XúşyJx˜iÊÂ"À¢&Ö¶TFVfVÇB#¢.ŠëîK‹®ik6†B›¹ŠêB"À¢'v÷&·76W2#¢$6†B[z^KÙÎXË¢"À¢&Væ&ÆVB#¢.[{.Y
+şyJ‚"À¢&F—6&ÆVB#¢.[{.X[>™zÒ"À¢&Ö—76–ær#¢%6¶–ÆÂ{Ë®ZK"À¢&æ÷D–ç7FÆÆVB#¢.iÊ®ZèŠ8R"À¢&6†ævVB#¢'·¶6÷VçG×ÒKŠ®ih~K»n{Ë®ZKh‰niÈKúîiK’"À¢'&W7F÷&R#¢.i»Nikòh.ZHÒ"À¢'W6U6²#¢.KÛşyJ‚·¶æÖW×Ò"À¢&F—6&ÆR#¢.X[>™zÒ"À¢'&Wf–Wr#¢.zîŠêNŠh8^XÈ^ih~K»b"À¢'&Wf–WtVæ&ÆR#¢.ZèŠ8^h˜˜Y»îx˜~Y(ÎZû[©B6¶–ÆÎûÈÎKùŞyYX[nK¹n[z^KÙÎXË®ih~K»n8""À¢'&Wf–WtF—6&ÆR#¢.z{¾™šB7F–6¶W"6¶–ÆÂXø¢6ÆVFR™YÎX8şûÈÎY»îx˜~KùŞyY8.[{.iÈKÉ®ŠùŞXúşˆ;ŞK¸ŞŠë[é~K˜¾X˜Şy¨NŠûNiˆî8""À¢&6öæfÆ–7G2#¢.Kº^Kˆ¾ih~K»niÈiÊÎYËKúîiK8.K¸^XXŠëiˆîzîi»şhÚ.XéşiÊÎyKŠh8^XÈ^zêyny¨Nih~K»n8""À¢'Væ÷væVB#¢.™Ùîh™zêih~K»nûÉ®Šû~XX˜xŞYŞYŞh‰nz{¾‹["À¢'&WÆ6TÖævVB#¢.i»şhÚ.h™zêih~K»ny¨NKúîiK’"À¢&Ç’#¢.[©NyJ‚"À¢'6´æÖR#¢.Šh8^XÈ^YŞz{"À¢'6´–B#¢.Šh8^XÈR”B"À¢'fW'6–öâ#¢.x˜iÊÂ"À¢&–ÖvW2#¢.˜hºY»îx˜r"À¢&–×÷'B#¢.ZûÎXZ^Šh8^XÈR §ÒÀ¢Æ–6T†&æW73¢°¢'VçfW'6–öæVB#¢.[	®iÊ®Šë[ÙR"À¢&ÖævR#¢.zêyb"À¢&FW67&—F–öâ#¢$4Ä’Y(Î˜XŞZYr6¶–ÆÇ2yKÆ–6R&ö¦V7BhùKé¾ûÈÎXúşxºÎz¸¾K¨â6†N8WFõVçBY(ÂWFò&VF–7F–öâXØ~{ª~8.YŞKºNyK[Ù>X˜Ò&ö¦V7B‹ùŠÎi{nhš~ŠÎûÈÎ[{.Šë[Ù^x˜iÊÎKˆŞKº>Š™HZé®iz~x˜Xúşhš~ŠÎzˆ¾[¨ş8""À¢&Æ–VB#¢.[{.k:XZ^x˜iÊÂ"À¢&f–Æ&ÆR#¢%&ö¦V7BXúşyJx˜iÊÂ"À¢&Væ&ÆVB#¢.Y
+şyJ‚4Ä’"À¢&6öæf–t†–çB#¢.XXKùŞZÙYŞKºN[ÈX[>ûÈÎXhŞš(NŠxh¨ˆ;Şi»Nik8.KùŞZÙh‰nXØ~{ª~X˜Ş™Èi¨.XÎkK¾‹x>KÉ®ŠùŞûÉ¾iÊÎYËih~K»niKXªKÉ®‹ù¾XZ^jùN‹è>ûÈÎKˆŞKÉ®y»Nhê^Šhny¹n8""À¢'&Wf–Wr#¢.š(NŠxk:XZ^XØ~{ªr §ÒÀ ¢Ö—'&÷'3¢°¢&6æöæ–6Â#¢.K‹¾k©"À¢&Ö—'&÷"ÖöæÇ’#¢.K¸^iÈ™YÎX8ò"À¢&ÆVv7’#¢.iz~x˜XšşiÊÂ"À¢&Ö—'&÷"#¢.™YÎX8ò"À¢'6÷W&6R#¢.K‹¾k©"À¢&æõ6÷W&6R#¢.K‹¾k©{Ë®ZK8.K¸ŞXúşiú^™ˆ^‹ùKŠ®‹ùŠÎi{nXšşiÊÎûÈÎKˆŞKÉ®Šhny¹nX[nXh^Zë8""À¢'&–Ö'”†–çB#¢.›¹ŠêN™ˆ^Šû¾K‹¾k©8.Kˆ¾ikjZû‹ùŠÎi{n™YÎX8şûÈÎXh^ZëXşzk¾K™şXú®Zû[©NYÎKˆšXh^Zë8""À¢&6†V6¶–ær#¢.jÚ>YÊjZûyºî[Ù^(
+b"À¢'Væ6†V6¶VB#¢.iÊ®ˆ;ŞZèÎi[NjZû’"À¢&6†ævVB#¢.ZÙYÊ[zî[È""À¢&WVÂ#¢.Xh^ZëKˆˆ{B"À¢'66÷R#¢.j8iú^i[NKŠ®yºî[Ù^ûÈÎXÈ^hºÎˆI®iÊÎ8zK®Kè¾Y(Îz›®yºî[Ù^8.zÊnXû~™;îhê^8izk9^Šû¾Xùn8‹ø~ZJ~h‰nizk9^Šz>zy¨Nih~K»nûÈÎKº^Xø®‹h^X{®˜ŞXènKˆ®™™y¨NXh^ZëKÉ®KùŞyYK‹®iÊ®jZû8.‹ùiŠşXú®Šû¾[ú¾xZ~ûÈÎKˆŞiŠşhÈ{ºŞYÎjÚ^8""À¢'6÷W&6TöæÇ’#¢.™YÎX8ş{Ë®[	"À¢&Ö—'&÷$öæÇ’#¢.K¸^™YÎX8şZÙYÊ‚"À¢&'6VçB#¢.{Ë®ZK"À¢&F—&V7F÷'’#¢.yºî[ÙR §ÒÀ¢6¶–ÆÄÖævW#¢°¢6†ö÷6Uv÷&·76S¢.˜hº[z^KÙÎXË¢"À¢Æ7D'VæFÆS¢.Kˆ®jÊi[NZY~k:XZR"À¢–æ¦V7FVEfW'6–öã¢.[{.k:XZ^x˜iÊÂ"À¢&ö¦V7EfW'6–öã¢%&ö¦V7Bx˜iÊÂ"À¢7FGW3¢.x«nh"À¢Ö—'&÷%6†÷'C¢.™YÎX8şiÈ[zî[È""À¢Ö÷&S¢'··6¶–ÆÇ×Òy¨Ni»NZI®i8ŞKÙÂ"À¢–æ¦V7FVDC¢.k:XZ^K¨â"À¢'VæFÆUWFFW3¢.i[NZY~k:XZ^i»Nik"À ¢F—FÆS¢%6¶–ÆÇ2"À¢&÷F÷G—W3¢%&ö¦V7BXéşYè²"À¢6V&6ƒ¢.i	Î{J"6¶–ÆÇ2"À¢æõ&W7VÇG3¢.k*iÈXË˜XŞy¨B6¶–ÆÂ"À¢6÷–W3¢.[z^KÙÎXË®XšşiÊÂ"À¢&÷F÷G—S¢%&ö¦V7BXéşYè²"À¢&÷F÷G—T†–çC¢%&ö¦V7BKùŞyYk©ih~K»nûÉ¾YBv÷&·76RXúşZèŠ8^8Zé®X‹n8z{¾™šNh‰nh.ZHŞˆz®[{y¨NXšşiÊÎ8$4Ä’[ÈX[>xºÎz¸¾8""À¢–ç7FÆÃ¢.ZèŠ8R"À¢WFFS¢.i»Nik"À¢&VÖ÷fS¢.z{¾™šB"À¢&W7F÷&S¢.h.ZHŞXéşYè²"À¢66÷T†–çC¢.Xú®ZHNyn‹ùKŠ¢6¶–ÆÂXø®X[nKùŞyYXşZ[Ş8.X[nK¹b6¶–ÆÇ2Y(Â4Ä’[ÈX[>KùŞhÈXéşj~8""À¢&W7F÷&T†–çC¢.h.ZHŞ[nyJ‚&ö¦V7BXéşYè¾i»şhÚ.‹ùKŠ¢6¶–ÆÂy¨NiÊÎYËih~K»nûÈÎXÈ^hºÎ‹ùŠÎi{n™YÎX8ş8.[©NyJX˜ŞŠû~iú^yÈ¾X[~KÙ>ih~K»n[zî[È.8""À¢æ÷D–ç7FÆÆVC¢.iÊ®ZèŠ8R"À¢Ö—76–æu&–Ö'“¢.{Ë®[	K‹¾XšşiÊÂ"À¢7W7FöÖ—¦VC¢.iÈiÊÎYËZé®X‹b"À¢WFFTf–Æ&ÆS¢.Xúşi»Nik"À¢ÖF6†W3¢.KˆîXéşYè¾Kˆˆ{B"À¢VçfW&–f–VC¢.™ÈŠhj8iúR"À¢&WF–æVC¢.KùŞyY[›nXø.KˆîYî{ºŞi»Nik"À¢W†6ÇVFVC¢.[{.hé.™šNûÈÎXúş™¨şi{n˜xŞikZèŠ8R"À¢Ö—'&÷$F—fW&vVC¢$6ÆVFR™YÎX8şKˆîK‹¾XšşiÊÎZÙYÊ[zî[È.ûÈÎXúşYÊKˆ¾ikiú^yÈ¾KŠNKŠ®KØŞ{Úî8""À¢&Æö6¶VC¢.[Ù>X˜Ş[z^KÙÎXË®i¨.KˆŞXúşKúîiK8.h™>[Èi8ŞKÙÎš(NŠxXúşiú^yÈ¾X[~KÙ>XéşYº8""À¢6ö×&S¢.jùN‹è>ih~K»b"À¢F–ffW&VçC¢.iÈ[zî[È""À¢G'Væ6FVC¢.š(NŠx[{.hŠ®ijŞûÈÎŠû~iú^yÈ¾ZèÎi[Nih~K»nYîXhŞXk>Zé®8""À¢Æö6Ã¢.[z^KÙÎXË®XšşiÊÂ"À¢'6VçC¢.ih~K»nKˆŞZÙYÊ‚"À¢ÒÀ¢F—7G&–'WF–öã¢°¢6Æ”†–çC¢u&ö¦V7B‹ùŠÎi{nhùKé¾y¨NZèÎi[NYŞKºNyºî[Ù^8.[z^KÙÎXË®[ÈX[>K¸îKŠŞ˜hºXúşyJˆ;ŞX©¾ûÈÎiz™ÈK‹®jøşKŠ®[z^KÙÎXË®XÙ^xºÎXØ~{ªr4Ä8"rÀ¢F—FÆS¢%v÷&·76Rk:XZR"À¢FW67&—F–öã¢$Æ–6R&ö¦V7BhùKé²4Ä’‹ùŠÎi{nˆ;ŞX©¾Y(Â6¶–ÆÇ2k©ih~K»n8.jøşKŠ¢v÷&·76RxºÎz¸¾˜hºY
+şyJY:®K©¾YŞKºN8KùŞyYY:®K©²6¶–ÆÇ>ûÉ¾Xú®iÈ’6¶–ÆÂih~K»n™ÈŠhi‹î[Èşi»Nik8""À¢6¶–ÆÇ5fW'6–öã¢%6¶–ÆÇ2ih~K»nXÈR"À¢&VfW&Væ6W3¢.[z^KÙÎXË®XşZ[Ò"À¢&VfW&Væ6W4†–çC¢$4Ä’[ÈX[>Kˆâ6¶–ÆÂKùŞyYˆÈ>Y»NiŠşy»K©.xºÎz¸¾y¨N[z^KÙÎXË®XşZ[Ş8""À¢ÖævS¢.X˜Ş[è&ö¦V7Bzêyb"À¢¶VW6¶–ÆÇ3¢.KùŞyYy¨B6¶–ÆÇ2"À¢¶VW†–çC¢.XùnkhX»î˜Xúşz{¾™šN[z^KÙÎXË®XšşiÊÎûÉ¾˜xŞikX»î˜YîXúşK¸â&ö¦V7Bk©ih~K»nŠ8^Y¹î8.iÊÎYËKúîiKKÉ®XX‹ù¾XZ^jùN‹è>ûÈÎKˆŞKÉ®Š*¾™Ù›¹Šhny¹n8""À¢6fT†–çC¢.KùŞZÙYâ4Ä’[ÈX[>z¸¾XÛ>yIşiXûÉµ6¶–ÆÂXşZ[ŞYÊ‚&ö¦V7Bzêynš^i»Nikih~K»ni{n[©NyJ8""À¢v÷&·76W3¢.[z^KÙÎXË¢"À¢6÷W&6S¢%6¶–ÆÇ2k©ih~K»b"À¢&F6„†–çC¢.hÈ[Ù>X˜Şš(NŠxh›˜xşi»NikizXk.z¨š8.[ùz(Îh‰niÈXk.z¨y¨N[z^KÙÎXË®KÉ®‹{>‹ø~ûÈÎjøşKŠ®[z^KÙÎXË®xºÎz¸¾hùKªN8""À¢WFFU&VG“¢.i»NikXúşZHNynšûÈ‡·¶6÷VçG×ŞûÈ’"À¢V×G“¢.[Ù>X˜Ò&ö¦V7B‹ùk*iÈ[z^KÙÎXË®8""À¢&Wf–Ws¢.iú^yÈ¾Xùi»B"À¢WFFVC¢.[{.i»Nik"À¢&Wf–Wt†–çC¢.‹ù˜xÎXú®i»Nik6¶–ÆÇ2ih~K»nûÈÎKˆŞiKXù[z^KÙÎXË¢†&æW72ˆz®‹ª¾x˜iÊÎh‰b4Ä’‹ùŠÎi{n8""À¢6÷W&6T†–çC¢.‹ù˜xÎiŠş[Ù>X˜Ò&ö¦V7BhùKé¾y¨Nk©ih~K»nûÈÎKˆŞiŠşiùKŠ®[z^KÙÎXË®y¨NXšşiÊÎ8""À¢'&÷w6S¢.iú^™ˆ^ih~K»b"À¢W'&÷#¢.izk9^Šû¾Xùb"À¢'W7“¢.i¨.KˆŞXúşi»Nik"À¢6öæfÆ–7G3¢.™ÈŠhZHNynXk.z¨"À¢WFFS¢.Xúşi»Nik"À¢&V6÷&C¢.[è^Šë[Ù^x˜iÊÂ"À¢7W7FöÖ—¦VC¢.iÈiÊÎYËZé®X‹b"À¢7W'&VçC¢.[{.iŠş[Ù>X˜Şx˜iÊÂ"À¢ÒÀ¢6&–Æ—F–W3¢°¢÷væW$Æ–6S¢$Æ–6R†&æW72k:XZR"À¢÷væW%v÷&·76S¢%v÷&·76Rˆz®[Šb"À¢÷væW%Væ¶æ÷vã¢.iÚ^k©[è^zîŠêB"À¢÷væW$Æ–6T†–çC¢.yKÆ–6R&ö¦V7Bk:XZ^[.zêyn8.iÊÎYËKúîiKK¸Ş[îK¨îjÚN[z^KÙÎXË®ûÈÎXØ~{ª~i{nKÉ®XXjùN‹è>XhŞZHNyn8""À¢÷væW%v÷&·76T†–çC¢.iÚ^ˆz®[z^KÙÎXË®jŠiÛşh‰nYî{ºŞiÊÎYËikZ)îûÈÎ™¨òv÷&·76Rˆz®‹ª¾{»NhªNûÈÎKˆâÆ–6R†&æW72k:XZ^[.xºÎz¸¾8""À¢÷væW%Væ¶æ÷vä†–çC¢.iÚ^k©kˆ^XÙ^i¨.i{nizk9^Šû¾Xùn8.K¸ŞXúşiú^™ˆ^ih~K»nXh^ZëûÈÎi¨.KˆŞhêijŞ[Ù.[î8""À¢6Æ”÷væW$†–çC¢.‹ù˜xÎ[^zK¢Æ–6R†&æW72hùKé¾y¨B4ÄûÈÎZéîi{nkˆ^XÙ^XøŞiŠjÚN[z^KÙÎXË®y¨N[ÈX[>˜XŞ{ÚîûÉ¾KˆŞXÈ^Y
+¾[z^KÙÎXË®ˆz®ŠÎZèŠ8^y¨NX[nK¹nYŞKºN8""À ¢'6V&6‚#¢.i	Î{J.YŞz{KˆîXh^Zë(
+b"À¢&6÷’#¢.ZHŞX‹nYŞKºB"À¢&6÷”f–ÆVB#¢.ZHŞX‹nZK‹J^ûÈÎŠû~˜KŠŞYŞKºNh˜¾XªZHŞX‹n8""À¢'f–Wr#¢.ih~j>ŠxnY»â"À¢'&VB#¢.™ˆ^Šû²"À¢'6÷W&6R#¢.k©z"À¢&f–ÆW2#¢.™˜N[Šnih~K»b"À¢&&6²#¢.‹ùNY¹îX‰~Š‚"À¢'6¶–ÆÇ2#¢%6¶–ÆÇ2"À¢&–ç7G'V7F–öç2#¢.hÈ~KºB"À¢&–æ¦V7F–öâ#¢.k:XZ^ŠûNiˆâ"À¢&6Æ’#¢$4Ä’YŞKºNXø.ˆ2"À¢&6÷–W2#¢'·¶6÷VçG×ÒK»Şy»YÎXšşiÊÂ"À¢'v÷&·76Tf–ÆR#¢.[z^KÙÎXË®Zéî™˜^ih~K»b"À¢&7GVÄ†–çB#¢.y»Nhê^Šû¾Xùn[Ù>X˜Ş[z^KÙÎXË®8.ih~K»nYŞKˆŞˆ;ŞŠøiˆîiÚ^k©ûÈÎK™şKˆŞKº>Š‹ùŠÎi{n[{.Xª‹ÛŞ8""À¢'6¶–ÆÇ4†–çB#¢.iú^™ˆRv÷&·76Rh¨ˆ;ŞK‹¾k©Kˆî‹ùŠÎi{n™YÎX8ş8""À¢&–ç7G'V7F–öç4†–çB#¢.iú^yÈ¾‹ùKŠ®[z^KÙÎXË®[Ù>X˜ŞZéî™˜^KùŞZÙy¨NhÈ~KºNih~K»n8""À¢&V×G’#¢.k*iÈXË˜XŞy¨NXh^Zë8""À¢&Æ—fR#¢.Zéîi{nYŞKºNkˆ^XÙR"À¢&6Æ”†–çB#¢.K¸î[Ù>X˜Ş[z^X[~k:XhÎŠiú^™ˆ^YŞKºNXˆn{¸N8yJ˜	NKˆîXø.i[8""À¢&6öÖÖæG2#¢.YŞKºB"À¢&6öÖÖæB#¢.YŞKºB"À¢'&ÖWFW'2#¢.Xø.i["À¢'&WV—&VB#¢.[ø^Z²"À¢&FVfVÇB#¢.›¹ŠêNXÂ"À¢&æõ&ÖWFW'2#¢.k*iÈZ;iˆîXø.i[ûÈÎZèÎi[NZY{ªnŠû~iú^yÈ¾XéşZx²66†VÖ8""À¢'66†VÖ#¢.XéşZx¾Xø.i[66†VÖ"À¢&æôW†V7WFR#¢.‹ù˜xÎXú®hùKé¾iú^™ˆ^8.ZHŞX‹nKˆŞKÉ®hš~ŠÎYŞKºNûÉ¾KÛşyJX˜ŞŠû~Š^XZ[ø^Z¾Xø.i[8""À¢&F—6²#¢.[z^KÙÎXË®˜xÎXúşXùxëy¨Nih~K»b"À¢&F—6´†–çB#¢.Kº^Kˆ¾h¨ˆ;Şyºî[Ù^Zéî™˜^ZÙYÊK¨î[Ù>X˜Ş[z^KÙÎXË®8.iÊÎš^j8iú^X[Kª²vVçN86ÆVFRKˆâ’h¨ˆ;Şyºî[Ù^8""À¢&F—66÷fW'”†–çB#¢.ih~K»nZÙYÊKˆŞKº>ŠiùKŠ®‹ùŠÎi{n[{.{¸şXª‹ÛŞ8.X[nK¹nXéşyIşyºî[Ù^Xø®yJh‹~{ª~h¨ˆ;ŞKˆŞYÊiÊÎš^kˆ^XÙ^ˆÈ>Y»NXh^8""À¢''VçF–ÖR#¢.Y
+şXªKÉ®ŠùŞi{n‹ùîhêR"À¢''VçF–ÖT†–çB#¢$÷VäÆ–6R˜	®‹ø~‹ù¾zˆ¾xêşZ(>hùKé¾[z^KÙÎXË®‹ª¾K»ŞY(Â4Ä’XZ^Xú>ûÉ¾jŠYè¾KˆîŠëş™zî˜XŞ{ÚîyKh˜˜’vVçB˜.˜XŞYšZHNyn8""À¢'6V7&WG4†–çB#¢.‹ù˜xÎŠûNiˆîY
+şXªZY{ªnûÈÎKˆŞŠû¾Xùn‹ùŠÎKŠŞ‹ù¾zˆ¾y¨NxêşZ(>8.KˆŞKÉ®[^zK®XzŞhÚîY(ÎxêşZ(>Xù˜xşKŠŞy¨NzyZønXÎ8""À¢'Ww&FW2#¢.XúşhÈ{ºŞkÉN‹ù¾y¨N[z^KÙÎXË®[ú¾xZr"À¢'Ww&FW4†–çB#¢.[z^KÙÎXË®ih~K»nXúşKº^xºÎz¸¾K¨îjŠiÛşKúîiK8.X‰¾[»®i{nZHŞX‹ny¨Nh¨ˆ;ŞKˆŞKÉ®jøşjÊY
+şXªŠ*¾™Ù›¹Šhny¹nûÉ¾jŠiÛşi»Nik˜	®‹ø~i‹î[ÈşXØ~{ª~kXzˆ¾ZHNyn8" §ÒÀ¢v÷&·76TFWF–Ç3¢°¢F—FÆS¢.[z^KÙÎXË®Šúnh8R"À¢&6³¢.‹ùNY¹îKÉ®ŠùÒ"À¢æ÷Df÷VæC¢.jÚB†&æW72KŠŞk*iÈXúşyJy¨NŠú^[z^KÙÎXË®8""À¢†&æW73¢$†&æW72"À¢7&VFVC¢.X‰¾[»®i{n™{B"À¢&6VÆ–æS¢.[{.[©NyJy¨NjŠiÛò"À¢6÷W&6UfW'6–öã¢.[{.ZèŠ8^y¨B†&æW72iÚ^k©x˜iÊÂ"À¢&W÷6—F÷'“¢.iÚ^k©K¹>[©2"À¢Æö6F–öã¢.iÊÎYËyºî[ÙR"À¢Fö7VÖVçG3¢.[z^KÙÎXË®ih~j2"À¢÷fW'f–Ws¢.[z^KÙÎXË®jh.Šx‚"À¢wV–FS¢$†&æW72hÈ~XÙr"À¢÷fW'f–Wt†–çC¢.jÚN[z^KÙÎXË®Xh^y¨B$TDÔRæÖN8.Xh^ZëyK[z^KÙÎXË®zêynûÈÎKÉ®™¨şyØKÚy¨NKÛşyJˆÎXùXÉn8""À¢wV–FT†–çC¢.[Ù>X˜ŞjŠiÛşyºî[Ù^hùKé¾y¨NXø.ˆ>ŠûNiˆîûÈÎ[›n™ÙîjÚN[z^KÙÎXË®y¨NZéîi{n˜XŞ{Úî8""À¢æõ&VFÖS¢.jÚN[z^KÙÎXË®‹ùk*iÈ’$TDÔRæÖN8.KÚXúşKº^Šê’vVçBi+XiKˆK»ŞŠûNiˆîûÈÎK¸¾{¸ŞZè>y¨NyJ˜	NY(ÎXh^Zë8""À¢æôwV–FS¢.i¨.iz†&æW72hÈ~XÙ~8""À¢ÒÀ¢&ö¦V7E6WGW¢²6öææV7E“¢~K‹¢6†B˜XŞ{Úâ’y¨B’hùKé¾ik’rÂF—FÆS¢~˜:Xˆn[z^KÙÎXË®[	®iÊ®XxnZH~ZèÎh‰rÂFW67&—F–öã¢~šyºî[{.X‰¾[»®8.XúşKº^˜xŞŠù^XxnZH~XšKÙ[z^KÙÎXË®ûÈÎK™şXúşKº^XXKÛşyJ[{.[{º®y¨N[z^KÙÎXË®8"rÂVæF–æs¢~zØ[è^XxnZHrrÂ&W&–æs¢~jÚ>YÊXxnZH~(
+brÒÀ¢V–6µ7F'C¢²6†ö÷6T†&æW73¢~˜hº’†&æW72rÒÀ¢æc¢°¢V–6µ7F'C¢uV–6²7F'BrÀ¢vVæW&Ä6†C¢t6†BrÀ¢†&æW74Æ&VÃ¢w·¶æÖW×Ò†&æW72rÀ¢—FVÓ¢°¢–æ&÷ƒ¢~iKnK»nzërÀ¢G&6¶VC¢~‹ûŞ‹Š¢rÀ¢6†C¢~™zâÆ–6RrÀ¢WFõVçC¢tWFòVçBrÀ¢WFõ&VF–7F–öã¢tWFò&VF–7F–öârÀ¢v÷&·76W3¢~[z^KÙÎXË¢rÀ¢Ö&¶WC¢~[ˆ.YË¢rÀ¢æWw3¢~ik™{²rÀ¢öff–6S¢~X©îXZÎZêBrÀ¢G&F–æt4v—C¢~KªNi‰>XÛ2v—BrÀ¢G&F–æs¢~KªNi‰2rÀ¢÷'FföÆ–ó¢~h©^‹XN{¸NY‚rÀ¢6öææV7F÷'3¢~‹ùîhê^Yš‚rÀ¢—77VS¢~Šêîš)‚rÀ¢WFöÖF–öã¢~ˆz®XªXÉbrÀ¢6WGF–æw3¢~Šëî{ÚârÀ¢ÒÀ¢6V7F–öã¢°¢&WF¢~kX¾Šù^x˜‚rÀ¢7—7FVÓ¢~{;¾{¹òrÀ¢ÒÀ¢&WFFW67&—F–öã ¢~[{.XúşyJûÈÎKØnx«nhjŠYè¾Y(ÂU‚K¸ŞXúşˆ;ŞXùXÉn8.˜XŞ{ÚîK¸ŞYÊ(	ÎŠëî{Úî(	ŞKŠŞzêyn8"rÀ¢Vç&VC¢w·¶6÷VçG×ÒiÚiÊ®Šû²rÀ¢VæF–æuW6ƒ¢w·¶6÷VçG×ÒzÉN[è^hê˜rÀ¢6öææV7F÷$æVVG4GFVçF–öã¢w·¶6÷VçG×ÒKŠ®‹ùîhê^Yš™ÈŠhZHNybrÀ¢&÷WC¢~X[>K¨ç·¶Æ&VÇ×ÒrÀ¢&–Ö'”æf–vF–öã¢~K‹¾ZûÎˆŠ¢rÀ¢–÷W$Æ–6S¢u–÷W"Æ–6RrÀ¢Æ–6F–öäÖVçS¢u–÷W"Æ–6^ûÉ®h™>[È[©NyJˆùÎXÙRrÀ¢V&æ6TÖVçS¢~ZInŠx.ûÉ§·¶ÖöFW×ÒrÀ¢6öÆÆ6U&–Ã¢~h©XúkK¾XªjòrÀ¢W‡æE&–Ã¢~[^[ÈkK¾XªjòrÀ¢ÒÀ¢FVÖô&ææW#¢°¢&FvS¢~kÉNzK¢rÀ¢6ö×7C¢~[Ù^X‹nš(NŠx‚rÀ¢FW67&—F–öã¢~KÚjÚ>YÊiú^yÈ¾XÈ^Y
+¾[Ù^X‹ni[hÚîy¨B÷VäÆ–6R[ú¾xZ~8.i»NiKKˆŞKÉ®KùŞZÙûÉµvV"Y¹îZHŞK‹®jŠh¹şyIşh‰8"rÀ¢–ç7FÆÃ¢~ZèŠ8R÷VäÆ–6RrÀ¢ÒÀ¢—77VW3¢°¢FW67&—F–öã¢~™¸nKŠŞiú^yÈ¾h˜iÈ[z^KÙÎXË®‹ûŞ‹Š®y¨N[z^KÙÎ8"rÀ¢6WGF–æw3¢~Šêîš)Šëî{ÚârÀ¢ÆöDW'&÷#¢~Šêîš)Xª‹ÛŞZK‹J^ûÉ§·¶W'&÷'×ÒrÀ¢Væ¶æ÷väW'&÷#¢~iÊ®yú^™IŠúòrÀ¢7FÆS¢~Zéîi{nX‹~ikZK‹J^ûÈÎ[Ù>X˜Şi‹îzK®Kˆ®jÊ[{.yú^y¨NŠêîš)8"rÀ¢V×G•F—FÆS¢~‹ùk*iÈ[z^KÙÎXË®X‰¾[»®Šêîš)8"rÀ¢V×G•&Vf—ƒ¢~[z^KÙÎXË®Xúş˜	®‹ø~XiXZRrÀ¢V×G•7Vff—„&Vf÷&Uv†Vã¢riÚ^‹ûŞ‹Š®Šêîš)ûÉ¾k{¾XªrÀ¢V×G•7Vff—„gFW%v†Vã¢rZÙ~jë^YîXÛ>Xúşˆz®Xª‹>[ªn8"rÀ¢Vç&VF&ÆUv÷&·76S¢~izk9^Šû¾XùnjÚN[z^KÙÎXË®y¨NŠêîš)8"rÀ¢÷Vä—77VS¢~h™>[È·¶–G×ÒrÀ¢76–väöäf—'7E'Vã¢~šinjÊ‹ùŠÎi{nhÈ~kKârÀ¢GWÆ–6FTöæS¢~YŞz{˜xŞZHŞ(	N(	NXúniÈ’KŠ®[z^KÙÎXË®K™şYÊKÛşyJ8%µ¶æÖUÕÒiŠşXZ[Xú^iøNûÈÎŠû~h˜¾XªŠz>Xk>Xk.z¨8"rÀ¢GWÆ–6FTÖç“¢~YŞz{˜xŞZHŞ(	N(	NXúniÈ’·¶6÷VçG×ÒKŠ®[z^KÙÎXË®K™şYÊKÛşyJ8%µ¶æÖUÕÒiŠşXZ[Xú^iøNûÈÎŠû~h˜¾XªŠz>Xk>Xk.z¨8"rÀ¢GWÆ–6FTÆ&VÃ¢~ZI®KŠ®[z^KÙÎXË®ZÙYÊYÎYŞŠêîš)‚rÀ¢GWÆ–6FU6†÷'C¢~˜xŞZHÒrÀ¢v÷&·76UF—FÆS¢~[z^KÙÎXË®ûÉ§··v÷&·76W×ŞûÈ‡·¶–G×ŞûÈ’rÀ¢—77VT–EF—FÆS¢~Šêîš)‚”NûÉ§·¶–G×ÒrÀ¢76–væVUF—FÆS¢~‹Iş‹J>K«®ûÉ§·¶76–væVW×ÒrÀ¢vVçD÷fW'&–FUF—FÆS¢tvVçB‹ùŠÎi{nŠhny¹nûÉ§·¶vVçG×ÒrÀ¢vVçD÷fW'&–FU6†÷'C¢w·¶vVçG×ÒŠhny¹brÀ¢6öÆÆ6U7FGW3¢~h©Xú(	Ç··7FGW7×Ş(	ŞŠêîš)‚rÀ¢W‡æE7FGW3¢~[^[È(	Ç··7FGW7×Ş(	ŞŠêîš)‚rÀ¢7FGW3¢°¢–å÷&öw&W73¢~‹ù¾ŠÎKŠÒrÀ¢FöFó¢~[è^X©ârÀ¢&6¶Æös¢~[è^hé.iÉòrÀ¢FöæS¢~[{.ZèÎh‰rÀ¢6æ6VÆVC¢~[{.Xùnkh‚rÀ¢ÒÀ¢†VÇFƒ¢°¢–æ7F—fS¢~iÊ®Y
+şyJ‚rÀ¢æ÷E÷7F'FVC¢~[	®iÊ®[ÈZx²rÀ¢GVS¢~zØ[è^‹ùŠÂrÀ¢'Vææ–æs¢~‹ùŠÎKŠÒrÀ¢†VÇF‡“¢~jÚ>[‹‚rÀ¢–çFW''WFVC¢~[{.KŠŞijÒrÀ¢f–ÆVC¢~ZK‹JRrÀ¢&Æö6¶VC¢~Xù~™‹²rÀ¢ÒÀ¢FWF–Ã¢°¢v÷&´—FVÓ¢~[z^KÙÎš’rÀ¢÷væW'6†—¢~[Ù.[ârÀ¢vVçC¢~i›®ˆ;ŞKÙ2rÀ¢v÷&´—FVÔFW67&—F–öã¢~‹Iş‹J>K«®Y(ÎŠêX‰.˜;Ş[îK¨î‹ùKŠ®Šêîš)8"rÀ¢6V7F–öäæf–vF–öã¢~Šêîš)XˆnXË¢rÀ¢&WÇ”æf–vF–öã¢~Y¹îZHÒrÀ¢7FGW3¢~x«nhrÀ¢&–÷&—G“¢~KÉXX{ªrrÀ¢76–væVS¢~‹Iş‹J>K«¢rÀ¢6FVæ6S¢~‹ùŠÎŠêX‰"rÀ¢66†VGVÆS¢~‹ùŠÎŠêX‰"rÀ¢W†V7WF–öã¢~hš~ŠÎ˜XŞ{ÚârÀ¢'VçF–ÖS¢~‹ùŠÎi{brÀ¢7&VFVçF–Ã¢~XzŞŠørÀ¢ÖöFVÃ¢~jŠYè²rÀ¢Vff÷'C¢~hêyn[Ë®[ªbrÀ¢F–ÖV÷WC¢~‹ùŠÎi{n™™rÀ¢F–ÖV÷WDæöæS¢~KˆŞ™™X‹brÀ¢F–ÖV÷WD†–çC¢~‹ùjÊŠêX‰.‹ùŠÎy¨NXúş˜yÈ¾™zx¹~8.KˆŞŠëîX‰Šê’vVçB‹yX‹ˆz®[{{¹>iÙş8"rÀ¢†VÇFƒ¢~‹ùŠÎx«nhrÀ¢'Vä†VÇFƒ¢~‹ùŠÎx«nhrÀ¢Æ7E'Vã¢~Kˆ®jÊ‹ùŠÂrÀ¢æW‡E'Vã¢~Kˆ¾jÊ‹ùŠÂrÀ¢6F6…W¢~™I‹ø~i{nˆz®Xª˜xŞŠùRrÀ¢6F6…WFW67&—F–öã¢~Zh.iéÂ6W76–öâjÚ>[ùh‰bv÷&¶W"k[{.kºûÈÎ‹ùKˆjÎKÉ®KùŞhÈGVRy»NX‹‹yX{®Xë¾8.X[>hèX‰zØX‹iz^XènKˆ®y¨NKˆ¾KˆjÊ8"rÀ¢VF—E66†VGVÆS¢~‹>[ªnŠëî{ÚârÀ¢66†VGVÆU6WGF–æw3¢~‹>[ªnŠëî{ÚârÀ¢66†VGVÆU6WGF–æw4FW67&—F–öã¢~‹>i[N™I‹ø~ŠznXùi{ny¨NŠÎK‹®Y(ÎXúş˜‹h^i{nûÈÎKˆŞKÉ®iKXùiz^Xènš)xè~8"rÀ¢f–WtÆ7E'Vã¢~iú^yÈ¾Kˆ®jÊ‹ùŠÂrÀ¢æWfW#¢~K¸îiÊ¢rÀ¢FVfVÇC¢~›¹ŠêBrÀ¢FVfVÇE'VçF–ÖS¢~›¹ŠêNûÈ‡··'VçF–ÖW×ŞûÈ’rÀ¢FVfVÇEv÷&·76U'VçF–ÖS¢~›¹ŠêNûÈ‡··'VçF–ÖW×ŞûÈÎ[z^KÙÎXË®ûÈ’rÀ¢FVfVÇDÆöF–æs¢~›¹ŠêB+rXª‹ÛŞKŠŞ(
+brÀ¢FVfVÇEfÇVS¢~›¹ŠêB+r··fÇVW×ÒrÀ¢FVfVÇE'VçF–ÖTFV6–FW3¢~›¹ŠêB+ryK'VçF–ÖRzêybrÀ¢FVfVÇEF†–æ¶–ætöã¢~›¹ŠêB+rY
+şyJhêybrÀ¢FVfVÇEF†–æ¶–ætöfc¢~›¹ŠêB+rX[>™zŞhêybrÀ¢÷fW'&–FUfÇVS¢~Šhny¹b+r··fÇVW×ÒrÀ¢æöæS¢~izrÀ¢&WV—&VC¢~[ø^™ÈrÀ¢76–væVTæWs¢~ikKÉ®ŠùÒ+ršinjÊ‹ùŠÎYîY»®Zé®‹Iş‹J>K«¢rÀ¢76–væVTæWtFW67&—F–öã¢~šinjÊX‰¾[»®KˆKŠ¢6W76–öîûÈÎYî{ºŞ‹ùŠÎ{º~{ºŞyKZè>‹Iş‹J>8"rÀ¢76–væVUv÷&·76S¢~iÊ®hÈ~kKârÀ¢76–væVUv÷&·76U66†VGVÆVC¢~ikKÉ®ŠùÒ+rjøşjÊ‹ùŠÎ˜;Şik[»¢rÀ¢76–væVTV6„FW67&—F–öã¢~jøşjÊ‹ùŠÎ˜;ŞX‰¾[»®KˆKŠ®xºÎz¸²6W76–öî8"rÀ¢76–væVT‡VÖäFW67&—F–öã¢~yKK«®[z^‹Iş‹J>Kˆ¾KˆjÚ^ZHNyn8"rÀ¢76–væVUVæ76–væVDFW67&—F–öã¢~i¨.i{nk*iÈK«®Yh‰b6W76–öâ‹Iş‹J>8"rÀ¢6†ö÷6T76–væVS¢~˜hº‹J>K»¾[Ù.[ârÀ¢6†ö÷6T76–væVTFW67&—F–öã¢~˜hºXˆn˜XŞzÙnyZ^ûÈÎh‰nh¨®jÚNŠêîš){¹Zé®X‹[z^KÙÎXË®KŠŞkK¾‹x>y¨B6W76–öî8"rÀ¢VæF–æt76–væVS¢~[è^zîŠêN‹Iş‹J>K«¢rÀ¢6öæf—&Ô76–væÖVçC¢~zîŠêNXˆn˜XÒrÀ¢76–væ–æs¢~jÚ>YÊXˆn˜XŞ(
+brÀ¢6V&6…6W76–öç3¢~i	Î{J"6W76–öî(
+brÀ¢76–væÖVçEöÆ–7“¢~Xˆn˜XŞzÙnyZRrÀ¢æõ6W76–öç4f÷VæC¢~k*iÈXË˜XŞy¨B6W76–öârÀ¢6W76–öåVæf–Æ&ÆS¢~[Ù>X˜Ş{¹Zé®y¨B6W76–öâ[{.KˆŞXúşyJ8"rÀ¢7F—fTæ÷s¢~[Ù>X˜ŞkK¾‹x2rÀ¢v÷&·76U6W76–öç3¢~[z^KÙÎXË®KÉ®ŠùÒrÀ¢6–væVE6W76–öã¢~[{.zÛîYŞKÉ®ŠùÒ+r··&W7VÖT–G×ÒrÀ¢‡VÖã¢~yJh‹rrÀ¢Væ76–væVC¢~iÊ®Xˆn˜XÒrÀ¢'VçF–ÖTÖ—76–æu7Vff—ƒ¢~ûÈiÊ®ZèŠ8^ûÈ’rÀ¢'VçF–ÖT7&VFVçF–Å7Vff—ƒ¢~ûÈ™ÈŠhXzŞhÚîûÈ’rÀ¢6öæf–wW&U'VçF–ÖS¢~˜XŞ{Úâ··'VçF–ÖW×ÒrÀ¢æô6öæf–wW&&ÆU'VçF–ÖS¢~[	®iÊ®˜hºXúş˜XŞ{Úîy¨N‹ùŠÎi{brÀ¢'Vä7&VFVçF–Ã¢~‹ùŠÎXzŞŠørÀ¢FVfVÇD7&VFVçF–Ã¢uv÷&·76RòyK‹ùŠÎi{nzêybrÀ¢FVfVÇD7&VFVçF–ÅfÇVS¢uv÷&·76R›¹ŠêB+r·¶7&VFVçF–Ç×ÒrÀ¢Ö—76–æt7&VFVçF–ÅfÇVS¢~KˆŞXúşyJ‚+r·¶7&VFVçF–Ç×ÒrÀ¢'VäÖöFVÃ¢~‹ùŠÎjŠYè²rÀ¢7W7FöÕ'VäÖöFVÃ¢~ˆz®Zé®K˜‹ùŠÎjŠYè²rÀ¢7W7FöÔÖöFVÃ¢~ˆz®Zé®K˜jŠYè¾(
+brÀ¢æF—fTÖöFVÅÆ6V†öÆFW#¢~XéşyIşjŠYè²”BrÀ¢'VäVff÷'C¢~‹ùŠÎhêyn[Ë®[ªbrÀ¢6W76–öäFWFW&Ö–æW5'VçF–ÖS¢~‹Iş‹J>K«®KÉ®ŠùŞXk>Zé®X[n‹ùŠÎi{brÀ¢6W76–öä÷væVC¢~yKKÉ®ŠùŞXk>Zé¢rÀ¢”7&VFVçF–ÄÖ—76–æs¢~{Ë®[	’XzŞhÚî8"rÀ¢”6öæf–wW&F–öã¢t’˜XŞ{ÚârÀ¢”6öæf–wW&F–öäFW67&—F–öã¢~˜hºyK‹zêynKˆ¾KˆKŠ®ikKÉ®ŠùŞy¨B’Šëş™zîûÈÎXhŞ˜hºKˆîK˜¾X[ÎZëy¨NjŠYè¾Y(Îhêyn[Ë®[ªn8"rÀ¢”66W73¢t’Šëş™zîik[ÈòrÀ¢”66W74FW67&—F–öã¢~{º~h›ş[z^KÙÎXË®KÉ®KÛşyJizZKNjŠ[ÈşXşZ[ŞûÉ¾yK‹ùŠÎi{nzêyni{nûÈÎXzŞhÚîKˆîhùKé¾ik˜XŞ{ÚîKªN{¹’vVçB'VçF–ÖRˆz®ŠÎŠz>iéûÉ¾[{.KùŞZÙXzŞhÚîKÉ®k:XZR÷VäÆ–6RXzŞhÚî[©>KŠŞy¨N˜XŞ{Úî8"rÀ¢föÆÆ÷uv÷&·76T†VFÆW73¢~{º~h›ş[z^KÙÎXË®izZKNjŠ[ÈşXşZ[ÒrÀ¢W6TvVçDÆöv–ã¢~yKvVçB'VçF–ÖRzêybrÀ¢vVçDÆöv–ã¢~yK'VçF–ÖRzêybrÀ¢6fVD66W73¢~[{.KùŞZÙXzŞhÚârÀ¢'VçF–ÖTFV6–FW3¢~yK'VçF–ÖRzêybrÀ¢v÷&·76T†VFÆW74f—†VC¢~[z^KÙÎXË®Y»®Zé®XşZ[ÒrÀ¢v÷&·76T†VFÆW75&V6VçC¢~[z^KÙÎXË®iÈ‹ùKÛşyJ‚rÀ¢vVçE'VçF–ÖTFVfVÇC¢tvVçB‹ùŠÎi{brÀ¢—77VT÷fW'&–FS¢t—77VRXÙ^xºÎŠëî{ÚârÀ¢6W76–öä&–æF–æs¢~KÉ®ŠùŞY»®Zé®˜XŞ{ÚârÀ¢v÷&·76UfÇVS¢~[z^KÙÎXË¢+r··fÇVW×ÒrÀ¢Ç””6öæf–wW&F–öã¢~[©NyJ˜XŞ{ÚârÀ¢6W76–öä”6öæf–wW&F–öäFW67&—F–öã ¢~i»NiK‹ùKŠ®KÉ®ŠùŞYÊKˆ¾KˆjÊŠêX‰.‹ùŠÎh‰nŠøNŠë®Y¹îZHŞi{nKÛşyJy¨NXzŞhÚî8jŠYè¾Y(Îhêyn[Ë®[ªn8$vVçB‹ùŠÎi{nKùŞhÈ™HZé®8"rÀ¢6W76–öä”66W74FW67&—F–öã ¢~yK‹ùŠÎi{nzêyni{nûÈÎXzŞhÚîKˆîhùKé¾ik˜XŞ{ÚîKªN{¹’vVçB'VçF–ÖRˆz®ŠÎŠz>iéûÉ¾[{.KùŞZÙXzŞhÚîKÉ®k:XZR÷VäÆ–6RXzŞhÚî[©>KŠŞy¨N˜XŞ{Úî8.Kˆ¾Kˆ‹ÚîKÉ®Y¹îiKî‹ùjÊ{¹Zé®8"rÀ¢6W76–öåGW&ä–å&öw&W73¢~Šû~zØ[Ù>X˜Ş‹ÚîjÊ{¹>iÙşYîXhŞi»NhÚ.XzŞhÚî8jŠYè¾h‰nhêyn[Ë®[ªn8"rÀ¢6†ævT76–væVT6&–Æ—F–W5F—FÆS¢~i»NiKŠêX‰.KŠŞy¨N‹Iş‹J>K«®ˆ;ŞX©¾ûÉòrÀ¢6†ævT76–væVT6&–Æ—F–W4ÖW76vS ¢~‹ùj~KÉ®iKXù[{.{¸şYÊŠêX‰.KŠŞy¨N‹Iş‹J>K«®ˆ;ŞX©¾ûÈÎK¸â·¶g&ö××ÒXùK‹¢··F÷×Ş8"rÀ¢6†ævT76–væVT6&–Æ—F–W46öæf—&Ó¢~i»NiKˆ;ŞX©²rÀ¢6†æv–æt76–væVT6&–Æ—F–W3¢~jÚ>YÊi»Nik(
+brÀ¢&WG'”æ÷s¢~z¸¾XÛ>˜xŞŠùRrÀ¢&WG'––æs¢~jÚ>YÊ˜xŞŠù^(
+brÀ¢&WG'”æ÷uF—FÆS¢~xëYÊ˜xŞŠù^‹ùKŠ®Šêîš)ûÉòrÀ¢&WG'”æ÷tÖW76vS ¢t÷VäÆ–6RKÉ®yJ[Ù>X˜Şy¨Bv†N8‹Iş‹J>K«®Y(Î‹ùŠÎi{n˜xŞikhš~ŠÎZK‹J^y¨NK»¾Xª8.Kˆ¾jÊš(NZé®i{n™{NKˆŞKÉ®iKXù8"rÀ¢'Väæ÷s¢~z¸¾XÛ>‹ùŠÂrÀ¢'Vææ–ætæ÷s¢~jÚ>YÊY
+şXª(
+brÀ¢'Väæ÷uF—FÆS¢~xëYÊ‹ùŠÎ‹ùKŠ®Šêîš)ûÉòrÀ¢'Väæ÷tÖW76vS ¢t÷VäÆ–6RKÉ®yJ[Ù>X˜Şy¨Bv†N8‹Iş‹J>K«®Y(Î‹ùŠÎi{nY
+şXªKˆ‹ÚîYîXûK»¾Xª8.Kˆ¾jÊš(NZé®i{n™{NKˆŞKÉ®iKXù8"rÀ¢†VÇF„ÖW76vS¢°¢–æ7F—fS¢~Šêîš)x«nhK‹®(	Ç··7FGW7×Ş(	ŞûÈÎ‹ùŠÎŠêX‰.[{.XÎjÚ.8"rÀ¢æ÷E÷7F'FVC¢~‹ùŠÎŠêX‰.iÈiXûÈÎKØn[	®iÊ®hš~ŠÎ8"rÀ¢GVS¢~[{.X‹‹ùŠÎi{n™{NûÈÎjÚ>YÊzØ[è^kKîXù8"rÀ¢'Vææ–æs¢~ŠêX‰.K»¾XªjÚ>YÊ‹ùŠÎ8"rÀ¢†VÇF‡“¢~iÈ‹ùKˆjÊŠêX‰.K»¾Xª[{.ZèÎh‰8"rÀ¢'VçF–ÖTÖ—76–æs¢~‹ùXûK‹¾iË®[	®iÊ®ZèŠ8R·¶vVçG×Ş8.Šû~YÊKˆ¾jÊŠêX‰.‹ùŠÎX˜ŞZèÎh‰ZèŠ8^8"rÀ¢Ö—76–æu6W76–öã¢~hÈ~Zé®y¨NKÉ®ŠùŞKˆŞZÙYÊ8.Šû~˜hºkK¾‹x>KÉ®ŠùŞh‰n(	ÎjøşjÊ‹ùŠÎ˜;Şik[»®KÉ®ŠùŞ(	Ş8"rÀ¢&WF—&VE6W76–öã¢~hÈ~Zé®y¨NKÉ®ŠùŞ[{.[Ù.j>8.Šû~YÊKˆ¾jÊ‹ùŠÎX˜Ş˜xŞikXˆn˜XŞŠêîš)8"rÀ¢Væ&÷VæE6W76–öã¢~hÈ~Zé®y¨NKÉ®ŠùŞ‹ùk*iÈXúşh.ZHŞy¨N‹ùŠÎi{nZûŠùŞ8"rÀ¢æôgWGW&U'Vã¢~‹ùŠÎŠêX‰.k*iÈKˆ¾jÊŠznXùi{n™{N8.Šû~j8iú^Š‹ëî[ÈşY(Îi{n™{Nh‹>8"rÀ¢ÒÀ¢v†C¢~K»¾XªXh^Zë’rÀ¢v†E66†VGVÆVDFW67&—F–öã¢~jøşjÊŠêX‰.‹ùŠÎ˜;ŞKÉ®[n‹ùjëRÖ&¶F÷vâXéşj~Xù˜{¹’vVçN8"rÀ¢v†DFW67&—F–öã¢~‹ùKŠ®[z^KÙÎšy¨Nj~XxbÖ&¶F÷vâZé®K˜8"rÀ¢v†DVF—D†–çC¢~x+hÈih~ZÙ~XÛ>Xúş{Én‹é+ri»NiKKÉ®ˆz®XªKùŞZÙ8"rÀ¢6öÖÖVçD&V†f–÷#¢~ŠøNŠë®ŠÎK‹¢rÀ¢6öÖÖVçD&V†f–÷$7W7FöÓ¢~ˆz®Zé®K˜’rÀ¢6öÖÖVçD&V†f–÷$FVfVÇD†–çC¢~j~XxnY¹îZHŞZY~ŠùÒrÀ¢6öÖÖVçE&ö×C¢~ŠøNŠë¢&ö×BrÀ¢6öÖÖVçE&ö×DFW67&—F–öã¢~iÈŠøNŠë®™ÈŠhY¹îZHŞi{nûÈÎyJ‹ùKŠ®jŠiÛşyIşh‰–çWB&ö×N8.›¹ŠêNKÉ®XÈ^Kˆ[.ŠûNiˆîûÉ¾ˆ®ZJYË®išşXúşKº^Xú®Xi’¶6öÖÖVçGŞ8"rÀ¢6öÖÖVçE&ö×EFö¶Vç4Æ&VÃ¢~XúşyJXù˜xòrÀ¢6öÖÖVçE&ö×EFö¶Vç3¢w¶6öÖÖVçGÒ·F—FÆWÒ¶–GÒ·v÷&·76T–GÒ¶WF†÷'Ò·v†GÒrÀ¢6öÖÖVçE&ö×E6fS¢~KùŞZÙŠøNŠë¢&ö×BrÀ¢6öÖÖVçE&ö×E&W6WC¢~h.ZHŞ›¹ŠêNZY~ŠùÒrÀ¢v†DVF—F÷$Æ&VÃ¢~Šêîš)Xh^Zë’rÀ¢v†DVF—F÷%Æ6V†öÆFW#¢~høş‹û‹ùKŠ®Šêîš)™ÈŠhZèÎh‰K¸K˜(
+brÀ¢v†E6f–æs¢~jÚ>YÊKùŞZÙ(
+brÀ¢v†E6fVC¢~[{.KùŞZÙ‚rÀ¢v†E6fTW'&÷#¢~izk9^KùŞZÙ‚+rXhŞjÊ{Én‹éYî˜xŞŠùRrÀ¢7F—f—G“¢~XªhrÀ¢7F—f—G”FW67&—F–öã¢~Xùi»NKˆîZûŠùÒrÀ¢æô7F—f—G“¢~‹ùk*iÈŠë[Ù^K»¾KÙ^Xùi»Nh‰nŠøNŠë®8"rÀ¢&WÇ“¢~Y¹îZHÒrÀ¢v—F–ætf÷%&Vf—ƒ¢~jÚ>YÊzØ[èRrÀ¢v—F–ætf÷%7Vff—ƒ¢~Y¹îZHŞ(
+brÀ¢&WÇ”f–ÆVC¢~ŠøNŠë®[{.KùŞZÙûÈÎKØbvVçBiÊ®ˆ;ŞY¹îZHŞûÉ§·¶W'&÷'×ÒrÀ¢F—&V7Df–ÆTVF—C¢~y»Nhê^{Én‹éih~K»brÀ¢6öæ7W'&VçDVF—EVæ¶æ÷vã¢~[z^KÙÎXË®[›nXù{Én‹é+rKÙÎˆ^iÊ®yúRrÀ¢Væ¶æ÷vä÷&–v–ã¢~iÊ®yú^iÚ^k©+r··&V6öç×ÒrÀ¢W‡FW&æÄ÷&–v–ã¢~ZIn˜:iÚ^k©+r··7—7FV××ÒrÀ¢6†÷u6W76–öäFWF–Ç3¢~iú^yÈ²·¶÷&–v–ç×Òy¨NKÉ®ŠùŞŠúnh8RrÀ¢6W76–öäF–Æös¢~KÉ®ŠùÒ··&W7VÖT–G×ÒrÀ¢6W76–öã¢~KÉ®ŠùÒrÀ¢÷Væ–æs¢~jÚ>YÊh™>[È(
+brÀ¢÷Vä6öçfW'6F–öã¢~h™>[ÈZûŠùÒrÀ¢÷Vå6W76–öäf–ÆVC¢~izk9^h™>[ÈKÉ®ŠùŞûÉ§·¶W'&÷'×ÒrÀ¢&÷fVææ6T7F–öã¢°¢7&VFVC¢~X‰¾[»®K¨nŠêîš)‚rÀ¢WFFVC¢~i»NikK¨nŠêîš)‚rÀ¢6öÖÖVçFVC¢~XùŠK¨nŠøNŠë¢rÀ¢6VçC¢~Xù˜K¨nŠêîš)‚rÀ¢FV6–FVC¢~Šë[Ù^K¨nXk>zÙbrÀ¢&V6öç7G'V7FVC¢~˜xŞ[»®K¨nŠêîš)Kˆ®Kˆ¾ihrrÀ¢ÒÀ¢×WFF–öäf–VÆC¢°¢F—FÆS¢~j~š)‚rÀ¢7FGW3¢~x«nhrÀ¢&–÷&—G“¢~KÉXX{ªrrÀ¢76–væVS¢~‹Iş‹J>K«¢rÀ¢66†VGVÆS¢~‹ùŠÎŠêX‰"rÀ¢'VçF–ÖS¢~‹ùŠÎi{brÀ¢7&VFVçF–Ã¢~XzŞŠørÀ¢ÖöFVÃ¢~jŠYè²rÀ¢Vff÷'C¢~hêyn[Ë®[ªbrÀ¢F–ÖV÷WC¢~‹ùŠÎi{n™™rÀ¢v†C¢~K»¾XªXh^Zë’rÀ¢6öÖÖVçE&ö×C¢~ŠøNŠë¢&ö×BrÀ¢ÒÀ¢×WFF–öåfÇVS¢°¢æWu6W76–öä¶VW÷væW#¢~ik[»®KÉ®ŠùŞûÈÎK˜¾YîY»®Zé®‹Iş‹J>K«¢rÀ¢æWu6W76–öäV6…'Vã¢~jøşjÊ‹ùŠÎik[»®KÉ®ŠùÒrÀ¢öæ6S¢~XÙ^jÊ+r·¶G×ÒrÀ¢WfW'“¢~jøò·¶WfW'—×ÒrÀ¢ÒÀ¢×WFF–öå7VÖÖ'“¢°¢VF—FVC¢~{Én‹éK¨g·¶f–VÆG×ÒrÀ¢6WC¢~[g·¶f–VÆG×ŞŠëîK‹§··fÇVW×ÒrÀ¢6ÆV&VC¢~kˆ^™šNK¨g·¶f–VÆG×ÒrÀ¢6†ævVC¢~[g·¶f–VÆG×ŞK¸ç·¶&Vf÷&W×ŞiKK‹§·¶gFW'×ÒrÀ¢ÒÀ¢6öÖÖVçEFó¢~ŠøNŠë®{¹’··&W7VÖT–G×Ş(
+brÀ¢6´&÷WD—77VS¢~Šú.™zî‹ùKŠ®Šêîš)(
+brÀ¢76–væVE6W76–öå&Vf—ƒ¢~‹Iş‹J>K«®KÉ®ŠùÒrÀ¢76–væVE6W76–öå7Vff—ƒ¢~KÉ®YÊ‹ù˜xÎY¹îZHŞ8"rÀ¢&WÇ”&Vf÷&Tf—'7E'Vã¢~šinjÊ‹ùŠÎzîZé®‹Iş‹J>K«®X˜ŞûÈÎX‰¾[»®ˆ^h‰n‹Iş‹J>˜xŞ[»®Kˆ®Kˆ¾ih~y¨N[z^KÙÎXË¢vVçBKÉ®YÊ‹ù˜xÎY¹îZHŞ8"rÀ¢&WÇ•v—F†÷WD÷væW#¢~X‰¾[»®ˆ^h‰n‹Iş‹J>˜xŞ[»®Kˆ®Kˆ¾ih~y¨N[z^KÙÎXË¢vVçBKÉ®YÊ‹ù˜xÎY¹îZHŞûÉ¾‹Iş‹J>K«®KùŞhÈKˆŞXù8"rÀ¢6VæF–æs¢~jÚ>YÊXù˜(
+brÀ¢6öÖÖVçDæ÷F–g“¢~ŠøNŠë®[›n˜	®yúRrÀ¢6öÖÖVçD6³¢~ŠøNŠë®[›nŠú.™zârÀ¢'Vå7FGW3¢°¢'Vææ–æs¢~‹ùŠÎKŠÒrÀ¢FöæS¢~[{.ZèÎh‰rÀ¢f–ÆVC¢~ZK‹JRrÀ¢–çFW''WFVC¢~[{.KŠŞijÒrÀ¢ÒÀ¢÷Vå'Vå6W76–öåF—FÆS¢~h™>[È‹ùjÊ‹ùŠÎZû[©Ny¨NKÉ®ŠùÒrÀ¢æõ&W7VÖ&ÆU6W76–öåF—FÆS¢~‹ùjÊ‹ùŠÎk*iÈXúşh.ZHŞy¨NKÉ®ŠùÒrÀ¢FööÄ6ÆÇ3¢w·¶6÷VçG×ÒjÊ[z^X[~‹>yJ‚rÀ¢FööÄf–ÇW&W3¢w·¶6÷VçG×ÒjÊZK‹JRrÀ¢'Vç3¢~‹ùŠÎŠë[ÙRrÀ¢'Vç4FW67&—F–öã¢~ˆz®XªXÉnhš~ŠÎXènXû"rÀ¢6†÷u&V6VçE'Vç3¢~K¸^i‹îzK®iÈ‹ù‹ùŠÂrÀ¢6†÷tÖ÷&U'Vç3¢~XhŞi‹îzK¢·¶6÷VçG×ÒjÊ‹ùŠÂrÀ¢–æ&÷…&W÷'G3¢~iKnK»nzëhª^Y¢rÀ¢÷Vä–ä–æ&÷ƒ¢~YÊiKnK»nzëKŠŞh™>[ÈrÀ¢V×G•W6ƒ¢~ûÈz›®hê˜ûÈ’rÀ¢ÖF6†W56WfW&Ã¢~Zû[©NZI®KŠ®yºîjrrÀ¢6Æ÷6S¢~X[>™zÒrÀ¢–6µv–¶–Æ–æµF&vWC¢~‹ùKŠ®YŞz{iŠşXZ[j~ŠønûÈÎKØnhÈ~Y	K¨nZI®KŠ®Zû‹(	N(	NŠû~˜hºKÚh;>h™>[Èy¨Nyºîj~8"rÀ¢÷VåG&6¶VDVçF—G“¢~h™>[È‹ûŞ‹Š®Zû‹·¶æÖW×ÒrÀ¢÷Vä—77VT–åv÷&·76S¢~YÊ‚··v÷&·76W×ÒKŠŞh™>[È·¶–G×ÒrÀ¢ÆöDW'&÷#¢~Šêîš)Xª‹ÛŞZK‹J^ûÉ§·¶W'&÷'×ÒrÀ¢ÒÀ¢&–÷&—G“¢°¢W&vVçC¢~{J~h
+RrÀ¢†–vƒ¢~š¹‚rÀ¢ÖVF—VÓ¢~KŠÒrÀ¢Æ÷s¢~KØârÀ¢æöæS¢~izrÀ¢Æ&VÃ¢w··&–÷&—G—×ŞKÉXX{ªrrÀ¢ÒÀ¢6FVæ6S¢°¢7W7FöÓ¢~hÈˆz®Zé®K˜ŠêX‰.˜xŞZHÒrÀ¢7W7FöÔC¢~hÈˆz®Zé®K˜ŠêX‰.K¨â··F–ÖW×Ò˜xŞZHÒrÀ¢WfW'”Ö–çWFS¢~jøşXˆn™)òrÀ¢WfW'”†÷W#¢~jøş[şi{brÀ¢WfW'”GW&F–öã¢~jøò·¶GW&F–öç×ÒrÀ¢WfW'”F”C¢~jø÷·¶F—×Ò··F–ÖW×ÒrÀ¢WfW'”ÖöçF„F”C¢~jøşiÈ‚·¶F—×ÒizR··F–ÖW×ÒrÀ¢F“¢~ZJ’rÀ¢vVV¶F“¢~[z^KÙÎizRrÀ¢vVV¶VæC¢~YiÊ²rÀ¢Æö6Ã¢~iÊÎYËrÀ¢Æö6ÅF–ÖS¢~iÊÎYËi{n™{BrÀ¢6F6…W¢~™I‹ø~KÉ®ˆz®XªŠ^h™>ûÈÎy»NX‹‹yX{®Xë²rÀ¢6ÆVæF$öæÇ“¢~™I‹ø~X‰zØX‹iz^XènKˆ®y¨NKˆ¾KˆjÊrÀ¢ÒÀ¢vVV¶F“¢°¢7Vã¢~YizRrÀ¢Ööã¢~YKˆrÀ¢GVS¢~YK¨ÂrÀ¢vVC¢~YKˆ’rÀ¢F‡S¢~YY¹²rÀ¢g&“¢~YK©BrÀ¢6C¢~YXZÒrÀ¢ÒÀ¢ÒÀ¢6WGF–æw3¢°¢F—FÆS¢~Šëî{ÚârÀ¢w&÷W¢°¢v÷&·76S¢~[z^KÙÎXË¢rÀ¢vVçG3¢~i›®ˆ;ŞKÙ2rÀ¢÷W&F–öç3¢~‹ùŠÂrÀ¢6öææV7F–öç3¢~‹ùîhêRrÀ¢FWfVÆ÷W#¢~[ÈXùˆRrÀ¢ÒÀ¢ÆæwVvS¢°¢F—FÆS¢~ŠúŞŠˆrÀ¢FW67&—F–öã¢~yXÎ™Ú.ŠúŞŠˆûÈÎz¸¾XÛ>yIşiX8"rÀ¢ÒÀ¢V&æ6S¢°¢F—FÆS¢~ZInŠx"rÀ¢FW67&—F–öã¢~ˆ›.[ÚKˆî[ˆ>[XşZ[ŞûÈÎK¸^KùŞZÙYÊiÊÎŠëîZH~8"rÀ¢–çFW&f6U7G–ÆS¢~yXÎ™Ú.j~[ÈòrÀ¢–çFW&f6U7G–ÆTFW67&—F–öã¢~‹>i[N{¸NK»nZIn[Ú.8Zøn[ªn8ZÙ~KÙ>KˆîXªiXûÈÎKˆŞKÉ®iKXùKÚ˜hºy¨Nˆ›.XÚ8"rÀ¢&V6öÖÖVæFVEÆWGFS¢w··7G–ÆW×ŞhêˆÙ˜XŞˆ›"rÀ¢&V6öÖÖVæFVEÆWGFTFW67&—F–öã¢~Xúş˜(	N(	NK¸^YÊjÚNj~[ÈşY
+şyJi{nKÛşyJ‡··ÆWGFW×Ş8.[{.KùŞZÙy¨Niz^™{NKˆîi©~ZIÎ˜XŞˆ›.KˆŞKÉ®Š*¾iKXi8"rÀ¢Ç•&V6öÖÖVæFVEÆWGFS¢~[©NyJhêˆÙ˜XŞˆ›"rÀ¢W6U6fVEÆWGFW3¢~KÛşyJ[{.KùŞZÙ˜XŞˆ›"rÀ¢6öÆ÷$ÖöFS¢~ˆ›.[ÚjŠ[ÈòrÀ¢6öÆ÷$ÖöFTFW67&—F–öã¢~ˆz®XªjŠ[Èş‹yş™¨ş{;¾{¹şYÊiz^™{NY(Îi©~ZIÎj{ŞKØŞ™{NXˆ~hÚ.ûÉ¾iz^™{NY(Îi©~ZIÎjŠ[ÈşKÉ®Y»®Zé®Zû[©Nj{ŞKØŞ8"rÀ¢F•ÆWGFS¢~iz^™{Nˆ›.XÚrÀ¢F•ÆWGFTFW67&—F–öã¢~yJK¨îiz^™{NjŠ[ÈşûÈÎKº^Xø®ˆz®XªjŠ[Èş‹yş™¨şkX^ˆ›.{;¾{¹şXşZ[Şi{nûÉ¾Xúş˜hºK»¾hHşˆ›.XÚ8"rÀ¢æ–v‡EÆWGFS¢~i©~ZIÎˆ›.XÚrÀ¢æ–v‡EÆWGFTFW67&—F–öã¢~yJK¨îi©~ZIÎjŠ[ÈşûÈÎKº^Xø®ˆz®XªjŠ[Èş‹yş™¨şk{ˆ›.{;¾{¹şXşZ[Şi{nûÉ¾Xúş˜hºK»¾hHşˆ›.XÚ8"rÀ¢7W'&VçEÆWGFS¢~[Ù>X˜ŞKÛşyJ‡··6Æ÷G×Ò+r··ÆWGFW×ÒrÀ¢föÆÆ÷w57—7FVÓ¢~‹yş™¨ş{;¾{¹òrÀ¢F†VÖU—#¢~iz^™{NKˆîi©~ZIÎ˜XŞˆ›"rÀ¢F†VÖU—$FW67&—F–öã¢~ˆz®XªjŠ[ÈşKÉ®YÊ‹ùKŠN{¸N[{.KùŞZÙ˜XŞˆ›.™{NXˆ~hÚ.ûÉ¾j~[ÈşhêˆÙˆ›.KˆŞKÉ®Šhny¹nZè>KºÎ8"rÀ¢7W7FöÖ—¦UÆWGFW3¢~ˆz®Zé®K˜˜XŞˆ›"rÀ¢†–FUÆWGFTVF—F÷#¢~iKn‹[~˜XŞˆ›.{Én‹éYš‚rÀ¢&W6WE—#¢~˜xŞ{Úî{¸NY‚rÀ¢7F—fU6Æ÷C¢~[Ù>X˜ŞyIşiX‚rÀ¢VF—F–æu6Æ÷C¢~jÚ>YÊ{Én‹érÀ¢VF—EÆWGFU6Æ÷C¢~{Én‹é··6Æ÷G×Şˆ›.XÚûÉ§··ÆWGFW×ÒrÀ¢6†ö÷6UÆWGFS¢~˜hº—··6Æ÷G×Şˆ›.XÚrÀ¢ÆWGFTÆ–'&'”FW67&—F–öã¢~hêˆÙˆ›.XÚKˆî[Ù>X˜Şj{ŞKØŞy¨Niˆîi©~[îh
+~XË˜XŞûÉ¾(	ÎXZ˜:ˆ›.XÚ(	ŞK¸ŞKùŞyYˆz®yK{¸NY8"rÀ¢ÆWGFTf–ÇFW#¢~ˆ›.XÚzÙ¾˜’rÀ¢ÆWGFTf–ÇFW$÷F–öã¢°¢&V6öÖÖVæFVC¢~hêˆÙrÀ¢ÆÃ¢~XZ˜:ˆ›.XÚrÀ¢ÒÀ¢6†ö÷6UÆWGFT÷F–öã¢~˜hº—··ÆWGFW×ÒrÀ¢W6VDf÷$F“¢~yJK¨îiz^™{BrÀ¢W6VDf÷$æ–v‡C¢~yJK¨îi©~ZIÂrÀ¢W6VDf÷$&÷Fƒ¢~YÎi{nyJK¨îiz^™{NKˆîi©~ZIÂrÀ¢ÒÀ¢&÷WC¢°¢F—FÆS¢~X[>K¨â÷VäÆ–6RrÀ¢FW67&—F–öã¢~iú^yÈ¾[Ù>X˜ŞZèŠ8^8‹ùŠÎxêşZ(>8i»Nikx«nhûÈÎKº^Xø®jÚNZHNh™>[Èy¨BÆ–6U&ö¦V7N8"rÀ¢6öææV7F–öã¢°¢F—FÆS¢~Yîzºş‹ùîhêRrÀ¢FW67&—F–öã¢~jÚNkXşŠxYšjÚ>˜	®‹ør54‚™ª~˜>‹ùîhê^‹ùÎzºò÷VäÆ–6R'VçF–Ö^8"rÀ¢6öææV7FVC¢~[{.‹ùîhêRrÀ¢ÒÀ¢Æ–6U&ö¦V7C¢°¢F—FÆS¢~[Ù>X˜ÒÆ–6U&ö¦V7BrÀ¢FW67&—F–öã¢~hº^iÈjÚNi[hÚîyºî[Ù^8wV&F–î8YîzºşKˆîX˜ŞzºşXZ^Xú>y¨Nšn[.šyºî8"rÀ¢ÆöF–æs¢~jÚ>YÊŠû¾XùbÆ–6U&ö¦V7BKúhş(
+brÀ¢Væf–Æ&ÆS¢~i¨.i{nizk9^Šû¾XùbÆ–6U&ö¦V7BKúhş8"rÀ¢7FGW5'Vææ–æs¢~jÚ>YÊjÚNZHN‹ùŠÂrÀ¢FF†öÖS¢~i[hÚîyºî[ÙRrÀ¢&ö÷C¢~‹ùŠÎi{niÚ^k©rÀ¢7F&ÆT–C¢~z‹>Zé¢”BrÀ¢'VçF–ÖTÖævVC¢~h™zê‹ùŠÎi{brÀ¢'&÷w6W$æ÷FS¢~[z^KÙÎXË®Y(Â6W76–öâ˜;ŞKØŞK¨î‹ùKŠ¢Æ–6U&ö¦V7BXh^ûÉ¾X[nK¹nkXşŠxYšz©~Xú>XúşKº^‹ùîhê^YÎKˆXZ^Xú>ûÈÎˆÎKˆŞKÉ®XhŞX‰¾[»®KˆKŠ®Yîzºş8"rÀ¢&WG'“¢~˜xŞŠùRrÀ¢ÒÀ¢fW'6–öäÆöF–æs¢~(
+brÀ¢'VçF–ÖS¢°¢'&÷w6W#¢~kXşŠxYš‚òiÈŞXªzºòrÀ¢vVÆV7G&öâÖFWbs¢~jÎ™Ú.[ÈXùx˜‚rÀ¢vVÆV7G&öâ×6¶vVBs¢~jÎ™Ú.[©NyJ‚rÀ¢ÒÀ¢6†ææVÃ¢°¢7F&ÆS¢~z‹>Zé®˜	®˜2rÀ¢&WF¢t&WF˜	®˜2rÀ¢FWc¢~[ÈXù˜	®˜2rÀ¢–ææVC¢~Y»®Zé®x˜iÊÂrÀ¢7W7FöÓ¢~ˆz®Zé®K˜iÚ^k©rÀ¢ÒÀ¢7FGW3¢°¢ÆöF–æs¢~jÚ>YÊŠû¾Xùnx˜iÊÎKúhş(
+brÀ¢6†V6¶–æs¢~jÚ>YÊj8iú^i»Nik(
+brÀ¢7W'&VçC¢~[Ù>X˜Ş[{.iŠşiÈikx˜iÊÎ8"rÀ¢6W'f–6TÖævVC¢~i»NikyK[Ù>X˜Ş˜:{Û.iÈŞXªzêyn8"rÀ¢6Æ”ÖævVC¢~Šû~KÛşyJ‚÷VäÆ–6R4Ä’j8iú^jÚN[ÈXùx˜iÊÎy¨Ni»Nik8"rÀ¢æõWFFW#¢~[Ù>X˜ŞZèŠ8^KˆŞ‹yş™¨şˆz®Xªi»Nik˜	®˜>8"rÀ¢f–Æ&ÆS¢t÷VäÆ–6Rg··fW'6–öç×Ò[{.Xúşi»Nik8"rÀ¢f–Æ&ÆUVæ¶æ÷vã¢~[{.iÈiky¨B÷VäÆ–6Rx˜iÊÎXúşi»Nik8"rÀ¢F÷væÆöF–æs¢~jÚ>YÊKˆ¾‹ÛŞi»Nik(
+brÀ¢F÷væÆöF–æu&öw&W73¢~jÚ>YÊKˆ¾‹ÛŞi»Nik(
+b··W&6VçG×ÒRrÀ¢&VG“¢t÷VäÆ–6Rg··fW'6–öç×Ò[{.XxnZH~Z[ŞZèŠ8^8"rÀ¢–ç7FÆÆ–æs¢°¢&W&–æs¢~jÚ>YÊXxnZH~i»Nik(
+brÀ¢w7F÷–ær×6W'f–6W2s¢~jÚ>YÊZèXZXÎjÚ"÷VäÆ–6RiÈŞXª(
+brÀ¢w&VÆV6–ær×'VçF–ÖRs¢~jÚ>YÊ{¹>iÙş[Ù>X˜ŞKÉ®ŠùŞ(
+brÀ¢v†æF–ærÖöfbs¢~jÚ>YÊKªN{¹{;¾{¹şZèŠ8^Yš(
+brÀ¢ÒÀ¢W'&÷#¢~i¨.i{nizk9^j8iú^i»Nik8"rÀ¢ÒÀ¢6†V6³¢~j8iú^i»NikrÀ¢6†V6¶–æs¢~j8iú^KŠŞ(
+brÀ¢f–Wu&VÆV6W3¢~iú^yÈ¾Xù[ˆ>Šë[ÙRrÀ¢–ç7FÆÄæE&W7F'C¢~˜xŞY
+ş[›ni»NikrÀ¢–ç7FÆÆ–æs¢~XxnZH~KŠŞ(
+brÀ¢–ç7FÆÄ†æFöfdæ÷FS¢t÷VäÆ–6RKÉ®YÊ{;¾{¹şZèŠ8^i»Niki{nX[>™zŞûÈÎ™¨şYîˆz®Xª˜xŞikh™>[ÈûÉ¾‹ùKˆ‹ø~zˆ¾iÈ™[şXúşˆ;Ş™ÈŠhKˆXˆn™)ş8"rÀ¢&ö×C¢°¢&VG•F—FÆS¢~i»Nik[{.[{º¢rÀ¢–ç7FÆÆ–æuF—FÆS¢~jÚ>YÊi»Nik÷VäÆ–6RrÀ¢&VG”&öG“¢~i»Nik[{.Kˆ¾‹ÛŞZèÎh‰ûÈÎXúşKº^[ÈZx¾ZèŠ8^8"rÀ¢ÆFW#¢~zˆŞYârÀ¢&W7F'Dæ÷s¢~z¸¾XÛ>˜xŞY
+òrÀ¢6Æ÷6S¢~X[>™zŞi»NikhùzK¢rÀ¢ÒÀ¢6†V6´W'&÷#¢~i¨.i{nizk9^‹ùîhê^i»NikiÈŞXªûÉ¾Kˆ®ikK¸ŞKÉ®i‹îzK®[Ù>X˜Şx˜iÊÎ8"rÀ¢÷Vå&VÆV6TW'&÷#¢~izk9^h™>[ÈXù[ˆ>š^™Ú.8"rÀ¢–ç7FÆÄW'&÷#¢~izk9^Y
+şXªi»NikûÈÎŠû~˜xŞŠù^8"rÀ¢ÒÀ¢FF†öÖS¢°¢F—FÆS¢~‹XNiiZÙiKîKØŞ{ÚârÀ¢FW67&—F–öã¢~[Ù>X˜ŞZéîKè¾KÛşyJy¨NZèÎi[B÷VäÆ–6RK‹¾yºî[Ù^ûÈÎXÈ^hºÎ‹XNii8[z^KÙÎXË®8XzŞhÚî8'&ö¶W"6²Y(Î‹ùŠÎ™H8"rÀ¢7W'&VçC¢~[Ù>X˜ŞKØŞ{ÚârÀ¢ÆöF–æs¢~Xª‹ÛŞKŠŞ(
+brÀ¢6÷W&6S¢°¢FVfVÇC¢~›¹ŠêBrÀ¢vFW6·F÷×&VfW&Væ6Rs¢~jÎ™Ú.zºş˜hº’rÀ¢Vçf—&öæÖVçC¢~xêşZ(>Xù˜xòrÀ¢ÒÀ¢7v—F6„æ÷FS¢~Xˆ~hÚ.KÉ®YÊZèXZ˜xŞY
+şYîh™>[ÈXúnKˆZY~ZèÎi[NK‹¾yºî[Ù^ûÈÎKˆŞKÉ®z{¾Xªh‰nZHŞX‹n[Ù>X˜ŞKØŞ{ÚîKŠŞy¨Nih~K»n8"rÀ¢÷Vã¢~h™>[Èih~K»nZK’rÀ¢6†ö÷6TæE&W7F'C¢~˜hºih~K»nZK[›n˜xŞY
+òrÀ¢&W7F'F–æs¢~jÚ>YÊ˜xŞY
+ş(
+brÀ¢6´öå7F'GW¢~Y
+şXªi{nŠú.™zîKÛşyJY:®KŠ®KØŞ{ÚârÀ¢6´öå7F'GWFW67&—F–öã¢~˜.YZI®KŠ®[z^zˆ¾h‰nZI®KŠ¢÷VäÆ–6RZéîKè¾KÛşyJ[ÛÎjÚNxºÎz¸¾y¨Nih~K»nY(Î™H8"rÀ¢&V6VçC¢~iÈ‹ùKÛşyJy¨NKØŞ{ÚârÀ¢W6TæE&W7F'C¢~KÛşyJ[›n˜xŞY
+òrÀ¢'&÷w6W$öæÇ“¢~jÎ™Ú.zºşXúşKº^y»Nhê^˜hºih~K»nZKûÉ¾kXşŠxYšY(Î[ÈXùjŠ[ÈşXúşyJKº^Kˆ¾YŞKºN˜hºYÎKˆZY~‹ëyXÎûÉ¢rÀ¢&VÖ÷FTÖævVC¢~jÚNi[hÚîyºî[Ù^[îK¨î[Ù>X˜Ş‹ùîhê^y¨N‹ùÎzºò'VçF–Ö^8.Šû~YÊ‹ùÎzºşK‹¾iË®h‰nX[n˜:{Û.iÈŞXªKŠŞzêynŠú^KØŞ{Úî8"rÀ¢Æö6¶VD'”†öÖS¢~iÊÎjÊY
+şXªŠ*²õTäÄ”4Uô„ôÔR™HZé®8.Šû~XXz{¾™šNŠú^xêşZ(>Xù˜xşûÈÎXhŞK¸îjÎ™Ú"T’Xˆ~hÚ.8"rÀ¢Æö6¶VD'•v÷&·76S¢~iÊÎjÊY
+şXªY»®Zé®K¨bôÄTä4„U%õ$ôõN8.Šû~XXz{¾™šNŠú^xêşZ(>Xù˜xşûÈÎXhŞK¸îjÎ™Ú"T’Xˆ~hÚ.ZèÎi[NK‹¾yºî[Ù^8"rÀ¢ÆöDW'&÷#¢~izk9^Šû¾XùnjÎ™Ú.zºşy¨N‹XNiiKØŞ{ÚîŠëî{Úî8"rÀ¢7F–öäW'&÷#¢~izk9^š¨ÎŠøh‰nKùŞZÙ‹ùKŠ®‹XNiiKØŞ{Úî8"rÀ¢÷VäW'&÷#¢~izk9^h™>[È[Ù>X˜Ş‹XNiiih~K»nZK8"rÀ¢ÒÀ¢v÷&·76U6†VÆÃ¢°¢F—FÆS¢~[z^KÙÎXË¢6†VÆÎûÈ…v–æF÷w>ûÈ’rÀ¢FW67&—F–öã¢~[z^KÙÎXË®{¸zºşY(Îi›®ˆ;ŞKÙ26†VÆÂ[z^X[~{¹şKˆKÛşyJy¨Bv—B&6ûÈÎK¸^KùŞZÙYÊ[Ù>X˜Òv–æF÷w2ZèŠ8^KŠŞ8"rÀ¢ÖöFS¢~˜hºik[ÈòrÀ¢WFó¢~ˆz®Xª(	N(	NKÉXXXh^{Úâv—B&6ûÈÎX[njÊv—Bf÷"v–æF÷w2rÀ¢7W7FöÓ¢~ˆz®Zé®K˜’&6‚æW†R‹zş[èBrÀ¢Fƒ¢v&6‚æW†R‹zş[èBrÀ¢F„FW67&—F–öã¢~Šû~˜hº’v—Bf÷"v–æF÷w2ZèŠ8^yºî[Ù^KŠŞy¨B&–åÅÆ&6‚æW†^8"rÀ¢&W6öÇfVC¢~[Ù>X˜ŞŠz>ié{¹>iéÂrÀ¢6÷W&6S¢~[{.[{º¢+riÚ^k©ûÉ§··6÷W&6W×ÒrÀ¢æ÷Df÷VæC¢~iÊ®h›îX‹v—B&6‚rÀ¢6fS¢~KùŞZÙ‚6†VÆÂrÀ¢6f–æs¢~KùŞZÙKŠŞ(
+brÀ¢6fTW'&÷#¢~izk9^KùŞZÙh‰nš¨ÎŠø‹ùKŠ¢&6‚æW†R‹zş[èN8"rÀ¢ÒÀ¢6FVv÷'“¢°¢vVæW&Ã¢~˜	®yJ‚rÀ¢V&æ6S¢~ZInŠx"rÀ¢7F—f—G”&#¢~Kê~jòrÀ¢•&÷f–FW#¢t’hùKé¾ik’rÀ¢vVçE'VçF–ÖW3¢tvVçB‹ùŠÎi{brÀ¢vVçEW&Ö—76–öç3¢~i›®ˆ;ŞKÙ>iØ>™™rÀ¢FööÇ3¢~[z^X[rrÀ¢G&F–æs¢~KªNi‰2rÀ¢—77VW3¢~Šêîš)‚rÀ¢†&æW73¢t†&æW72rÀ¢6öææV7F÷'3¢~‹ùîhê^Yš‚rÀ¢Ö76W'fW#¢tÔ5iÈŞXªYš‚rÀ¢Ö&¶WDFF¢~[ˆ.YË®i[hÚârÀ¢æWw56÷W&6W3¢~ik™{¾k©rÀ¢&WF¢~kX¾Šù^x˜‚rÀ¢ÒÀ¢7F—f—G”&#¢°¢F—FÆS¢~Kê~jòrÀ¢FW67&—F–öã¢~˜hº[znKê~XZ^Xú>iŠşY
+ni‹îzK®ûÈÎKº^Xø®Zè>KºÎy¨NXˆn{¸N8.KùŞZÙYÊ[Ù>X˜ÒÆ–6RZënyºî[Ù^y¨BFF÷V’ÖÆ–÷WBæ§6öî8"rÀ¢&–Ö'”w&÷W¢~{ÚîšbrÀ¢æWtw&÷W¢~ikXˆn{¸BrÀ¢FDw&÷W¢~k{¾XªXˆn{¸BrÀ¢FVÆWFTw&÷W¢~XŠ™šNXˆn{¸BrÀ¢&VæÖTw&÷W¢~Xˆn{¸NYŞz{rÀ¢&W6WC¢~h.ZHŞ›¹ŠêBrÀ¢&W6WD6öæf—&Ó¢~h.ZHŞ›¹ŠêNKê~jşXˆn{¸NûÉòrÀ¢Fƒ¢~KùŞZÙYÊ‚FF÷V’ÖÆ–÷WBæ§6öârÀ¢6†÷s¢~i‹îzK§·¶Æ&VÇ×ÒrÀ¢†–FS¢~™©‰x÷·¶Æ&VÇ×ÒrÀ¢G&tw&÷W¢~‹>i[NXˆn{¸Nš®[¨òrÀ¢G&t—FVÓ¢~‹>i[G·¶Æ&VÇ×Şš®[¨òrÀ¢–ææVC¢~Šëî{ÚîKÉ®Kˆy»NyYYÊKê~jş8"rÀ¢ÆöDW'&÷#¢~izk9^Xª‹ÛŞKê~jş[ˆ>[8"rÀ¢ÒÀ¢&WF¢°¢F—FÆS¢~kX¾Šù^x˜‚rÀ¢FW67&—F–öã¢~iÊ®ZèÎh‰y¨NyXÎ™Ú.›¹ŠêN™©‰xşûÈÎh™>[ÈYîh˜ŞKÉ®X{®xë8.‹ùK©¾XşZ[ŞXú®KùŞZÙYÊiÊÎiË®8"rÀ¢öff–6S¢~X©îXZÎZêBrÀ¢öff–6TFW67&—F–öã¢~YÊkK¾Xªjşi‹îzK®X©îXZÎZêNXZ^Xú>8.j[Î[.yK¾™Ú.K¸ŞiŠşXØ®h‰Y8ûÈÎK˜¾YîXúşˆ;ŞiK8"rÀ¢ÒÀ¢vVçE'VçF–ÖW3¢°¢F—FÆS¢tvVçB‹ùŠÎi{brÀ¢FW67&—F–öã¢~iú^yÈ¾‹ùKŠ¢Æ–6U&ö¦V7BXúşKº^Y
+şXªy¨NXéşyIò4ÄûÈÎKúîZHŞ{Ë®ZKZèŠ8^ûÈÎ[›n˜hºiÈZI®Y¹¾KŠ®[ú¾hÛ~‹ùŠÎi{n8"rÀ¢V–6´66W73¢~[ú¾hÛ~XZ^Xú2rÀ¢V–6´66W74FW67&—F–öã¢~h‰X©şX‰¾[»¢6W76–öâYîûÈÎZû[©N‹ùŠÎi{nKÉ®ˆz®Xªz{¾X‹iÈX˜Ş™Ú.8.‹ù˜xÎy¨Nš®[¨şKÙÎK‹®iÈ‹ùKÛşyJŠë[Ù^K˜¾Yîy¨NX	Š^Yû®{«şûÉ¾iÊ®ZèŠ8^y¨N‹ùŠÎi{nKˆŞKÉ®ˆz®XªZ¾XZ^8"rÀ¢V–6´66W74V×G“¢~‹ùk*iÈ{Úîšn‹ùŠÎi{n8.XúşK¸îKˆ¾ikyºî[Ù^iÈZI®k{¾XªY¹¾KŠ®8"rÀ¢6FÆös¢~[{.Xùxëy¨N‹ùŠÎi{brÀ¢6FÆötFW67&—F–öã¢~ZèŠ8^x«nhyKiÊÎiË®hê.kX¾ûÈÎKˆŞKÉ®KÙÎK‹®XşZ[ŞKùŞZÙ8"rÀ¢&Vg&W6ƒ¢~X‹~ikrÀ¢&Vg&W6†–æs¢~jÚ>YÊj8iú^(
+brÀ¢&ö&S¢~j8iú^jÚN‹ùŠÎi{brÀ¢6V&6ƒ¢~i	Î{J.‹ùŠÎi{n(
+brÀ¢V×G”6FÆös¢~[	®iÊ®k:XhÎK»¾KÙRvVçB‹ùŠÎi{n8"rÀ¢æôÖF6†W3¢~k*iÈXË˜XŞ(	Ç··VW'—×Ş(	Şy¨N‹ùŠÎi{n8"rÀ¢–ç7FÆÆVC¢~[{.ZèŠ8RrÀ¢æ÷D–ç7FÆÆVC¢~iÊ®ZèŠ8RrÀ¢Væ¶æ÷våFƒ¢~iÊ®hª^Y®‹zş[èBrÀ¢ÖöFVÇ3¢~jŠYè²rÀ¢WFƒ¢~ŠêNŠørÀ¢–ç7FÆÄFö73¢~ZèŠ8^ih~j2rÀ¢–ã¢~[b·¶æÖW×ÒXªXZ^[ú¾hÛ~XZ^Xú2rÀ¢Vç–ã¢~[b·¶æÖW×Òz{¾X{®[ú¾hÛ~XZ^Xú2rÀ¢–äF—6&ÆVC¢~[ú¾hÛ~XZ^Xú>[{.iÈY¹¾KŠ®‹ùŠÎi{n8.Šû~XXz{¾™šNKˆKŠ®XhŞk{¾Xª·¶æÖW×Ş8"rÀ¢–åVæ–ç7FÆÆVC¢w·¶æÖW×ÒiÊ®ZèŠ8^ûÈÎKˆŞˆ;ŞXªXZ^[ú¾hÛ~XZ^Xú>8"rÀ¢Ö÷fUW¢~Kˆ®z{²·¶æÖW×ÒrÀ¢Ö÷fTF÷vã¢~Kˆ¾z{²·¶æÖW×ÒrÀ¢7FGW3¢°¢Væ¶æ÷vã¢~[	®iÊ®j8iúRrÀ¢6†V6¶–æs¢~jÚ>YÊj8iúRrÀ¢&VG“¢~[{º¢rÀ¢æ÷D–ç7FÆÆVC¢~iÊ®ZèŠ8RrÀ¢WF…&WV—&VC¢~™ÈŠhy›¾[ÙRrÀ¢&÷f–FW%&WV—&VC¢~™ÈŠh˜XŞ{ÚîhùKé¾ik’rÀ¢÷WGWEVç&V6övæ—¦VC¢~hê.kX¾‹é>X{®izk9^ŠønXŠ²rÀ¢F–ÖV÷WC¢~j8iú^‹h^i{brÀ¢f–ÆVC¢~j8iú^ZK‹JRrÀ¢ÒÀ¢&W—#¢°¢'VçF–ÖT–ç7FÆÃ¢~ZèŠ8^jÚB4Ä’[›nzîKùŞZè>YÊ‚D‚Kˆ®ûÈÎxKnYî˜xŞikj8iú^8"rÀ¢6Æ”Æöv–ã¢~yJXéşyIò4Ä’y›¾[Ù^YîûÈÎXhŞ˜xŞikj8iú^8"rÀ¢•&÷f–FW#¢~YÊ‚’hùKé¾ikKŠŞk{¾XªX[ÎZëXzŞŠøûÈÎxKnYî˜xŞikj8iú^8"rÀ¢&WG'“¢~KúîZ[ŞK‹¾iË®h‰n{Ù{¹ÎYîûÈÎXhŞj8iú^KˆjÊjÚN‹ùŠÎi{n8"rÀ¢ÒÀ¢ÒÀ¢†&æW73¢°¢F—FÆS¢t†&æW72rÀ¢FW67&—F–öã¢t6²Æ–6^8WFòVçBY(ÂWFò&VF–7F–öâ˜;ŞiŠòv÷&·76R†&æW7>ûÉ®jÎZÙ[iŠşK»¾XªûÈÎyK6öF–ærvVçBYÊ˜xÎ™Ú.[›.kK¾8"rÀ¢6†&VC¢~X[yJ‚†&æW72ŠÎK‹¢rÀ¢6†&VDFW67&—F–öã¢~‹ùK©¾ZèŠ8^{ª~˜šKÙÎyJK¨îh˜iÈ’†&æW72v÷&·76^8"rÀ¢6†÷t†VFÆW74&÷&ã¢~i‹îzK®izZKNX{®‹ª¾y¨B6W76–öârÀ¢6†÷t†VFÆW74&÷&äFW67&—F–öã¢~›¹ŠêNX[>™zŞ8.K¸â—77VRh‰b’‹y‹[~iÚ^8K¸îiÊ®h™>[È‹ørET’òvV"y¨B6W76–öâyYYÊ‚—77VRš^ûÈÎKˆŞ‹ù¾jÎZÙYŞXhÎ8"rÀ¢6†÷t—77VTGF6†VC¢~i‹îzK®hÈ.™Ú—77VRy¨B6W76–öârÀ¢6†÷t—77VTGF6†VDFW67&—F–öã¢~›¹ŠêNX[>™zŞ8.[ÈY
+şYîûÈÎišî˜	¢—77VR[Ù>X˜ŞhÈiÈh‰nXÚyJy¨B6W76–öâKÉ®‹ù¾XZ^X[Kª¾jÎZÙYŞXhÎûÉ´6öææV7F÷"ˆ®ZJ’6W76–öâZx¾{¸™©‰xş8"rÀ¢6†÷uVçfW&–f–VE&VÆV6W3¢~i‹îzK®iÊ®{¸şŠêNŠøy¨B†&æW72x˜iÊÂrÀ¢6†÷uVçfW&–f–VE&VÆV6W4FW67&—F–öã¢~›¹ŠêNX[>™zŞ8.[ÈY
+şYâ÷VäÆ–6RK™şKÉ®j8iú^Kˆ®k‹K¹>[©>iÈiky¨Nz‹>Zé®x˜iÊÎûÉ¾‹ùK©¾x˜iÊÎKÉ®iˆîzîj~ŠëûÈÎK‰NK¸Ş™ÈZê™ˆ^YîXØ~{ª~8"rÀ¢6´Æ–6S¢t6²Æ–6RrÀ¢6´Æ–6TFW67&—F–öã¢~ZûŠùÒv÷&·76RXø®X[b6W76–öâYŞXhÎ8"rÀ¢WFõVçC¢tWFòVçBrÀ¢WFõVçDFW67&—F–öã¢tWFòVçBv÷&·76RXø®X[nz	Nz›nYŞXhÎ8"rÀ¢WFõ&VF–7F–öã¢tWFò&VF–7F–öârÀ¢WFõ&VF–7F–öäFW67&—F–öã¢tWFò&VF–7F–öâv÷&·76^86W76–öâY(Îk©zx˜iÊÎ8"rÀ¢W6W56†&VE&÷7FW#¢~k+şyJKˆ®™Ú.y¨NX[yJ‚†&æW72ŠÎK‹®ûÉ¾K‰>[î˜šXúşKº^iKîYÊ‹ùKˆˆ¨.8"rÀ¢ÒÀ¢vVçC¢°¢F—FÆS¢~i›®ˆ;ŞKÙ2rÀ¢FW67&—F–öã¢~hê~X‹b’XúşKº^Kº>KÚX®K¸K˜8.i»NiKYÊKˆ¾KˆjÊŠû~k.i{nyIşiX8"rÀ¢ÆÆ÷t•G&F–æs¢~XXŠë‚’ˆz®XªKˆ¾XÙRrÀ¢ÆÆ÷t•G&F–ætöã¢~[ÈY
+ş(	N(	D’Xúşˆz®ŠÎY	X‹YXnXù˜Šê.XÙ^ûÈÎiz™ÈjøşjÊ[èk.KÚy¨NYÎhHş8"rÀ¢ÆÆ÷t•G&F–ætöfc¢~X[>™zŞ(	N(	D’XúşKº^i¨.ZÙ[›nhùŠêîKªNi‰>ûÈÎKØnjøşjÊW6‚˜;Ş™ÈŠhKÚYÊ‚vV"T’KŠŞh›Xxn8"rÀ¢ÆÆ÷t•G&F–æuv&æ–æs¢t’ˆz®XªKªNi‰>[{.[ÈY
+ş8$’Xúşˆz®ŠÎKˆ¾XÙ^8iKXÙ^8i*NXÙ^8.jøş‹Jnh‹~y¨NXú®Šû¾Šëî{ÚîK¸ŞxKnyIşiX8"rÀ¢ÆÆ÷t•G&F–æt6öæf—&ÕF—FÆS¢~[ÈY
+ò’ˆz®XªKªNi‰>ûÉòrÀ¢ÆÆ÷t•G&F–æt6öæf—&Ô&öG“¢~[ÈY
+şYîûÈÄ’XúşYÊKˆŞ[èk.KÚYÎhHşy¨Nh8^Xk^Kˆ¾Y	X‹YXnXù˜yÉşZéîŠê.XÙ^8%UDKªNi‰>hê^Xú>yºîX˜ŞK¸ŞKˆŞz‹>Zé®ûÈÎXúşˆ;ŞZÙYÊ{+î[ªnh‰nXø.i[™zîš)8.[Ë®x8KˆŞ[»®ŠêîYÊZéîy¹‹Jnh‹~Kˆ®KÛşyJ(	N(	NŠû~KÛşyJjŠh¹òòFVÖò‹Jnh‹~8"rÀ¢ÆÆ÷t•G&F–æt6öæf—&Ô7F¢~[ÈY
+şˆz®XªKªNi‰2rÀ¢ÒÀ¢vVçEW&Ö—76–öç3¢°¢F—FÆS¢~i›®ˆ;ŞKÙ>iØ>™™rÀ¢ÆöDW'&÷%F—FÆS¢~izk9^Xª‹ÛŞi›®ˆ;ŞKÙ>iØ>™™rÀ¢ÆöDW'&÷$FW67&—F–öã¢t÷VäÆ–6Rizk9^Šû¾Xùn[Ù>X˜Ş˜XŞ{Úî8.KÚy¨NiØ>™™k*iÈXùyIşXùXÉn8"rÀ¢ÖöFS¢°¢F—FÆS¢~KªNi‰>jŠ[ÈòrÀ¢FW67&—F–öã¢tÆ–6RY(Î[z^KÙÎXË®i›®ˆ;ŞKÙ>y¨NXZ[X‹YXnˆ;ŞX©¾8"rÀ¢Æ—FS¢°¢Æ&VÃ¢tÆ—FRrÀ¢FW67&—F–öã¢uUDKùŞhÈijŞ[È8$Æ–6RXú®X®XˆniéûÈÎKˆŞŠû¾XùnX‹YXn‹Jnh‹~8"rÀ¢ÒÀ¢&VFöæÇ“¢°¢Æ&VÃ¢u&VFöæÇ’rÀ¢FW67&—F–öã¢uUDXúşŠû¾Xùn‹Jnh‹~Y(ÎhÈK¹>ûÈÎKØnzhjÚ.XiXZ^X‹YXnx«nh8"rÀ¢ÒÀ¢&ó¢°¢Æ&VÃ¢u&òrÀ¢FW67&—F–öã¢uUD[ÈY
+şûÈÎ[›n[©NyJjøşKŠ®‹Jnh‹~ˆz®[{y¨NiØ>™™Y(ÎZêh›hê~X‹n8"rÀ¢ÒÀ¢6f–æs¢~Xˆ~hÚ.KŠÒrÀ¢VçdÆö6¶VC¢~[Ù>X˜ŞZèŠ8^Š*¾xêşZ(>Xù˜xş™HZé®ûÈÎKˆŞˆ;ŞK¸îyXÎ™Ú.Xˆ~hÚ.8"rÀ¢6÷W&6S¢~[Ù>X˜ŞiÚ^k©ûÉ§··6÷W&6W×ÒrÀ¢ÒÀ¢•W6ƒ¢°¢F—FÆS¢t’KªNi‰>hê˜rÀ¢FW67&—F–öã¢~hê~X‹ni›®ˆ;ŞKÙ>iŠşY
+nXúşKº^{¹^‹ø~K«®[z^Zêh›ûÈÎy»Nhê^hš~ŠÎ[{"6öÖÖ—By¨NX‹YXnXiXZ^8"rÀ¢&ôöæÇ“¢~[Ù>X˜ŞKªNi‰>jŠ[ÈşK¸ŞKÉ®™‹¾jÚ.X‹YXnXiXZ^8.‹ùKŠ®[ÈX[>Xú®iÈYÊ‚&òjŠ[Èşhš~ŠÎi{nh˜ŞKÉ®yÉşjÚ>yIşiX8"rÀ¢ÒÀ¢ÒÀ¢FööÇ3¢°¢7VÖÖ'“¢w·¶w&÷W7×ÒKŠ®Xˆn{¸NX[··FööÇ7×ÒKŠ®[z^X[~(	N(	Ni»NiKYÊKˆ¾jÊ’Šû~k.i{nyIşiX‚rÀ¢ÆöDW'&÷#¢~izk9^Xª‹ÛŞ[z^X[~yºî[Ù^8"rÀ¢V×G•F—FÆS¢~[	®iÊ®k:XhÎK»¾KÙ^[z^X[~8"rÀ¢V×G”FW67&—F–öã¢~[É^i8îY
+şXªYî[z^X[~KÉ®i‹îzK®YÊ‹ù˜xÎ8"rÀ¢w&÷W¢°¢F†–æ¶–æs¢~h	Şˆ>[z^X[~™¸brÀ¢7&öã¢t7&öâ‹>[ªnYš‚rÀ¢WV—G“¢~ˆ*zZi[hÚârÀ¢7'—FôFF¢~XªZøn‹J~[ˆi[hÚârÀ¢7W'&Væ7”FF¢~‹J~[ˆi[hÚârÀ¢æWw3¢~ik™{²rÀ¢æWw4&6†—fS¢~ik™{¾[Ù.j2rÀ¢æÇ—6—3¢~Xˆnié[z^X[~™¸brÀ¢7'—FõG&F–æs¢~XªZøn‹J~[ˆKªNi‰2rÀ¢6V7W&—F–W5G&F–æs¢~ŠøX‹KªNi‰2rÀ¢ÒÀ¢ÒÀ¢ÒÀ¢•&÷f–FW#¢°¢F—FÆS¢t’hùKé¾ik’rÀ¢FW67&—F–öã¢~zêybv÷&·76R6W76–öâXúş˜yJy¨NhùKé¾ik‹Jnh‹~Y(ÎjŠYè¾[»®Šêî8"rÀ¢ÆöDW'&÷%F—FÆS¢~izk9^Xª‹ÛÒ’XzŞŠørÀ¢ÆöDW'&÷$FW67&—F–öã¢t÷VäÆ–6Rizk9^Šû¾XùnXzŞŠø[©>8.KÚ[{.KùŞZÙy¨NXzŞŠøk*iÈXùyIşXùXÉn8"rÀ¢fVÇD–çG&ó¢t’¶W’yKÆ–6R™¸nKŠŞKùŞzêûÈÎK¸^YÊ‚6W76–öâiˆîzî˜yJi{nŠz>ié8.X8ò÷Vå&÷WFW"‹ùj~y¨N{ÙX[>XúşKº^yJKˆh¨¢¶W’Šhny¹nZI®ZënjŠYè¾8%v÷&·76RXú®KùŞZÙizZøn™*^[É^yJûÉ¾yK'VçF–ÖRzêyny¨NŠëş™zîik[ÈşyYYÊYNˆz®y¨BvVçB'VçF–ÖRXh^ûÈÄÆ–6RKˆŞKÉ®ZûÎXZ^8"rÀ¢7&VFVçF–Ç3¢~XzŞŠø[©2rÀ¢7&VFVçF–Ç46÷VçC¢~ûÈ‡·¶6÷VçG×ŞûÈ’rÀ¢7&VFVçF–Ç4f–ÇFW&VC¢~ûÈ‡··6†÷vç×Òò··F÷FÇ×ŞûÈ’rÀ¢6V&6„7&VFVçF–Ç3¢~i	Î{J.XzŞŠø(
+brÀ¢æô7&VFVçF–ÄÖF6†W3¢~k*iÈXË˜XŞ(	Ç··VW'—×Ş(	Şy¨NXzŞŠø8"rÀ¢FDf—'7C¢~k{¾XªzÊÎKˆKŠ®XzŞŠørÀ¢¶W•6WC¢~[{.Šëî{Úâ¶W’rÀ¢FVfVÇDÖöFVÃ¢~›¹ŠêNjŠYè²rÀ¢æ÷E6WC¢~iÊ®Šëî{ÚârÀ¢öff–6–ÄVæGö–çC¢~hùKé¾ikZéikzºşx+’rÀ¢FVÆWFTf–ÆVC¢~XŠ™šNZK‹JRrÀ¢VF—D7&VFVçF–Ä&–¢~{Én‹é·¶7&VFVçF–Ç×ÒrÀ¢FVÆWFT7&VFVçF–Ä&–¢~XŠ™šB·¶7&VFVçF–Ç×ÒrÀ¢FVÆWFT6öæf—&ÕF—FÆS¢~XŠ™šB·¶7&VFVçF–Ç×ŞûÉòrÀ¢FVÆWFT6öæf—&ÔÖW76vS¢~‹ùKÉ®K¸âÆ–6RXzŞŠø[©>KŠŞkK˜^XŠ™šB··6ÇVw×ŞûÈÎ[›nkˆ^™šNh˜iÈ[É^yJZè>y¨Nik[z^KÙÎXË®›¹ŠêNXÎ8.xëiÈ[z^KÙÎXË®ih~K»nKˆŞKÉ®iKXù8"rÀ¢FVfVÇG4–çG&ó¢~XúşKº^K‹®ikv÷&·76RŠëî{ÚîhùKé¾ik›¹ŠêNXÎ8%v÷&·76RXú®KÉ®YÊ‚æÆ–6R÷6WGF–æw2æ§6öâKùŞZÙXzŞŠø[É^yJûÈÎZøn™*^YÊ‹ù¾zˆ¾Y
+şXªi{nhùKé¾ûÉ¾KˆŞŠëî{Úîi{nûÈÎYBvVçB'VçF–ÖRˆz®ŠÎzêynXzŞhÚîKˆîhùKé¾ik˜XŞ{Úî8"rÀ¢FVfVÇG5F—FÆS¢~ik[z^KÙÎXË®›¹ŠêNXÂrÀ¢FVfVÇD7&VFVçF–ÄÆ&VÃ¢w·¶vVçG×Ò›¹ŠêNXzŞŠørÀ¢•&÷Fö6öÄÆ&VÃ¢w·¶vVçG×Ò’XØşŠêârÀ¢&V6öæ–æt÷fW'&–FTÆ&VÃ¢w·¶vVçG×ÒiÊ®yú^jŠYè¾y¨N›¹ŠêNh	Şˆ>ˆ;ŞX©¾Šhny¹brÀ¢æô6ö×F–&ÆS¢~XzŞŠø[©>˜xÎ‹ùk*iÈX[ÎZëXzŞŠø8"rÀ¢FöçE6VVC¢~yKvVçB'VçF–ÖRzêybrÀ¢&÷Fö6öÃ¢~XØşŠêîûÉ§··&÷Fö6öÇ×ÒrÀ¢ÖöFVÃ¢~jŠYè¾ûÉ§·¶ÖöFVÇ×ÒrÀ¢WFöÖF–3¢~ˆz®Xªy›¾ŠëûÉ§··7VÖÖ'—×ÒrÀ¢Gfæ6VE&V6öæ–æs¢~š¹{ª~(	N(	NiÊ®yú^jŠYè¾y¨Nh	Şˆ>ˆ;ŞX©²rÀ¢W6U'VçF–ÖTFVfVÇC¢~yKvVçB'VçF–ÖRzêybrÀ¢7W÷'G5&V6öæ–æs¢~jŠYè¾iJşhÈh	Şˆ>jŠ[ÈòrÀ¢æõ&V6öæ–æs¢~jŠYè¾k*iÈh	Şˆ>jŠ[ÈòrÀ¢Gfæ6VDvVçG3¢~š¹{ª~(	N(	D6ÆVFR6öFRò6öFWûÈ™ÙîZéik’ûÈ’rÀ¢Gfæ6VDvVçG4FW67&—F–öã¢~K¸^[Ù>ikv÷&·76RX‰ŞZx¾[©NKÉXXKÛşyJ‚÷VäÆ–6Rh™zêy¨NXzŞhÚî[©>i{nŠëî{ÚîûÉ¾yJh‹~K¸ŞXúşYÊY
+şXª˜hºYš˜xÎh¨®zêyniØ>KªN‹ù{¹’vVçB'VçF–Ö^8"rÀ¢6fTf–ÆVC¢~KùŞZÙZK‹JRrÀ¢'VçF–ÖU&VfW&Væ6S¢tvVçB‹ùŠÎi{nXø.ˆ2rÀ¢'VçF–ÖT–çG&ó¢~‹ù˜xÎŠûNiˆî[z^KÙÎXË®XúşKº^Y
+şXªy¨BvVçB4Ä8.Kˆ®ikXzŞŠøKÉ®KªN{¹X[ÎZëy¨N‹ùŠÎi{nûÉ¾h˜iÈ‹ùŠÎi{n˜;Ş˜	®‹ø~XéşyIòÔ5h‰bÆ–6R4Ä’KÛşyJZèÎi[Ny¨B÷VäÆ–6R[z^X[~8"rÀ¢÷VävVçE'VçF–ÖW3¢~h™>[ÈvVçB‹ùŠÎi{brÀ¢÷VävVçE'VçF–ÖW4FW67&—F–öã¢~ZèŠ8^x«nh8[{º®j8iú^8KúîZHŞhÈ~[É^Y(Î[ú¾hÛ~XZ^Xú>˜;ŞYÊ(	ÄvVçB‹ùŠÎi{n(	Şš^™Ú.zêyn8"rÀ¢ÖöFVÇ3¢~jŠYè²rÀ¢WFƒ¢~ŠêNŠørÀ¢'VçF–ÖS¢°¢6ÆVFS¢°¢&ÇW&#¢tçF‡&÷–2y¨B6öF–ærÖvVçB4ÄûÈÆvVçB[ê®xêşiÈk{8"rÀ¢ÖöFVÇ3¢t6ÆVF^ûÈ„çF‡&÷–>ûÈûÈÎKº^Xø®˜	®‹ør&6RU$ÂY(ÎŠêNŠøZKNhê^XZ^y¨BçF‡&÷–2X[ÎZë{ÙX[>8"rÀ¢WFƒ¢t6ÆVFR&òôÖ‚Šê.™ˆ^h‰bçF‡&÷–2’¶W8"rÀ¢ÒÀ¢6öFWƒ¢°¢&ÇW&#¢t÷Vä’y¨B6öF–ærÖvVçB4Ä8"rÀ¢ÖöFVÇ3¢t÷Vä’uBjŠYè¾8.K¸^iJşhÈ&W7öç6W2ûÉ¾Xú®iÈ’6†Bhê^Xú>y¨NhùKé¾ik™ÈŠh&W7öç6W2Kº>yn8"rÀ¢WFƒ¢t6†DuBŠê.™ˆ^h‰b÷Vä’’¶W8"rÀ¢ÒÀ¢7W'6÷#¢°¢&ÇW&#¢t7W'6÷"y¨B6öF–ærÖvVçB4Ä8$Æ–6RXú®Y
+şXª‚D‚Kˆ®y¨B7W'6÷"ÖvVçFûÈÎKˆŞKÉ®KÛşyJKÉ®Y(Âw&ö²Xk.z¨y¨BvVçFYŞKºN8"rÀ¢ÖöFVÇ3¢~y›¾[Ù^Yîy¨NiÊÎZëb7W'6÷"ÖöFVÇ>ûÉ¤WFş86ö×÷6W""ã^8w&ö²BãbòBã^8&Vff÷'BY(Âf7BXiYÊ‚4Ä’–B˜xÎ8.zÊÎKˆikjŠYè¾Xúşh˜¾‹é>8"rÀ¢WFƒ¢v7W'6÷"ÖvVçBÆöv–æûÈÎh‰nh¨¢7W'6÷"F6†&ö&B’¶W’iKî‹ù²5U%4õ%ô•ô´U–8"rÀ¢ÒÀ¢w“¢°¢&ÇW&#¢tvöövÆRy¨B6öF–ærÖvVçB4Ä8$Æ–6RXú®Y
+şXª‚D‚Kˆ®y¨Bw–ûÈÎKˆŞKÉ®KÛşyJ‚çF–w&f—G–h‰bvVÖ–æ–8"rÀ¢ÖöFVÇ3¢~y›¾[Ù^Yîy¨NiÊÎZëbvVÖ–æ’6ÇV~ûÈƒ2ãrò2ãbfÆ682ã&şûÈ8.XéşyIòÒÖVff÷'FXú®iÈ’Æ÷ròÖVF—VÒò†–v8.zÊÎKˆikjŠYè¾Xúşh˜¾‹é>8"rÀ¢WFƒ¢~yJ‚w–kXşŠxYš‚ò™*^XÉK‹.y›¾[Ù^8.KùŞ™š[©>˜xÎy¨BvVÖ–æ’¶W’‹ùŠhˆz®[{YÊ‚4Ä’6WGF–æw2˜xÎXi’ÖöFVÅ&÷f–FW#¢&vVÖ–æ’&(	N(	DÆ–6RKˆŞKÉ®iK˜*>KŠ®ih~K»n8"rÀ¢ÒÀ¢w&ö³¢°¢&ÇW&#¢w„’y¨B6öF–ærÖvVçB4Ä8"rÀ¢ÖöFVÇ3¢w„’’Kˆ®y¨Bw&ö²jŠYè¾ûÈÎK™şXúş˜	®‹ø~ˆz®Zé®K˜’&6RU$Âhê^XZ^X[ÎZë’÷Vä’y¨Nzºşx+8"rÀ¢WFƒ¢vw&ö²Æöv–æŠê.™ˆ^h‰b„’’¶W8"rÀ¢ÒÀ¢ö×¢°¢&ÇW&#¢tö‚×’(	N(	E’y¨Bf÷&¾ûÈÎiÈˆz®[{y¨NZënyºî[Ù^8KÉ®ŠùŞY(Â&–çBô¥4ôâXØşŠêî8"rÀ¢ÖöFVÇ3¢t÷Vä8çF‡&÷–>8vöövÆ^ûÈÎKº^Xø®˜	®‹ø~XéşyIşh‰nX[ÎZëXØşŠêîhê^XZ^y¨NiÊÎYËjŠYè¾Y(ÎKº>yn8"rÀ¢WFƒ¢~jøşKŠ®hùKé¾ikYNˆz®y¨B’¶WûÈÎh‰nYÊ‚ö×˜xÂöÆöv–î8.Xú®ŠêBD‚Kˆ®y¨Bö×8"rÀ¢ÒÀ¢÷Væ6öFS¢°¢&ÇW&#¢~Yû®K¨â’4D²Y(ÂÖöFVÇ2æFWby¨NhùKé¾ikizX[>[Èk©vVçB4Ä8"rÀ¢ÖöFVÇ3¢tçF‡&÷–>8÷Vä8vöövÆ^8÷Vå&÷WFW.8K©hùKé¾ikKº^Xø®X[ÎZë’÷Vä’y¨NiÊÎYË‹ùŠÎi{n8"rÀ¢WFƒ¢~jøşKŠ®hùKé¾ikYNˆz®y¨B’¶W8"rÀ¢ÒÀ¢“¢°¢&ÇW&#¢~hùKé¾{¹şKˆZI®hùKé¾ik’’y¨N‹Û¾˜xş[Èk©vVçB4Ä8"rÀ¢ÖöFVÇ3¢t÷Vä8çF‡&÷–>8vöövÆ^ûÈÎKº^Xø®˜	®‹ø~XéşyIşh‰nX[ÎZëXØşŠêîhê^XZ^y¨NiÊÎYËjŠYè¾Y(ÎKº>yn8"rÀ¢WFƒ¢~jøşKŠ®hùKé¾ikYNˆz®y¨B’¶W8"rÀ¢ÒÀ¢ÒÀ¢7&VFVçF–ÄÖöFÃ¢°¢FEF—FÆS¢~k{¾XªXzŞŠørÀ¢VF—EF—FÆS¢~{Én‹éXzŞŠø(	N(	G··6ÇVw×ÒrÀ¢7V'F—FÆS¢~h¨®KˆKŠ®hùKé¾ik‹Jnh‹~hê^X‹h˜iÈX[ÎZëy¨N[z^KÙÎXË®‹ùŠÎi{n8"rÀ¢6Æ÷6S¢~X[>™zŞXzŞŠøZûŠùŞjbrÀ¢6V&6ƒ¢~i	Î{J.hùKé¾ik(
+brÀ¢F—7Æ”æÖS¢~i‹îzK®YŞz{rÀ¢F—7Æ”æÖT†VÇ¢~˜hºYš˜xÎy¨NXúş˜i‹^z{8.yYz›®X‰KÛşyJhùKé¾ikYŞz{Y(Â6ÇV~8"rÀ¢F—7Æ”æÖUÆ6V†öÆFW#¢~Kè¾Zh"[z^KÙÎyJ‚¶W’rÀ¢æôÖF6†W3¢~k*iÈXË˜XŞ(	Ç··VW'—×Ş(	Şy¨NhùKé¾ik8"rÀ¢6†ö÷6TÖöFS¢~˜hº’’jŠ[ÈşYîXÛ>XúşzîZé®X[ÎZëy¨BvVçBrÀ¢v÷&·5v—Fƒ¢~X[ÎZë’·¶vVçG7×ÒrÀ¢g&VTf÷&Ó¢~ˆz®yK˜XŞ{ÚârÀ¢6†ö÷6U&÷f–FW#¢~Šû~XX˜hºhùKé¾ik8"rÀ¢&÷f–FW$æÖU&WV—&VC¢~Šû~‹é>XZ^hùKé¾ikYŞz{8"rÀ¢7W7FöÕW&Å&WV—&VC¢~Šû~‹é>XZ^ˆz®Zé®K˜’’&6RU$Î8"rÀ¢7W7FöÕW&Ä–çfÆ–C¢~Šû~‹é>XZ^iÈiXy¨B‡GG¢òòh‰b‡GG3¢òò’&6RU$Î8"rÀ¢VæGö–çE&WV—&VC¢~Šû~˜hº’’zºşx+8"rÀ¢¶W•&WV—&VC¢~Šû~‹é>XZW·¶Æ&VÇ×Ş8"rÀ¢ÖöFVÅ&WV—&VC¢~Šû~‹é>XZ^ŠhkX¾Šù^[›nŠëKØşy¨NXxnzîjŠYè²”N8"rÀ¢6ö×ÆWFU&WV—&VC¢~Šû~XXZ¾Xi[ø^Z¾ZÙ~jë^8"rÀ¢&÷f–FW$æÖS¢~hùKé¾ikYŞz{rÀ¢&÷f–FW$æÖT†VÇ¢~YÊ˜hºYš˜xÎi‹îzK®y¨Ni‰>Šû¾YŞz{8"rÀ¢&÷f–FW$æÖUÆ6V†öÆFW#¢~Kè¾Zh.iÊÎYËdÄÄÒrÀ¢6ö×F–&–Æ—G”ÖöFS¢t’X[ÎZëjŠ[ÈòrÀ¢6ö×F–&–Æ—G”ÖöFT†VÇ¢~˜hºzºşx+Zéî™˜^Zéîxëy¨NXØşŠêîûÈÎZè>Xk>Zé®Y:®K©²vVçB‹ùŠÎi{nXúşKº^KÛşyJjÚNXzŞŠø8"rÀ¢&6UW&Ã¢t’&6RU$ÂrÀ¢&6UW&Ä†VÇ¢~ˆz®Zé®K˜hùKé¾ik[ø^š¾Z¾Xi8.Šû~XÈ^Y
+¾ih~j>Šhk.y¨N‹zş[èNX˜Ş{ÈûÈÎKè¾Zh"÷c8"rÀ¢F—&V7D&6UW&Ä†VÇ¢~Xúş˜8.yYz›®i{nKÛşyJ‚vVçB'VçF–ÖRXh^{Úîy¨NhùKé¾ikYËYØ8"rÀ¢66÷VçE&Vv–öã¢~‹Jnh‹~XË®YùòrÀ¢66÷VçE&Vv–öä†VÇ¢~˜hºzÛîXùjÚB’¶W’y¨NhùKé¾ikXË®Yùş8"rÀ¢7F÷&VDVæGö–çC¢~[{.KùŞZÙy¨Nˆz®Zé®K˜zºşx+ûÈKùŞhÈKˆŞXùûÈ’rÀ¢6ö×F–&ÆU'VçF–ÖW3¢~X[ÎZëy¨BvVçB‹ùŠÎi{brÀ¢6†ö÷6U7W÷'FVDÖöFS¢~Šû~˜hºiJşhÈy¨B’jŠ[Èş8"rÀ¢–æ¦V7F–öä†VÇ¢t÷VäÆ–6RXúşKº^h¨®‹ùKŠ®‹Jnh‹~hÈXÙ^jÊ6W76–öâ‹ù¾zˆ¾h©^[Û{¹Kˆ®™Ú.X‰~X{®y¨NX[ÎZë‹ùŠÎi{n8"rÀ¢”¶W“¢t’¶W’rÀ¢”¶W”†VÇ¢~KÛşyJjÚNhùKé¾ikzÛîXùy¨B’¶WûÉ¾Šê.™ˆ^y›¾[Ù^K¸ŞKùŞyYYÊ‚vVçB4Ä’KŠŞ8"rÀ¢”¶W•Æ6V†öÆFW#¢~‹é>XZR’¶W’rÀ¢FVfVÇDÖöFVÃ¢~›¹ŠêNjŠYè²rÀ¢FVfVÇDÖöFVÄ†VÇ¢~{;¾{¹şKÉ®kX¾Šù^[›nŠëKØş‹ùKŠ®XxnzîjŠYè²”NûÉ¾[z^KÙÎXË®K˜¾YîXúşKº^[˜:Šhny¹n8"rÀ¢ÖöFVÅÆ6V†öÆFW#¢~hùKé¾iky¨NXxnzîjŠYè²”BrÀ¢VæGö–çDFWF–Ç3¢~XØşŠêîY(Îzºşx+Šúnh8RrÀ¢æôVæGö–çC¢~[	®iÊ®˜XŞ{Úîzºşx+8"rÀ¢6VÆV7FVDÖöFVÃ¢~h˜˜jŠYè²rÀ¢FW7DW‡ÆæF–öã¢~{;¾{¹şKÉ®Y	·¶ÖöFVÇ×ÒXù˜KˆKŠ®[şŠû~k.8.Xú®iÈ[Ù>X˜Ò¶W8zºşx+8XØşŠêîY(ÎjŠYè¾Kˆ‹[~˜	®‹ø~YîûÈÎh˜ŞKÉ®Šz>™HKùŞZÙ8"rÀ¢FW7F–æt6öææV7F–öã¢~jÚ>YÊkX¾Šù^‹ùîhê^(
+brÀ¢6öææV7F–öåfW&–f–VC¢~‹ùîhê^[{.š¨ÎŠørÀ¢fW&–f–VDæõFW‡C¢~‹ùîhê^[{.š¨ÎŠø(	N(	NhùKé¾ikk*iÈ‹ùNY¹îih~iÊÎ8"rÀ¢FW7Df–ÆVC¢~kX¾Šù^ZK‹J^ûÉ¢rÀ¢f÷&Ô6†ævVC¢~ŠXÙ^YÊKˆ®jÊkX¾Šù^YîXùyIşK¨nXùXÉnûÈÎŠû~˜xŞikkX¾Šù^XhŞKùŞZÙ8"rÀ¢f÷&Ô6†ævVE6†÷'C¢~ŠXÙ^[{.XùXÉn(	N(	NŠû~˜xŞikkX¾ŠùRrÀ¢f—„æE&WG'“¢~Šû~KúîjÚ>ZÙ~jë^Yî˜xŞikkX¾ŠùRrÀ¢FW7D&Vf÷&U6fS¢~KùŞZÙX˜ŞŠû~XXkX¾Šù^jÚB¶W8"rÀ¢ÒÀ¢ÒÀ¢v÷&·76U6WGF–æw3¢°¢F—FÆS¢~[z^KÙÎXË®Šëî{ÚârÀ¢6Æ÷6S¢~X[>™zŞ[z^KÙÎXË®Šëî{ÚârÀ¢6V7F–öã¢°¢vVæW&Ã¢~˜	®yJ‚rÀ¢ÆVæ6ƒ¢tvVçB'VçF–ÖRrÀ¢&VfW&Væ6W3¢t’XşZ[ÒrÀ¢•&÷f–FW#¢t’hùKé¾ik’rÀ¢FV×ÆFS¢~jŠiÛòrÀ¢6öç6öÆ–FFS¢~Y[›n[z^KÙÎXË¢rÀ¢ÒÀ¢vVæW&Ã¢°¢F—7Æ”æÖS¢~i‹îzK®YŞz{rÀ¢F—7Æ”æÖT†VÇ¢~i‹îzK®YÊ[z^KÙÎXË®X‰~ŠY(Îj~zÛîš^j~š)KŠŞ8"rÀ¢FW67&—F–öã¢~ŠûNiˆârÀ¢FW67&—F–öåÆ6V†öÆFW#¢~[ŠîXªŠønXŠ¾jÚN[z^KÙÎXË®y¨NzèyúŞŠûNiˆî8"rÀ¢FW67&—F–öä†VÇ¢~i‹îzK®YÊ[z^KÙÎXË®jh.ŠxXÚx˜~KŠŞ8"rÀ¢7F&ÆUFs¢~z‹>Zé®j~zÛârÀ¢7F&ÆUFt†VÇ¢~j~zÛîKÉ®KùŞhÈz‹>Zé®ûÈÎyJK¨î‹zş[èNY(ÂÆVæ6†W"Šë[Ù^ûÉ¾i‹îzK®YŞz{h˜ŞiŠş™Ú.Y	K«®y¨NYŞz{8"rÀ¢6fVC¢~[{.KùŞZÙX‹æÆ–6R÷v÷&·76Ræ§6öî8"rÀ¢7F÷&VD–ã¢~KùŞZÙYÊ‚æÆ–6R÷v÷&·76Ræ§6öî8"rÀ¢ÒÀ¢&VfW&Væ6W3¢°¢F—FÆS¢t’XşZ[ÒrÀ¢FW67&—F–öã¢~›¹ŠêNKÉ®ˆz®Xªk+şyJiÈ‹ùKˆjÊh‰X©şY
+şXªûÉ¾Xú®iÈ™ÈŠhY»®Zé®ŠÎK‹®i{nh˜ŞYÊ‹ù˜xÎŠëî{Úî8.Kˆ¾™Ú.ZèÎi[NX‰~X{®KªNK©.[ÈşKˆîizZKNKŠNzxŞY
+şXªjŠ[Èş8"rÀ¢–çFW&7F—fS¢~KªNK©.[Èò6W76–öârÀ¢†VFÆW73¢~izZKN‹ùŠÂrÀ¢–çFW&7F—fT†VÇ¢~yJh‹~XúşŠx8Xúş‹ù¾XZRET’y¨BvVçB6W76–öîûÈÎXÈ^hºÎK¸î™zâÆ–6^8v÷&·76RKê~jş84Ä’h‰b’Y
+şXª8"rÀ¢†VFÆW74†VÇ¢~yKŠêîš)8Zé®i{nK»¾Xª8ˆz®XªXÉn84Ä’h‰b’YÊYîXûY
+şXªy¨BvVçB‹ùŠÎ8"rÀ¢FVfVÇE'VçF–ÖS¢~›¹ŠêBvVçB'VçF–ÖRrÀ¢FVfVÇE'VçF–ÖTf÷#¢w·¶ÖöFW×Şy¨N›¹ŠêBvVçB'VçF–ÖRrÀ¢föÆÆ÷u&V6VçE'VçF–ÖS¢~‹yş™¨şiÈ‹ùKˆjÊh‰X©şKÛşyJy¨B'VçF–ÖRrÀ¢föÆÆ÷u&V6VçE'VçF–ÖU&W6öÇfVC¢~‹yş™¨şiÈ‹ùKÛşyJ‚(	B··'VçF–ÖW×ÒrÀ¢7W'&VçFÇ•&W6öÇfW5Fó¢~[Ù>X˜ŞŠz>iéK‹¢rÀ¢&V6VçE'VçF–ÖS¢~iÈ‹ùh‰X©şKÛşyJy¨B'VçF–ÖRrÀ¢'VçF–ÖS¢u'VçF–ÖRrÀ¢&W6öÇfVE&VfW&Væ6S¢~Šëş™zîik[Èş8jŠYè¾Y(Î[Ë®[ªbrÀ¢f—†VC¢~Y»®Zé®›¹ŠêNXÂrÀ¢f—†VD7W'&VçE&V6VçE'VçF–ÖS¢~Y»®Zé®›¹ŠêNXÂ+r[Ù>X˜ŞiÈ‹ùKÛşyJ‚rÀ¢&V6VçC¢~‹yş™¨şiÈ‹ùKÛşyJ‚rÀ¢7W'&VçE&V6VçE'VçF–ÖS¢~[Ù>X˜ŞiÈ‹ùKÛşyJy¨B'VçF–ÖRrÀ¢W6W5&V6VçE6WGF–æw3¢~KÛşyJiÈ‹ùŠëî{ÚârÀ¢vVçDÆöv–ã¢~yK'VçF–ÖRzêybrÀ¢VF—E'VçF–ÖTf÷#¢~{Én‹é·¶ÖöFW×ŞKŠŞy¨B··'VçF–ÖW×ÒXşZ[ÒrÀ¢VF—EF—FÆS¢w··'VçF–ÖW×Ò›¹ŠêNXşZ[ÒrÀ¢VF—DFW67&—F–öã¢~K‹®‹ùzxŞY
+şXªjŠ[ÈşY»®Zé®izZøn™*^y¨NŠëş™zî[É^yJ8jŠYè¾Y(Îh	Şˆ>[Ë®[ªnûÈÎh‰n{º~{ºŞ‹yş™¨şh‰X©şY
+şXªŠë[Ù^8"rÀ¢&V†f–÷#¢~XşZ[ŞŠÎK‹¢rÀ¢föÆÆ÷u&V6VçC¢~‹yş™¨şiÈ‹ùKÛşyJ‚rÀ¢föÆÆ÷u&V6VçD†VÇ¢~KÛşyJ‹ùKŠ¢'VçF–ÖRiÈ‹ùKˆjÊh‰X©şY
+şXªy¨N˜hº8"rÀ¢f—†VDFVfVÇC¢~Y»®Zé®›¹ŠêNXÂrÀ¢f—†VDFVfVÇD†VÇ¢~YÊ‹ù˜xÎXhŞjÊKúîiKX˜ŞZx¾{¸KÛşyJ‹ù{¸N˜hº8"rÀ¢æF—fT66W74†VÇ¢~yK'VçF–ÖRzêyni{nûÈÄ÷VäÆ–6RKˆŞk:XZ^XzŞhÚîh‰nhùKé¾ik˜XŞ{ÚîûÉ´vVçB'VçF–ÖRˆz®ŠÎŠz>iéy›¾[Ù^8xêşZ(>Xù˜xşKˆî[˜:˜XŞ{Úî8.[{.KùŞZÙy¨NŠëş™zîik[ÈşXú®Šë[Ù^XzŞhÚî[É^yJûÈÎZøn™*^K¸ŞKùŞZÙYÊ‚Æ–6Ry¨NXzŞhÚî[©>KŠŞ8"rÀ¢Ç“¢~KùŞZÙi»NiK’rÀ¢6fVC¢uv÷&·76R’XşZ[Ş[{.KùŞZÙ8"rÀ¢ÒÀ¢ÆVæ6ƒ¢°¢F—FÆS¢tvVçB'VçF–ÖRŠø®ijÒrÀ¢FW67&—F–öã¢~j8iú^jøşKŠ®[{.k:XhÂvVçB'VçF–ÖRYÊ‹ùKŠ¢v÷&·76RKŠŞy¨NZéî™˜^Y
+şXªik[Èş8"rÀ¢FVfVÇE'VçF–ÖS¢~ik6W76–öâ'VçF–ÖRrÀ¢–æ†W&—E'VçF–ÖS¢~k+şyJ‚Æ–6R›¹ŠêNXÂ(	B··'VçF–ÖW×ÒrÀ¢WFöÖF–5'VçF–ÖS¢~ˆz®Xª˜hº’rÀ¢FVfVÇE'VçF–ÖT†VÇ¢~Xú®KùŞZÙYÊ[Ù>X˜Òv÷&·76^8%V–6²6†N8Kê~jò'VçF–ÖRˆùÎXÙ^84Ä’Xø.i[Y(Â’Xø.i[˜;ŞXúşKº^Xú®Šhny¹niùKˆjÊ6W76–öîûÈÎKˆŞKÉ®i©~iK‹ù˜xÎ8"rÀ¢FVfVÇE6fVC¢uv÷&·76R›¹ŠêB'VçF–ÖR[{.KùŞZÙ8"rÀ¢&Wf–WuF—FÆS¢~Zéî™˜^Y
+şXªš(NŠx‚rÀ¢&Wf–WtFW67&—F–öã¢~j8iú^K»¾hHò'VçF–ÖRiÈ{¸KªN{¹’E’y¨NY
+şXªŠêX‰.8.Xˆ~hÚ.š(NŠxKˆŞKÉ®KúîiK’’XşZ[Ş8"rÀ¢ÆöF–æs¢~jÚ>YÊŠz>iéY
+şXªŠêX‰.(
+brÀ¢ÆöDW'&÷#¢~izk9^Šû¾XùnY
+şXªŠêX‰"rÀ¢æõ'VçF–ÖW3¢~[Ù>X˜Şk*iÈ[{.k:XhÎ8XúşKé¾š(NŠxy¨BvVçB'VçF–Ö^8"rÀ¢'VçF–ÖU&VG“¢~[{.h›îX‹'VçF–ÖRrÀ¢'VçF–ÖTÖ—76–æs¢~iÊ®h›îX‹'VçF–ÖRrÀ¢'VçF–ÖTÖ—76–æt†VÇ¢~[Ù>X˜Ş‹zş[èNKŠŞk*iÈh›îX‹‹ùKŠ¢'VçF–Ö^8.Y
+şXªK¸ŞKÉ®[	ŞŠù^ûÈÎKØn‹ù¾zˆ¾[èXúşˆ;ŞKºRW†V7WF&ÆRæ÷Bf÷VæBZK‹J^8"rÀ¢ÖöFS¢°¢F—&V7C¢~y»Nhê^Y
+şXª‚rÀ¢væöFR×6†–Òs¢tæöFR6†–ÒrÀ¢v&6‚×6†–Òs¢t&6‚6†–ÒrÀ¢v6ÖB×6†–Òs¢t4ÔBX[ÎZë’rÀ¢ÒÀ¢6öÖÖæC¢~{¸NYYŞKºBrÀ¢6öÖÖæD†VÇ¢tFFW"jhÚî[z^KÙÎXË®˜XŞ{Úî8iØ>™™Y(Âg&W6‚6W76–öâhHşY»îyIşh‰y¨B&wn8"rÀ¢&W6öÇfVD6öÖÖæC¢~[›>XûŠz>iéYîy¨N‹ù¾zˆ²&wbrÀ¢6÷”6öÖÖæC¢~ZHŞX‹n‹ù¾zˆ²&wbrÀ¢7vC¢~[z^KÙÎyºî[ÙRrÀ¢G&ç67&—C¢~KÉ®ŠùŞŠë[Ù^yºî[ÙRrÀ¢æõG&ç67&—C¢~KˆŞXùxëXéşyIşKÉ®ŠùŞŠë[ÙRrÀ¢Vçf—&öæÖVçC¢~xêşZ(>‹JxÊârÀ¢Vçf—&öæÖVçD†VÇ¢~Xú®X‰~X{¢÷VäÆ–6Rhê~X‹ny¨NxêşZ(>šûÉ¾KˆŞKÉ®‹ùNY¹î{º~h›şy¨NZëşK‹¾xêşZ(>ûÈÎXzŞhÚîXÎZx¾{¸ˆKiXş8"rÀ¢6öæf–wW&VC¢~[{.˜XŞ{ÚârÀ¢&VF7FVC¢~[{.ˆKiXòrÀ¢F„6÷VçC¢w·¶6÷VçG×ÒKŠ®i	Î{J.‹zş[èBrÀ¢6÷W&6S¢°¢FW&Ö–æÃ¢~{¸zºşˆ;ŞX©²rÀ¢v÷&·76S¢~[z^KÙÎXË®Kˆ®Kˆ¾ihrrÀ¢FööÇ3¢t÷VäÆ–6R[z^X[~™;ârÀ¢FFW#¢u'VçF–ÖRFFW"rÀ¢ÒÀ¢6&–Æ—F–W3¢~[{.Z;iˆîˆ;ŞX©²rÀ¢&ÆÆVÃ¢~YÎyºî[Ù^[›nŠÂrÀ¢&W7VÖT'”–C¢~hÈ’”Bh.ZHÒrÀ¢&W7VÖTÆ7C¢~h.ZHŞiÈ‹ùKÉ®ŠùÒrÀ¢†VFÆW73¢t†VFÆW72K»¾XªrÀ¢G&ç67&—DÖöFS¢°¢vg2×vF6‚s¢~ih~K»nKÉ®ŠùŞXùxërÀ¢7V'&ö6W73¢u'VçF–ÖRKÉ®ŠùŞXùxërÀ¢æöæS¢~KˆŞXùxëKÉ®ŠùŞŠë[ÙRrÀ¢ÒÀ¢&Wf–Wu&VDöæÇ“¢~K¸^š(NŠx‚+rKºRg&W6‚–çFW&7F—fR6W76–öâK‹®XxbrÀ¢6ö×F–&–Æ—G•F—FÆS¢~XéşyIò4Ä’˜XŞ{ÚîZûÎX{®ûÈ[{.[È>yJûÈ’rÀ¢6ö×F–&–Æ—G”FW67&—F–öã¢~h¨®hùKé¾ik˜XŞ{ÚîXiXZ^[Ù>X˜ŞšyºîûÈÎKé¾ˆKzk²÷VäÆ–6Ry»Nhê^Y
+şXª‚4Ä’i{nKÛşyJ8.h™zê6W76–öâiKyJ‚æÆ–6R÷6WGF–æw2æ§6öâKˆî‹ù¾zˆ¾{ª~Y
+şXªXø.i[8"rÀ¢÷Vä6ö×F–&–Æ—G“¢~h™>[ÈX[ÎZëZûÎX{¢rÀ¢ÒÀ¢“¢°¢FW&V6FVEF—FÆS¢~[{.[È>yJy¨NX[ÎZëZûÎX{¢rÀ¢FW&V6FVDFW67&—F–öã¢~‹ùKŠ®{Én‹éYšKÉ®XiXZR'VçF–ÖRXéşyIşšyºî˜XŞ{Úî8$Æ–6RKˆŞXhŞh¨®Zè>[Ù>KÙÎik6W76–öâ›¹ŠêNXÎûÈÎKØb4Ä’K¸ŞXúşˆ;ŞhÈˆz®‹ª¾y¨Nšyºî˜XŞ{ÚîKÉXX{ª~Šû¾Xùn‹ùKŠ®ih~K»n8"rÀ¢ÆöE6fVC¢~K¸î[{.KùŞZÙXzŞŠø‹ÛŞXZRrÀ¢6fVD7&VFVçF–ÄÆ&VÃ¢w·¶vVçG×Ò[{.KùŞZÙXzŞŠørÀ¢6fVD7&VFVçF–Å&÷Fö6öÄÆ&VÃ¢~[{.KùŞZÙXzŞŠøy¨B’XØşŠêârÀ¢6VÆV7D7&VFVçF–Ã¢~(	B˜hºKˆKŠ®XzŞŠø(	BrÀ¢æô6ö×F–&ÆT7&VFVçF–Ã¢~(	Bk*iÈX[ÎZë’·¶vVçG×Òy¨NXzŞŠø(	BrÀ¢&÷Fö6öÄ6÷VçC¢w·¶6÷VçG×ÒzxŞXØşŠêârÀ¢ÆöC¢~‹ÛŞXZRrÀ¢ÆöD†VÇ¢~K¸âÆ–6RXzŞŠø[©>Z¾XZ^zºşx+Y(Â¶W8.ˆº^iÈZI®zxŞXØşŠêîXX˜hºXØşŠêîûÈÎxKnYîKùŞyY[{.ŠëKØşy¨NjŠYè¾h‰n‹é>XZ^X[nK¹njŠYè²”N8"rÀ¢–æ6ö×F–&ÆT†VÇ¢~[{.KùŞZÙXzŞŠø˜;Şk*iÈKÛşyJ‚·¶vVçG×ÒiJşhÈy¨NXØşŠêî8.Šû~k{¾XªX[ÎZëXzŞŠøûÈÎh‰niKyJ‚’ò÷Væ6öF^8"rÀ¢•&÷Fö6öÃ¢t’XØşŠêârÀ¢•&÷Fö6öÄÆ&VÃ¢w·¶vVçG×Ò’XØşŠêârÀ¢•&÷Fö6öÄ†VÇ¢~˜hºjÚNzºşx+Zéî™˜^Zéîxëy¨NhùKé¾ik˜.˜XŞYš8"rÀ¢&6UW&Ã¢t&6RU$ÂrÀ¢”¶W“¢t’¶W’rÀ¢WF„†VFW#¢~ŠêNŠøŠû~k.ZKBrÀ¢WF„†VFW$Æ&VÃ¢w·¶vVçG×ÒŠêNŠøŠû~k.ZKBrÀ¢WF„†VFW$†VÇ¢tçF‡&÷–2Zéikhê^Xú>KÛşyJ‚‚Ö’Ö¶WûÉ´Ö–æ”Ö8Æöæt6BzØX[ÎZë{ÙX[>˜	®[‹Šhk"WF†÷&—¦F–öã¢&V&W.8"rÀ¢ÖöFVÃ¢~jŠYè²rÀ¢ÖöFVÅ7VvvW7F–öç3¢~iÚ^ˆz®XË˜XŞhùKé¾iky¨N[»®ŠêîûÉ¾K™şXúşKº^‹é>XZ^K»¾hHşjŠYè²”N8"rÀ¢&Vv—7FW&VDWFöÖF–6ÆÇ“¢~ˆz®Xªy›¾ŠëûÉ¢rÀ¢&V6öæ–ætVff÷'C¢~h	Şˆ>[Ë®[ªbrÀ¢&V6öæ–ætVff÷'DÆ&VÃ¢w·¶vVçG×Òh	Şˆ>[Ë®[ªbrÀ¢&Vv—7FW&VDFVfVÇC¢~k:XhÎ›¹ŠêNXÂrÀ¢'VçF–ÖTFVfVÇD÷F–öã¢~‹ùŠÎi{n›¹ŠêNûÈhùKé¾ikiÊ®XZÎ[ˆ>ûÈ’rÀ¢Vff÷'Dæ÷E7V6–f–VC¢~iÊ®hÈ~Zé¢rÀ¢&V6öæ–ætVff÷'D†VÇ¢~hùKé¾ik›¹ŠêNXÎûÉ§·¶FVfVÇDVff÷'G×Ş8.yYz›®i{nKˆŞk:XZ^h	Şˆ>[Ë®[ªnûÈÎyKjŠYè¾h‰nhùKé¾ikˆz®ŠÎXk>Zé®ûÉ¾K™şXúşKº^˜hºKˆKŠ®XÎûÈÎKÙÎK‹®i‹î[ÈşŠhny¹nXiXZR··'VçF–ÖW×Òy¨N[z^KÙÎXË®[˜:˜XŞ{Úî8"rÀ¢&V6öæ–ætVff÷'EVæ¶æ÷vä†VÇ¢~yYz›®i{nKˆŞk:XZ^h	Şˆ>[Ë®[ªnûÈÎyKjŠYè¾h‰nhùKé¾ikˆz®ŠÎXk>Zé®ûÉ¾K™şXúşKº^˜hºKˆKŠ®XÎûÈÎKÙÎK‹®i‹î[ÈşŠhny¹nXiXZR··'VçF–ÖW×Òy¨N[z^KÙÎXË®[˜:˜XŞ{Úî8"rÀ¢F†–æ¶–æuöÆ–7“¢~h	Şˆ>zÙnyZRrÀ¢F†–æ¶–ætÇv—4öã¢~Zx¾{¸[ÈY
+òrÀ¢F†–æ¶–ætVæ&ÆVC¢~[ÈY
+şûÈhùKé¾ik›¹ŠêNûÈ’rÀ¢F†–æ¶–ætF—6&ÆVC¢~X[>™zŞûÈhùKé¾ik›¹ŠêNûÈ’rÀ¢F†–æ¶–æuVæ¶æ÷vã¢~‹ùŠÎi{n›¹ŠêNûÈhùKé¾ikiÊ®XZÎ[ˆ>ûÈ’rÀ¢F†–æ¶–æuöÆ–7”†VÇ¢~Šú^jŠYè¾k*iÈXZÎ[ˆ>Xúş‹>ˆ¨.y¨BVff÷'Bj>KØŞ8$÷VäÆ–6RKÉ®KùŞyYyÉşZéîy¨Nh	Şˆ>[ÈX[>ŠúŞK˜ûÈÎKˆŞKÉ®‰™®ièNKˆKŠ®[Ë®[ªnXÎ8"rÀ¢Væ¶æ÷vå&V6öæ–æt†VÇ¢~K¸^yJK¨âÆ–6Rk:XhÎŠ˜xÎk*iÈy¨Nh˜¾Xª‹é>XZ^jŠYè¾8.i»NhÚ.jŠYè¾h‰nhùKé¾iki{nKÉ®kˆ^™šNjÚNŠhny¹n8"rÀ¢&V6öæ–æt÷fW'&–FTÆ&VÃ¢w·¶vVçG×ÒiÊ®yú^jŠYè¾h	Şˆ>ˆ;ŞX©¾Šhny¹brÀ¢6öçFW‡Ev–æF÷s¢~Kˆ®Kˆ¾ih~z©~Xú2rÀ¢6öçFW‡Ev–æF÷tÆ&VÃ¢w·¶vVçG×ÒKˆ®Kˆ¾ih~z©~Xú2rÀ¢6öçFW‡DWFöÖF–3¢~ˆz®XªKÛşyJjŠYè¾y›¾ŠëXÂ·¶Æ–Ö—G×ÒrÀ¢&÷Fö6öÄFWF–Ç3¢~jÚNXØşŠêîZh.KÙ^k:XZRrÀ¢vöövÆUv—&S¢~KÛşyJXéşyIòvöövÆRvVæW&F—fR’XØşŠêîûÈÎy»Nhê^Xù˜Xù~iJşhÈy¨BvöövÆRhèiØ2¶WûÈÎKˆŞ™ÈŠh‹ÚÎhÚ.Kº>yn8"rÀ¢çF‡&÷–5v—&S¢~KÛşyJ‚çF‡&÷–2ÖW76vW>8$&6RU$Â[©NhÈ~Y	çF‡&÷–2X[ÎZëzºşx+ûÈÎ[›n˜hºŠú^zºşx+Šhk.y¨NŠêNŠøŠû~k.ZKN8"rÀ¢&W7öç6W5v—&S¢~KÛşyJ‚÷Vä’&W7öç6W>8.zºşx+[ø^š¾Zéîxë&W7öç6W>ûÈÎKˆŞˆ;ŞXú®iÈ’6†B6ö×ÆWF–öç>8"rÀ¢6†Ev—&S¢~KÛşyJ‚÷Vä’6†B6ö×ÆWF–öç>ûÈÎXúşy»Nhê^‹ùîhê^X[ÎZëy¨NK©zºşh‰niÊÎYËhùKé¾ik8"rÀ¢”–æ¦V7F–öã¢~Xú®iÈyJh‹~iˆîzî˜hºYîûÈÄ÷VäÆ–6Rh˜ŞKÉ®˜	®‹ø~[z^KÙÎXË®[˜:y¨B’hš[^Kˆâç’÷6WGF–æw2æ§6öâ{¹Zé®ˆz®Zé®K˜hùKé¾ik8%’y¨NXZ[y›¾[Ù^8jŠYè¾k:XhÎŠY(ÂfÆÆ&6²™;îK¸Ş[Ù.yJh‹~h˜iÈ8"rÀ¢÷Væ6öFT–æ¦V7F–öã¢t÷VäÆ–6RKÉ®h¨®hùKé¾ikXiXZ^jÚN[z^KÙÎXË®y¨B÷Væ6öFRæ§6öîûÈÎ[›nYÊKÉ®ŠùŞY
+şXªi{nk:XZRÔ5iÈŞXªYš8"rÀ¢6öFW…&W7öç6W4öæÇ“¢t6öFW‚Xú®iJşhÈ&W7öç6W28.Xú®iÈ’6†Bhê^Xú>y¨NhùKé¾ik™ÈŠh&W7öç6W2‹ÚÎhÚ.Kº>yn8"rÀ¢6†ævW4†VÇ¢~Xùi»NXú®ZûikKÉ®ŠùŞyIşiX8.Šû~i¨.XÎ[›nh.ZHŞ[{.h™>[Èy¨NKÉ®ŠùŞûÈÎKº^˜xŞik‹ÛŞXZ^[z^KÙÎXË®[˜:˜XŞ{Úî8"rÀ¢6fVC¢~[{.KùŞZÙ8.Šû~i¨.XÎ[›nh.ZHŞ[{.h™>[Èy¨NKÉ®ŠùŞKº^˜xŞik‹ÛŞXZ^8"rÀ¢6fVDÖöFVÅFö7C¢~[{.K‹¢··v÷&·76W×Òy¨B··'VçF–ÖW×Ò˜hº’·¶ÖöFVÇ×Ş8"rÀ¢6fVD6öæf–uFö7C¢w··v÷&·76W×Òy¨B··'VçF–ÖW×Ò[{.iKyJ[z^KÙÎXË¢’˜XŞ{Úî8"rÀ¢6fT7&VFVçF–Å&ö×C¢~h¨®jÚNhùKé¾ikKùŞZÙX‹Æ–6^ûÈÎKé¾X[nK¹n[z^KÙÎXË®ZHŞyJûÉòrÀ¢æ÷Dæ÷s¢~i¨.KˆŞKùŞZÙ‚rÀ¢6fUFôÆ–6S¢~KùŞZÙX‹Æ–6RrÀ¢6fVE&WW6&ÆS¢~[{.KÙÎK‹®(	Ç··6ÇVw×Ş(	ŞKùŞZÙX‹Æ–6^ûÈÎXúşYÊK»¾KÙ^[z^KÙÎXË®ZHŞyJ8"rÀ¢FW7F–æt6öææV7F–öã¢~jÚ>YÊkX¾Šù^‹ùîhê^(
+brÀ¢FW7E76VC¢~kX¾Šù^˜	®‹ø~(	N(	G··&÷f–FW'×Ò[{.Y¹îZHŞûÉ¢rÀ¢FW7E76VDæõFW‡C¢~kX¾Šù^˜	®‹ø~(	N(	NhùKé¾ikXúşŠëş™zîûÈÎKØnk*iÈ‹ùNY¹îih~iÊÎ8"rÀ¢FW7Df–ÆVC¢~kX¾Šù^ZK‹J^ûÉ¢rÀ¢f÷&Ô6†ævVC¢~‹ùîhê^ZÙ~jë^YÊKˆ®jÊkX¾Šù^YîXùyIşXùXÉnûÈÎŠû~˜xŞikkX¾Šù^XhŞKùŞZÙ8"rÀ¢&W6WC¢~h.ZHŞK‹®XZ[›¹ŠêNXÂrÀ¢f–ÆÅ&WV—&VC¢~Šû~XXZ¾Xi’&6RU$Î8’¶W’Y(ÎjŠYè²rÀ¢&÷f–FW%&WÇ”6ÆVFS¢tçF‡&÷–2rÀ¢&÷f–FW%&WÇ”÷Vä“¢t÷Vä’rÀ¢&÷f–FW%&WÇ”vVæW&–3¢~hùKé¾ik’rÀ¢ÒÀ¢ÒÀ¢6öÖÖöã¢°¢ÆöF–æs¢~Xª‹ÛŞKŠŞ(
+brÀ¢6V&6†–æs¢~i	Î{J.KŠŞ(
+brÀ¢FööÇ3¢~[z^X[rrÀ¢Æöw3¢~iz^[ùrrÀ¢öfc¢~X[>™zÒrÀ¢FVÆWFS¢~XŠ™šBrÀ¢&WG'“¢~˜xŞŠùRrÀ¢6Æ÷6S¢~X[>™zÒrÀ¢FC¢~k{¾XªrÀ¢VF—C¢~{Én‹érÀ¢6fS¢~KùŞZÙ‚rÀ¢6f–æs¢~KùŞZÙKŠŞ(
+brÀ¢6fVC¢~[{.KùŞZÙ‚rÀ¢6fTf–ÆVC¢~KùŞZÙZK‹JRrÀ¢6æ6VÃ¢~Xùnkh‚rÀ¢6†÷s¢~i‹îzK¢rÀ¢†–FS¢~™©‰xòrÀ¢6†ævS¢~i»NhÚ"rÀ¢FW7C¢~kX¾ŠùRrÀ¢FW7F–æs¢~kX¾Šù^KŠŞ(
+brÀ¢FW7D6öææV7F–öã¢~kX¾Šù^‹ùîhêRrÀ¢6öÆÆ6UæVÃ¢~iKn‹[w··F—FÆW×ÒrÀ¢÷VåæVÃ¢~h™>[È··F—FÆW×ÒrÀ¢&W6—¦UæVÃ¢~‹>i[G··F—FÆW×ŞZëŞ[ªbrÀ¢6Æ÷6UæVÃ¢~X[>™z×··F—FÆW×ÒrÀ¢fö7W46öçFVçC¢~ˆ®xJnXh^ZëXË¢rÀ¢Ö÷&T7F–öç3¢w··F&vWG×Şy¨Ni»NZI®i8ŞKÙÂrÀ¢ÒÀ¢6†C¢°¢æWt6†C¢~ikZûŠùÒrÀ¢æWu6W76–öã¢~YÊjÚN[z^KÙÎXË®KŠŞik[»®ZûŠùÒrÀ¢æWuv÷&·76S¢~ik[»®[z^KÙÎXË¢rÀ¢F—7Æ”ÖöFTÆ&VÃ¢~[z^KÙÎXË®i‹îzK®jŠ[ÈòrÀ¢fö7W6VDÖöFS¢~[Ù>X˜Ş[z^KÙÎXË¢rÀ¢fö7W6VDÖöFTFW67&—F–öã¢~i‹îzK®[Ù>X˜Ş[z^KÙÎXË®y¨NZûŠùÒrÀ¢&V6VçDÖöFS¢~XZ˜:[z^KÙÎXË®y¨NiÈ‹ùZûŠùÒrÀ¢×VÇF”ÖöFS¢~[z^KÙÎXË®j	rÀ¢×VÇF”ÖöFTFW67&—F–öã¢~hÈ[z^KÙÎXË®Xˆn{¸Ni‹îzK®ZûŠùÒrÀ¢×VÇF”ÖöFTF–ÆöuF—FÆS¢~Xˆ~hÚ.X‹[z^KÙÎXË®j	ûÉòrÀ¢×VÇF”ÖöFTF–ÆötÖW76vS¢~Kê~jşKÉ®[^[Èh˜iÈZûŠùŞ[z^KÙÎXË®Xø®X[nKÉ®ŠùŞûÈÎikKëşh›˜xşiú^yÈ¾8.‹ùXú®KÉ®iKXùZûÎˆŠ®ik[ÈşûÈÎKˆŞKÉ®iKXª[{.iÈy¨N[z^KÙÎXË®Y(ÎZûŠùŞ8"rÀ¢×VÇF”ÖöFTF–Æöt6öæf—&Ó¢~i‹îzK®XZ˜:[z^KÙÎXË¢rÀ¢fö7W6VDV×G“¢~X‰¾[»®KˆKŠ®ZûŠùŞ[z^KÙÎXË®ûÈÎh¨®y»X[>y¨NZûŠùŞY(Îih~K»n™[şiÉşiKîYÊKˆ‹[~8"rÀ¢&V6VçD6öçfW'6F–öç3¢~iÈ‹ùZûŠùÒrÀ¢'Vææ–æt–ä&6¶w&÷VæC¢~YîXû‹ùŠÎKŠÒrÀ¢ÆÄ6öçfW'6F–öç5'Vææ–æs¢~[Ù>X˜ŞKÉ®ŠùŞ˜;Ş‹ùYÊYîXû‹ùŠÎ8"rÀ¢†VFÆW74'W7•F—FÆS¢~‹ùKŠ¢6W76–öâjÚ>YÊYîXû‹ùŠÂrÀ¢†VFÆW74'W7”FW67&—F–öã¢~K‹®˜şXXŞKŠNKŠ¢vVçB‹ù¾zˆ¾YÎi{nXiXZ^YÎKˆK»ŞKÉ®ŠùŞŠë[Ù^ûÈÄ÷VäÆ–6RKˆjÊXú®XXŠëKˆKŠ®‹ù¾zˆ¾XÚyJ‚6W76–öî8.jÚNjÊK»¾Xª{¹>iÙşYîXÛ>XúşKÛşyJ‚ET’h‰bvV"h™>[È8"rÀ¢†VFÆW74'W7”—77VS¢~yK—77VR·¶—77VW×ÒY
+şXª‚rÀ¢†VFÆW74'W7”vVçC¢~jÚ>YÊKÛşyJ‚·¶vVçG×Ò‹ùŠÂrÀ¢&V6VçD7&÷75v÷&·76W3¢~XZ˜:[z^KÙÎXË®y¨NiÈ‹ùZûŠùÒrÀ¢æõ&V6VçD6öçfW'6F–öç3¢~KÚy¨NZûŠùŞ[z^KÙÎXË®KŠŞ‹ùk*iÈKÉ®ŠùŞ8"rÀ¢æô6öçfW'6F–öç5–WC¢~‹ùKŠ®[z^KÙÎXË®‹ùk*iÈZûŠùŞ8"rÀ¢7W'&VçEv÷&·76S¢~[Ù>X˜Ş[z^KÙÎXË¢rÀ¢ÆÅv÷&·76W3¢~XZ˜:[z^KÙÎXË¢rÀ¢7W'&VçE66÷S¢~[Ù>X˜ÒrÀ¢&V6VçE66÷S¢~iÈ‹ùrÀ¢v÷&·76W566÷S¢~[z^KÙÎXË¢rÀ¢v÷&·76T6öçFW‡DÆ&VÃ¢~ZûŠùŞKˆ®Kˆ¾ih~ûÉ§·¶æÖW×ÒrÀ¢v÷&·76T6öçFW‡EWFFTÆ&VÃ¢~ZûŠùŞKˆ®Kˆ¾ih~ûÉ§·¶æÖW×Ş8.jŠiÛşXúşXØ~{ª~ˆ{2g··fW'6–öç×Ş8"rÀ¢v÷&·76T6öçFW‡DÖVçS¢~ZûŠùŞ[z^KÙÎXË®˜š’rÀ¢v÷&·76UWFFTf–Æ&ÆS¢~jŠiÛşXúşXØ~{ªr+rg··fW'6–öç×ÒrÀ¢&Wf–Wuv÷&·76UWFFS¢~iú^yÈ¾jŠiÛşXØ~{ªrrÀ¢&Wf–Wuv÷&·76UWFFTÆ&VÃ¢~iú^yÈ¾jŠiÛşXØ~{ª~ˆ{2g··fW'6–öç×ÒrÀ¢f–Ws¢~ŠxnY»ârÀ¢7W'&VçEv÷&·76TÆ&VÃ¢~[Ù>X˜Ş[z^KÙÎXË®ûÉ§··v÷&·76W×ÒrÀ¢7v—F6…v÷&·76S¢~Xˆ~hÚ.[z^KÙÎXË¢rÀ¢v÷&·76U–6¶W$FW67&—F–öã¢~K‹®Kˆ¾Kˆjë^ZûŠùŞ˜hºKˆKŠ®Xúş™[şiÉşKÛşyJy¨N[z^KÙÎKˆ®Kˆ¾ih~8"rÀ¢v÷&·76U6V&6…Æ6V†öÆFW#¢~i	Î{J.[z^KÙÎXË®(
+brÀ¢v÷&·76U&W7VÇD6÷VçC¢w·¶6÷VçG×ÒKŠ®XË˜XŞy¨N[z^KÙÎXË¢rÀ¢v÷&·76U6W76–öä6÷VçC¢w·¶6÷VçG×ÒKŠ®ZûŠùÒrÀ¢æõv÷&·76TÖF6†W3¢~k*iÈXË˜XŞi	Î{J.iÚK»ny¨N[z^KÙÎXË®8"rÀ¢'&÷w6Uv÷&·76S¢~kXşŠxXZ˜:ZûŠùÒrÀ¢6öçfW'6F–öä'&÷w6W$FW67&—F–öã¢~iz™Èzk¾[È[Ù>X˜ŞŠxnY»îXÛ>Xúşiú^h›î[›nh™>[ÈZûŠùŞ8"rÀ¢6öçfW'6F–öå6V&6…Æ6V†öÆFW#¢~i	Î{J.ZûŠùŞ(
+brÀ¢6öçfW'6F–öå66÷S¢~ZûŠùŞˆÈ>Y»BrÀ¢6öçfW'6F–öå&W7VÇD6÷VçC¢w·¶6÷VçG×ÒKŠ®XË˜XŞy¨NZûŠùÒrÀ¢æô6öçfW'6F–öäÖF6†W3¢~k*iÈzÊnY[Ù>X˜ŞzÙ¾˜iÚK»ny¨NZûŠùŞ8"rÀ¢6†÷tÆÅv÷&·76W3¢~i‹îzK®XZ˜:[z^KÙÎXË¢rÀ¢Ö÷&T÷F–öç3¢~i»NZI®˜š’rÀ¢FöF“¢~K¸®ZJ’rÀ¢–W7FW&F“¢~iŠZJ’rÀ¢6öÆÆ6U6W76–öç3¢~iKn‹[~KÉ®ŠùÒrÀ¢W‡æE6W76–öç3¢~[^[ÈKÉ®ŠùÒrÀ¢v÷&·76T7F–öç3¢°¢6öÆÆ6S¢~iKn‹[r··v÷&·76W×Òy¨NKÉ®ŠùÒrÀ¢W‡æC¢~[^[È··v÷&·76W×Òy¨NKÉ®ŠùÒrÀ¢æWt6öçfW'6F–öã¢~YÊ‚··v÷&·76W×ÒKŠŞik[»®ZûŠùÒrÀ¢6öæf–wW&S¢~˜XŞ{Úâ··v÷&·76W×ÒrÀ¢öff&ö&C¢~X©îyb··v÷&·76W×Òzk¾ˆÂrÀ¢ÒÀ¢f–WtÆÅ6W76–öç3¢~iú^yÈ¾XZ˜:‚·¶6÷VçG×ÒKŠ®KÉ®ŠùÒrÀ¢f–WtÆÄ6öçfW'6F–öç3¢~iú^yÈ¾XZ˜:‚·¶6÷VçG×ÒKŠ®ZûŠùÒrÀ¢FVÆWFUv÷&·76S¢~X©îyn[z^KÙÎXË®zk¾ˆÂrÀ¢FVÆWFUv÷&·76UF—FÆS¢~X©îynZûŠùŞ[z^KÙÎXË®zk¾ˆÂrÀ¢FVÆWFUv÷&·76TÖW76vS¢~ŠêZûŠùŞ[z^KÙÎXË¢··Fw×Òzk¾ˆÎûÉşZè>y¨N[z^KÙÎXûKÉ®z{¾X{®kK¾Xªyºî[Ù^ûÈÅ6W76–öâKÉ®˜KÉûÈÎ[›nKùŞyYKªNhê^Šë[Ù^Kº^Këşiz^Yîh.ZHŞ8"rÀ¢FVÆWFU6W76–öåF—FÆS¢~XŠ™šNZûŠùÒrÀ¢FVÆWFU6W76–öäÖW76vS¢~XŠ™šN8Ç··F—FÆW×Ş8ŞûÉş‹ùKÉ®z{¾™šNŠú^ZûŠùŞXø®X[nXènXû.ûÈÎ[z^KÙÎXË®KùŞyY8"rÀ¢æô6†Ev÷&·76W5–WC¢~‹ùk*iÈZûŠùŞ[z^KÙÎXË¢rÀ¢ÒÀ¢†&æW74æf–vF–öã¢°¢÷Vå7GVF–ó¢~h™>[È7GVF–òrÀ¢6VÆV7D†–çC¢~˜hºKˆKŠ®[z^KÙÎXË®ûÈÎ{º~{ºŞz	Nz›n8"rÀ¢6VÆV7D7F–öã¢~˜hº[z^KÙÎXË¢rÀ¢ÒÀ¢†&æW757W&f6S¢°¢7GVF–ó¢u7GVF–òrÀ¢&Vg&W6ƒ¢~X‹~ikrÀ¢&W7F'C¢~˜xŞY
+òrÀ¢Æöw3¢~iz^[ùrrÀ¢æôÆöw3¢~i¨.i{nk*iÈ’7GVF–ò‹é>X{®8"rÀ¢÷Vå6W&FS¢~xºÎz¸¾h™>[ÈrÀ¢7F'F–æuF—FÆS¢~jÚ>YÊY
+şXª‚7GVF–òrÀ¢7F'F–æt&öG“¢t÷VäÆ–6RjÚ>YÊXˆn˜XŞXh^˜:zºşXú>ûÈÎ[›nzØ[èR†&æW72˜	®‹ø~[{º®j8iú^8"rÀ¢f–ÆVEF—FÆS¢u7GVF–òY
+şXªZK‹JRrÀ¢F–væ÷6—3¢°¢vÖ—76–ærÖFWVæFVæ6–W2s¢~‹ùKŠ®[z^KÙÎXË®KËÎK˜î‹ùk*iÈZèŠ8R7GVF–òh˜™Èy¨NKéŞ‹Yn8"rÀ¢vVæW&–3¢t†&æW72‹ù¾zˆ¾YÊ‚7GVF–ò˜	®‹ø~[{º®j8iú^X˜Ş˜X{®K¨n8"rÀ¢ÒÀ¢7GVF–ô÷WGWC¢u7GVF–ò‹é>X{¢rÀ¢6WGW&öG“¢t÷VäÆ–6RKˆŞKÉ®™Ù›¹ZèŠ8R†&æW7>8.Šû~h™>[È[{.š(NZ¾K»¾Xªy¨BV–6²7F'NûÈÎj8iúRvVçBY(Â’˜XŞ{ÚîYîûÈÎXhŞŠêZè>j8iú^K¹>[©>8ZèŠ8^Z;iˆîy¨NKéŞ‹Yn[›nš¨ÎŠø7GVF–ş8"rÀ¢6WGWv—F„vVçC¢~KÛşyJ‚vVçBZèÎh‰Šëî{ÚârÀ¢G'”v–ã¢~˜xŞŠùRrÀ¢†6S¢²7F÷VC¢~[{.XÎjÚ"rÂ7F'F–æs¢~jÚ>YÊY
+şXª(
+brÂ&VG“¢~[{.[{º¢rÂf–ÆVC¢~ZK‹JRrÂ7F÷–æs¢~jÚ>YÊXÎjÚ.(
+brÒÀ¢ÒÀ¢WFõVçC¢°¢æWu&W6V&6ƒ¢~ik[»®˜xşXÉnz	Nz›brÀ¢æWuv÷&·76S¢~ik[»¢WFõVçB[z^KÙÎXË¢rÀ¢æõv÷&·76W5–WC¢~‹ùk*iÈ’WFõVçB[z^KÙÎXË¢rÀ¢&V6VçE&W6V&6ƒ¢~iÈ‹ùz	Nz›brÀ¢æõ&W6V&6…–WC¢~‹ùk*iÈz	Nz›nKÉ®ŠùÒrÀ¢'&÷w6U&W6V&6ƒ¢~kXşŠxXZ˜:z	Nz›brÀ¢f–WtÆÅ&W6V&6ƒ¢~iú^yÈ¾XZ˜:‚·¶6÷VçG×ÒKŠ®z	Nz›nKÉ®ŠùÒrÀ¢&W6V&6„'&÷w6W$FW67&—F–öã¢~iz™Èzk¾[È[Ù>X˜ŞŠxnY»îXÛ>Xúşiú^h›îz	Nz›nKÉ®ŠùŞ8"rÀ¢&W6V&6…6V&6…Æ6V†öÆFW#¢~i	Î{J.z	Nz›nKÉ®ŠùŞ(
+brÀ¢&W6V&6…66÷S¢~z	Nz›nˆÈ>Y»BrÀ¢&W6V&6…&W7VÇD6÷VçC¢w·¶6÷VçG×ÒKŠ®XË˜XŞy¨Nz	Nz›nKÉ®ŠùÒrÀ¢æõ&W6V&6„ÖF6†W3¢~k*iÈzÊnY[Ù>X˜ŞzÙ¾˜iÚK»ny¨Nz	Nz›nKÉ®ŠùŞ8"rÀ¢v÷&·76U–6¶W$FW67&—F–öã¢~˜hºKˆ¾KˆšK»¾XªKÛşyJy¨N™[şiÉşz	Nz›n[z^KÙÎXû8"rÀ¢v÷&·76U6W76–öä6÷VçC¢w·¶6÷VçG×ÒKŠ®z	Nz›nKÉ®ŠùÒrÀ¢v÷&·76U6WGF–æw3¢tWFõVçB[z^KÙÎXË¢rÀ¢v÷&·76T6öçFW‡DÆ&VÃ¢~˜xşXÉn[z^KÙÎXË®ûÉ§·¶æÖW×ÒrÀ¢v÷&·76T6öçFW‡DÖVçS¢~˜xşXÉn[z^KÙÎXË®˜š’rÀ¢6öæf–wW&Uv÷&·76S¢~˜XŞ{Úî[Ù>X˜Ş[z^KÙÎXË¢rÀ¢W6Uv÷&·76S¢~[b··v÷&·76W×ÒŠëîK‹®›¹ŠêBrÀ¢ÖævUv÷&·76W3¢~zêynXZ˜:[z^KÙÎXË¢rÀ¢ÒÀ¢WFõVçE6WGW¢°¢ÆöF–æs¢~jÚ>YÊ‹ÛŞXZRWFõVçBrÀ¢ÆöDW'&÷%F—FÆS¢~i¨.i{nizk9^Šû¾XùbWFõVçBx«nhrÀ¢ÆöDW'&÷$&öG“¢t÷VäÆ–6Rizk9^Šû¾Xùn›¹ŠêN[z^KÙÎXË®Šëî{Úî8.Šû~YÊYîzºşh.ZHŞYî˜xŞŠù^8"rÀ¢W–V'&÷s¢~KˆjÊh
+~X‰ŞZx¾XÉbrÀ¢–æ—F–Æ—¦UF—FÆS¢~X‰ŞZx¾XÉbWFõVçBrÀ¢–æ—F–Æ—¦T&öG“¢~X‰¾[»¢WFõVçB™[şiÉşKÛşyJy¨NiÊÎYË˜xşXÉn[z^KÙÎXû8.K˜¾Yîy¨NikK»¾Xª˜;ŞKÉ®h‰K‹®‹ùKŠ¢v÷&·76R˜xÎy¨B6W76–öî8"rÀ¢6†ö÷6UF—FÆS¢~˜hº’WFõVçB[z^KÙÎXË¢rÀ¢6†ö÷6T&öG“¢~[{.{¸şZÙYÊ‚WFõVçB[z^KÙÎXË®ûÈÎKØnyºîX˜Şk*iÈ›¹ŠêN[z^KÙÎXû8.Šû~˜hºKº^Yîhê^iKnikz	Nz›nK»¾Xªy¨N˜*>KˆKŠ®8"rÀ¢v÷&·76TÖWF¢w·¶6÷VçG×ÒKŠ®KÉ®ŠùÒ+r†&æW72··fW'6–öç×ÒrÀ¢ÖævUv÷&·76W3¢~X˜Ş[è[z^KÙÎXË®zêybrÀ¢W'6—7FVçEF—FÆS¢~Kˆ[Ê™[şiÉşKÛşyJy¨N˜xşXÉn[z^KÙÎXûrÀ¢W'6—7FVçD&öG“¢~šyºî8Zéîš¨Î8ih~K»nY(Îx˜iÊÎXènXû.K¸ŞyK‹ù[Ê[z^KÙÎXû˜xÎy¨B6öF–ærvVçBˆz®[{zêyn8"rÀ¢†&æW75fW'6–öã¢~™HZé®y¨B†&æW72x˜iÊÂrÀ¢–æ—F–Æ—¦T7F–öã¢~X‰ŞZx¾XÉbWFõVçBrÀ¢–æ—F–Æ—¦–æs¢~jÚ>YÊX‰ŞZx¾XÉbWFõVçN(
+brÀ¢–æ—F–Æ—¦–æt&öG“¢~jÚ>YÊXxnZH~™HZé®x˜iÊÎy¨B†&æW72Y(ÎiÊÎYËv—B[z^KÙÎXË®ûÈÎXúşˆ;Ş™ÈŠhKˆx+i{n™{N8"rÀ¢ÒÀ¢WFõ&VF–7F–öã¢°¢æWu&W6V&6ƒ¢~ik[»®š(NkX¾z	Nz›brÂæWuv÷&·76S¢~ik[»¢WFò&VF–7F–öâ[z^KÙÎXË¢rÀ¢æõv÷&·76W5–WC¢~‹ùk*iÈ’WFò&VF–7F–öâ[z^KÙÎXË¢rÂæõ&W6V&6…–WC¢~‹ùk*iÈš(NkX¾z	Nz›nKÉ®ŠùÒrÀ¢&V6VçE&W6V&6ƒ¢~iÈ‹ùy¨Nš(NkX¾z	Nz›brÂf–WtÆÅ&W6V&6ƒ¢~iú^yÈ¾XZ˜:‚·¶6÷VçG×ÒKŠ®š(NkX¾z	Nz›nKÉ®ŠùÒrÀ¢'&÷w6U&W6V&6ƒ¢~kXşŠxš(NkX¾z	Nz›brÂv÷&·76T6öçFW‡DÆ&VÃ¢~š(NkX¾[z^KÙÎXË®Kˆ®Kˆ¾ih~ûÉ§·¶æÖW×ÒrÀ¢v÷&·76T6öçFW‡DÖVçS¢~š(NkX¾[z^KÙÎXË®Kˆ®Kˆ¾ih~ˆùÎXÙRrÂv÷&·76U–6¶W$FW67&—F–öã¢~˜hºhê^iKnikz	Nz›ny¨BWFò&VF–7F–öâ[z^KÙÎXË®8"rÀ¢v÷&·76U6W76–öä6÷VçEööæS¢w·¶6÷VçG×ÒKŠ®z	Nz›nKÉ®ŠùÒrÂv÷&·76U6W76–öä6÷VçEö÷F†W#¢w·¶6÷VçG×ÒKŠ®z	Nz›nKÉ®ŠùÒrÀ¢&W6V&6„'&÷w6W$FW67&—F–öã¢~i	Î{J.[Ù>X˜Ş[z^KÙÎXË®h‰nXZ˜:‚WFò&VF–7F–öâ[z^KÙÎXË®KŠŞy¨Nš(NkX¾z	Nz›n8"rÀ¢&W6V&6…6V&6…Æ6V†öÆFW#¢~i	Î{J.š(NkX¾z	Nz›n(
+brÂ&W6V&6…66÷S¢~š(NkX¾z	Nz›nˆÈ>Y»BrÀ¢&W6V&6…&W7VÇD6÷VçC¢w·¶6÷VçG×ÒKŠ®XË˜XŞy¨Nš(NkX¾z	Nz›nKÉ®ŠùÒrÂæõ&W6V&6„ÖF6†W3¢~k*iÈzÊnY‹ùK©¾zÙ¾˜iÚK»ny¨Nš(NkX¾z	Nz›n8"rÀ¢ÒÀ¢WFõ&VF–7F–öå6WGW¢°¢ÆöF–æs¢~jÚ>YÊXª‹ÛÒWFò&VF–7F–öârÂÆöDW'&÷%F—FÆS¢~izk9^ˆë~XùbWFò&VF–7F–öâx«nhrÀ¢ÆöDW'&÷$&öG“¢t÷VäÆ–6Rizk9^Šû¾Xùn›¹ŠêN[z^KÙÎXË®XşZ[Ş8.Šû~YÊYîzºşh.ZHŞYî˜xŞŠù^8"rÂW–V'&÷s¢t&WF†&æW72rÀ¢–æ—F–Æ—¦UF—FÆS¢~X‰ŞZx¾XÉbWFò&VF–7F–öârÂ–æ—F–Æ—¦T&öG“¢~K¸îh›Xxny¨BWFò&VF–7F–öâk©z[ú¾xZ~X‰¾[»®hÈK˜^y¨NiÊÎYËz	Nz›n[z^KÙÎXË®8"rÀ¢6†ö÷6UF—FÆS¢~˜hº’WFò&VF–7F–öâ[z^KÙÎXË¢rÂ6†ö÷6T&öG“¢~[{.iÈ’WFò&VF–7F–öâ[z^KÙÎXË®ûÈÎKØn[	®iÊ®Šëî{Úî›¹ŠêNš8.Šû~˜hºhê^iKnikz	Nz›ny¨N[z^KÙÎXË®8"rÀ¢v÷&·76TÖWF¢w·¶6÷VçG×ÒKŠ®KÉ®ŠùÒ+r[ú¾xZr··fW'6–öç×ÒrÂÖævUv÷&·76W3¢~‹ÚÎX‹[z^KÙÎXË®zêybrÀ¢W'6—7FVçEF—FÆS¢~KˆKŠ®hÈK˜^y¨Nš(NkX¾z	Nz›n[z^KÙÎXË¢rÂW'6—7FVçD&öG“¢~ŠøhÚî86×–vî85Æ—FRx«nh8ih~K»nY(Âv—BXènXû.yKjÚN[z^KÙÎXË®Xh^y¨BWFò&VF–7F–öâhÈiÈ8"rÀ¢–æ—F–Æ—¦T7F–öã¢~X‰ŞZx¾XÉbWFò&VF–7F–öârÂ–æ—F–Æ—¦–æs¢~jÚ>YÊX‰ŞZx¾XÉbWFò&VF–7F–öî(
+brÀ¢–æ—F–Æ—¦–æt&öG“¢~jÚ>YÊXX¾™¨n[›nš¨ÎŠøh›Xxny¨Nk©z[ú¾xZ~ûÈÎŠû~zˆŞX	8"rÀ¢ÒÀ¢6†E6WGW¢°¢ÆöF–æs¢~jÚ>YÊ‹ÛŞXZR6²Æ–6RrÀ¢ÆöDW'&÷%F—FÆS¢~i¨.i{nizk9^Šû¾Xùb6²Æ–6Rx«nhrÀ¢ÆöDW'&÷$&öG“¢t÷VäÆ–6Rizk9^XxnZHr6†B[z^KÙÎXË®8.Šû~YÊYîzºşh.ZHŞYî˜xŞŠù^8"rÀ¢W–V'&÷s¢~KˆjÊh
+~X‰ŞZx¾XÉbrÀ¢–æ—F–Æ—¦UF—FÆS¢~X‰ŞZx¾XÉb6²Æ–6RrÀ¢–æ—F–Æ—¦T&öG“¢~X‰¾[»®™[şiÉşKÛşyJy¨B6†B[z^KÙÎXË®8.K˜¾Yîy¨NikZûŠùŞ˜;ŞKÉ®h‰K‹®‹ùKŠ¢v÷&·76R˜xÎy¨B6W76–öî8"rÀ¢6†ö÷6UF—FÆS¢~˜hº’6†B[z^KÙÎXË¢rÀ¢6†ö÷6T&öG“¢~[{.{¸şZÙYÊ‚6†B[z^KÙÎXË®8.Šû~˜hºKº^Yîhê^iKnikZûŠùŞy¨N˜*>KˆKŠ®8"rÀ¢v÷&·76TÖWF¢w·¶6÷VçG×ÒKŠ®KÉ®ŠùÒrÀ¢ÖævUv÷&·76W3¢~X˜Ş[è[z^KÙÎXË®zêybrÀ¢W'6—7FVçEF—FÆS¢~KˆKŠ®™[şiÉşKÛşyJy¨B6†B[z^KÙÎXË¢rÀ¢W'6—7FVçD&öG“¢~ih~K»n86W76–öâY(ÎXènXû.˜;ŞKÉ®yYYÊ‹ùKŠ¢v÷&·76R˜xÎ8"rÀ¢–æ—F–Æ—¦T7F–öã¢~X‰ŞZx¾XÉb6²Æ–6RrÀ¢–æ—F–Æ—¦–æs¢~jÚ>YÊX‰ŞZx¾XÉb6²Æ–6^(
+brÀ¢–æ—F–Æ—¦–æt&öG“¢~jÚ>YÊXxnZHr6†B[z^KÙÎXË®ûÈÎXúşˆ;Ş™ÈŠhKˆx+i{n™{N8"rÀ¢ÒÀ¢v÷&·76TÖævW#¢°¢F—FÆS¢~[z^KÙÎXûK‹¾zêrÀ¢6–FV&$FW67&—F–öã¢~XØş‹>h˜iÈkK¾‹x>[z^KÙÎXûrÀ¢W–V'&÷s¢~XZ[hê~X‹n["rÀ¢†VF–æs¢~zêynkK¾‹x2v÷&·76RrÀ¢7V&†VF–æs¢~y¹x+h˜iÈkK¾‹x2v÷&·76^ûÈÎ‹ûŞ™zîyÉşjÚ>X®‹ø~[z^KÙÎy¨NK«®ûÈÎ[›nK¸îKˆKŠ®hê~X‹n[.Zèhé.Yî{ºŞXØşKÙÎ8"rÀ¢66÷S¢~kK¾‹x>[z^KÙÎXûrÀ¢'VçF–ÖS¢tvVçB‹ùŠÎi{brÀ¢Æ6V†öÆFW#¢~ŠêK‹¾zêj8iú^8kèNkˆ^8i[Nynh‰nZèhé.h˜iÈkK¾‹x2v÷&·76Ry¨N[z^KÙÎ(
+brÀ¢7&VFVçF–Ã¢t’hùKé¾ik’rÀ¢6öæf–wW&T7&VFVçF–Ã¢~˜XŞ{Úâ’hùKé¾ik’rÀ¢6VæC¢~Y
+şXªK‹¾zêrÀ¢ÆVæ6†–æs¢~jÚ>YÊY
+şXª(
+brÀ¢7VvvW7F–öç3¢~[ú¾˜	ş[ÈZx²rÀ¢7VvvW7F–öäVF—C¢~y¹x+h˜iÈkK¾‹x2v÷&·76^ûÉ®h¾{¹>ˆÎ‹J>8[Ù>X˜Ş[z^KÙÎY(Îiˆîi‹îy¨N˜xŞXú8"rÀ¢7VvvW7F–öä÷væW'6†—¢~h›îX{®ˆÎ‹J>KˆŞkˆ^y¨NYËikûÉ®KÉXXh.ZHŞyÉşjÚ>X®‹ø~[z^KÙÎy¨B6W76–öîûÉ¾Xú®iÈizK«®Xúşh›îi{nh˜ŞK¸âv÷&·76Rh¹¾X¹şikK«®8"rÀ¢7VvvW7F–öä—77VW3¢~j8iú^h˜iÈ’—77VRY(Îhé.xúŞûÈÎj~X{®‹ø~i{n8˜xŞZHŞ8ZK‹J^h‰nizK«®‹Iş‹J>y¨N[z^KÙÎ8"rÀ¢7VvvW7F–öåWw&FS¢~š(NŠxh˜iÈkK¾‹x2v÷&·76Ry¨NjŠiÛşXØ~{ª~ûÈÎ[›nŠûNiˆîY:®K©¾XÎ[é~[©NyJ8"rÀ¢wV&G&–Ã¢~K‹¾zêXú®‹Iş‹J>XØş‹>ûÈÎKˆŞYÊh¾yºî[Ù^ZnK‰®Xª‹XNii8.ˆ;ŞZé®KØÒ&W7VÖT–B[h›îXéşYÎK¨¾ûÉ¾Xú®ˆ;ŞZé®KØÒv÷&·76Ri{nh˜Şh¹¾X¹şK‹Ni{nYÎK¨¾ûÈÎ[›niˆîzîj~h‰˜xŞ[»®Y¹îzÙN8"rÀ¢&V6VçC¢~iÈ‹ùy¨NK‹¾zêZûŠùÒrÀ¢æõ&V6VçC¢~‹ùk*iÈK‹¾zêZûŠùŞ8"rÀ¢&6³¢~‹ùNY¹îK‹¾zê[ú¾˜	ş[ÈZx²rÀ¢ÆöDW'&÷#¢~izk9^‹ÛŞXZ^[z^KÙÎXûK‹¾zê8"rÀ¢ÆVæ6„W'&÷#¢~izk9^Y
+şXª[z^KÙÎXûK‹¾zê8"rÀ¢&W7VÖTW'&÷#¢~izk9^h.ZHŞ‹ùjë^K‹¾zêZûŠùŞ8"rÀ¢ÒÀ¢6†DÆæF–æs¢°¢V”ÖöFS¢uT’jŠ[ÈòrÀ¢†VF–æs¢~XXŠê’Æ–6RZHNynK¸K˜ûÉòrÀ¢7V&†VF–æs¢~YÊ˜Zé®y¨Bv÷&·76RKŠŞ[È[^z	Nz›n8XˆniéY(ÎKªNi‰>[z^KÙÎ8"rÀ¢F&vWD†VF–æs¢~YÊjÚN[z^KÙÎXË®KŠŞik[»®ZûŠùÒrÀ¢F&vWE7V#¢~‹ùjë^ZûŠùŞ[nYÊ‚··Fw×ÒXh^X‰¾[»®(	N(	N˜KŠ®‹ùŠÎi{ny»Nhê^Xù˜8"rÀ¢6ÆV%F&vWC¢~iKK‹®ikZûw×]-¢G§²ÚîÆ­yŞûÈK‹®XxnûÈÎKˆ¾XÙ^i{nŠû~KÛşyJZè>8"rÀ¢G&FV&ÆU6V&6†–æs¢~jÚ>YÊi	Î{J.X‹YXn(
+brÀ¢G&FV&ÆTæô66÷VçG3 ¢~[	®iÊ®˜XŞ{ÚîKªNi‰>‹Jnh‹~8#ÇG&F–ætÆ–æ³îX˜Ş[è(	ÎKªNi‰>(	Şk{¾XªÂ÷G&F–ætÆ–æ³îûÈÎXÛ>XúşYÊjÚNiú^yÈ¾XË˜XŞY{ªn8"rÀ¢G&FV&ÆTæôÖF6†W3¢~[{.˜XŞ{ÚîX‹YXnKŠŞk*iÈKˆâ··7–Ö&öÇ×ÒXË˜XŞy¨NXúşKªNi‰>Y{ªn8"rÀ¢G&FV&ÆU6†÷tfWvW#¢~iKn‹[rrÀ¢G&FV&ÆU6†÷tÖ÷&S¢~XhŞi‹îzK¢·¶†–FFVç×ÒšûÈX[··F÷FÇ×ÒšûÈ’rÀ¢G&FV&ÆT÷&FW%F—FÆS¢~YÊZû[©BUDKŠŞh™>[ÈKˆ¾XÙ^™Ú.iÛòrÀ¢G&FV&ÆT÷&FW#¢~Kˆ¾XÙRrÀ¢6V&6…Æ6V†öÆFW#¢~i	Î{J.‹XNKª~(
+brÀ¢6V&6„–çWEÆ6V†öÆFW#¢~i	Î{J.‹XNKª~(	N(	DÎ8jùNx›[ˆ8UU.8›¸N˜y(
+brÀ¢6V&6†–æs¢~i	Î{J.KŠŞ(
+brÀ¢'&÷w6U6V7F–öã¢~kXşŠx‚rÀ¢æÇ—F–756V7F–öã¢~[ˆ.YË®XˆniérÀ¢Ö&¶WG56V7F–öã¢~ŠÎh8RrÀ¢Ö7&õ6V7F–öã¢~ZèşŠx.yÈ¾iÛòrÀ¢'&÷w6TÖ&¶WG3¢~[ˆ.YË®jh.Šx‚rÀ¢6V&6…&W7VÇG3¢~i	Î{J.{¹>iéÂrÀ¢æôÖF6†W3¢~izXË˜XÒrÀ¢vF6†Æ—7C¢~ˆz®˜’rÀ¢V×G•vF6†Æ—7D†–çC¢~x+X{¾j~y¨Nixy¨B)ˆbk{¾Xªˆz®˜8"rÀ¢g…F—FÆS¢~K¸îxë‹J~8ZY~hşX‹ZèşŠx.ûÈÎ™¸nKŠŞYÊKˆKŠ®‹J~[ˆZûŠxnY»î8"rÀ¢g„FW67&—F–öã¢~h™>[ÈK‹¾Šh‹J~[ˆZûûÈÎiú^yÈ¾K»~jÎš8î™š8XŠxè~Kˆî˜	®ˆ8XˆnXÉn8hÈ~zK®h
+~‹ùÎiÉşûÈÎKº^Xø®h˜¾XªiYîXú>h8^išşûÉ¾iz™È‹ùîhê^X‹YXnh‰n™;nŠÎ‹Jnh‹~8"rÀ¢g„vÆö&ÅF—FÆS¢~‹zY»ŞZèşŠx"rÀ¢g„vÆö&ÄFW67&—F–öã¢~hÈ‹J~[ˆ{¸şkXîKÙ>jùN‹è>XŠxè~8˜	®ˆ8KˆîZ)î™[şXªˆ;Ş8"rÀ¢g…W5F—FÆS¢~{èîY»Ş[ˆ.YË®xêşZ(2rÀ¢g…W4FW67&—F–öã¢~{èîXX>8{èîX®iKny¸®xè~i».{«ş8˜	®ˆ8Kˆî[K‰®KúXû~8"rÀ¢g„fVEF—FÆS¢~{èîˆNX*iKşzÙbrÀ¢g„fVDFW67&—F–öã¢~‹XNKª~‹IşX®Š8KªNi‰>YXnhÈK¹>KˆâdôÔ2ih~K»n8"rÀ¢÷fW'f–WuF—FÆS¢~XXyÈ¾[ˆ.YË®ûÈÎˆÎKˆŞiŠş™Ú.Zûz›®y›Şš^8"rÀ¢÷fW'f–Wt†–çC¢~K¸î[Ù>iz^[È.Xª8ZèşŠx.xêşZ(>8iÛşYÙ~‹ÚîXªh‰n‹ùiÉşX*ÎXÉnKŠŞ˜hºKˆKŠ®Zéîi{nyÈ¾iÛş8"rÀ¢&VÖ÷fTg&öÕvF6†Æ—7C¢~z{¾™šB··7–Ö&öÇ×ÒrÀ¢6V7F÷%&÷FF–öã¢~iÛşYÙ~‹ÚîXª‚rÀ¢&÷FF–öå7V'F—FÆS¢~‹XN˜yYÊ‚KŠ¢t”52iÛşYÙ~™{Ny¨N‹ÚîXª8"rÀ¢4öc¢~hŠ®ˆ{2rÀ¢&÷FF–öäÖWF†öFöÆöw“¢~ikk9RrÀ¢VE&÷FF–æt–ã¢~‹ÚîXZRrÀ¢VD–×&÷f–æs¢~Y¹îi©brÀ¢VEvV¶Væ–æs¢~‹[[ËrÀ¢VE&÷FF–æt÷WC¢~‹ÚîX{¢rÀ¢†—5&VÅ7G&VæwFƒ¢~y»Zû’5’[Ë®[ËûÈƒŞûÈ’rÀ¢†—5föÇVÖU6†&S¢~h‰KªNš)ŞK»Şš)ÒéBrÀ¢6öÅ6V7F÷#¢~iÛşYÙrrÀ¢6öÅ66÷&S¢~‹ÚîXªXˆbrÀ¢6öÅg4&Væ6ƒ¢wg2··7–××ÒrÀ¢6öÅ'föÃ¢u%dôÂrÀ¢6öÅföÅ6†&TFVÇF¢~K»Şš)ÒéBrÀ¢&ö&G56V7F–öã¢~yÈ¾iÛòrÀ¢&ö&DÖ÷fW'3¢~[È.Xª‚rÀ¢Ö÷fW'57V'F—FÆS¢~K¸®iz^kj[˜^jiÎ8‹xÎ[˜^jiÎKˆîh‰KªNkK¾‹x>jiÎ8"rÀ¢Ö÷fW'4v–æW'3¢~kj[˜^jiÂrÀ¢Ö÷fW'4Æ÷6W'3¢~‹xÎ[˜^jiÂrÀ¢Ö÷fW'47F—fS¢~kK¾‹x>jiÂrÀ¢Ö÷fW'5VæFW'fÇVVDw&÷wFƒ¢~KØîKËh‰™[òrÀ¢Ö÷fW'4w&÷wF…FV6ƒ¢~h‰™[şzyh¨rÀ¢Ö÷fW'56ÖÆÄ63¢~kø‹ù¾[şy¹‚rÀ¢Ö÷fW'5VæFW'fÇVVDÆ&vS¢~KØîKËZJ~y¹‚rÀ¢6öÅ7–Ö&öÃ¢~Kº>zrÀ¢6öÅ&–6S¢~K»~jÂrÀ¢6öÄ6†ævU7C¢~kj‹xÎ[˜RrÀ¢6öÅföÇVÖS¢~h‰KªN˜xòrÀ¢6öÄFöÆÆ%föÇVÖS¢~h‰KªNš)ÒrÀ¢&ö&D6ÆVæF#¢~‹J.{¸şiz^XèbrÀ¢6ÆVæF%7V'F—FÆS¢~‹ùiÉş‹J.hª^8•òKˆî™šNhşiz^8"rÀ¢6ÆVæF%6Æ÷tÆöF–æs¢~‹J.{¸şiz^XènK¸ŞYÊXª‹ÛŞûÈÎšinjÊh™>[ÈXúşˆ;Ş™ÈŠhK˜^Kˆx+8"rÀ¢6ÆVæF%6V&6ƒ¢~i	Î{J.iz^XènK¨¾K»brÀ¢6ÆVæF%6V&6…Æ6V†öÆFW#¢~hÈKº>z8XZÎXû8iz^iÉşh‰nKªNi‰>h˜zÙ¾˜(
+brÀ¢6ÆVæF%6†÷v–æs¢~jÚ>YÊi‹îzK¢··f—6–&ÆW×Òò··F÷FÇ×ÒKŠ®K¨¾K»brÀ¢6ÆVæF%6†÷tÖ÷&S¢~XhŞi‹îzK¢·¶6÷VçG×ÒKŠ®K¨¾K»brÀ¢6ÄV&æ–æw3¢~‹J.hªRrÀ¢6Ä—÷3¢t•òrÀ¢6ÄF—f–FVæG3¢~Xˆn{ª"rÀ¢6öÄFFS¢~iz^iÉòrÀ¢6öÄW5&Wc¢~Kˆ®iÉòU2rÀ¢6öÄW4W7C¢~š(NiÉòU2rÀ¢6öÄW†6†ævS¢~KªNi‰>h˜rÀ¢6öÄW„FFS¢~™šNhşizRrÀ¢6öÄF—dÖ÷VçC¢~˜yš)ÒrÀ¢6öÅ”FFS¢~kKîhşizRrÀ¢&ö&DÖ7&ó¢~ZèşŠx"rÀ¢Ö7&õ7V'F—FÆS¢~XŠxè~8[K‰®8˜	®ˆ88k+K»~Kˆî{èîXX>(	N(	N[ˆ.YË¢&Vv–ÖRy¨N‹é>XZ^š8"rÀ¢Ö7&ôfVDgVæG3¢~ˆN˜*nYû®˜yXŠxèrrÀ¢Ö7&ó'“¢s"[›NiÉş{èîX¢rÀ¢Ö7&ó“¢s[›NiÉş{èîX¢rÀ¢Ö7&õ7&VC¢s(	3%’XŠ[zârÀ¢Ö7&õVæV×Æ÷–ÖVçC¢~ZKK‰®xèrrÀ¢Ö7&ô7•–÷“¢t5’YÎjùBrÀ¢Ö7&ô6Æ–×3¢~X‰ŞŠû~ZKK‰®˜yrÀ¢Ö7&õwF“¢uuD’Xéşk+’rÀ¢Ö7&ôFöÆÆ#¢~{èîXX>hÈ~i[[›şK˜’’rÀ¢Ö7&õ—&öÆÇ3¢~™ÙîXiÎ[K‰¢rÀ¢Ö7&ôÓ#¢tÓ"‹J~[ˆKé¾[©BrÀ¢Ö7&õ6VçF–ÖVçC¢~ZønjØ~jkh‹Kˆ^Kú[ø2rÀ¢Ö7&ô'&V¶WfVã¢s’y¸K¨ş[›>Š˜	®ˆ8rÀ¢Ö7&õ6Æö÷3¢~™;nŠÎKú‹K~iKn{Jr…4Äôõ2’rÀ¢&ö&EFW&Õ7G'V7GW&S¢~iÉş™™{¹>ièBrÀ¢FW&Õ7V'F—FÆS¢t%D2òUD‚iÉş‹J~i».{«òÎj~k:Zûk{ºŞy¨N[›NXÉnYû®[zî8"rÀ¢FW&Õ7÷EW'¢~k{ºÒrÀ¢FW&Ô6öçFævó¢t6öçFævòXØ~kB’rÀ¢FW&Ô&6·v&FF–öã¢t&6·v&FF–öâ‹KNkB’rÀ¢FW&Ô&6—4æ÷FS¢~[ëŞjrÒZûk{ºŞy¨N[›NXÉnYû®[zârÀ¢fÇVF–öåF—FÆS¢~j~išâSKËXÂrÀ¢fÅS¢~j~išâSRrÀ¢fÄ6S¢~[ŠŞX¹"R„4R’rÀ¢fÄV&æ–æw5––VÆC¢~y¸XŠiKny¸®xèrrÀ¢fÄF—f–FVæE––VÆC¢~ˆ*hşxèrrÀ¢&ö&DvÆö&ÄÖ7&ó¢~XZy>ZèşŠx"rÀ¢vÆö&ÄÖ7&õ7V'F—FÆS¢~‹zY»Ş˜	®ˆ88yúŞzºşXŠxè~KˆâôT4Bš(nXXhÈ~j~ZûjùN8"rÀ¢6öÄ6÷VçG'“¢~Y»ŞZëbrÀ¢6öÄ7•–÷“¢t5’YÎjùBrÀ¢6öÅ6†÷'E&FS¢~yúŞzºşXŠxèrƒ4Ò’rÀ¢6öÄ6Æ“¢t4Ä’rÀ¢vÆö&ÄÖ7&ôæ÷FS¢t4Ä“£Ò™[şiÉş‹h¾X«ó¾š¹K¨îK‰NKˆ®ŠÂÒhš[Ê8.h*ÎXÎXÙ^XX>jÎXúşŠxŠx.kX¾iz^iÉş8"rÀ¢&ö&DfVC¢~{èîˆNX*‚rÀ¢fVE7V'F—FÆS¢~‹XNKª~‹IşX®Š8Kˆ{ª~KªNi‰>YXnhÈK¹>KˆâdôÔ2ih~K»n(	N(	NiKşzÙny¨Nzê˜>[.8"rÀ¢fVEF÷FÄ76WG3¢~{èîˆNX*h¾‹XNKªrrÀ¢fVEG&V7W&–W3¢~hÈiÈY»ŞX¢rÀ¢fVDÖ'3¢~hÈiÈ’Ô%2rÀ¢fVDFVÆW$æWC¢~KªNi‰>YXnXxhÈK¹2rÀ¢fVDFVÆW%G&V7W&–W3¢~KªNi‰>YXnXxhÈY»ŞX¢rÀ¢fVDFö7VÖVçG3¢tdôÔ2ih~K»brÀ¢6öÄ†÷W6U&–6S¢~h‹şK»rƒ#SÓ’rÀ¢6öÅ6†&U&–6S¢~ˆ*hÈrƒ#SÓ’rÀ¢&ö&E6†—–æs¢~ˆŠ®‹ùrÀ¢6†—–æu7V'F—FÆS¢~XZy>X[>™Jîk[~‹ùY+ŞYhx+y¨Niz^[ªn‹ø~ˆŠ®˜xòXÚ¾i‰ò•2ÎjøşYi»Nik8"rÀ¢6†—–æufW76VÇ3¢~ˆ™‚rÀ¢ÒÀ¢÷'FföÆ–ó¢°¢÷fW'f–Ws¢~jh.Šx‚rÀ¢ÆÄ66÷VçG3¢~XZ˜:‹Jnh‹rrÀ¢66÷VçG3¢~‹Jnh‹rrÀ¢æô66÷VçG5–WC¢~‹ùk*iÈ‹Jnh‹~8.YÊ‚Šëî{Úâ(i"KªNi‰2KŠŞk{¾Xª8"rÀ¢ÒÀ¢WFöÖF–öã¢°¢'Vç3¢~‹ùŠÂrÀ¢'Vç4FW67&—F–öã¢~iú^yÈ¾‹z[z^KÙÎXË®y¨NizZKBvVçB‹ùŠÎXø®[z^KÙÎ‹ù¾[ªn8"rÀ¢“¢t’rÀ¢”FW67&—F–öã¢~K¸îZIn˜:ŠznXù[z^KÙÎXË®ˆz®XªXÉnûÈÎ[›niú^yÈ¾‹>[ªnih~K»njÎ[Èş8"rÀ¢ÒÀ¢7F—f—G•Fö7C¢°¢vVçC¢tvVçBrÀ¢6öçfW'6F–öå'Vææ–æs¢w·¶vVçG×ÒjÚ>YÊZHNynXúnKˆKŠ¢vVçBy¨NŠû~k"rÀ¢6öçfW'6F–öäf–ÆVC¢w·¶vVçG×ÒiÊ®ˆ;ŞZèÎh‰vVçBŠû~k"rÀ¢–æ&÷„FVÆ—fW&VC¢w·¶vVçG×Ò[{.Xù˜KˆiÚ–æ&÷‚khhòrÀ¢æWw4–ævW7FVC¢w··6÷W&6W×ÒiÈKˆiÚik‹XNŠêòrÀ¢æWw56÷W&6S¢~ik™{¾k©rÀ¢f–Wt–æ&÷ƒ¢~iú^yÈ²–æ&÷‚rÀ¢f–WtæWw3¢~iú^yÈ¾ik™{²rÀ¢ÒÀ¢öff–6S¢°¢FW67&—F–öã¢~h¨®XˆniZ>y¨N[z^KÙÎKúXû~hé.h‰Kˆ¾KˆšjÚ>zîŠÎXªûÈÎŠêŠú^X®y¨Nj8iú^Xùh‰iz^[‹Kšh:ş8"rÀ¢6öÖÖæD6VçFW#¢t÷VäÆ–6RŠÎXªKŠŞ[ø2rÀ¢Æ—fTfÆö÷#¢tvVçBZéîi{nj[Î["rÀ¢W6TÖVçS¢~ˆùÎXÙRrÀ¢7F—fTvVçE&F–ó¢w·¶7F—fW×Ò÷··F÷FÇ×ÒYÒvVçBkK¾‹x2rÀ¢Æ—fTvVçE7VÖÖ'“¢w··v÷&¶–æw×Ò[z^KÙÎKŠÒ+r·¶v¶W×Ò[{.YJN˜i"rÀ¢æW‡DGWG“¢~Kˆ¾KˆXÎxúŞš’rÀ¢æW‡DGWG•VæF–æs¢~Kˆ¾KˆXÎxúŞšûÉ§·¶æÖW×ŞûÈÎ[è^ZHNyb·¶6÷VçDÆ&VÇ×ÒiÚrÀ¢6†–gDÆ&VÃ¢~iÊÎxúÒrÀ¢6†–gDGWG•VæF–æs¢~iÊÎxúŞzÊÂ··÷6—F–öç×Ò÷··F÷FÇ×ÒšûÉ§·¶æÖW×ŞûÈÎXšKÙ{ªb·¶Ö–çWFW7×ÒXˆn™)òrÀ¢6†–gEF–ÖU&VÖ–æ–æs¢~{ªb·¶Ö–çWFW7×ÒXˆn™)òrÀ¢6†–gDFVfW'&VDæW‡C¢~[{.[n(	Ç·¶FVfW'&VG×Ş(	Şhé.X‹iÊÎxúŞzˆŞYî8.Kˆ¾KˆšiŠş(	Ç·¶æW‡G×Ş(	ŞûÈÎ‹ù¾[ªnK¸ŞK‹¢··÷6—F–öç×Ò÷··F÷FÇ×Ş8"rÀ¢6†–gDFVfW'&VDöæÇ“¢~iÊÎxúŞXú®Xš(	Ç·¶æÖW×Ş(	Ş‹ùKˆš8.[{.‹ùNY¹îj[Î[.ûÈÎZè>K¸ŞiŠş[Ù>X˜ŞX©şŠûî8"rÀ¢6†–gEV–WC¢~iÊÎxúŞi¨.izX‹iÉşX©şŠûârÀ¢6†–gD6ö×ÆWFS¢~iÊÎxúŞZèÎh‰rÀ¢6†–gD6''–÷fW#¢~iÊÎxúŞ[{.ZHŞj‚+r·¶6÷VçG×ÒšK¸Ş[è^ZHNybrÀ¢6†–gE&Wf–WvVC¢~iÊÎxúŞ[{.ZHŞj‚rÀ¢6FVæ6TföÆÆ÷uW7F–öã¢~‹yş‹ù²rÀ¢6FVæ6TföÆÆ÷uW—77VS¢~‹yş‹ù¾Zé®i{b—77V^(	Ç·¶æÖW×Ş(	ÒrÀ¢6FVæ6TföÆÆ÷uWGWG“¢~iÊÎxúŞ[{.ZHŞjûÈÎK¸ŞiÈ’·¶6÷VçG×ÒšZé®i{b—77VRiÊ®Šz>Xk>8.‹yş‹ù²··v÷&·76W×Òy¨N(	Ç·¶æÖW×Ş(	Ş8"rÀ¢÷W&F–öç4föÆÆ÷uWVæF–æs¢~ŠÎXªyÈ¾iÛò+r·¶6÷VçG×ÒšZé®i{b—77VR[è^‹yş‹ù²rÀ¢7F'DæW‡E6†–gC¢~iÊÎxúŞ[{.ZèÎh‰ûÈÎXúniÈ’·¶6÷VçG×Òš[è^hé.8.[ÈZx¾Kˆ¾KˆxúÒrÀ¢7F'DæW‡E6†–gE6†÷'C¢~[ÈZx¾Kˆ¾KˆxúÒrÀ¢7F'F–ætæW‡E6†–gC¢~jÚ>YÊ[ÈZx¾Kˆ¾KˆxúŞ(
+brÀ¢7F'DæW‡E6†–gDf–ÆVC¢~Kˆ¾KˆxúŞiÊ®[ÈZx²+r˜xŞŠùRrÀ¢6†–gD6ÆV#¢~XÎxúŞ[{.kˆRrÀ¢6†–gD6Æ÷6V÷WD7F–öã¢~iú^yÈ¾iKnxúŞ{òrÀ¢6†–gD6Æ÷6V÷WE&VG“¢~[zj8ZèÎh‰+riú^yÈ¾iKnxúÒrÀ¢6†–gD6Æ÷6V÷WD6ÆV#¢~K¸®iz^XÎxúŞ[{.kˆR+riú^yÈ¾iKnxúÒrÀ¢6†–gD6Æ÷6V÷WD&6¶Æös¢w·¶6÷VçG×ÒšyY[è^Kˆ¾KˆxúÒrÀ¢6†–gD6Æ÷6V÷WDGWG“¢~iKnxúŞ{şûÉ®iÊÎxúŞ[{.{¹>zér·¶6ö×ÆWFVG×Ò÷··F÷FÇ×ÒrÀ¢6†–gD6Æ÷6V÷WDf–æ—6†VD6ÆV#¢~K¸®iz^iKnxúÒ+r[{.XZ˜:kˆ^jY¢rÀ¢6†–gD6Æ÷6V÷WDf–æ—6†VD6''“¢~iÊÎxúŞ[{.iKb+ryY[è^K¨¾š[{.ŠëiˆârÀ¢6†–gD6Æ÷6V÷WD&ö&C¢~ŠÎXªyÈ¾iÛò+riKnxúŞ{òrÀ¢6†–gD6Æ÷6V÷WE6÷W&6UVæF–æt†–çC¢~iÈ{¸iÚ^k©K¸ŞYÊYÎjÚ^8.iÊÎxúŞ[zj8[{.{¸ş{¹>zé~ûÈÎKØböff–6R‹ùKˆŞˆ;ŞZê>z{XZ˜:kˆ^jY®8"rÀ¢6†–gD6Æ÷6V÷WE6÷W&6TW'&÷$†–çC¢~˜:XˆniÈ{¸iÚ^k©i¨.KˆŞXúşyJ8.KùŞyYiÊ®Xk>K¨¾ZéîûÉ¾‹ùKˆŞiŠşKˆK»Ş(	ÎXZ˜:kˆ^jY®(	Şy¨NiKnxúŞhª^Y®8"rÀ¢6†–gD6Æ÷6V÷WEG&öÄÆ&VÃ¢~ŠøhÚî[zj8rÀ¢6†–gD6Æ÷6V÷WEG&öÅfÇVS¢~[{.{¹>zér·¶6ö×ÆWFVG×Òò··F÷FÇ×ÒrÀ¢6†–gD6Æ÷6V÷WD§VFvÖVçDÆ&VÃ¢~K¸®iz^iˆîzîXŠNijÒrÀ¢6†–gD6Æ÷6V÷WD§VFvÖVçEfÇVS¢~[{.Šë[ÙR·¶6÷VçG×Òš’rÀ¢6†–gD6Æ÷6V÷WDÖ–çF–ä6÷VçC¢~{»NhÈŠêX‰"·¶6÷VçG×Òš’rÀ¢6†–gD6Æ÷6V÷WE&Wf—6T6÷VçC¢~‹>i[NŠêX‰"·¶6÷VçG×Òš’rÀ¢6†–gD6Æ÷6V÷WDWf–FVæ6UVæf–Æ&ÆTÆ&VÃ¢~ŠøhÚîKˆŞXúşyJ‚rÀ¢6†–gD6Æ÷6V÷WDWf–FVæ6UVæf–Æ&ÆT†–çC¢~XÙ^xºÎŠë[ÙR+rKˆŞŠêKÙÎZèÎh‰XŠNijÒrÀ¢6†–gD6Æ÷6V÷WD÷WG7FæF–æuF—FÆS¢~Zh.ZéîyY[èRrÀ¢6†–gD6Æ÷6V÷WEVæF–ætFV6—6–öç3¢~Xk>zÙnXûK¸ŞiÈ’·¶6÷VçG×Òš’rÀ¢6†–gD6Æ÷6V÷WD6FVæ6TföÆÆ÷uW3¢w·¶6÷VçG×Òš[{.ZHŞjKè¾ŠÎK»¾XªK¸Ş™È‹yş‹ù²rÀ¢6†–gD6Æ÷6V÷WDf–æ—6„f÷$æ÷s¢~iÊÎxúŞXXX‹‹ù˜xÂrÀ¢GWG•&V6V—C¢~y¹nzºûÉ®iÊÎh›[{.ZHŞj‚+r·¶æÖW×Ò9w·¶6÷VçDÆ&VÇ×ÒrÀ¢–æ&÷„GWG”÷VåF—FÆS¢~ZHŞj‹ùK»ŞKªNK¹‚rÀ¢–æ&÷„GWG”÷Vä†–çC¢~‹ùK»ŞKªNK¹XÈ^Y
+²·¶6÷VçG×ÒKŠ®ih~j>8.Šû~XXh™>[ÈXxnzîy¨B–æ&÷‚iÚyºîûÈÎXhŞY¹îiÚ^y¹nzº8"rÀ¢–æ&÷„GWG”÷Vä7F–öã¢~ZHŞjXxnzîKªNK¹‚rÀ¢–æ&÷„GWG•&WGW&åF—FÆS¢~[{.h™>[ÈKªNK¹‚rÀ¢–æ&÷„GWG•&WGW&ä†–çC¢~KÚ[{.K¸îXxnzîKªNK¹‹ùNY¹î8.zîŠêNyÈ¾‹ø~X[nKŠÒ·¶6÷VçG×ÒKŠ®ih~j>YîXhŞy¹nzº8"rÀ¢–æ&÷„GWG•&V6V—C¢~y¹nzºûÉ®‹ùK»ŞKªNK¹[{.ZHŞj‚rÀ¢–æ&÷„GWG•&Wf–WvVC¢t–æ&÷‚KªNK¹‚rÀ¢–æ&÷„&6¶Æöu&Wf–Ws¢t–æ&÷‚XÎxúÒrÀ¢W†7W'6–öäW–V'&÷s¢töff–6RXÎxúÒ··÷6—F–öç×Ò÷··F÷FÇ×ÒrÀ¢W†7W'6–öä–æ&÷ƒ¢t–æ&÷‚ŠøhÚârÀ¢W†7W'6–öå&WGW&ã¢~‹ùNY¹âöff–6RrÀ¢W†7W'6–öä&–Æ&VÃ¢töff–6RXÎxúŞzÊÂ··÷6—F–öç×ÒšûÈÎX[··F÷FÇ×Òš8.jÚ>YÊiú^yÈ···G—W×ŞûÉ§··F—FÆW×Ş8"rÀ¢–æ&÷„&6¶Æöt6öæf—&Õ7FW¢~zÊÂ"jÚR+rzîŠêBrÀ¢–æ&÷„&6¶Æöt6öæf—&Ó¢~zîŠêN‹ùK»ŞKªNK¹‚rÀ¢–æ&÷„&6¶Æöu&VÖ–æ–æs¢t–æ&÷‚X[iÈ’·¶6÷VçG×ÒiÚ[è^™ˆRrÀ¢–æ&÷„&6¶Æöu&WGW&ä†–çC¢~KÚ[{.K¸îXxnzîy¨B–æ&÷‚iÚyºî‹ùNY¹î8.Šû~zîŠêNŠû¾‹ø~KªNK¹Xh^ZëYîXhŞy¹nzº8"rÀ¢–æ&÷„&6¶Æöu&V6V—fVC¢~˜‹ëîi{n™{BrÀ¢–æ&÷„&6¶ÆötFö7VÖVçG3¢~ih~j2rÀ¢–æ&÷„&6¶ÆötÖ÷&TFö7VÖVçG3¢~XúniÈ’·¶6÷VçG×ÒKŠ®ih~j2rÀ¢–æ&÷„&6¶Æöu6–væÄÆ÷7C¢t–æ&÷‚x«nhi¨.i{nKˆŞXúşyJûÈÎyºîX˜ŞKˆŞˆ;Ş{¹‹ùK»ŞˆÎ‹J>y¹nzº8"rÀ¢–æ&÷„&6¶Æöt6†ævVC¢~KªNK¹YÊh™>[ÈiÉş™{NXùyIşK¨nXùXÉnûÈÎŠû~ZHŞjiÈikx˜iÊÎYîXhŞy¹nzº8"rÀ¢–æ&÷„&6¶ÆötÇ&VG•&VC¢~‹ùiÚ–æ&÷‚[{.{¸şŠ*¾j~ŠëK‹®[{.Šû¾ûÈÎXúşKº^{º~{ºŞKˆ¾KˆšˆÎ‹J>8"rÀ¢–æ&÷„&6¶Æöu&V6V—Dæ÷FS¢~y¹nzºXú®KÉ®h¨®‹ùKˆiÚ–æ&÷‚j~K‹®[{.Šû¾ûÈÎ{¹ŞKˆŞKÉ®š®[Šnkˆ^z›®X[nKÙ™‰şX‰~8"rÀ¢–æ&÷„&6¶ÆötÆFW#¢~zˆŞYîZHNybrÀ¢–æ&÷„&6¶Æöt÷Väv–ã¢~XhŞjÊh™>[ÈrÀ¢–æ&÷„&6¶Æöt÷VäÆFW7C¢~ZHŞjiÈikx˜iÊÂrÀ¢–æ&÷„&6¶Æöu6f–æs¢~jÚ>YÊKùŞZÙY¹îhš~(
+brÀ¢–æ&÷„&6¶Æöu7F×¢~y¹nzºûÉ®[{.ZHŞj‚rÀ¢–æ&÷„&6¶Æöu6fTf–ÆVC¢~Y¹îhš~KùŞZÙZK‹J^ûÈÎ‹ùK»ŞKªNK¹K¸ŞxKnyYYÊiÊÎxúŞˆÎ‹J>KŠŞ8"rÀ¢&÷WF–æU&W÷'C¢~Kè¾ŠÎhª^Y¢rÀ¢&÷WF–æU&W÷'DFWF–Ç3¢~Kè¾ŠÎhª^Y®Šúnh8RrÀ¢&÷WF–æU66†VGVÆVD—77VS¢~Zé®i{b—77VRrÀ¢&÷WF–æU&–÷&—G“¢~KÉXX{ªrrÀ¢&÷WF–æTæW‡E'Vã¢~Kˆ¾jÊŠêX‰.‹ùŠÂrÀ¢&÷WF–æTæW‡E'VäæöæS¢~[	®iÊ®Zèhé.Kˆ¾jÊ‹ùŠÂrÀ¢&÷WF–æTöÆFW%Vç&VEööæS¢~XúniÈ’·¶6÷VçG×ÒKŠ®i»Nizy¨NiÊ®Šû¾hª^Y®x˜iÊÎK¸Ş[è^ZHŞj8"rÀ¢&÷WF–æTöÆFW%Vç&VEö÷F†W#¢~XúniÈ’·¶6÷VçG×ÒKŠ®i»Nizy¨NiÊ®Šû¾hª^Y®x˜iÊÎK¸Ş[è^ZHŞj8"rÀ¢&÷WF–æT÷Vå&W÷'C¢~h™>[Èhª^Y¢rÀ¢&÷WF–æTFV6–FTæW‡E7FW¢~Xk>Zé®Kˆ¾KˆjÚRrÀ¢&÷WF–æTFV6—6–öå7FW¢~zÊÂ2jÚR+rXk>zÙbrÀ¢&÷WF–æTFV6—6–öã¢~˜hºKˆ¾KˆjÚRrÀ¢&÷WF–æTFV6—6–öå7VÖÖ'”†–çC¢~XXyÈ¾ZèÎKè¾ŠÎhª^Y®ûÈÎXhŞXk>Zé®Zè>iŠşY
+nKÉ®iKXùK¸®ZJy¨N[z^KÙÎ8.h™>[Èhª^Y®h‰nzˆŞYîZHNyn˜;ŞKÉ®ŠêZè>{º~{ºŞyYYÊ[zj8KŠŞ8"rÀ¢&÷WF–æTFV6—6–öå&ö×C¢~™ÈŠhk{XZ^XŠNijŞi{nûÈÎh¨®hª^Y®[ŠnX‹Xk>zÙnXûûÉ¾Zh.iéÎk*iÈ[ŠniÚ^XùXÉnûÈÎ[j~Šë[{.ZHŞj8"rÀ¢&÷WF–æTFV6—6–öä&6³¢~‹ùNY¹ârÀ¢&÷WF–æT6''•FôFV6—6–öäFW6³¢~[ŠnX‹Xk>zÙnXûrÀ¢&÷WF–æTæô6†ævS¢~k*iÈXùXÉb+rj~Šë[{.ZHŞj‚rÀ¢&÷WF–æT6''•6f–æs¢~jÚ>YÊKªNhê^X‹Xk>zÙnXû(
+brÀ¢&÷WF–æT6''”f–ÆVC¢~Xk>zÙnKªNhê^h‰nXxnzâ–æ&÷‚Y¹îhš~[	®iÊ®ZèÎh‰8.Zh.iéÎhª^Y®[{.‹ù¾XZ^Xk>zÙnXûûÈÎ˜xŞŠù^Xú®KÉ®Š^ZèÎY¹îhš~ûÈÎKˆŞKÉ®˜xŞZHŞX‰¾[»®‹yş‹ù¾š8"rÀ¢&÷WF–æT6'&–VE6†÷'C¢~[{.KªNhêRrÀ¢&÷WF–æT6'&–VDææ÷Væ6VÖVçC¢~[{.[n(	Ç·¶æÖW×Ş(	Ş˜XZ^Xk>zÙnXûûÈÎ[›nZèÎh‰Xxnzîy¨B–æ&÷‚Y¹îhš~8"rÀ¢&÷WF–æT6''•6fVC¢~Xk>zÙnXû[{.KùŞyY‹ùK»Şhª^Y¢rÀ¢&÷WF–æT6''”f–æ—6ƒ¢~ZèÎh‰KªNhêR+rj~Šë[{.ZHŞj‚rÀ¢&÷WF–æT6''•&V6÷fW'•&ö×C¢~‹ùK»Şhª^Y®[{.YÊXk>zÙnXûûÈÎKˆŞˆ;ŞiK˜(	Îk*iÈXùXÉn(	Ş8.Šû~ZèÎh‰‹ùiÚ–æ&÷‚y¨NXxnzîY¹îhš~ûÉ¾˜xŞŠù^KˆŞKÉ®˜xŞZHŞKªNhê^8"rÀ¢&÷WF–æT—77VU7–æ6–æs¢~jÚ>YÊjZûZé®i{nK»¾Xª8.[ŠnXZ^Xk>zÙnXû™ÈŠhzØ[è^ûÉ¾(	Îk*iÈXùXÉn(	ŞK¸ŞXúşzîŠêN8"rÀ¢&÷WF–æT—77VU6–væÄÆ÷7C¢~Zé®i{nK»¾Xªi¨.KˆŞXúşyJ8.[ŠnXZ^Xk>zÙnXû™ÈŠhzØ[è^ûÉ¾(	Îk*iÈXùXÉn(	ŞK¸ŞXúşzîŠêN8"rÀ¢&÷WF–æTföÆÆ÷uW7–æ6–æs¢~jÚ>YÊjZûXk>zÙnXûûÈÎZèÎh‰X˜Şi¨.KˆŞˆ;Ş[ŠnXZ^hª^Y®(
+brÀ¢&÷WF–æTföÆÆ÷uW6–væÄÆ÷7C¢~Xk>zÙnXûZÙX*i¨.KˆŞXúşyJ8.ik[ŠnXZ^Y(Î[{.KùŞZÙKªNhê^y¨Nh.ZHŞ™ÈŠhzØ[è^ûÉ¾[	®iÊ®[ŠnXZ^y¨Nhª^Y®K¸ŞXúş˜hº(	Îk*iÈXùXÉn(	Ş8"rÀ¢FV6—6–öäFW6µF—FÆS¢~Xk>zÙnXûrÀ¢FV6—6–öäFW6´GWG“¢~Xk>zÙnXû+r·¶6÷VçG×Òš[è^ZHNybrÀ¢FV6—6–öäFW6´7F–öã¢~iú^yÈ¾Xk>zÙnXûrÀ¢FV6—6–öäFW6µVæF–æs¢~Xk>zÙnXûiÈ’·¶6÷VçG×Òš[è^ZHNyn‹yş‹ù²rÀ¢FV6—6–öäFW6µ7FW¢~KÙÎX{®[ŠnXZ^XŠNijÒrÀ¢FV6—6–öäFW6µVWVS¢~‹yş‹ù²··÷6—F–öç×Òò·¶6÷VçG×ÒrÀ¢FV6—6–öäFW6µVWVTÆ&VÃ¢~Xk>zÙn‹yş‹ù¾™‰şX‰rrÀ¢FV6—6–öäFW6´–çG&ó¢~XX™ˆ^Šû¾Xxnzîhª^Y®ûÈÎXhŞY(ÎZû[©Ny¨NZé®i{b—77VRZûxZ~ûÈÎxKnYîXk>Zé®‹ùiÈK¸K˜™ÈŠh{º~{ºŞXŠNijŞ8"rÀ¢FV6—6–öäFW6µ&W÷'DÆ&VÃ¢~Xxnzâ–æ&÷‚hª^Y¢rÀ¢FV6—6–öäFW6µ&W÷'Ev÷&·76S¢~hª^Y¢v÷&·76RrÀ¢FV6—6–öäFW6µ&W÷'E&V6V—fVC¢~hª^Y®˜‹ëârÀ¢FV6—6–öäFW6µ&W÷'Dæõ&Wf–Ws¢~[Ù>X˜Şk*iÈhª^Y®iŠhûÉ¾Šû~h™>[ÈXxnzâ–æ&÷‚iÚyºîiú^yÈ¾ŠøhÚî8"rÀ¢FV6—6–öäFW6µ&W÷'EVæf–Æ&ÆS¢~Xxnzâ–æ&÷‚hª^Y®i¨.KˆŞXúşyJ8.‹yş‹ù¾K¸Ş[{.KùŞZÙûÉ¾KÚXúşKº^yY[è^zˆŞYîûÈÎh‰nŠë[Ù^‹ùK»ŞŠøhÚîKˆŞXúşyJ8"rÀ¢FV6—6–öäFW6µVæf–Æ&ÆU6†÷'C¢~KˆŞXúşyJ‚rÀ¢FV6—6–öäFW6´6'&–VDC¢~[ŠnXZ^i{n™{BrÀ¢FV6—6–öäFW6µ7–æ6–æs¢~jÚ>YÊX‹~ikXk>zÙnXû(
+brÀ¢FV6—6–öäFW6µ6–væÄÆ÷7C¢~Xk>zÙnXûKúXû~i¨.KˆŞXúşyJ8"rÀ¢FV6—6–öäFW6µ6÷W&6T†–çC¢~X‹~ikh.ZHŞYîûÈÎ[{.KùŞZÙy¨N‹yş‹ù¾KÉ®˜xŞiki‹îzK®8"rÀ¢FV6—6–öäFW6´—77VUVæf–Æ&ÆS¢~h›îKˆŞX‹XxnzîZû[©Ny¨NZé®i{b—77V^8.‹ùK»ŞŠøhÚîKˆŞ‹k>Kº^iJşhÈXŠNijŞûÈÎKØn‹yş‹ù¾XúşKº^yY[è^zˆŞYî8"rÀ¢FV6—6–öäFW6´—77VUVæ¶æ÷vã¢~[	®iÊ®š¨ÎŠøXxnzîZû[©Ny¨NZé®i{b—77V^8.Šû~zØ[èR—77VRi[hÚîk©h.ZHŞYîXhŞŠë[Ù^K»¾KÙ^{¹>iéÎ8"rÀ¢FV6—6–öäFW6µ&W÷'EVæ¶æ÷vã¢~[	®iÊ®š¨ÎŠøXxnzâ–æ&÷‚hª^Y®8.Šû~zØ[èR–æ&÷‚i[hÚîk©h.ZHŞYîXhŞŠë[Ù^K»¾KÙ^{¹>iéÎ8"rÀ¢FV6—6–öäFW6µ&W6öÇfTf–ÆVC¢~XŠNijŞk*iÈKùŞZÙh‰X©ş8.‹ùš‹yş‹ù¾K¸ŞyYYÊXk>zÙnXûûÈÎXúşKº^ZèXZ˜xŞŠù^8"rÀ¢FV6—6–öäFW6µ&V6V—Dæ÷FS¢~KùŞZÙXú®KÉ®Šë[Ù^KÚy¨NiˆîzîXŠNijŞ[›nz{¾™šN‹ùš‹yş‹ù¾ûÈÎKˆŞKÉ®i»NiKhª^Y®Y¹îhš~8—77VRx«nhûÈÎK™şKˆŞKÉ®Y
+şXª‚vVçB[z^KÙÎ8"rÀ¢FV6—6–öäFW6´§VFvÖVçEF—FÆS¢~Šë[Ù^‹ùjÊXŠNijÒrÀ¢FV6—6–öäFW6´§VFvÖVçD†–çC¢~jhÚîXxnzîhª^Y®Y(ÎZé®i{b—77V^ûÈÎ˜hºZè>Zû[Ù>X˜ŞŠêX‰.hHşY>yØK¸K˜8"rÀ¢FV6—6–öäFW6´Ö–çF–åÆã¢~{»NhÈ[Ù>X˜ŞŠêX‰"rÀ¢FV6—6–öäFW6µ&Wf—6UÆã¢~‹>i[NŠx.ZùşiÚK»bòŠêX‰"rÀ¢FV6—6–öäFW6µ&Wf—6–öäÆ&VÃ¢~™ÈŠh‹>i[NK¸K˜ûÉòrÀ¢FV6—6–öäFW6µ&Wf—6–öä†VÇ¢~[ø^Z¾ûÉ¾Xë¾™šNšin[îz›®jÎYî™ÈK‹¢(	3#ƒKŠ®ZÙ~zÊn8"rÀ¢FV6—6–öäFW6µ&Wf—6–öä6÷VçC¢w·¶6÷VçG×Òò·¶Ö‡×ÒrÀ¢FV6—6–öäFW6µ&Wf—6–öä6æ6VÃ¢~‹ùNY¹îXŠNijŞ˜š’rÀ¢FV6—6–öäFW6µ&Wf—6–öå6fS¢~KùŞZÙ‹>i[NYîy¨NŠêX‰"rÀ¢FV6—6–öäFW6µ6f–æs¢~jÚ>YÊKùŞZÙXŠNijŞ(
+brÀ¢FV6—6–öäFW6´Wf–FVæ6UVæf–Æ&ÆUF—FÆS¢~ŠøhÚîKˆŞZèÎi[BrÀ¢FV6—6–öäFW6´Wf–FVæ6UVæf–Æ&ÆT†–çC¢~{Ë®[	Xxnzîhª^Y®h‰nZé®i{b—77VRi{nûÈÎKˆŞˆ;ŞhÚîjÚNŠë[Ù^XŠNijŞ8"rÀ¢FV6—6–öäFW6´Wf–FVæ6UVæf–Æ&ÆU&V6V—C¢~z{¾™šNi{nXú®KÉ®Šë[Ù^(	ÎŠøhÚîKˆŞXúşyJ(	ŞûÈÎKˆŞŠêKÙÎKˆjÊXŠNijŞûÈÎK™şKˆŞKÉ®iKXªhª^Y®8—77VRh‰bvVçB[z^KÙÎ8"rÀ¢FV6—6–öäFW6´Wf–FVæ6UVæ¶æ÷våF—FÆS¢~ŠøhÚîx«nh[	®iÊ®zîŠêBrÀ¢FV6—6–öäFW6´Wf–FVæ6UVæ¶æ÷vä†–çC¢~i[hÚîk©K¸ŞYÊXª‹ÛŞh‰ni¨.KˆŞXúşyJûÈÎ‹ùKˆŞˆ;ŞŠøiˆîŠøhÚî[{.{¸ş{Ë®ZK8"rÀ¢FV6—6–öäFW6´Wf–FVæ6UVæ¶æ÷vå&V6V—C¢~Šû~XXyY[è^zˆŞYîûÉ¾YÊKŠNKŠ®i[hÚîk©˜;ŞZèÎh‰š¨ÎŠøX˜ŞûÈÎKˆŞˆ;ŞŠë[Ù^XŠNijŞh‰n(	ÎŠøhÚîKˆŞXúşyJ(	Ş8"rÀ¢FV6—6–öäFW6µ&VÖ÷fUVæf–Æ&ÆS¢~Šë[Ù^ŠøhÚîKˆŞXúşyJ‚+rz{¾X{¢rÀ¢FV6—6–öäFW6µ6f–æuVæf–Æ&ÆS¢~jÚ>YÊŠë[Ù^ŠøhÚîKˆŞXúşyJ(
+brÀ¢FV6—6–öäFW6µ&Wf–÷W3¢~Kˆ®Kˆš’rÀ¢FV6—6–öäFW6´æW‡C¢~Kˆ¾Kˆš’rÀ¢FV6—6–öäFW6´¶VW¢~yY[è^zˆŞYârÀ¢FV6—6–öäFW6´÷Vå&W÷'C¢~h™>[ÈXxnzîhª^Y¢rÀ¢FV6—6–öäFW6´÷Vä—77VS¢~h™>[ÈXxnzâ—77VRrÀ¢FV6—6–öäFW6´V×G“¢~Xk>zÙnXû[{.kˆ^z›¢rÀ¢FV6—6–öäFW6´V×G”†–çC¢~[Ù>X˜Şk*iÈzØ[è^Xk>zÙny¨N[{.[ŠnXZ^Kè¾ŠÎhª^Y®8"rÀ¢FV6—6–öäFW6µ&WGW&ã¢~‹ùNY¹îj[Î["rÀ¢GWG•7–æ6–æs¢~jÚ>YÊj8iú^XÎxúŞš(
+brÀ¢GWG•6–væÄ–çFW''WFVC¢~XÎxúŞKúXû~KˆŞXúşyJ‚rÀ¢6FVæ6TWfW'“¢~jøò·¶6FVæ6W×ÒrÀ¢6FVæ6U&Wf–Ws¢~Zé®i{b—77VRZHŞj‚rÀ¢6FVæ6U7FWW†6WF–öã¢~zÊÂjÚR+r[È.[‹‚rÀ¢6FVæ6U7FWWf–FVæ6S¢~zÊÂ"jÚR+rŠøhÚârÀ¢6FVæ6TW†6WF–öã¢~[È.[‹‚rÀ¢6FVæ6TWf–FVæ6S¢~ŠøhÚârÀ¢6FVæ6Uv÷&·76S¢uv÷&·76RrÀ¢6FVæ6T76–væVS¢~‹Iş‹J>K«¢rÀ¢6FVæ6U66†VGVÆS¢~hé.iÉòrÀ¢6FVæ6TÆ7E'Vã¢~Kˆ®jÊŠznXùrÀ¢6FVæ6TæW‡DGVS¢~Kˆ¾jÊX‹iÉòrÀ¢6FVæ6TæWfW#¢~K¸îiÊ¢rÀ¢6FVæ6TæöæS¢~izrÀ¢6FVæ6U&Wf–WtWf–FVæ6S¢~ZHŞjŠøhÚârÀ¢6FVæ6U6–væÅ7FÆS¢t—77VRKúXû~KˆŞXúşyJûÈÎ‹ùK»ŞŠøhÚîXúşˆ;Ş[{.‹ø~i{nûÉ¾[Ù>X˜Şizk9^zîŠêNXÎxúŞ[{.kˆ^8"rÀ¢6FVæ6TWf–FVæ6T6†ævVC¢~ZHŞjiÉş™{NŠøhÚî[{.XùXÉn8.Šû~XXiú^yÈ¾iÈikx«nhûÈÎXhŞy¹nzº8"rÀ¢6FVæ6U&W6öÇfVC¢~‹ùKŠ¢—77VR[{.KˆŞXhŞiŠşZé®i{n[È.[‹8"rÀ¢6FVæ6TÆöF–ætWf–FVæ6S¢~jÚ>YÊXª‹ÛŞ{+îzâ—77VRŠøhÚî(
+brÀ¢6FVæ6U'VäWf–FVæ6S¢~iÈ‹ùXù~[ÛY8Şy¨N‹ùŠÂrÀ¢6FVæ6U66†VGVÆTWf–FVæ6S¢~hé.iÉşKˆî‹Iş‹J>K«®ŠøhÚârÀ¢6FVæ6UF6³¢~K»¾XªrÀ¢6FVæ6Tæõ'Vã¢~k*iÈXù~[ÛY8Şy¨N‹ùŠÂrÀ¢6FVæ6T—77VU7FGW3¢t—77VRx«nhrÀ¢6FVæ6U'VçF–ÖS¢~‹ùŠÎi{brÀ¢6FVæ6U&V6V—Dæ÷FS¢~‹ùXú®KÉ®kˆ^™šNiÊÎjÊXÎxúŞy¨Böff–6Rhù˜i.ûÉ¾KúîZHŞX˜ŞûÈÄ—77VRK¸ŞKùŞhÈ(	Ç··7FFW×Ş(	Ş8"rÀ¢6FVæ6T&6³¢~‹ùNY¹ârÀ¢6FVæ6T÷Vä—77VS¢~h™>[ÈZèÎi[B—77VRrÀ¢6FVæ6U&Wf–WtÆFW7C¢~ZHŞjiÈikŠøhÚârÀ¢6FVæ6U7F×¢~y¹nzºûÉ®iÊÎjÊXÎxúŞ[{.ZHŞj‚rÀ¢6FVæ6U6f–æs¢~jÚ>YÊKùŞZÙXÎxúŞY¹îhš~(
+brÀ¢6FVæ6U6fTf–ÆVC¢~XÎxúŞY¹îhš~KùŞZÙZK‹J^ûÈÎ‹ùšŠøhÚîK¸ŞyYYÊiÊÎxúŞ8"rÀ¢6FVæ6U&Wf–WvVE6†÷'C¢~[{.ZHŞj‚rÀ¢6FVæ6TFVÆWFVE6W76–öã¢~hÈ~Zé®y¨NKÉ®ŠùŞ[{.XŠ™šN8.Šû~YÊKˆ¾jÊ‹ùŠÎX˜Ş˜xŞikXˆn˜XÒ—77V^8"rÀ¢6FVæ6T–çFW''WFVDFVfVÇC¢t÷VäÆ–6RYÊ‹ùjÊ‹ùŠÎiÉş™{NXÎjÚ.ûÈÎ{;¾{¹şk*iÈˆz®Xª˜xŞŠù^8"rÀ¢6FVæ6Tf–ÆVDFVfVÇC¢~iÈ‹ùKˆjÊŠêX‰.‹ùŠÎZK‹J^8.Šû~XXj8iú^‹ùŠÎŠøhÚîûÈÎXhŞXk>Zé®iŠşY
+n˜xŞŠù^8"rÀ¢6FVæ6TW‡æDö&¦V7F—fS¢~[^[ÈZèÎi[NK»¾XªXh^Zë’rÀ¢6FVæ6T6öÆÆ6Tö&¦V7F—fS¢~iKn‹[~K»¾XªXh^Zë’rÀ¢6FVæ6T6öçF–çVS¢~‹ùNY¹îKˆ¾KˆXÎxúŞš’rÀ¢6FVæ6U&Wf–WvVDæW‡C¢~[{.ZHŞj(	Ç··&Wf–WvVG×Ş(	Ş8.Kˆ¾KˆXÎxúŞšûÉ§·¶æÖW×Ş8"rÀ¢6FVæ6U&Wf–WvVDæW‡DföÆÆ÷uW¢~[{.ZHŞj(	Ç··&Wf–WvVG×Ş(	ŞûÉ¾ŠúR—77VRK¸Ş[è^‹yş‹ù¾8.Kˆ¾KˆXÎxúŞšûÉ§·¶æÖW×Ş8"rÀ¢6FVæ6U&Wf–WvVD6ÆV#¢~[{.ZHŞj(	Ç··&Wf–WvVG×Ş(	Ş8.XÎxúŞ[{.kˆ^8"rÀ¢6FVæ6U&Wf–WvVD6ö×ÆWFS¢~[{.ZHŞj(	Ç··&Wf–WvVG×Ş(	Ş8.iÊÎxúŞZèÎh‰ûÈÎK¸ŞiÈ’·¶6÷VçG×Òš[è^ZHNyn8"rÀ¢6FVæ6U&Wf–WvVD6ö×ÆWFTföÆÆ÷uW¢~[{.ZHŞj(	Ç··&Wf–WvVG×Ş(	Ş8.iÊÎxúŞZèÎh‰ûÉ¾K¸ŞiÈ’·¶6÷VçG×ÒšZé®i{b—77VR[è^‹yş‹ù¾8"rÀ¢6FVæ6U&Wf–WvVEVæ¶æ÷vã¢~[{.ZHŞj(	Ç··&Wf–WvVG×Ş(	Ş8.X[nKÙXÎxúŞx«nhK¸ŞiÊ®yú^8"rÀ¢&öö×3¢~h‹ş™{BrÀ¢w&÷W3¢~[ş{¸BrÀ¢fÆö÷%f–Ws¢~j[Î[.ŠxnY»ârÀ¢ÖÆ&VÃ¢töff–6RYËY»î8.h¹nXªiú^yÈ¾YËY»îûÈÎKÛşyJikY	™Jîh‰bt4Bz{¾Xª‚Æ–6^ûÈÎ™Ú‹ùZû‹YîhÈY¹î‹Únh‰nz›®jÎK©.Xª8"rÀ¢ÖÆ&VÄf—†VC¢töff–6RYËY»î8.KÛşyJikY	™Jîh‰bt4Bz{¾Xª‚Æ–6^ûÈÎ™Ú‹ùZû‹YîhÈY¹î‹Únh‰nz›®jÎK©.Xª8"rÀ¢&WÆ”ÖÆ&VÃ¢~˜xŞiKîj[Î[.8.z{¾Xª‚Æ–6Riú^yÈ¾[ú¾xZ~ûÉ¾KÛşyJ‹ù‰
+^™Ú.iÛşY¹îyÈ¾ûÈÎh‰n‹ùNY¹îy»Ni*Ş8"rÀ¢&WÆ•6æ6†÷C¢~[ú¾xZrrÀ¢&WÆ”Æö6¶VD†–çC¢~‹ùiŠşXènXû.[ú¾xZ~8.‹ùNY¹îy»Ni*ŞYîh˜Şˆ;ŞKÛşyJ8"rÀ¢Ö†–çC¢ut4BşikY	™Jâ+r6†–gBZYN‹y+rW62ˆùÎXÙRrÀ¢6öçG&öÇ3¢~i8ŞKÙÂrÀ¢6öçG&öÄÖ÷fS¢~z{¾Xª‚rÀ¢6öçG&öÅ'Vã¢~ZYN‹yrÀ¢6öçG&öÄ–çFW&7C¢~KªNK©"rÀ¢6öçG&öÄÖVçT6æ6VÃ¢~ˆùÎXÙRòXùnkh‚rÀ¢F÷V6„6öçG&öÇ3¢~z{¾Xª‚Æ–6RrÀ¢Ö÷fTÆ–6UW¢~Y	Kˆ®z{¾Xª‚Æ–6RrÀ¢Ö÷fTÆ–6U&–v‡C¢~Y	Xû>z{¾Xª‚Æ–6RrÀ¢Ö÷fTÆ–6TF÷vã¢~Y	Kˆ¾z{¾Xª‚Æ–6RrÀ¢Ö÷fTÆ–6TÆVgC¢~Y	[znz{¾Xª‚Æ–6RrÀ¢&÷WFTÖöFS¢~ˆz®Xªz{¾Xª‚rÀ¢&÷WFT6æ6VÄ†–çC¢~Xùnkh‚rÀ¢&÷WFT6æ6VÅF÷V6„†–çC¢~z{¾XªKº^Xùnkh‚rÀ¢vÆ¶–æuFó¢~jÚ>YÊX˜Ş[è·¶æÖW×ÒrÀ¢VçFW&–æuv÷&·76S¢~jÚ>YÊ‹ù¾XZR·¶æÖW×Ş(
+brÀ¢6VçFW$ÖöäÆ–6S¢~[nYËY»îŠxnŠy.ZûXxbÆ–6RrÀ¢Æ–6TfF#¢töff–6RYËY»îKˆ®y¨BÆ–6RrÀ¢7F—fU&öö×3¢~kK¾‹x>h‹ş™{BrÀ¢v¶U&öö×3¢~kˆ^˜i.h‹ş™{BrÀ¢v¶U&ööÔ6÷VçC¢w··F÷FÇ×Ò™{NKŠŞiÈ’·¶v¶W×Ò™{Nkˆ^˜i"rÀ¢v¶Tw&÷W3¢~kˆ^˜i.[ş{¸BrÀ¢v¶Tw&÷W6÷VçC¢w··F÷FÇ×ÒKŠ®[ş{¸NKŠŞiÈ’·¶v¶W×ÒKŠ®kˆ^˜i"rÀ¢Æ—fTÖ¢~[Ù>X˜ŞYËY»ârÀ¢7W'&VçEf–Ws¢~[Ù>X˜ÒrÀ¢7W'&VçDfÆö÷%f–Ws¢~[Ù>X˜Şj[Î[.ŠxnY»îûÉ§··f–Ww×ÒrÀ¢f—6–&ÆTw&÷W7VÖÖ'“¢~j[Î["··f—6–&ÆW×Ò+r‹ùiÉò··&V6VçG×Ò+rX[··F÷FÇ×ÒrÀ¢ÆÅ&öö×3¢~h˜iÈh‹ş™{BrÀ¢ÆÄw&÷W3¢~h˜iÈ[ş{¸BrÀ¢6ÆVW–ætw&÷W5ööæS¢w·¶6÷VçG×ÒKŠ®KÉyÊ[ş{¸BrÀ¢6ÆVW–ætw&÷W5ö÷F†W#¢w·¶6÷VçG×ÒKŠ®KÉyÊ[ş{¸BrÀ¢fÆö÷%V–WC¢~h˜iÈ[ş{¸N˜;Ş[{.KÉyÊrÀ¢fÆö÷%V–WD†–çC¢~iÈ‹ù·¶F—7×ÒZJk*iÈ’v÷&·76R[ş{¸NXùyIşKªNK©.8.h™>[Èh˜iÈ[ş{¸NXúşiú^yÈ¾KÉyÊKŠŞy¨Bv÷&·76^8"rÀ¢&ööÔ7F—fS¢~j8kX¾X‹kK¾Xª‚rÀ¢&ööÕV–WC¢~[è^YŞKŠÒrÀ¢&ööÕ6ÆVW–æs¢~KÉyÊKŠÒrÀ¢vVçD6÷VçEööæS¢w·¶6÷VçG×ÒYÒvVçBrÀ¢vVçD6÷VçEö÷F†W#¢w·¶6÷VçG×ÒYÒvVçBrÀ¢&ööÔv¶T6÷VçC¢~YJN˜i"·¶v¶W×Ò÷··F÷FÇ×ÒrÀ¢&ööÔ7F—fT6÷VçC¢~kK¾‹x2·¶7F—fW×Ò÷··F÷FÇ×ÒrÀ¢w&÷W6÷VçEööæS¢w·¶6÷VçG×ÒKŠ®[ş{¸BrÀ¢w&÷W6÷VçEö÷F†W#¢w·¶6÷VçG×ÒKŠ®[ş{¸BrÀ¢Ö÷&TvVçG3¢~XúnZIb·¶6÷VçG×ÒYÒvVçBrÀ¢†&æW73¢°¢6†C¢t6†BrÀ¢vWFò×VçBs¢tWFõVçBrÀ¢&VF–7F–öã¢~š(NkX²rÀ¢÷F†W#¢~X[nK¹brÀ¢ÒÀ¢V×G“¢~‹ùk*iÈXÚyJŠë[Ù^8.KªNK©"6W76–öî8izZKN‹ùŠÎ8Æ’Y(ÎŠ*¾h¹.{¹Şy¨NK©.h¸KÉ®X{®xëYÊ‹ù˜xÎ8"rÀ¢V×G”fÆö÷#¢~‹ù™{NX©îXZÎZêN‹ùk*iÈK«®YÙ[z^KØŞ8.YÊˆÂ6W76–öâKÉ®X{®xëYÊ‹ù˜xÎ8"rÀ¢ÆöF–æs¢~jÚ>YÊXª‹ÛŞXÚyJŠë[Ù^(
+brÀ¢ÆöF–ætfÆö÷#¢~jÚ>YÊh™>[ÈYN™{NX©îXZÎZêN(
+brÀ¢ÆöF–ætfÆö÷$†–çC¢~jÚ>YÊYÎjÚ^h‹ş™{N8[z^KØŞKˆâvVçBKúXû~8"rÀ¢6öææV7F–öä¶–6¶W#¢~j[Î[.hê^iKniË¢rÀ¢ÆöDf–ÆVC¢~izk9^‹ùîhêRöff–6Rj[Î["rÀ¢6öææV7F–öäf–ÆVD†–çC¢~hê^iKniË®KÉ®YÊYîXû{º~{ºŞ[	ŞŠù^ûÈÎKÚK™şXúşKº^z¸¾XÛ>˜xŞik‹ùîhê^8"rÀ¢6öææV7F–öäÆ÷7C¢~j[Î[.KúXû~KŠŞijÒrÀ¢&WG'”fÆö÷#¢~˜xŞik‹ùîhêRrÀ¢&V6öææV7F–ætfÆö÷#¢~jÚ>YÊ˜xŞ‹ùî(
+brÀ¢W6VC¢~Zéîi{ni»Nik[{.i¨.XÂrÀ¢÷Vå'Vã¢~h™>[È‹ùŠÂrÀ¢–6µv÷&·76S¢~X©îXZÎZêBrÀ¢æõv÷&·76S¢~‹ùk*iÈ’v÷&·76RrÀ¢&ööÕF—FÆS¢w·¶æÖW×ÒX©îXZÎZêBrÀ¢v÷&·76U6–vä†–çC¢~‹ù¾XZ^‹ùKŠ¢v÷&·76^8"rÀ¢6&–æWC¢~j>jiùÂrÀ¢6&–æWD†–çC¢~iú^yÈ¾‹ù™{NX©îXZÎZêN[Ù.j>y¨NŠë[Ù^Kˆâv÷&·76Rih~K»n8"rÀ¢6&–æWE&V6÷&G5ööæS¢w·¶6÷VçG×ÒK»Ş[Ù.j>Šë[ÙRrÀ¢6&–æWE&V6÷&G5ö÷F†W#¢w·¶6÷VçG×ÒK»Ş[Ù.j>Šë[ÙRrÀ¢6&–æWE÷6—F–öã¢~zÊÂ·¶–æFW‡×ÒK»ŞûÈÎX[·¶6÷VçG×ÒK»ÒrÀ¢6&–æWD–ç7V7D†–çC¢~[z^KØŞŠë[Ù^KÉ®yYYÊ‚öff–6^ûÈÎy»NX‹KÚ˜hº{º~{ºŞX˜Ş[è8"rÀ¢6&–æWD¶W–&ö&D†–çC¢~ikY	™Jî˜hº’+ruWõtFâ{û¾šR+r†öÖRôVæB‹{>‹ÚÂ+rVçFW"ò76Rh™>[ÈrÀ¢6&–æWDV×G”¶W–&ö&D†–çC¢tVçFW"ò76Rh™>[Èv÷&·76Rih~K»brÀ¢6&–æWE&V6÷&D÷væW#¢w·¶æÖW×Ò[Ù.j2rÀ¢G&vW$÷Vå&V6÷&C¢~YÊ[z^KÙÎXË®KŠŞh™>[È··&V6÷&G×ŞûÈÇ·¶¶–æG×ŞûÈÇ··F–ÖW×ÒrÀ¢G&vW%&V6÷&D7F–öã¢~h™>[ÈrÀ¢G&vW$¶–æE&W÷'C¢~hª^Y¢rÀ¢G&vW$¶–æD—77VS¢t—77VRrÀ¢G&vW$¶–æD–æ&÷ƒ¢t–æ&÷‚rÀ¢G&vW$¶–æEG&FTFV6—6–öã¢~Xk>zÙbrÀ¢G&vW$–æ&÷…&V6÷&C¢t–æ&÷‚KªNK¹‚rÀ¢G&vW%&WVFVE&V6÷&C¢w··&V6÷&G×Ò+r·¶–æFW‡×Ò÷·¶6÷VçG×ÒrÀ¢G&vW%G&FTFV6—6–öå&V6÷&C¢~KªNi‰>Xk>zÙbrÀ¢6&–æWDV×G“¢~‹ù˜xÎ‹ùk*iÈ[Ù.j>K»¾KÙ^[z^KØŞŠë[Ù^8"rÀ¢÷Våv÷&·76Tf–ÆW3¢~‹ù¾XZRv÷&·76Rih~K»brÀ¢–çFW&7D¶W“¢~Y¹î‹ÚbrÀ¢F÷V6„7F–öä¶W“¢trÀ¢F÷V6„7F–öåVæf–Æ&ÆS¢~™˜N‹ùk*iÈXúşhš~ŠÎXªKÙÂrÀ¢–çFW&7Dæ÷s¢~K©.XªûÉ§·¶7F–öç×ÒrÀ¢–çFW&7EFÆ³¢~Y(Â·¶æÖW×ÒZûŠùÒrÀ¢–çFW&7D6†V6³¢~iú^yÈ²·¶æÖW×ÒrÀ¢–çFW&7Df–ÇW&S¢~ZHŞy¹‚·¶æÖW×Òy¨NZK‹J^‹ùŠÂrÀ¢–çFW&7E&W7VÇC¢~iú^yÈ²·¶æÖW×Òy¨NiÈik{¹>iéÂrÀ¢–çFW&7DGWG•'Vã¢~ZHŞy¹‚·¶æÖW×Òy¨N‹ùjÊ‹ùŠÂrÀ¢–çFW&7Ev÷&·76S¢~‹ù¾XZR·¶æÖW×Òv÷&·76RrÀ¢–çFW&7Df–ÆW3¢~iú^yÈ²·¶æÖW×Òih~K»brÀ¢–çFW&7E&÷7FW#¢~iú^yÈ²·¶æÖW×ÒYŞXhÂrÀ¢–çFW&7D÷W&F–öç3¢~iú^yÈ¾Zéîi{nŠÎXª‚rÀ¢–çFW&7EFW&Ö–æÃ¢~h™>[Èj[Î[.{¸zºòrÀ¢–çFW&7D7F–öåFÆ³¢~ZûŠùÒrÀ¢–çFW&7D7F–öä6†V6³¢~iú^yÈ²rÀ¢–çFW&7D7F–öå&Wf–Ws¢~ZHŞy¹‚rÀ¢–çFW&7D7F–öäf–ÆW3¢~ih~K»brÀ¢–çFW&7D7F–öå&÷7FW#¢~YŞXhÂrÀ¢–çFW&7D7F–öä÷W&F–öç3¢~ŠÎXª‚rÀ¢–çFW&7D7F–öåFW&Ö–æÃ¢~iz^[ùrrÀ¢–çFW&7D7F–öä–æ&÷ƒ¢~iú^iKbrÀ¢–çFW&7D7F–öäæWw3¢~™ˆ^Šû²rÀ¢–çFW&7D–æ&÷ƒ¢~h™>[È–æ&÷‚rÀ¢–çFW&7DæWw3¢~h™>[Èik™{²rÀ¢fÆö÷%FW&Ö–æÃ¢~j[Î[.{¸zºòrÀ¢fÆö÷%FW&Ö–æÄ†–çC¢~h™>[ÈZèÎi[Ny¨Böff–6RkK¾Xªiz^[ù~8"rÀ¢÷W&F–öç4&ö&C¢~ŠÎXªyÈ¾iÛòrÀ¢÷W&F–öç4&ö&D†–çC¢~iú^yÈ¾Zéîi{nKª~Y8kK¾Xªiz^[ù~Y(Î˜xŞiKî8"rÀ¢vVçDÖ–ÆW7FöæT&÷&ã¢~ik6W76–öâ‹ù¾XZ^j[Î["rÀ¢vVçDÖ–ÆW7FöæU7F'FVC¢tvVçB[ÈZx¾[z^KÙÂrÀ¢vVçDÖ–ÆW7FöæT6ö×ÆWFVC¢tvVçBZèÎh‰K¨niÊÎjÊ‹ùŠÂrÀ¢vVçDÖ–ÆW7FöæUW6VC¢tvVçB[{.i¨.XÂrÀ¢vVçDÖ–ÆW7FöæT–çFW''WFVC¢tvVçBŠ*¾KŠŞijÒrÀ¢vVçDÖ–ÆW7FöæU7F÷VC¢tvVçB[{.XÎjÚ"rÀ¢vVçDÖ–ÆW7FöæU7väf–ÆVC¢tvVçBY
+şXªZK‹JRrÀ¢vVçDÖ–ÆW7FöæU&V¦V7FVC¢tvVçBY
+şXªŠ*¾h¹.{¹ÒrÀ¢vVçDÖ–ÆW7FöæTW'&÷#¢tvVçBhª^Y®K¨n™IŠúòrÀ¢vVçDÖ–ÆW7FöæUFW7C¢~iKnX‹kX¾Šù^˜xÎzˆ¾z)rÀ¢–æ&÷…7FF–öã¢t–æ&÷‚iKnK»nXûrÀ¢–æ&÷…7FF–öä†–çC¢~‹[‹ø~Xë¾iú^yÈ²vVçB˜‹ëîy¨Nhª^Y®8"rÀ¢æWw57FF–öã¢~ik™{¾{¸zºòrÀ¢æWw57FF–öä†–çC¢~‹[‹ø~Xë¾iú^yÈ¾X‰®X‰®XZ^[©>y¨Nik™{¾8"rÀ¢6W'f–6TæVVG4GFVçF–öã¢w·¶æÖW×Ò+riÈikXªhrÀ¢6W'f–6UVæF–æt7F—f—G“¢w·¶æÖW×Ò+r[è^ZHNyb·¶6÷VçG×ÒiÚrÀ¢6W'f–6UVæF–æt7F—f—G”Ö÷&S¢w·¶æÖW×Ò+r[è^ZHNyb·¶6÷VçG×Ò²iÚrÀ¢&÷7FW#¢~[ş{¸NYŞXhÂrÀ¢&÷7FW$FF—F–öæÃ¢~‹ùiÈ’·¶6÷VçG×ÒKØŞYÎK¨²rÀ¢&÷7FW$†–çC¢~iú^yÈ¾Xˆn˜XŞX‹‹ùKŠ¢v÷&·76R[ş{¸Ny¨NXZ˜:‚6W76–öî8"rÀ¢&÷7FW$6÷VçEööæS¢w·¶6÷VçG×ÒYŞh‰Y‚rÀ¢&÷7FW$6÷VçEö÷F†W#¢w·¶6÷VçG×ÒYŞh‰Y‚rÀ¢&÷7FW%÷6—F–öã¢~zÊÂ·¶–æFW‡×ÒYŞûÈÎX[·¶6÷VçG×ÒYÒrÀ¢&÷7FW%6VÆV7D†–çC¢~˜hºKˆYŞYÎK¨¾ûÈÎiú^yÈ²vVçBj>j8"rÀ¢&÷7FW$¶W–&ö&D†–çC¢~ikY	™Jî˜hº’+ruWõtFâ{û¾šR+r†öÖRôVæB‹{>‹ÚÂ+rVçFW"iú^yÈ²rÀ¢&6µFõ&÷7FW#¢~‹ùNY¹î[ş{¸NYŞXhÂrÀ¢V×G”FW6³¢w·¶æÖW×ÒX©îXZÎZêNy¨Nz›®[z^KØÒrÀ¢6VÆV7DFW6³¢~x+Kˆ[ÊjÎZÙûÈÎiú^yÈ¾‹ùYŞY[z^8"rÀ¢6VÆV7DFW6´†–çC¢tvVçBx«nh8[Ù>X˜Ş[z^KÙÎY(ÎiÈ‹ùK¨¾K»nKÉ®i‹îzK®YÊ‹ù˜xÎ8"rÀ¢V×Æ÷–VTf–ÆS¢tvVçBj>j‚rÀ¢7FGW3¢~x«nhrÀ¢Æö6F–öã¢~X©îXZÎZêBrÀ¢7W&f6S¢~iÚ^k©rÀ¢FW6´G&vW'3¢~[z^KØŞh«Ş[’rÀ¢÷Vå6W76–öã¢~h™>[È6W76–öârÀ¢&Wf–Wt7F—f—G“¢~iú^yÈ¾kK¾Xª‚rÀ¢&Wf–WtGWG•&W7VÇC¢~ZHŞj‹ùjÊ{¹>iéÂrÀ¢&Wf–WtGWG•'Vã¢~ZHŞy¹‹ùjÊ‹ùŠÂrÀ¢6†÷tgVÆÅF—FÆS¢~[^[ÈZèÎi[Nj~š)‚rÀ¢6öÆÆ6UF—FÆS¢~iKn‹[~j~š)‚rÀ¢6†÷tgVÆÄ76–væÖVçC¢~™ˆ^Šû¾ZèÎi[NZyNh™‚rÀ¢6öÆÆ6T76–væÖVçC¢~iKn‹[~ZyNh™‚rÀ¢6†÷tgVÆÅ&W÷'C¢~[^[ÈZèÎi[Nhª^Y¢rÀ¢6öÆÆ6U&W÷'C¢~iKn‹[~hª^Y¢rÀ¢ÖVæ—G”6öffVS¢~ˆËnkN‹ÚbrÀ¢ÖVæ—G•ÆçC¢~y¸njÒrÀ¢F–ÖVÆ–æS¢~kK¾Xªiz^[ùrrÀ¢Æöt6†ææVÇ3¢~Xªhš)˜2rÀ¢Æöt¶W–&ö&D†–çC¢~(iş(i"Xˆ~hÚ.š)˜2+r(iş(i2˜hºŠë[ÙR+ruWõtFâ{û¾šRrÀ¢Æöu÷6—F–öã¢~zÊÂ·¶–æFW‡×ÒiÚûÈÎX[··F÷FÇ×ÒiÚrÀ¢Æöt&6µFõ&V6÷&G3¢~‹ùNY¹îŠë[Ù^X‰~Š‚rÀ¢Æöt6†ææVÄ÷fW'f–Ws¢~jh.Šx‚rÀ¢Æöt6†ææVÄvVçC¢tvVçBrÀ¢Æöt6†ææVÄ–æ&÷ƒ¢t–æ&÷‚rÀ¢Æöt6†ææVÄæWw3¢~ik™{²rÀ¢Æöt6†ææVÄV×G“¢~[Ù>X˜Şiz^[ù~š^k*iÈ—·¶6†ææVÇ×ŞXªh8"rÀ¢ÆötWfVçD&÷&ã¢~ikvVçBrÀ¢ÆötWfVçE7F'FVC¢~K»¾Xª[ÈZx²rÀ¢ÆötWfVçE7väf–ÆVC¢~Y
+şXªZK‹JRrÀ¢ÆötWfVçD6ö×ÆWFVC¢~K»¾XªZèÎh‰rÀ¢ÆötWfVçDf–ÆVC¢~K»¾XªZK‹JRrÀ¢ÆötWfVçD–çFW''WFVC¢~K»¾XªKŠŞijÒrÀ¢ÆötWfVçEW6VC¢~K»¾Xªi¨.XÂrÀ¢ÆötWfVçE7F÷VC¢~K»¾XªXÎjÚ"rÀ¢ÆötWfVçE&V¦V7FVC¢~™ÈŠhZHNybrÀ¢ÆötWfVçE&W÷'C¢tvVçBhª^Y¢rÀ¢ÆötWfVçEFööÃ¢~[z^X[~i8ŞKÙÂrÀ¢ÆötWfVçDW'&÷#¢~K»¾Xª™IŠúòrÀ¢ÆötWfVçEFW7C¢~kX¾Šù^KúXûrrÀ¢ÆötWfVçD–æ&÷ƒ¢~iKnX‹–æ&÷‚rÀ¢ÆötWfVçDæWw3¢~ik™{¾XZ^[©2rÀ¢Æöt&VEWFFW5ööæS¢w·¶6÷VçG×ÒjÊi»NikrÀ¢Æöt&VEWFFW5ö÷F†W#¢w·¶6÷VçG×ÒjÊi»NikrÀ¢6†÷t&VEWFFW5ööæS¢~[^[È·¶6÷VçG×ÒjÊi»NikrÀ¢6†÷t&VEWFFW5ö÷F†W#¢~[^[È·¶6÷VçG×ÒjÊi»NikrÀ¢6öÆÆ6T&VEWFFW3¢~iKn‹[~i»NikrÀ¢Æöu7FGW4FöæS¢~[{.ZèÎh‰rÀ¢Æöu7FGW4f–ÆVC¢~ZK‹JRrÀ¢Æötf–ÇW&Tæõ&W÷'C¢~iÊÎjÊ‹ùŠÎYÊYÎK¨¾hùKªNiÈ{¸hª^Y®X˜Ş{¹>iÙşK¨n8"rÀ¢Æöu7FGW4–çFW''WFVC¢~[{.KŠŞijÒrÀ¢Æöu7FGW5W6VC¢~[{.i¨.XÂrÀ¢ÆöuFööÅ7FGW5'Vææ–æs¢~‹ùŠÎKŠÒrÀ¢FööÄ7F–öå'Vä6öÖÖæC¢~hš~ŠÎ{¸zºşYŞKºBrÀ¢FööÄ7F–öå&VE&W7VÇC¢~iú^yÈ¾YŞKºN{¹>iéÂrÀ¢WfVçDFWF–Ç3¢~K¨¾K»nŠúnh8RrÀ¢WfVçE'VäÖöFS¢~‹ùŠÎik[ÈòrÀ¢'VäÖöFT&6¶w&÷VæC¢~YîXûK»¾XªrÀ¢'VäÖöFUFW&Ö–æÃ¢~{¸zºşKÉ®ŠùÒrÀ¢'VäÖöFUv÷&·76S¢~[z^KÙÎXË®KÉ®ŠùÒrÀ¢76–væÖVçC¢~[Ù>X˜ŞZyNh™‚rÀ¢ÆFW7E&W7VÇC¢~iÈ‹ù{¹>iéÂrÀ¢WfVçE&W7VÇC¢~{¹>iéÂrÀ¢6†÷tgVÆÅ&W7VÇC¢~™ˆ^Šû¾ZèÎi[N{¹>iéÂrÀ¢6öÆÆ6U&W7VÇC¢~iKn‹[~{¹>iéÂrÀ¢WfVçEG&–vvW#¢~Y
+şXªiÚ^k©rÀ¢WfVçEG&–vvW$—77VS¢t—77VR+r·¶–G×ÒrÀ¢WfVçEG&–vvW$6öçfW'6F–öã¢~iÚ^ˆz¢·¶g&ö××Òy¨NŠû~k"rÀ¢WfVçEG&–vvW$ÖçVÃ¢~h˜¾XªY
+şXª‚rÀ¢WfVçEG&–vvW$W‡FW&æÃ¢~ZIn˜:Šû~k"rÀ¢WfVçD÷WGWC¢~‹é>X{¢rÀ¢WfVçE&V6öã¢~ŠûNiˆârÀ¢WfVçDW'&÷$6öFS¢~™IŠúşKº>zrÀ¢WfVçDFö7VÖVçG3¢~ih~j2rÀ¢WfVçE6÷W&6S¢~iÚ^k©rÀ¢WfVçEV&Æ—6†VC¢~Xù[ˆ>i{n™{BrÀ¢WfVçEFW‡D&Æö6·5ööæS¢w·¶6÷VçG×ÒiÚih~iÊÂrÀ¢WfVçEFW‡D&Æö6·5ö÷F†W#¢w·¶6÷VçG×ÒiÚih~iÊÂrÀ¢WfVçEFööÄ6ÆÇ5ööæS¢w·¶6÷VçG×ÒjÊ[z^X[~‹>yJ‚rÀ¢WfVçEFööÄ6ÆÇ5ö÷F†W#¢w·¶6÷VçG×ÒjÊ[z^X[~‹>yJ‚rÀ¢WfVçEFööÄf–ÇW&W5ööæS¢w·¶6÷VçG×ÒjÊZK‹JRrÀ¢WfVçEFööÄf–ÇW&W5ö÷F†W#¢w·¶6÷VçG×ÒjÊZK‹JRrÀ¢Æös¢~iz^[ùrrÀ¢&WÆ“¢~˜xŞiKârÀ¢&WÆ”–ç7V7D7F–öã¢~iú^yÈ¾K¨¾K»brÀ¢&WÆ”–ç7V7C¢~YÊkK¾Xªiz^[ù~KŠŞiú^yÈ¾[¨şXûr··6W×ÒrÀ¢&WÆ”Æ—fS¢~y»Ni*ÒrÀ¢&WÆ•&WGW&äÆ—fS¢~‹ùNY¹îy»Ni*ÒrÀ¢&WÆ”C¢~[¨şXûr··6W×ÒrÀ¢&WÆ”fÆö÷#¢~˜xŞiKâ+r[¨şXûr··6W×ÒrÀ¢&WÆ•f–WtfÆö÷#¢~iú^yÈ¾˜xŞiKîj[Î["rÀ¢&WÆ”WfVçC¢~Zé®KØŞX‹j[Î["rÀ¢&WÆ•&Wf–÷W3¢~Kˆ®KˆKŠ®˜xŞiKîK¨¾K»brÀ¢&WÆ”æW‡C¢~Kˆ¾KˆKŠ®˜xŞiKîK¨¾K»brÀ¢'V&&ÆUFööÅv÷&·76S¢~iú^yÈ¾X©îXZÎZêN(
+brÀ¢'V&&ÆUFööÅ&W6V&6ƒ¢~‹>z	NKŠŞ(
+brÀ¢'V&&ÆUFööÅ&VC¢~iú^yÈ¾j>j(
+brÀ¢'V&&ÆUFööÅw&—FS¢~i[Nynh‰iéÎ(
+brÀ¢'V&&ÆUFööÅ'Vã¢~hš~ŠÎK»¾Xª(
+brÀ¢'V&&ÆUFööÃ¢~KÛşyJ‚·¶æÖW×Ş(
+brÀ¢'V&&ÆU&V¦V7FVC¢~k*kKîh‰rÀ¢V×Æ÷–VTÆ&VÃ¢w·¶æÖW×Ò··&W7VÖT–G×ŞûÈÇ·¶ÖööG×ŞûÈÇ··÷vW'×ÒrÀ¢÷vW#¢°¢v¶S¢~[{.YJN˜i"rÀ¢6ÆVW¢~KÉyÊrÀ¢&WÆ”7F—fS¢~Y¹îiKîi{nkK¾‹x2rÀ¢ÒÀ¢ÖööC¢°¢–FÆS¢~z›®™{"rÀ¢v÷&¶–æs¢~[z^KÙÎKŠÒrÀ¢FÆ¶–æs¢~ŠûNŠùÒrÀ¢v—F–æs¢~zØ[èRrÀ¢&Wf–Ws¢~[è^ZêrÀ¢f–ÆVC¢~ZK‹JRrÀ¢ÒÀ¢ÖööDF–ÆöwVS¢°¢&W7F–æs¢~[{.{¸şKˆ¾xúŞ8.j[Î[.YJN˜i.i{n™¨şi{nY¹îiÚ^8"rÀ¢–FÆS¢~jÚ>YÊ[è^YŞûÈÎzØX	Kˆ¾KˆšK»¾Xª8"rÀ¢v÷&¶–æs¢~jÚ>YÊhê‹ù¾[Ù>X˜ŞK»¾Xª8"rÀ¢FÆ¶–æs¢~jÚ>YÊk~hª^[Ù>X˜ŞK»¾Xªy¨N‹ù¾[^8"rÀ¢v—F–æs¢~jÚ>YÊzØ[è^Kˆ¾KˆjÚ^hÈ~KºN8"rÀ¢&Wf–Ws¢~jÚ>YÊj8iú^iÈik{¹>iéÎ8"rÀ¢f–ÆVC¢~Kˆ®KˆjÊ‹ùŠÎ™ÈŠhZHNyn8"rÀ¢ÒÀ¢ÒÀ¢G&F–ætÖöFTvFS¢°¢Æ—FTÖöFS¢~{+îzèjŠ[ÈòrÀ¢÷VåW&Ö—76–öç3¢~h™>[Èi›®ˆ;ŞKÙ>iØ>™™rÀ¢ÒÀ¢G&F–æu&Wf–Ws¢°¢FW67&—F–öã¢~YÊ[ni›®ˆ;ŞKÙ>i¨.ZÙy¨NX‹YXnXiXZ^hê˜X‹KªNi‰>YË®h˜X˜Ş‹ù¾ŠÎZê™ˆ^8"rÀ¢Æ—FUF—FÆS¢~{+îzèjŠ[ÈşKˆ¾izk9^KÛşyJ(	ÎKªNi‰>XÛ2v—N(	Ş8"rÀ¢Æ—FTFW67&—F–öã¢~{+îzèjŠ[ÈşKÉ®KùŞhÈUDijŞ[ÈûÈÎYºjÚBÆ–6Rizk9^Zê™ˆ^X‹YXnXiXZ^hùj8.Šû~YÊ(	Îi›®ˆ;ŞKÙ>iØ>™™(	ŞKŠŞXˆ~hÚ.KªNi‰>jŠ[ÈşKº^‹ùîhêRUD8"rÀ¢æô66÷VçG3¢~k*iÈKªNi‰>‹Jnh‹rrÀ¢æô66÷VçG4FW67&—F–öã¢~Šû~XXYÊ(	ÎŠëî{Úâ(i"KªNi‰>(	ŞKŠŞ‹ùîhê^X‹YXn‹Jnh‹~ûÈÎXhŞZêh›i¨.ZÙy¨NX‹YXnXiXZ^8"rÀ¢W6„f–ÆVC¢~hê˜ZK‹JRrÀ¢&V¦V7Df–ÆVC¢~h¹.{¹ŞZK‹JRrÀ¢VæF–æuW6ƒ¢~zØ[è^X‹YXnhê˜rÀ¢7FvVD÷W&F–öç3¢~i¨.ZÙi8ŞKÙÂrÀ¢F—6Ö—73¢~X[>™zÒrÀ¢W6†VDvó¢~hê˜K¨ç··F–ÖW×ÒrÀ¢&÷÷6VD÷W&F–öç5ööæS¢w·¶6÷VçG×Òšh¹şŠêîX‹YXni8ŞKÙÂ+r„TB·¶†VG×ÒrÀ¢&÷÷6VD÷W&F–öç5ö÷F†W#¢w·¶6÷VçG×Òšh¹şŠêîX‹YXni8ŞKÙÂ+r„TB·¶†VG×ÒrÀ¢W6†–æs¢~hê˜KŠŞ(
+brÀ¢6öæf—&ÕW6ƒ¢~zîŠêNhê˜rÀ¢6æ6VÃ¢~Xùnkh‚rÀ¢&÷fUW6ƒ¢~h›Xxn[›nhê˜rÀ¢&V¦V7F–æs¢~h¹.{¹ŞKŠŞ(
+brÀ¢&V¦V7C¢~h¹.{¹ÒrÀ¢÷W&F–öäF–fc¢~i8ŞKÙÎ[zî[È"rÀ¢7FvVEv&æ–æs¢~‹ùK©¾i8ŞKÙÎ[{.{¸şi¨.ZÙûÈÎKØn‹ùk*iÈhùKªNKúhş8.i›®ˆ;ŞKÙ>K¸Ş™ÈZèÎh‰hùKªNYîh˜Şˆ;Şhê˜8"rÀ¢&÷fÅv&æ–æs¢~h›XxnYîûÈÎ‹ùK©¾i8ŞKÙÎKÉ®Š*¾hê˜X‹X‹YXn‹Jnh‹~8.zîŠêNX˜ŞŠû~jZû‹Jnh‹~8ikY	8i[˜xşY(ÎŠê.XÙ^{¾Yè¾8"rÀ¢&W7VÇC¢~[{.hùKªB··7V&Ö—GFVG×ÒšûÈÎ[{.h¹.{¹Ò··&V¦V7FVG×Òš’rÀ¢VWVS¢°¢v—F–æt&÷fÅööæS¢w·¶6÷VçG×ÒKŠ®hùKªNzØ[è^Zêh›’rÀ¢v—F–æt&÷fÅö÷F†W#¢w·¶6÷VçG×ÒKŠ®hùKªNzØ[è^Zêh›’rÀ¢7FvVEv—F–æuööæS¢w·¶6÷VçG×Ò{¸Ni¨.ZÙi8ŞKÙÎzØ[è^hùKªBrÀ¢7FvVEv—F–æuö÷F†W#¢w·¶6÷VçG×Ò{¸Ni¨.ZÙi8ŞKÙÎzØ[è^hùKªBrÀ¢6ÆVã¢~[z^KÙÎj	[›.XxrÀ¢æVVG3¢~[è^Zêh›’rÀ¢7FvVC¢~[{.i¨.ZÙ‚rÀ¢W6†VC¢~[{.hê˜rÀ¢66÷VçDf–ÇFW#¢~‹Jnh‹~zÙ¾˜’rÀ¢ÆÃ¢~XZ˜:‚rÀ¢&6µFõVWVS¢~‹ùNY¹î™‰şX‰rrÀ¢&Wf–Ws¢~Zê™ˆRrÀ¢7FvVD&FvS¢~[{.i¨.ZÙ‚rÀ¢÷W&F–öä6÷VçEööæS¢w·¶6÷VçG×Òši8ŞKÙÂrÀ¢÷W&F–öä6÷VçEö÷F†W#¢w·¶6÷VçG×Òši8ŞKÙÂrÀ¢6ÆVäFW67&—F–öã¢~k*iÈzØ[è^Zêh›y¨NX‹YXnXiXZ^8"rÀ¢6ÆVäFWF–ÄFW67&—F–öã¢~k*iÈzØ[è^Zêh›y¨NX‹YXnXiXZ^8.iÈ‹ùhê˜y¨NhùKªNKÉ®i‹îzK®YÊ‹ù˜xÎ8"rÀ¢fW&–f–6F–öåVæ¶æ÷vã¢~Zêh›x«nh[	®iÊ®š¨ÎŠørÀ¢fW&–f–6F–öä6÷VçC¢~[{.š¨ÎŠø··fW&–f–VG×Òò··F÷FÇ×ÒKŠ®‹Jnh‹rrÀ¢fW&–f–6F–öäFW67&—F–öã¢~˜:Xˆn‹Jnh‹~izk9^j8iú^8.iÈ‹ùKˆjÊ[{.yú^y¨NZê™ˆ^šyºîK¸ŞKÉ®KùŞyYûÉ¾Šû~˜xŞŠù^YîXhŞXŠNijŞ™‰şX‰~iŠşY
+n[›.Xx8"rÀ¢Æ—7EVæf–Æ&ÆTFW67&—F–öã¢~izk9^Xª‹ÛŞKªNi‰>‹Jnh‹~8.iÈ‹ùKˆjÊ[{.yú^y¨NZê™ˆ^x«nhK¸ŞKÉ®KùŞyY8"rÀ¢f–ÆVD66÷VçG3¢~izk9^š¨ÎŠøûÉ§·¶66÷VçG7×ÒrÀ¢&WG'“¢~˜xŞŠùRrÀ¢&WG'––æs¢~jÚ>YÊ˜xŞŠù^(
+brÀ¢ÒÀ¢7FGW3¢°¢æVVG4&÷fÃ¢~™ÈŠhZêh›’rÀ¢7FvVC¢~[{.i¨.ZÙ‚rÀ¢W6†VC¢~[{.hê˜rÀ¢ÒÀ¢7VÖÖ'“¢°¢F—FÆS¢~Zê™ˆ^iŠhrÀ¢66÷VçC¢~‹Jnh‹rrÀ¢÷W&F–öç3¢~i8ŞKÙÂrÀ¢7–Ö&öÇ3¢~j~y¨BrÀ¢æöæS¢~izrÀ¢'W—3¢~K›XZRrÀ¢6VÆÇ46æ6VÇ3¢~XÙnX{¢òXùnkh‚rÀ¢ÖöF–g•7–æ3¢~KúîiK’òYÎjÚRrÀ¢†VC¢t„TBrÀ¢ÒÀ¢÷W&F–öã¢°¢'W“¢~K›XZRrÀ¢6VÆÃ¢~XÙnX{¢rÀ¢÷&FW#¢~Šê.XÙRrÀ¢VçF—G•6†÷'C¢~i[˜xò··fÇVW×ÒrÀ¢Æ–Ö—E&–6S¢~™™K»r··fÇVW×ÒrÀ¢W…&–6S¢~‹è^XªK»r··fÇVW×ÒrÀ¢Æ6UF—FÆS¢w··6–FW×Ò··7–Ö&öÇ×ÒrÀ¢Væ¶æ÷vã¢~iÊ®yú^j~y¨BrÀ¢6Æ÷6UF—FÆS¢~[›>K¹2··7–Ö&öÇ×ÒrÀ¢÷6—F–öã¢~hÈK¹2rÀ¢VçF—G“¢~i[˜xò··fÇVW×ÒrÀ¢ÖöF–g•F—FÆS¢~KúîiK’·¶÷&FW'×ÒrÀ¢6æ6VÅF—FÆS¢~Xùnkh‚·¶÷&FW'×ÒrÀ¢7–æ4÷&FW'3¢~YÎjÚ^Šê.XÙRrÀ¢ÒÀ¢÷W&F–öå7FGW3¢°¢7V&Ö—GFVC¢~[{.hùKªBrÀ¢f–ÆÆVC¢~[{.h‰KªBrÀ¢&V¦V7FVC¢~[{.h¹.{¹ÒrÀ¢W6W%&V¦V7FVC¢~yJh‹~[{.h¹.{¹ÒrÀ¢6æ6VÆÆVC¢~[{.Xùnkh‚rÀ¢ÒÀ¢ÒÀ¢æWw3¢°¢ÆÄæWw3¢~XZ˜:‹XNŠêòrÀ¢w&÷WWV—F–W3¢~ˆ*zZ[ˆ.YË¢rÀ¢w&÷WF÷–73¢~K‹¾š)KˆîŠÎK‰¢rÀ¢w&÷W76WG3¢~X[nK¹n‹XNKªrrÀ¢w&÷WÖ7&ó¢~ZèşŠx.Kˆî‹J.ZøÂrÀ¢vTFW67&—F–öã¢~š¹Zøn[ªn[ˆ.YË®ik™{¾kXûÈÎiJşhÈhÈš)˜>8iz^iÉş8j~y¨NY(ÎX[>™JîŠøŞ[ú¾˜	şzÙ¾˜8"rÀ¢f–ÇFW'4Æ&VÃ¢~ik™{¾zÙ¾˜’rÀ¢7F'DFFS¢~[ÈZx¾iz^iÉòrÀ¢VæDFFS¢~{¹>iÙşiz^iÉòrÀ¢7–Ö&öÄf–ÇFW#¢~j~y¨BrÀ¢¶W—v÷&Df–ÇFW#¢~X[>™JîŠøÒrÀ¢6V&6ƒ¢~i	Î{J"rÀ¢6ÆV#¢~kˆ^™šBrÀ¢FFU&ævTW'&÷#¢~[ÈZx¾iz^iÉş[ø^š¾izK¨îh‰nzØK¨î{¹>iÙşiz^iÉş8"rÀ¢–ÖvTÇC¢w··F—FÆW×Ò{ÊyZ^Y»ârÀ¢–×÷'FçEFs¢~˜xŞŠhrÀ¢6†÷tÖ÷&S¢~i‹îzK®i»NZI¢rÀ¢6†÷tÆW73¢~i‹îzK®i»N[	rÀ¢&W7VÇDÆ–Ö—C¢~i‹îzK¢·¶6÷VçG×ÒiÚ{¹>iéÂrÀ¢Æ—fU7G&VÓ¢~Zéîi{n[ú¾ŠêòrÀ¢f–Ww4Æ&VÃ¢~ik™{¾ŠxnY»ârÀ¢6FVv÷&–W4Æ&VÃ¢~ik™{¾Xˆn{²rÀ¢f–WtÆFW7C¢~iÈikrÀ¢f–Wt–×÷'FçC¢~˜xŞŠhrÀ¢f–Wu÷6—F—fS¢~jÚ>™Ú"rÀ¢f–WtæVvF—fS¢~‹Iş™Ú"rÀ¢f–WuvF6†Æ—7C¢~ˆz®˜ˆ*rÀ¢f–Wt6FVv÷&–W3¢~Xˆn{²rÀ¢6FVv÷'•F†VÖW3¢~š)iÙrÀ¢6FVv÷'”6†&W3¢tˆ*rÀ¢6FVv÷'”6†”æW‡C¢~X‰¾K‰®iÛòrÀ¢6FVv÷'•7F#¢~zyX‰¾iÛòrÀ¢6FVv÷'”'6S¢~XÉ~KªNh˜rÀ¢6FVv÷'”æVW¢~ikKˆiÛòrÀ¢6FVv÷'”†³¢~kŠşˆ*rÀ¢6FVv÷'”6†–æ6öæ6WG3¢~KŠŞjh.ˆ*rÀ¢6FVv÷'•W3¢~{èîˆ*rÀ¢6FVv÷'”—ó¢~ikˆ*rÀ¢6FVv÷'”–æGW7G&–W3¢~ŠÎK‰¢rÀ¢6FVv÷'”gVæG3¢~Yû®˜yrÀ¢6FVv÷'”&öæG3¢~X®X‹‚rÀ¢6FVv÷'”gWGW&W3¢~iÉş‹JrrÀ¢6FVv÷'”Ö7&ó¢~ZèşŠx"rÀ¢6FVv÷'”gƒ¢~ZInkrrÀ¢6FVv÷'•vVÇFƒ¢~yn‹J"rÀ¢6FVv÷'”÷F–öç3¢~iÉşiØ2rÀ¢6FVv÷'•v'&çG3¢~iØ>ŠørÀ¢7G&VÔÆ&VÃ¢~ik™{¾[ú¾ŠêòrÀ¢&Vg&W6ƒ¢~X‹~ikik™{²rÀ¢æõ7VÖÖ'“¢~Šú^iÚ‹XNŠêşk*iÈiŠhûÈÎŠû~h™>[ÈXéşih~iú^yÈ¾ZèÎi[NXh^Zë8"rÀ ¢Æöö¶&6³ƒ¢s[şi{brÀ¢Æöö¶&6³&ƒ¢s"[şi{brÀ¢Æöö¶&6³#Fƒ¢s#B[şi{brÀ¢Æöö¶&6³vC¢srZJ’rÀ¢Æöö¶&6´Æ&VÃ¢~ik™{¾i{n™{NˆÈ>Y»BrÀ¢ÆÅ6÷W&6W3¢~XZ˜:iÚ^k©rÀ¢6÷W&6TÆ&VÃ¢~ik™{¾iÚ^k©rÀ¢'F–6ÆT6÷VçEööæS¢w·¶6÷VçG×Òzø~ih~zºrÀ¢'F–6ÆT6÷VçEö÷F†W#¢w·¶6÷VçG×Òzø~ih~zºrÀ¢æô'F–6ÆW3¢~izih~zºrÀ¢æô'F–6ÆW4FW67&—F–öã¢~Šú^i{n™{NˆÈ>Y»NXh^k*iÈh›îX‹ik™{¾8"rÀ¢ÆöDW'&÷%F—FÆS¢~izk9^Xª‹ÛŞik™{²rÀ¢ÆöDW'&÷$FW67&—F–öã¢t÷VäÆ–6Ri¨.i{nizk9^X‹~ikik™{¾kX8.Šû~j8iú^Kˆâ÷VäÆ–6RYîzºşy¨N‹ùîhê^ûÈÎxKnYî˜xŞŠù^8"rÀ¢7FÆS¢~Zéîi{nX‹~ikZK‹J^(	N(	N[Ù>X˜Şi‹îzK®‹ùK©¾zÙ¾˜iÚK»nKˆ¾Kˆ®jÊh‰X©şXª‹ÛŞy¨Nik™{¾8"rÀ¢÷Vä÷&–v–æÃ¢~iú^yÈ¾XéşihrrÀ¢ÒÀ¢G&6¶VC¢°¢æ÷F†–æuG&6¶VE–WC¢~‹ùk*iÈ‹ûŞ‹Š®K»¾KÙ^K‰ÎŠ[ş8"rÀ¢Æ—7DÆöDW'&÷%F—FÆS¢~izk9^Xª‹ÛŞ‹ûŞ‹Š®X‰~Š‚rÀ¢Æ—7DÆöDW'&÷$FW67&—F–öã¢t÷VäÆ–6Ri¨.i{nizk9^X‹~ik‹ûŞ‹Š®y¨N‹XNKª~Y(ÎK‹¾š)8.xëiÈXh^Zëk*iÈŠ*¾XŠ™šN8"rÀ¢Æ—7E7FÆS¢~Zéîi{nX‹~ikZK‹J^(	N(	N[Ù>X˜Şi‹îzK®Kˆ®jÊh‰X©şXª‹ÛŞy¨N‹ûŞ‹Š®š8"rÀ¢FWF–ÄÆöDW'&÷%F—FÆS¢~izk9^Xª‹ÛÒ·¶æÖW×ÒrÀ¢FWF–ÄÆöDW'&÷$FW67&—F–öã¢~‹ùKŠ®‹ûŞ‹Š®ZéîKÙ>Xúşˆ;Ş[{.{¸şXùi»NûÈÎh‰b÷VäÆ–6Ri¨.i{nKˆŞXúşyJ8"rÀ¢&6¶Æ–æ·5FööÇF—¢w·¶6÷VçG×ÒiÚzÉNŠë™;îhê^X‹jÚBrÀ¢76WG3¢~j~y¨BrÀ¢F÷–73¢~K‹¾š)‚rÀ¢—77VW3¢t—77VRrÀ¢—77VS¢t—77VRrÀ¢vTFW67&—F–öã¢w·¶6÷VçG×ÒKŠ®‹ûŞ‹Š®™I®x+’+rj~y¨N8K‹¾š)Kˆâ—77VRrÀ¢f–WtÖöFTÆ&VÃ¢~‹ûŞ‹Š®ŠxnY»ârÀ¢FWF–Åf–Ws¢~Šúnh8RrÀ¢w&…f–Ws¢~Y»î‹rÀ¢6VÆV7Dg&öÕ6–FV&#¢~K¸îKê~jş˜hºKˆKŠ®‹ûŞ‹Š®™I®x+8"rÀ¢—77VTæôFW67&—F–öã¢~‹ùKŠ¢—77VR‹ùk*iÈhøş‹û8"rÀ¢÷Vä—77VTFWF–Ç3¢~iú^yÈ¾Šúnh8RrÀ¢&VfW&Væ6VD–åööæS¢~Š*²·¶6÷VçG×ÒiÚzÉNŠë[É^yJ‚rÀ¢&VfW&Væ6VD–åö÷F†W#¢~Š*²·¶6÷VçG×ÒiÚzÉNŠë[É^yJ‚rÀ¢w&ƒ¢°¢ÆÃ¢~XZ[rÀ¢&VÆFVC¢~X[>ˆBrÀ¢66÷TÆ&VÃ¢~Y»î‹ˆÈ>Y»BrÀ¢f–ÇFW'3¢~Y»î‹zÙ¾˜’rÀ¢f–ÇFW'4FW67&—F–öã¢~˜hºŠhi‹îzK®y¨N‹ûŞ‹Š®™I®x+Y(ÎiÚ^k©iÙii8"rÀ¢ÖFW&–Ç3¢~zÉNŠëKˆâ—77VRrÀ¢6†÷uVæÆ–æ¶VC¢~i‹îzK®iÊ®‹ùîhê^ZéîKÙ2rÀ¢f—6–&ÆT6÷VçC¢w·¶æöFW7×ÒKŠ®ˆ¨.x+’+r·¶VFvW7×ÒiÚ‹ùîhêRrÀ¢¦ööÔ÷WC¢~{Ê[òrÀ¢¦ööÔ–ã¢~iKîZJrrÀ¢f—C¢~˜.[©NyK¾[ˆ2rÀ¢6çf4Æ&VÃ¢~‹ûŞ‹Š®X[>{;¾Y»î8.h¹nXªXúş[›>z{¾ûÈÎk¹®‹ÚîXúş{ÊiKîûÈÎkøkK¾ˆ¨.x+Xúşh™>[ÈXh^Zë8"rÀ¢76WC¢~‹XNKªrrÀ¢F÷–3¢~K‹¾š)‚rÀ¢æ÷FS¢~zÉNŠërÀ¢—77VS¢t—77VRrÀ¢÷VäFWF–Ç3¢~h™>[ÈŠúnh8RrÀ¢VçF—G”æöFTÆ&VÅööæS¢w·¶æÖW×ŞûÈÎ‹ùîhêR·¶6÷VçG×ÒK»ŞiÙii’rÀ¢VçF—G”æöFTÆ&VÅö÷F†W#¢w·¶æÖW×ŞûÈÎ‹ùîhêR·¶6÷VçG×ÒK»ŞiÙii’rÀ¢'F–f7DæöFTÆ&VÃ¢w·¶æÖW×ŞûÈÎiÚ^ˆz¢··v÷&·76W×Òy¨NiÙii’rÀ¢ÆöDW'&÷%F—FÆS¢~izk9^Xª‹ÛŞX[>{;¾Y»ârÀ¢ÆöDW'&÷$FW67&—F–öã¢~‹ûŞ‹Š®X‰~ŠK¸ŞXúşKÛşyJ8.Yîzºşh.ZHŞYîXúş˜xŞŠù^Xª‹ÛŞY»î‹8"rÀ¢ÒÀ¢ÒÀ¢6öææV7F÷%6WGF–æw3¢°¢F—FÆS¢~‹ùîhê^Yš‚rÀ¢FW67&—F–öã¢~‹ùîhê^zxiÈš)˜>ûÈÎyJK¨îiKnK»nzëh©^˜	.Y(Î[z^KÙÎXË®ZûŠùŞ8"rÀ¢6†ææVÄæf–vF–öã¢~š)˜>Šëî{ÚârÀ¢6†ææVÄæf–vF–öäFW67&—F–öã¢~y»Nhê^X˜Ş[èZû[©Nš)˜>8"rÀ¢6†ææVÄæf–vF–öä7F–öã¢w·¶æÖW×ÒŠëî{ÚîûÈÇ··7FGW7×ÒrÀ¢6W'f–6TFW67&—F–öã¢~{¹şKˆzêynh˜iÈš)˜>y¨Nh©^˜	.8"rÀ¢'Vå6W'f–6S¢~XXŠëZIn˜:h©^˜	"rÀ¢'Vå6W'f–6TFW67&—F–öã¢~{¹şKˆi¨.XÎh‰nh.ZHŞh˜iÈš)˜>y¨Nh©^˜	.8.‹ùîhê^KúhşY(Îˆ®ZJŠëî{ÚîKùŞhÈXúşyJ8"rÀ¢'Vå6W'f–6T&–¢~XXŠëh˜iÈ‹ùîhê^Yš‹ù¾ŠÎZIn˜:h©^˜	"rÀ¢FFW$FW67&—F–öã¢~[niKnK»nzë˜	®yú^h©^˜	.X‹KÚy¨NzxiÈ’·¶æÖW×ÒKÉ®ŠùŞ8"rÀ¢6W'f–6U7F÷VC¢~[{.XÎjÚ"rÀ¢6W'f–6TöæÆ–æS¢~YÊ{«òrÀ¢6W'f–6UVæf–Æ&ÆS¢~KˆŞXúşyJ‚rÀ¢6W'f–6UVæf–Æ&ÆTFW67&—F–öã¢~‹ùîhê^YšiÈŞXªKˆŞXúşyJûÉ´Æ–6RY(ÎiKnK»nzëK¸ŞKùŞhÈYÊ{«ş8"rÀ¢6öææV7F–öäFWF–Ç3¢~‹ùîhê^KúhòrÀ¢6fVC¢~[{.KùŞZÙ‚rÀ¢&WV—&VC¢~[ø^Z²rÀ¢†–FS¢~iKn‹[rrÀ¢ÖævS¢~zêybrÀ¢†–FT6öææV7F–öäFWF–Ç4&–¢~iKn‹[r·¶æÖW×Ò‹ùîhê^KúhòrÀ¢ÖævT6öææV7F–öäFWF–Ç4&–¢~zêyb·¶æÖW×Ò‹ùîhê^KúhòrÀ¢6V7&WG4æ÷FS¢~[{.KùŞZÙy¨NKºNx˜ÎKÉ®YÊiÊÎYËXªZønûÈÎK™şKˆŞKÉ®Y¹îKÊ8.K¸^YÊ™ÈŠhjZû{)‹KNXh^Zëi{ni‹îzK®ˆØz‹ş8"rÀ¢6WGWwV–FS¢°¢F—FÆS¢~XXXxnZH~Z[Ò·¶æÖW×ÒrÀ¢FW67&—F–öã¢~X‰¾[»®h‰nh™>[ÈKÚy¨B·¶æÖW×Ò[©NyJûÈÎXhŞ[ŠnyØ‹ùîhê^KúhşY¹îX‹‹ù˜xÎ8"rÀ¢÷Vå6WGW¢~h™>[È·¶æÖW×ÒŠëî{ÚârÀ¢÷Vå6WGW&–¢~YÊikj~zÛîš^h™>[È·¶Æ&VÇ×ÒrÀ¢Æ–æ·3¢°¢F—66÷&E÷'FÃ¢tF—66÷&B[ÈXùˆ^YîXûrÀ¢FVÆVw&Ô&÷DfF†W#¢~h™>[È&÷DfF†W"rÀ¢6Æ6µ÷'FÃ¢u6Æ6²[©NyJŠëî{ÚârÀ¢fV—6‡U÷'FÃ¢~š9îKšn[ÈXùˆ^YîXûrÀ¢Æ&µ÷'FÃ¢tÆ&²[ÈXùˆ^YîXûrÀ¢ÒÀ¢ÒÀ¢6WGWwV–FW3¢°¢F—66÷&C¢°¢FW67&—F–öã¢~KÛşyJXúşyKyJh‹~ZèŠ8^y¨BF—66÷&B[©NyJûÉ¾iË®YšK«®Y
+şXªi{nûÈÄ÷VäÆ–6RKÉ®ˆz®XªXù[ˆ>iiÎiÚYŞKºN8"rÀ¢7FW¢~X‰¾[»®[©NyJ[›nZHŞX‹bÆ–6F–öâ”N8"rÀ¢7FW#¢~‹ù¾XZR&÷Bš^™Ú.ûÈÎ˜xŞ{Úîh‰nZHŞX‹niË®YšK«®KºNx˜ÎûÈÎ[›nZj^YhNKùŞzê8"rÀ¢7FW3¢~YÊ‚–ç7FÆÆF–öâKŠŞ[ÈY
+òW6W"–ç7FÆÂKˆâÆ–6F–öç2æ6öÖÖæG>ûÈÎXhŞh¨®[©NyJZèŠ8^X‹KÚy¨N‹JnXû~8"rÀ¢ÒÀ¢FVÆVw&Ó¢°¢FW67&—F–öã¢t&÷DfF†W"KÉ®X‰¾[»®yK÷VäÆ–6RK‹®KÚ‹ùŠÎy¨NzxiÈiË®YšK«®8"rÀ¢7FW¢~YÊ‚FVÆVw&ÒKŠŞh™>[È&÷DfF†W.ûÈÎ[›nXù˜öæWv&÷N8"rÀ¢7FW#¢~Šëî{ÚîYŞz{Y(ÎKº^(	Æ&÷N(	Ş{¹>[îy¨NyJh‹~YŞûÈÎxKnYîZHŞX‹nyIşh‰y¨NKºNx˜Î8"rÀ¢7FW3¢~YÊKˆ¾ik{)‹KNKºNx˜ÎûÉ´÷VäÆ–6RY
+şXªiË®YšK«®YîKÉ®[É^ZûÎKÚXù˜öÆ–æ¾8"rÀ¢ÒÀ¢6Æ6³¢°¢FW67&—F–öã¢~KÛşyJZèŠ8^X‹[z^KÙÎXË®y¨B6ö6¶WBÖöFR[©NyJûÉ´÷VäÆ–6RKˆŞ™ÈŠhXZÎ{Ù&WVW7BU$Î8"rÀ¢7FW¢~YÊKÚXxnZH~KÛşyJy¨B6Æ6²[z^KÙÎXË®KŠŞK¸îZKNX‰¾[»®KˆKŠ®[©NyJ8"rÀ¢7FW#¢~k{¾Xª6†C§w&—F^8–Ó§w&—F^8f–ÆW3§w&—FR&÷BiØ>™™ûÈÎZèŠ8^[©NyJ[›nZHŞX‹b†÷†"KºNx˜Î8"rÀ¢7FW3¢~[ÈY
+ò6ö6¶WBÖöF^ûÈÎX‰¾[»®[Šb6öææV7F–öç3§w&—FRy¨B†KºNx˜ÎûÈÎ[›nk{¾XªöÆ–æ¾8÷7FGW>8÷FW7N8ö–æ&÷8÷6WGF–æw>8÷WFYŞKºN8"rÀ¢ÒÀ¢fV—6‡S¢°¢FW67&—F–öã¢~KÛşyJ[ŠniË®YšK«®Y(Î™[ş‹ùîhê^y¨NKÈK‰®ˆz®[»®[©NyJûÉ¾{êNiË®YšK«¢vV&†öö²izk9^hê^iKböÆ–æ¾8"rÀ¢7FW¢~YÊš9îKšnh‰bÆ&²[ÈXùˆ^YîXûX‰¾[»®KÈK‰®ˆz®[»®[©NyJûÈÎ[›n[ÈY
+şiË®YšK«®ˆ;ŞX©¾8"rÀ¢7FW#¢~hèK¨khhşiØ>™™ûÈÎ˜	®‹ø~™[ş‹ùîhê^Šê.™ˆR–ÒæÖW76vRç&V6V—fU÷cûÈÎxKnYîXù[ˆ>[©NyJ8"rÀ¢7FW3¢~ZHŞX‹b”BKˆâ6V7&WNûÈÎ[›nYÊKˆ¾ik˜hºKˆîYîXûKˆˆ{Ny¨Nš9îKšnh‰bÆ&²[›>Xû8"rÀ¢ÒÀ¢ÒÀ¢6†÷tG&gC¢~i‹îzK®ˆØz‹òrÀ¢†–FTG&gC¢~™©‰xşˆØz‹òrÀ¢f–VÆG3¢°¢Æ–6F–öä–C¢~[©NyJ‚”BrÀ¢–C¢~[©NyJ‚”BrÀ¢6V7&WC¢~[©NyJZøn™*RrÀ¢&÷EFö¶Vã¢~iË®YšK«®KºNx˜ÂrÀ¢Fö¶Vã¢~[©NyJ{ª~KºNx˜ÂrÀ¢FöÖ–ã¢~[ÈiKî[›>XûrÀ¢–æ&÷…W6ƒ¢~hê˜–æ&÷‚˜	®yúRrÀ¢ÒÀ¢f–VÆDFW67&—F–öç3¢°¢FöÖ–ã¢~˜hºX‰¾[»®‹ùKŠ®[©NyJi{nKÛşyJy¨N[›>Xû8"rÀ¢–æ&÷…W6ƒ¢~X[>™zŞYîûÈÎiky¨B–æ&÷‚iÚyºîyYYÊ‚÷VäÆ–6^ûÈÎ™ÈŠhi{nXhŞiú^yÈ¾8"rÀ¢ÒÀ¢f–VÆD÷F–öç3¢°¢FöÖ–ã¢°¢fV—6‡S¢²Æ&VÃ¢~š9îKšbrÂFW67&—F–öã¢v÷VâæfV—6‡Ræ6â+rKŠŞY»ÒrÒÀ¢Æ&³¢²Æ&VÃ¢tÆ&²rÂFW67&—F–öã¢v÷VâæÆ&·7V—FRæ6öÒ+rXZy2rÒÀ¢ÒÀ¢ÒÀ¢Æ6V†öÆFW'3¢°¢Æ–6F–öä–C¢tF—66÷&B[©NyJ‚”BrÀ¢–C¢~š9îKšnh‰bÆ&²[ÈXùˆ^YîXûKŠŞy¨B6Æ•ş(
+brÀ¢6V7&WC¢~K¸^YÊiÊÎYËXªZønKùŞZÙ‚rÀ¢&÷EFö¶Vã¢~K¸^YÊiÊÎYËXªZønKùŞZÙ‚rÀ¢Fö¶Vã¢~[Šb6öææV7F–öç3§w&—FRy¨B†KºNx˜ÂrÀ¢ÒÀ¢6öæf–wW&VEÆ6V†öÆFW#¢~[{.˜XŞ{Úî(	N(	N‹é>XZ^ikXÎKº^i»şhÚ"rÀ¢6f–æs¢~KùŞZÙKŠŞ(
+brÀ¢&WÆ6UFö¶Vã¢~i»şhÚ.KºNx˜ÂrÀ¢6fUFö¶Vã¢~KùŞZÙKºNx˜ÂrÀ¢6fT6öææV7F–öã¢~KùŞZÙ‹ùîhêRrÀ¢6f–æt6öææV7F–öã¢~jÚ>YÊKùŞZÙ‹ùîhê^(
+brÀ¢6fT6öææV7F–öä†–çC¢~Kˆ®ikZ¾Xiy¨NXzŞhÚîKÉ®Kˆ‹[~KùŞZÙ8"rÀ¢Ö—76–æt6öææV7F–öäf–VÆG3¢~‹ù™ÈŠhZ¾XiûÉ§·¶f–VÆG7×Ş8"rÀ¢VçFW$7&VFVçF–ÅFõ6fS¢~Šû~YÊKˆ®ikZ¾XiŠhKùŞZÙy¨NXzŞhÚî8"rÀ¢6öææV7F–öå6fTW'&÷#¢~‹ùîhê^iÊ®KùŞZÙûÉ§·¶W'&÷'×ÒrÀ¢&VÖ÷fUFö¶Vã¢~z{¾™šNKºNx˜ÂrÀ¢Fö¶VåFöõ6†÷'C¢~Šû~‹é>XZ^ˆ{>[	#KŠ®™Ùîz›®y›ŞZÙ~zÊn8"rÀ¢&WÆ6U6V7&WEF—FÆS¢~i»şhÚ"·¶æÖW×ÒKºNx˜ÎûÉòrÀ¢&WÆ6U6V7&WDÖW76vS¢~‹ùKÉ®Šhny¹n[{.XªZønKùŞZÙy¨NKºNx˜Î8.‹ø~yúŞh‰nŠúş‹é>XZ^y¨NXh^Zëizk9^h.ZHŞ8"rÀ¢&VÖ÷f–æs¢~jÚ>YÊz{¾™šN(
+brÀ¢Fö¶Vå6fTW'&÷#¢~KºNx˜ÎiÊ®KùŞZÙûÉ§·¶W'&÷'×ÒrÀ¢6VæEFW7C¢~Xù˜kX¾ŠùRrÀ¢6VæF–æs¢~Xù˜KŠŞ(
+brÀ¢FW7E6VæF–ætfVVF&6³¢~jÚ>YÊY	·¶æÖW×ÒXù˜kX¾Šù^khhş(
+brÀ¢FW7Df–ÆVC¢~kX¾Šù^khhşiÊ®ˆ;ŞXù˜ûÉ§·¶W'&÷'×ÒrÀ¢&V6öææV7Df–ÆVC¢~iÊ®ˆ;Ş˜xŞik‹ùîhêR·¶æÖW×ŞûÉ§·¶W'&÷'×ÒrÀ¢W6T6öææV7F÷#¢~Y
+şyJ‚·¶æÖW×ÒrÀ¢W6T6öææV7F÷$&–¢~[ÈY
+şh‰nX[>™zÒ·¶æÖW×ÒrÀ¢Æ–æ¶VD66÷VçC¢~[{.X[>ˆNy¨Nzxˆ¢rÀ¢Æ–æ¶VD66÷VçD†–çC¢~Šz>™šNX[>ˆNYîXúş‹ùîhê^XúnKˆKŠ®zxˆ®ûÈÎ[{.KùŞZÙy¨NXzŞhÚîKÉ®KùŞyY8"rÀ¢7F÷¢~XÎjÚ"rÀ¢7F'Df÷$Æ–æ¶–æs¢~Y
+şXªiË®YšK«®[›nX[>ˆBrÀ¢7F'D6öææV7F÷#¢~Y
+şXª‹ùîhê^Yš‚rÀ¢VæÆ–æ³¢~XùnkhX[>ˆBrÀ¢VæÆ–æ¶–æs¢~jÚ>YÊXùnkhX[>ˆN(
+brÀ¢VæÆ–æµF—FÆS¢~XùnkhX[>ˆB·¶æÖW×ŞûÉòrÀ¢VæÆ–æ´ÖW76vS¢~iKnK»nzë˜	®yú^[nKˆŞXhŞXùX‹[Ù>X˜Ò·¶æÖW×Ò‹JnXû~8.iË®YšK«®KºNx˜ÎKÉ®KùŞyYûÈÎKÚXúşKº^z¸¾X‹¾YÊXúnKˆKŠ®zxˆ®˜xÎXù˜öÆ–æ¾8"rÀ¢Æ–æµ7FW÷Vã¢~h™>[ÈKÚKˆâ·¶æÖW×ÒiË®YšK«®y¨Nzxˆ®8"rÀ¢Æ–æµ7FW6VæD&Vf÷&S¢~Xù˜rÀ¢Æ–æµ7FWv—C¢~KùŞhÈjÚNš^™Ú.h™>[ÈûÉ´÷VäÆ–6RKÉ®ˆz®Xªj8kX¾[{.X[>ˆNy¨Nzxˆ®8"rÀ¢FW7E6VçC¢~kX¾Šù^[{.Xù˜ûÈÎŠû~j8iú^KÚy¨B·¶æÖW×Òzxˆ®8"rÀ¢FW7DFWF–Ç3¢~kX¾Šù^Šúnh8RrÀ¢FVÆ—fW'•&VfW&Væ6S¢~h©^˜	.Xø.ˆ>ûÉ¢rÀ¢ÆöDW'&÷#¢~izk9^Xª‹ÛŞ‹ùîhê^YšŠëî{Úî8"rÀ¢ÆöF–æs¢~jÚ>YÊXª‹ÛŞ‹ùîhê^Šëî{ÚârÀ¢ÆöDW'&÷%F—FÆS¢~i¨.i{nizk9^Šû¾Xùn‹ùîhê^Šëî{ÚârÀ¢ÆöDW'&÷$FW67&—F–öã¢t÷VäÆ–6Rizk9^Šû¾Xùn‹ùK©¾Šëî{Úî8.[Ù>X˜Ş˜XŞ{Úîk*iÈXùyIşXùXÉnûÉ¾iÊÎYËiÈŞXªh.ZHŞYîXúşKº^˜xŞŠù^8"rÀ¢&Vg&W6„W'&÷#¢~izk9^X‹~ikZéîi{n‹ùîhê^x«nhûÈÎ[Ù>X˜ŞŠëî{ÚîK¸ŞXúş{º~{ºŞiú^yÈ¾8"rÀ¢&VÖ÷fU6V7&WEF—FÆS¢~z{¾™šB·¶æÖW×ÒKºNx˜ÎûÉòrÀ¢&VÖ÷fU6V7&WD&Vf÷&S¢t÷VäÆ–6R[nkK˜^XŠ™šN[{.XªZønKùŞZÙy¨BrÀ¢&VÖ÷fU6V7&WDgFW#¢~YÊKùŞZÙi»şKº>KºNx˜ÎX˜ŞûÈÎ‹ùîhê^Yš[nXÎjÚ.‹ùŠÎ8.z{¾™šNYâ÷VäÆ–6Rizk9^h.ZHŞjÚNKºNx˜Î8"rÀ¢FW6³¢°¢F—FÆS¢~YÊ‚·¶æÖW×ÒKˆ®ˆ®ZJ’rÀ¢FW67&—F–öã¢~Šê‹ùKŠ®zxˆ®YÊh˜˜[z^KÙÎXË®KŠŞ{º~{ºŞZûŠùŞ8"rÀ¢ÆöF–æs¢~jÚ>YÊXª‹ÛŞˆ®ZJŠëî{Úî(
+brÀ¢æVVDÆ–æ³¢~Šû~XXZèÎh‰iË®YšK«®X[>ˆNûÈÎXhŞ[ÈY
+şˆ®ZJ8"rÀ¢gFW$Æ–æ³¢~X[>ˆNYîXúşyJ‚rÀ¢öã¢~[{.[ÈY
+òrÀ¢v—F–æs¢~zØ[è^‹ùîhê^Yš‚rÀ¢öfc¢~iÊ®[ÈY
+òrÀ¢FövvÆT&–¢~[ÈY
+şh‰nX[>™zŞYÊ‚·¶æÖW×ÒKˆ®ˆ®ZJ’rÀ¢GW&äöä†–çC¢~[ÈY
+şYîûÈÇ·¶æÖW×Òzxˆ®KÉ®YÊ‹ùKŠ®[z^KÙÎXË®KŠŞY
+şXªZûŠùŞ8"rÀ¢GW&äöåv†–ÆTöffÆ–æT†–çC¢~xëYÊXúşKº^XX˜hº[z^KÙÎXË®ûÉ··¶æÖW×ÒKˆ®{«şYîh˜ŞKÉ®[ÈZx¾ZûŠùŞ8"rÀ¢v÷&·76S¢~[z^KÙÎXË¢rÀ¢v÷&·76TFW67&—F–öã¢~›¹ŠêNKÛşyJ‚6²Æ–6Ry¨B6†B[z^KÙÎXË®8.[ÈY
+şˆ®ZJX˜ŞûÈÎ˜hºZûŠùŞŠhYÊY:®KŠ®[z^KÙÎXË®{º~{ºŞ8"rÀ¢Væ&ÆS¢~[ÈY
+şˆ®ZJ’rÀ¢Væ&Æ–æs¢~jÚ>YÊY
+şyJ(
+brÀ¢F—6&ÆS¢~X[>™zŞˆ®ZJ’rÀ¢F—6&Æ–æs¢~jÚ>YÊXÎyJ(
+brÀ¢F—6&ÆUF—FÆS¢~X[>™zŞYÊ‚·¶æÖW×ÒKˆ®ˆ®ZJûÉòrÀ¢F—6&ÆTÖW76vS¢~Zé®i{nYJN˜i.[nXÎjÚ.8.ZûŠùŞK¸ŞKùŞyYYÊXéş[z^KÙÎXË®ûÈÎXènXû.ŠøNŠë®KˆŞKÉ®XŠ™šN8"rÀ¢&÷VæEv÷&·76S¢~ZûŠùŞ‹ùŠÎK¨â··v÷&·76W×ÒrÀ¢v—F–ætf÷$6öææV7F÷#¢~[{.YÊ‚··v÷&·76W×ÒKŠŞXxnZH~Z[ŞûÉ··¶æÖW×ÒKˆ®{«şYîh.ZHŞZûŠùŞ8"rÀ¢Gfæ6VC¢~Zé®i{n‹yş‹ù²rÀ¢v†C¢~‹yş‹ù¾hùzK®ŠøÒrÀ¢v†DFW67&—F–öã¢~jøşjÊZé®i{n‹yş‹ù¾i{nXéşj~Xù˜8.Zè>Xú®hÈ~ZûÎ‹ùjÊ‹yş‹ù¾ûÈÎKˆŞiŠşh˜iÈZûŠùŞy¨N[‹š›¾ŠxNX‰8"rÀ¢v†EÆ6V†öÆFW#¢~ŠûNiˆâÆ–6RjøşjÊZé®i{n‹yş‹ù¾i{n[©NŠú^X®K¸K˜(
+brÀ¢6FVæ6S¢~‹yş‹ù¾š)xèrrÀ¢6FVæ6TFW67&—F–öã¢tÆ–6RZI®K˜^iú^yÈ¾KˆjÊ‹ùKŠ®ˆ®ZJ8.k*iÈXh^ZëŠhXù˜i{nûÈÎ[©NY¹îZHÒµ¶æò×&WÇ•ÕŞ8"rÀ¢6FVæ6TWfW'“¢~jøò·¶WfW'—×ÒrÀ¢6FVæ6T7W7FöÓ¢~[Ù>X˜Şiz^zˆ²rÀ¢÷Vã¢~h™>[Èˆ®ZJŠë[ÙRrÀ¢æõv÷&·76W3¢~Šû~XXX‰¾[»®KˆKŠ®[z^KÙÎXË®8"rÀ¢7F–öäW'&÷#¢~ˆ®ZJŠëî{ÚîiÊ®ˆ;Şi»NikûÉ§·¶W'&÷'×ÒrÀ¢ÒÀ¢7FvS¢°¢æVVG47&VFVçF–Ç3¢°¢F—FÆS¢~™ÈŠhXzŞhÚârÀ¢&FvS¢~Šëî{ÚârÀ¢FW67&—F–öã¢~iË®YšK«®Y
+şXªX˜ŞûÈÎŠû~XXZ¾Xi[ø^™Èy¨B·¶æÖW×Ò‹ùîhê^Kúhş8"rÀ¢ÒÀ¢&VG•FôÆ–æ³¢°¢F—FÆS¢~XúşKº^[ÈZx¾X[>ˆBrÀ¢&FvS¢~iÊ®X[>ˆBrÀ¢FW67&—F–öã¢~XzŞhÚî[{.KùŞZÙ8.Y
+şXªiË®YšK«®YîûÈÎZè>h˜Şˆ;ŞYÊKÚy¨NzxiÈ’·¶æÖW×ÒKÉ®ŠùŞKŠŞhê^iKb·¶6öÖÖæG×Ş8"rÀ¢ÒÀ¢7F'F–æs¢°¢F—FÆS¢~iË®YšK«®Y
+şXªKŠŞ(
+brÀ¢&FvS¢~Y
+şXªKŠÒrÀ¢FW67&—F–öã¢t÷VäÆ–6RjÚ>YÊY
+şXª‚·¶æÖW×Ò˜.˜XŞYš8.Kˆ®{«şYîKÉ®z¸¾XÛ>i‹îzK¢·¶6öÖÖæG×Òi8ŞKÙÎŠûNiˆî8"rÀ¢ÒÀ¢v—F–ætÆ–æ³¢°¢F—FÆS¢~iË®YšK«®YÊ{«ş(	N(	NZèÎh‰X[>ˆBrÀ¢&FvS¢~zØ[èRöÆ–æ²rÀ¢FW67&—F–öã¢w·¶æÖW×ÒiË®YšK«®jÚ>YÊ‹ùŠÎûÈÎKØn[	®iÊ®X[>ˆNzxˆ®8.Šû~ZèÎh‰Kº^Kˆ¾KˆjÚ^8"rÀ¢ÒÀ¢Æ–æ¶VC¢°¢F—FÆS¢~XúşKº^h©^˜	"rÀ¢&FvS¢~[{º¢rÀ¢FW67&—F–öã¢w·¶æÖW×ÒiË®YšK«®[{.YÊ{«şûÈÎXúşKº^h©^˜	.iKnK»nzë˜	®yú^8"rÀ¢ÒÀ¢Æ–æ¶VDöffÆ–æS¢°¢F—FÆS¢~‹ùîhê^Yš[{.XÎjÚ"rÀ¢&FvS¢~zk¾{«òrÀ¢FW67&—F–öã¢w·¶æÖW×Òzxˆ®K¸ŞxKnKùŞhÈX[>ˆN8.™ÈŠhZIn˜:h©^˜	.i{nXhŞY
+şXª‹ùîhê^Yš8"rÀ¢ÒÀ¢W'&÷#¢°¢F—FÆS¢~™ÈŠhZHNybrÀ¢&FvS¢~KˆŞXúşyJ‚rÀ¢6öæf–wW&VDæ÷E'Vææ–æs¢w·¶æÖW×ÒiË®YšK«®[{.˜XŞ{ÚîûÈÎKØn[Ù>X˜ŞiÊ®‹ùŠÎ8"rÀ¢FW67&—F–öã¢w·¶æÖW×Òizk9^‹ùîhê^8.Šû~z¸¾XÛ>˜xŞik‹ùîhê^ûÉ¾Zh.iéÎK¸ŞxKnZK‹J^ûÈÎŠû~j8iú^Kˆ¾ik‹ùîhê^Šúnh8^8"rÀ¢ÒÀ¢ÒÀ¢ÒÀ¢6öææV7F÷%7FGW3¢°¢F—FÆS¢~‹ùîhê^Yš‚rÀ¢FW67&—F–öã¢~h¨®KÚy¨Nzxˆ®kŠ˜>‹ùîhê^X‹iKnK»nzëh©^˜	.Kˆî[z^KÙÎXË®ZûŠùŞ8"rÀ¢WFFVC¢~i»NikK¨â··F–ÖW×ÒrÀ¢&Vg&W6ƒ¢~X‹~ikrÀ¢ÆöDW'&÷#¢~izk9^Šû¾Xùn‹ùîhê^Yšx«nh8"rÀ¢ÆöF–æs¢~jÚ>YÊXª‹ÛŞˆ®ZJkŠ˜2rÀ¢ÆöDW'&÷%F—FÆS¢~i¨.i{nizk9^Xª‹ÛŞˆ®ZJkŠ˜2rÀ¢ÆöDW'&÷$FW67&—F–öã¢t÷VäÆ–6Rizk9^Šû¾Xùnh©^˜	.x«nhûÈÎKØniKnK»nzëK¸ŞXúşjÚ>[‹KÛşyJ8.iÊÎYËiÈŞXªh.ZHŞYîXúşKº^˜xŞŠù^8"rÀ¢&Vg&W6„W'&÷#¢~izk9^X‹~ikkŠ˜>x«nhûÈÎ[Ù>X˜Ş[^zK®y¨NiŠşKˆ®jÊˆë~Xùny¨Nx«nh8"rÀ¢6W'f–6UF—FÆS¢~h©^˜	.iÈŞXªrÀ¢6†V6¶VC¢~j8iú^K¨â··F–ÖW×ÒrÀ¢FVÆ—fW'•F—FÆS¢~KÚy¨Nˆ®ZJkŠ˜2rÀ¢FVÆ—fW'”FW67&—F–öã¢~zêyn[{.‹ùîhê^h‰njÚ>YÊŠëî{Úîy¨Nˆ®ZJkŠ˜>8"rÀ¢f–Æ&ÆUF—FÆS¢~XúşyJkŠ˜2rÀ¢f–Æ&ÆTFW67&—F–öã¢~™ÈŠhi{nXhŞŠëî{ÚîKˆKŠ®iky¨Nzxˆ®kŠ˜>8"rÀ¢6†ö÷6UF—FÆS¢~˜hºˆ®ZJkŠ˜2rÀ¢6†ö÷6TFW67&—F–öã¢~‹ùîhê^KÚ[{.{¸şYÊyJy¨Nzxˆ®ûÉ¾K˜¾YîXúşKº^{º~{ºŞk{¾XªX[nK¹nkŠ˜>8"rÀ¢6&–Æ—G”FVÆ—fW'“¢~iKnK»nzëh©^˜	"rÀ¢6&–Æ—G”6†C¢~[z^KÙÎXË®ˆ®ZJ’rÀ¢6öæf–wW&VD6÷VçC¢~[{.˜XŞ{Úâ·¶6÷VçG×ÒKŠ¢rÀ¢7F—fT6÷VçC¢~‹ùŠÎKŠÒ·¶6÷VçG×ÒKŠ¢rÀ¢GFVçF–öä6÷VçC¢~™ÈZHNyb·¶6÷VçG×ÒKŠ¢rÀ¢FV6†æ–6ÄFWF–Ç3¢~h¨iÊşŠúnh8RrÀ¢&—fFT6†DÆ–æ¶VC¢~[{.X[>ˆNzxˆ¢rÀ¢&—fFT6†Dæ÷DÆ–æ¶VC¢~[	®iÊ®X[>ˆNzxˆ¢rÀ¢Æ7DFVÆ—fW&VC¢w··F–ÖW×Şh©^˜	"rÀ¢6öæf–wW&F–öã¢~˜XŞ{ÚârÀ¢FVÆ—fW'“¢~h©^˜	"rÀ¢÷væW#¢~[{.X[>ˆN‹JnXûrrÀ¢Æ7E7V66W73¢~iÈ‹ùh‰X©òrÀ¢æW‡E&WG'“¢~Kˆ¾jÊ˜xŞŠùRrÀ¢æW‡E&WG'”C¢w··F–ÖW×Ò+rzÊÂ·¶6÷VçG×ÒjÊrÀ¢&VG“¢~[{.[{º¢rÀ¢æVVG56WGW¢~™ÈŠhŠëî{ÚârÀ¢Væ&ÆVC¢~[{.Y
+şyJ‚rÀ¢F—6&ÆVC¢~[{.XÎyJ‚rÀ¢æ÷DÆ–æ¶VC¢~iÊ®X[>ˆBrÀ¢æôFVÆ—fW'•–WC¢~[	®izh©^˜	"rÀ¢6öæf–wW&TFFW#¢~Šëî{Úâ·¶æÖW×ÒrÀ¢7F'D6†ææVÃ¢~Y
+şXª‚·¶æÖW×ÒrÀ¢6WGWFWF–Ç3¢~iú^yÈ²·¶æÖW×ÒŠëî{ÚîŠúnh8RrÀ¢Æ–æ¶–æu7FW3¢~iú^yÈ²·¶æÖW×ÒX[>ˆNjÚ^šªBrÀ¢f–Wu&öw&W73¢~iú^yÈ²·¶æÖW×Ò‹ù¾[ªbrÀ¢&Wf–WtFFW#¢~j8iúR·¶æÖW×ÒrÀ¢ÖævTFFW#¢~zêyb·¶æÖW×ÒrÀ¢6öæf–wW&F–öäF–ÆöuF—FÆS¢~˜XŞ{Úâ·¶æÖW×ÒrÀ¢6öæf–wW&F–öäF–ÆötFW67&—F–öã¢w·¶æÖW×Òy¨N‹ùîhê^8h©^˜	.Kˆîˆ®ZJŠëî{Úî8"rÀ¢6öæf–wW&F–öäF–ÆötFW67&—F–öäFVÆ—fW'“¢w·¶æÖW×Òy¨N‹ùîhê^Kˆîh©^˜	.Šëî{Úî8"rÀ¢&V6öææV7C¢~˜xŞik‹ùîhêRrÀ¢&V6öææV7F–æs¢~jÚ>YÊ˜xŞik‹ùîhê^(
+brÀ¢&V6öææV7F–æt6†ææVÃ¢~jÚ>YÊ˜xŞik‹ùîhêR·¶æÖW×Ş(
+brÀ¢GW&æ–ætöã¢~jÚ>YÊY
+şyJ‚·¶æÖW×Ş(
+brÀ¢GW&æ–ætöfc¢~jÚ>YÊXÎyJ‚·¶æÖW×Ş(
+brÀ¢&V6öææV7Df–ÆVC¢~iÊ®ˆ;Ş˜xŞik‹ùîhêR·¶æÖW×ŞûÉ§·¶W'&÷'×ÒrÀ¢GW&äöäf–ÆVC¢~iÊ®ˆ;ŞY
+şyJ‚·¶æÖW×ŞûÉ§·¶W'&÷'×ÒrÀ¢GW&äöfdf–ÆVC¢~iÊ®ˆ;ŞXÎyJ‚·¶æÖW×ŞûÉ§·¶W'&÷'×ÒrÀ¢6W'f–6S¢°¢öfc¢~[{.X[>™zÒrÀ¢öfdFW67&—F–öã¢~h˜iÈZIn˜:h©^˜	.YØ~[{.i¨.XÎûÈÄ÷VäÆ–6RiKnK»nzëKˆŞXù~[ÛY8Ş8"rÀ¢†VÇF‡“¢~jÚ>[‹‚rÀ¢†VÇF‡”FW67&—F–öã¢~h˜iÈ[{.Y
+şyJkŠ˜>YØ~XúşjÚ>[‹h©^˜	.8"rÀ¢'Vææ–æs¢~‹ùŠÎKŠÒrÀ¢'Vææ–ætFW67&—F–öã¢~iÈŞXªK¸ŞKÉ®K‹®jÚ>[‹kŠ˜>h©^˜	.ûÉ¾Šû~j8iú^Kˆ¾ikj~Šëy¨NkŠ˜>8"rÀ¢Væf–Æ&ÆS¢~KˆŞXúşyJ‚rÀ¢Væf–Æ&ÆTFW67&—F–öã¢t÷VäÆ–6Rizk9^‹ùîhê^h©^˜	.iÈŞXªûÈÎKØniKnK»nzëK¸ŞXúşjÚ>[‹KÛşyJ8"rÀ¢ÒÀ¢FFW#¢°¢öfc¢~[{.i¨.XÂrÀ¢öfdFW67&—F–öã¢~h©^˜	.[{.i¨.XÎûÉ¾[ÈY
+şjÚNkŠ˜>XÛ>Xúşh.ZHŞ8"rÀ¢æVVG56WGW¢~™ÈŠhŠëî{ÚârÀ¢æVVG56WGWFW67&—F–öã¢~k{¾Xª·¶æÖW×ÒXzŞŠøXÛ>Xúş[ÈZx¾KÛşyJ8"rÀ¢&VG•FôÆ–æ³¢~XúşKº^X[>ˆBrÀ¢&VG•FôÆ–æ´FW67&—F–öã¢~XzŞŠø[{.KùŞZÙ8.Y
+şXª‚·¶æÖW×ŞûÈÎxKnYîX[>ˆNKÚy¨Nzxˆ®8"rÀ¢6öææV7FVC¢~[{.‹ùîhêRrÀ¢6öææV7FVDFW67&—F–öã¢~iKnK»nzëXªhjÚ>YÊ˜	®‹ø~jÚNkŠ˜>h©^˜	.8"rÀ¢v—F–ætÆ–æ³¢~zØ[èRöÆ–æ²rÀ¢v—F–ætÆ–æ´FW67&—F–öã¢~YÊ‚·¶æÖW×ÒKŠŞXù˜öÆ–æ¾ûÈÎZèÎh‰zxˆ®X[>ˆN8"rÀ¢æVVG4GFVçF–öã¢~™ÈŠhZHNybrÀ¢æVVG4GFVçF–öäFW67&—F–öã¢~z¸¾XÛ>˜xŞik‹ùîhê^h‰nj8iú^‹ùîhê^Šúnh8^ûÉ¾[{.KùŞZÙy¨NŠëî{ÚîKˆŞKÉ®KŠ.ZK8"rÀ¢7F'F–æs¢~jÚ>YÊY
+şXª‚rÀ¢7F'F–ætFW67&—F–öã¢w·¶æÖW×ÒjÚ>YÊY
+şXªûÈÎ˜	®[‹Xú®™ÈŠhKˆx+i{n™{N8"rÀ¢7F'F–ætÆ–æ¶VDFW67&—F–öã¢w·¶æÖW×ÒjÚ>YÊ˜xŞik‹ùîhê^ûÉ¾XxnZH~[{º®YîKÉ®h.ZHŞh©^˜	.8"rÀ¢ÒÀ¢F–ÖS¢°¢§W7Dæ÷s¢~X‰®X‰¢rÀ¢Ö–çWFW4vó¢w·¶6÷VçG×ÒXˆn™)şX˜ÒrÀ¢†÷W'4vó¢w·¶6÷VçG×Ò[şi{nX˜ÒrÀ¢F—4vó¢w·¶6÷VçG×ÒZJX˜ÒrÀ¢ÒÀ¢ÒÀ¢f–ÆUf–WvW#¢°¢&6³¢~‹ùNY¹ârÀ¢&6µFõv÷&·76S¢~‹ùNY¹â··v÷&·76W×ÒrÀ¢&6µFõG&6¶VC¢~‹ùNY¹î‹ûŞ‹Š¢rÀ¢ÒÀ¢–æ&÷ƒ¢°¢æôÖW76vW3¢~iKnK»nzëK‹®z›®8"rÀ¢V×G”†–çC¢~[z^KÙÎXË®KÉ®h¨®x«nhi»Nikhê˜X‹‹ù˜xÎ8"rÀ¢VçF—FÆVEWFFS¢~k*iÈiŠhy¨Ni»NikrÀ¢Vç&VC¢~iÊ®Šû²rÀ¢Ö÷&TGF6†ÖVçG3¢~XúniÈ’·¶6÷VçG×ÒKŠ¢rÀ¢FFUFöF“¢~K¸®ZJ’rÀ¢FFU–W7FW&F“¢~iŠZJ’rÀ¢FFUF†—5vVV³¢~iÊÎY‚rÀ¢FFTöÆFW#¢~i»Niz’rÀ¢vTFW67&—F–öã¢~X[·¶6÷VçG×ÒiÚ+r[z^KÙÎXË®x«nhi»NikrÀ¢6VÆV7Dg&öÕ6–FV&#¢~K¸îKê~jş˜hºKˆiÚ8"rÀ¢6öÖÖVçG56V7F–öã¢~ŠøNŠë¢rÀ¢Fö7VÖVçG56V7F–öã¢~™˜NK»brÀ¢Fö4W‡æC¢~[^[ÈrÀ¢Fö46öÆÆ6S¢~iKn‹[rrÀ¢Fö4æõ&Wf–Ws¢~i¨.izš(NŠx‚(	N(	B[^[Èiú^yÈ¾8"rÀ¢Fö4W‡æD&–¢~š(NŠx™˜NK»b·¶æÖW×ÒrÀ¢Fö46öÆÆ6T&–¢~iKn‹[~™˜NK»b·¶æÖW×ÒrÀ¢Fö5&Wf—6–öåF—FÆS¢~hê˜i{nx˜iÊÂ··&Wf—6–öç×ÒrÀ¢Fö5G—T‡FÖÃ¢t…DÔÂhª^Y¢rÀ¢Fö5G—TÖ&¶F÷vã¢tÖ&¶F÷vârÀ¢v÷&·76U&ö÷C¢~[z^KÙÎXË®jyºî[ÙRrÀ¢Fö46÷”Ö&¶F÷vã¢~ZHŞX‹bÖ&¶F÷vârÀ¢Fö46÷–VDÖ&¶F÷vã¢~[{.ZHŞX‹bÖ&¶F÷vârÀ¢Fö4F÷væÆöDÖ&¶F÷vã¢~Kˆ¾‹ÛÒÖ&¶F÷vârÀ¢f–WuF–ÖS¢~i{n™{B(	N(	BiÈikYÊX˜ÒrÀ¢f–Wuv÷&·76S¢~hÈ[z^KÙÎXË®Xˆn{¸BrÀ¢6V&6…Æ6V†öÆFW#¢~i	Î{J.iKnK»nzë(
+brÀ¢6ÆV%6V&6ƒ¢~kˆ^™šNiKnK»nzëi	Î{J"rÀ¢6V&6…&W7VÇG3¢~i‹îzK¢·¶6÷VçG×Òò··F÷FÇ×ÒiÚi»NikrÀ¢æõ6V&6…&W7VÇG3¢~k*iÈKˆî(	Ç··VW'—×Ş(	ŞXË˜XŞy¨Ni»Nik8"rÀ¢v÷&·76Tæ÷DW†—7G3¢~[z^KÙÎXË®[{.KˆŞZÙYÊ‚rÀ¢g&öÕ6VæFW#¢~iÚ^ˆz¢··6VæFW'×ÒrÀ¢6VæFW$–FVçF—G•F—FÆS¢~Xù˜ˆ^‹ª¾K»ŞûÉ§··6VæFW'×ÒrÀ¢6†÷u6VæFW$FWF–Ç3¢~iú^yÈ²··6VæFW'×Òy¨NXù˜ˆ^KúhòrÀ¢6VæFW%6W76–öã¢u6W76–öârÀ¢g&öÔ—77VS¢~iÚ^ˆz¢·¶—77VW×ÒrÀ¢g&öÔ—77VUF—FÆS¢~iÚ^ˆz¢—77VR·¶—77VW×ÒrÀ¢föÆÆ÷uW6VæFW#¢~{º~{ºŞY(ÎXù˜ˆ^k)ş˜	¢rÀ¢föÆÆ÷uWv÷&·76S¢~YÊjÚN[z^KÙÎXË®{º~{ºÒrÀ¢föÆÆ÷uW6VæFW$FW67&—F–öã¢~XúşKº^YÊYîXû‹ûŞ™zîûÈÎK™şXúşKº^h™>[ÈXéşKÉ®ŠùŞ[Ù>™Ú.{º~{ºŞ8"rÀ¢föÆÆ÷uWv÷&·76TFW67&—F–öã¢~‹ùiÚkhhşk*iÈŠë[Ù^Xù˜ˆ^KÉ®ŠùŞ8.XúşKº^Šê’··v÷&·76W×Ò˜xÎy¨NikvVçBY¹îyÈ¾ûÈÎK™şXúşKº^ˆz®ŠÎh™>[È[z^KÙÎXË®8"rÀ¢föÆÆ÷uWÆ6V†öÆFW#¢~™(Zû‹ùiÚkhhş{º~{ºŞ‹ûŞ™zî(
+brÀ¢6´–ä&6¶w&÷VæC¢~YîXû‹ûŞ™zârÀ¢6µv÷&·76S¢~Šú.™zî[z^KÙÎXË¢rÀ¢÷Vä6öçfW'6F–öã¢~h™>[ÈKÉ®ŠùÒrÀ¢÷Vä6öçfW'6F–öå6†÷'C¢~h™>[ÈKÉ®ŠùÒrÀ¢÷Våv÷&·76S¢~h™>[È[z^KÙÎXË¢rÀ¢÷Våv÷&·76U6†÷'C¢~[z^KÙÎXË¢rÀ¢&WÆ–W5F—FÆS¢~Y¹îZHÒrÀ¢&WÆ–W4FW67&—F–öã¢~YÊ‹ù˜xÎY¹îZHÒ··6VæFW'×ŞûÈÎiz™Èzk¾[ÈiKnK»nzë8"rÀ¢&WÆ–W5v÷&·76TFW67&—F–öã¢~‹ùiÚkhhşk*iÈŠë[Ù^Xù˜ˆ^KÉ®ŠùŞûÈÎ[nyK··v÷&·76W×ÒKŠŞy¨NikvVçBY¹îyÈ¾Kˆ®Kˆ¾ih~8"rÀ¢&WÆ–W4ÆöF–æs¢~jÚ>YÊXª‹ÛŞY¹îZHŞ(
+brÀ¢&WÇ•Æ6V†öÆFW#¢~Y¹îZHŞ‹ùiÚkhhş(
+brÀ¢&WÇ”7F–öã¢~Y¹îZHÒrÀ¢&WÇ•6VæF–æs¢~Xù˜KŠŞ(
+brÀ¢&WÇ”FVÆ—fW'”†–çC¢tVçFW"Xù˜+r6†–gB´VçFW"hÚ.ŠÎ8.[nYÊYîXûXù˜{¹Xéò6W76–öî8"rÀ¢&WÇ•v÷&·76T†–çC¢tVçFW"Xù˜+r6†–gB´VçFW"hÚ.ŠÎ8.[nyKikvVçBY¹îyÈ¾Kˆ®Kˆ¾ih~8"rÀ¢&WÇ•–÷S¢~KÚrÀ¢&WÇ”vVçC¢w·¶vVçG×ÒY¹îZHŞK¨brÀ¢&WÇ”vVçEv÷&¶–æs¢w·¶vVçG×ÒjÚ>YÊY¹îZHÒrÀ¢&WÇ•&V6öç7G'V7FVC¢~[z^KÙÎXË®Y¹îyÈ²rÀ¢&WÇ•v—F–æs¢~jÚ>YÊXxnZH~Y¹îZHŞ(
+brÀ¢&WÇ”f–ÆVC¢~iÊ®ˆ;ŞXùn[é~Y¹îZHŞ8"rÀ¢&WÇ”æôç7vW#¢~K»¾Xª{¹>iÙşûÈÎKØnk*iÈyYKˆ¾Y¹îZHŞ8"rÀ¢6öçF–çVU6W76–öã¢~{º~{ºŞXéşKÉ®ŠùŞ(
+brÀ¢6öçF–çVU'Vã¢~Y¹îX‹jÚNjÊK»¾Xªy¨NKÉ®ŠùŞ{º~{ºŞ(
+brÀ¢6öçF–çV–æu6W76–öã¢~jÚ>YÊh™>[ÈXéşKÉ®ŠùŞ(
+brÀ¢&WÇ”–åv÷&·76S¢~YÊ‚·¶Æ&VÇ×ÒKŠŞY¹îZHŞ(
+brÀ¢6ææ÷E&WÇ•v÷&·76TvöæS¢~[z^KÙÎXË®[{.KˆŞZÙYÊ(	N(	NizZHNY¹îZHŞ8"rÀ¢FVÆWFTVçG'•F—FÆS¢~XŠ™šNjÚNiÚûÈ„FVÆWFRò&6·76^ûÈ’rÀ¢FVÆWFTVçG'”&–Æ&VÃ¢~XŠ™šNjÚNiKnK»nzëiÚyºârÀ¢FVÆWFT6öæf—&ÕF—FÆS¢~XŠ™šN‹ùiÚiKnK»nzëkhhşûÉòrÀ¢FVÆWFT6öæf—&ÔÖW76vS¢~‹ùKÉ®K¸îiKnK»nzëKŠŞkK˜^XŠ™šNjÚNi»NikûÈÎKØnKˆŞKÉ®XŠ™šB··v÷&·76W×ÒKŠŞ™;îhê^y¨Nih~K»n8"rÀ¢FVÆWF–æs¢~jÚ>YÊXŠ™šN(
+brÀ¢FVÆWFTf–ÆVC¢~izk9^XŠ™šN‹ùiÚiKnK»nzëkhhş8.khhşK¸ŞxKnKùŞyYûÈÎŠû~˜xŞŠù^8"rÀ¢ÒÀ¢GW&å&öw&W73¢°¢Æ—fTÆ&VÃ¢~jÚ>YÊY¹îZHÒrÀ¢7FGW3¢°¢'Vææ–æs¢~‹ù¾ŠÎKŠÒrÀ¢6ö×ÆWFVC¢~ZèÎh‰rÀ¢f–ÆVC¢~ZK‹JRrÀ¢ÒÀ¢ÒÀ¢FV×ÆFW3¢°¢6FÆöuF—FÆS¢~[z^KÙÎXË®jŠiÛòrÀ¢6FÆötFW67&—F–öã ¢~jøşKŠ®jŠiÛşyIşh‰KˆzxŞx›Zé®[Ú.hy¨N[z^KÙÎXË®(	N(	FvVçBiÈY:®K©¾[z^X[~8yºî[Ù^˜xÎiÈK¸K˜X‰ŞZx¾ih~K»n8K‹®Y:®{¾[z^KÙÎˆÎŠëî8.x+[Èiú^yÈ¾Šúnh8^ûÈÎxKnYîX‰¾[»®KˆKŠ®ZéîKè¾8"rÀ¢V×G•F—FÆS¢~jŠiÛòrÀ¢V×G”&öG“¢~iÊ®XùxëK»¾KÙ^jŠiÛş8.Šû~j8iú^Xù[Niëny¨NjŠiÛşyºî[Ù^8"rÀ¢6öÖ×Væ—G•F—FÆS¢~zKîXË¢rÀ¢6öÖ×Væ—G”FW67&—F–öã ¢~zÊÎKˆikyIşhy¨Nh™>XÈ^jŠiÛş(	N(	NX‰¾[»®[z^KÙÎXË®i{nK¸îKˆ®k‹K¹>[©>XZik6Æöæ^ûÈÎyKXéşKÙÎˆ^{»NhªNûÈÎˆÎ™Ùâ÷VäÆ–6^8"rÀ¢6öÖ×Væ—G”&FvS¢~zKîXË¢rÀ¢vVçG4Æ&VÃ¢tvVçG2rÀ¢vVçDæ÷D–ç7FÆÆVC¢~iÊÎiË®iÊ®ZèŠ8RrÀ¢&VFÖTÆ&VÃ¢u&VFÖRrÀ¢ÆöF–æu&VFÖS¢~jÚ>YÊXª‹ÛÒ$TDÔ^(
+brÀ¢æõ&VFÖS¢~Šú^jŠiÛş‹ùk*iÈ’$TDÔ^8"rÀ¢æ÷Df÷VæEF—FÆS¢~iÊ®h›îX‹jŠiÛòrÀ¢æ÷Df÷VæD&öG“¢~k*iÈYŞK‹¢·¶æÖW×Òy¨NjŠiÛş8"rÀ¢ÒÀ¢v÷&·76S¢°¢6W76–öäæ÷Df÷VæC¢~‹ùKŠ®KÉ®ŠùŞ[{.KˆŞZÙYÊ8"rÀ¢6W76–öä÷Væ–æs¢~jÚ>YÊh™>[ÈKÉ®ŠùŞ(
+brÀ¢6W76–öäF—66öææV7FVC¢~KªNK©.‹ùîhê^[{.ijŞ[È8"rÀ¢–çFW&7F—fT÷væW'6†—¢°¢&6¶w&÷VæC¢~jÚNKÉ®ŠùŞjÚ>YÊYîXûhš~ŠÎK»¾XªûÈÎKªNK©.‹ùîhê^[{.˜x®iKî8"rÀ¢F—FÆS¢~h™>[ÈKªNK©.‹ùîhê^ûÉòrÀ¢ÖW76vS¢~jÚNKÉ®ŠùŞ‹Iş‹J26öææV7F÷"khhşh‰n[{.Xˆn˜XŞy¨B—77V^8.h™>[ÈYîKÚ[nhê^zêKªNK©.ûÉ¾iKnX‹ikkhhş8—77VRŠøNŠë®h‰nˆz®XªXÉnŠznXùi{nûÈÎjÚN‹ùîhê^KÉ®ˆz®XªijŞ[ÈûÈÎŠêYîXûK»¾Xª{º~{ºŞ8.KÉ®ŠùŞXènXû.KÉ®KùŞyY8"rÀ¢6öæf—&Ó¢~h™>[È‹ùîhêRrÀ¢7F–öç3¢~KÉ®ŠùŞi8ŞKÙÂrÀ¢F—66öææV7C¢~ijŞ[ÈKªNK©.‹ùîhêRrÀ¢ÒÀ¢æWuv÷&·76S¢~ik[»®[z^KÙÎXË¢rÀ¢÷fW'f–Ws¢~h¾Šx‚rÀ¢FV×ÆFW3¢~jŠiÛòrÀ¢÷fW'f–WtæeF—FÆS¢~Kº^XÚx˜~h¾Šxh˜iÈ[z^KÙÎXË¢rÀ¢FV×ÆFW4æeF—FÆS¢~kXşŠx[z^KÙÎXË®jŠiÛòrÀ¢V×G•6–FV&#¢~‹ùk*iÈ[z^KÙÎXË¢rÀ¢FVÆWFT6öæf—&Ó¢~Šê[z^KÙÎXË®zk¾ˆÎûÉşih~K»nKÉ®z{¾XZ^(	Î[{.zk¾ˆÎ[z^KÙÎXË®(	ŞûÈÎKº^YîK¸ŞXúşh.ZHŞ8"rÀ¢öff&ö&EF—FÆS¢~X©îyn[z^KÙÎXË®zk¾ˆÂrÀ¢öff&ö&DFW67&—F–öã¢~[b··v÷&·76W×Òz{¾X{®kK¾‹x>X©îXZÎXË®ûÈÎ[›nyIşh‰[z^KÙÎKªNhê^Šë[Ù^8"rÀ¢öff&ö&DÆöF–æs¢~jÚ>YÊkˆ^x+[z^KÙÎxëYË®(
+brÀ¢öff&ö&D&Æö6¶VC¢~Šû~XX{¹>iÙşK¸ŞYÊhš~ŠÎy¨N[z^KÙÂrÀ¢öff&ö&D†æFöfe6æ6†÷C¢~KªNhê^[ú¾xZrrÀ¢öff&ö&E6W76–öç3¢u6W76–öâŠë[ÙRrÀ¢öff&ö&E6–væGW&W3¢~zÛîYÒrÀ¢öff&ö&D÷Vä—77VW3¢~iÊ®{¹2—77VRrÀ¢öff&ö&E66†VGVÆVD—77VW3¢~Zé®i{b—77VRrÀ¢öff&ö&DF—'G”f–ÆW3¢~iÊ®hùKªNih~K»brÀ¢öff&ö&E'Vææ–æs¢~‹ùŠÎKŠÒ†VFÆW72rÀ¢öff&ö&E&V6öã¢~zk¾ˆÎXéşYºrÀ¢öff&ö&E&V6öåÆ6V†öÆFW#¢~K‹®K¸K˜‹ùKŠ®[z^KÙÎXË®Šhzk¾[ÈkK¾‹x>X©îXZÎXË®ûÉòrÀ¢öff&ö&Dæ÷FW3¢~KªNhê^ZH~k:‚rÀ¢öff&ö&Dæ÷FW5Æ6V†öÆFW#¢~iÊ®iÚ^h.ZHŞˆ^h‰n{º~K»¾ˆ^™ÈŠhyú^˜>K¸K˜ûÉòrÀ¢öff&ö&Ev÷&¶–æs¢~jÚ>YÊX©îynzk¾ˆÎ(
+brÀ¢öff&ö&D6öæf—&Ó¢~zîŠêNX©îynzk¾ˆÂrÀ¢'Vææ–æt6÷VçC¢w·¶6÷VçG×ÒKŠ®‹ùŠÎKŠÒrÀ¢–FÆS¢~z›®™{"rÀ¢&VæÖS¢~˜xŞYŞYŞ[z^KÙÎXË¢rÀ¢F—7Æ”æÖU&ö×C¢~[z^KÙÎXË®i‹îzK®YŞz{rÀ¢7vävVçC¢~ik[»¢·¶vVçG×ÒKÉ®ŠùÒrÀ¢7vã¢~ik[»®KÉ®ŠùŞ(
+brÀ¢6†ö÷6TvVçC¢~˜hºikKÉ®ŠùŞ‹ùŠÎi{brÀ¢6öæf–wW&S¢~˜XŞ{ÚîjÚN[z^KÙÎXË¢rÀ¢FVÆWFUv÷&·76S¢~X©îyn[z^KÙÎXË®zk¾ˆÂrÀ¢†VFÆW73¢~ˆz®XªK»¾XªrÀ¢†VFÆW75'Vææ–æs¢~ˆz®XªK»¾Xª(	N(	G·¶6÷VçG×ÒKŠ®‹ùŠÎKŠÒrÀ¢†VFÆW74WFöÖF–öã¢~ˆz®XªK»¾XªrÀ¢÷Vå'Vã¢~[njÚNjÊK»¾XªKÙÎK‹®KªNK©.KÉ®ŠùŞh™>[ÈrÀ¢W6VC¢~[{.i¨.XÂrÀ¢7F—fS¢~‹ùŠÎKŠÒrÀ¢'Vææ–æs¢~‹ùŠÎKŠÒrÀ¢&W7VÖU6W76–öã¢~{º~{ºŞ(	Ç··F—FÆW×Ş(	ÒrÀ¢6W76–öå'Vææ–æs¢~‹ùŠÎKŠÒ+r··F—FÆW×ÒrÀ¢6W76–öäæ÷E&W7VÖ&ÆS¢~izk9^{º~{ºŞ(	Ç··F—FÆW×Ş(	ÒrÀ¢&6†—fU6W76–öã¢~[Ù.j>(	Ç··F—FÆW×Ş(	ÒrÀ¢&6†—fU6W76–öä7F–öã¢~[Ù.j2rÀ¢&W7F÷&U6W76–öã¢~h.ZHŞ(	Ç··F—FÆW×Ş(	ÒrÀ¢&W7F÷&U6W76–öä7F–öã¢~iKîY¹îYŞXhÂrÀ¢6W76–öå&W6Væ6Tf–ÆVC¢~izk9^i»Nik‹ùKŠ¢6W76–öî8"rÀ¢6W76–öå6÷W&6S¢°¢—77VS¢~Šêîš)‚rÀ¢†VFÆW73¢~YîXûrÀ¢6öçfW'6F–öã¢~ZûŠùÒrÀ¢ÒÀ¢6W76–öå6WGF–æw3¢°¢7F–öã¢~Šëî{ÚârÀ¢÷Väf÷#¢~(	Ç··F—FÆW×Ş(	Şy¨NŠëî{ÚârÀ¢F—FÆS¢u6W76–öâŠëî{ÚârÀ¢FW67&—F–öã¢~˜XŞ{Úâ·¶æÖW×Òy¨Ni‹îzK®YŞz{ûÈÎKº^Xø®Kˆ¾jÊh.ZHŞi{nKÛşyJy¨B’{¹Zé®8"rÀ¢F—7Æ”æÖS¢~i‹îzK®YŞz{rÀ¢F—7Æ”æÖT†VÇ¢~YŞXhÎKˆ®y¨NYÎK¨¾YŞx˜Î8.yYz›®X‰Y¹î˜X‹KÉ®ŠùŞj~š)8"rÀ¢•6V7F–öã¢~Šëş™zî8jŠYè¾Kˆîhêyn[Ë®[ªb+r··'VçF–ÖW×ÒrÀ¢•W6VD†–çC¢~Xú®iK‹ùKŠ®[{.i¨.XÎy¨B6W76–öî8.Zè>KÉ®KùŞhÈi¨.XÎûÈÎik˜XŞ{ÚîYÊKˆ¾jÊh.ZHŞi{nyIşiX8"rÀ¢W6U&WV—&VC¢~Šû~XXi¨.XÎ‹ùKŠ¢6W76–öîûÈÎXhŞiK’7&VFVçF–Î8jŠYè¾h‰nhêyn[Ë®[ªn8"rÀ¢W6T7F–öã¢~i¨.XÂrÀ¢6fS¢~KùŞZÙi»NiK’rÀ¢6f–æs¢~KùŞZÙKŠŞ(
+brÀ¢ÒÀ¢7F÷6W76–öã¢~i¨.XÎ(	Ç··F—FÆW×Ş(	ÒrÀ¢FVÆWFU6W76–öã¢~XŠ™šN(	Ç··F—FÆW×Ş(	ÒrÀ¢FVÆWFU6W76–öä7F–öã¢~XŠ™šNKÉ®ŠùÒrÀ¢æ÷Df÷VæC¢~iÊ®h›îX‹[z^KÙÎXË®ûÈÎZè>Xúşˆ;Ş[{.Š*¾XŠ™šN8"rÀ¢æWu6W76–öã¢~ikKÉ®ŠùÒrÀ¢æWu6W76–öåF—FÆS¢~YÊjÚN[z^KÙÎXË®KŠŞik[»®KÉ®ŠùŞûÈ(É…NûÈ’rÀ¢f–ÆW3¢~ih~K»brÀ¢†–FTf–ÆW5F—FÆS¢~™©‰xşih~K»n™Ú.iÛşûÈ{¸zºşXZZëŞûÈ’rÀ¢6†÷tf–ÆW5F—FÆS¢~i‹îzK®ih~K»n™Ú.iÛòrÀ¢6WGF–æw3¢~Šëî{ÚârÀ¢V×G•F—FÆS¢~[z^KÙÎXË¢rÀ¢V×G”&öG“¢~‹ùk*iÈ[z^KÙÎXË®8.Šû~K¸îKê~jşik[»®ûÉ¾jøşKŠ®[z^KÙÎXË®˜;ŞiŠş™©Nzk¾y¨Bv—Byºî[Ù^ûÈÎ[›n[ŠniÈhÈK˜^{¸zºşKÉ®ŠùŞ8"rÀ¢7&VFTg&öÕFV×ÆFW3¢~kXşŠxjŠiÛòrÀ¢FFVæf–Æ&ÆTW–V'&÷s¢~[z^KÙÎXË®‹ùîhêRrÀ¢FFVæf–Æ&ÆUF—FÆS¢~i¨.i{nizk9^Šû¾Xùn[z^KÙÎXË¢rÀ¢FFVæf–Æ&ÆTFW67&—F–öã¢t÷VäÆ–6Rizk9^Šû¾XùnkK¾‹x>[z^KÙÎXË®kˆ^XÙ^8.‹ù˜xÎKˆŞKÉ®h¨®ZK‹J^Šúş[Ù>h‰z›®kˆ^XÙ^ûÈÎK™şKˆŞKÉ®h¨®xëiÈ[z^KÙÎXË®ŠxnK‹®[{.XŠ™šN8"rÀ¢FFVæf–Æ&ÆU6–FV&#¢~i¨.i{nizk9^Šû¾Xùn[z^KÙÎXË®kˆ^XÙ^8.xëiÈZûŠùŞk*iÈŠ*¾kˆ^z›®8"rÀ¢FF7FÆS¢~Zéîi{nX‹~ikZK‹J^ûÈÎ[Ù>X˜Şi‹îzK®y¨NiŠşiÈ‹ùKˆjÊh‰X©şŠû¾Xùny¨N[z^KÙÎXË®i[hÚî8"rÀ¢FV×ÆFW5Væf–Æ&ÆUF—FÆS¢~i¨.i{nizk9^Šû¾Xùn[z^KÙÎXË®jŠiÛòrÀ¢FV×ÆFW5Væf–Æ&ÆTFW67&—F–öã¢t÷VäÆ–6Rizk9^Šû¾XùnjŠiÛşyºî[Ù^8.YÊh.ZHŞK˜¾X˜ŞûÈÄWFõVçBX‰ŞZx¾XÉnY(Îik[»®[z^KÙÎXË®[ni¨.XÎ8"rÀ¢FV×ÆFW5Væf–Æ&ÆU6–FV&#¢~i¨.i{nizk9^Šû¾Xùn[z^KÙÎXË®jŠiÛşyºî[Ù^8"rÀ¢FV×ÆFW57FÆS¢~jŠiÛşyºî[Ù^X‹~ikZK‹J^ûÉ¾xëiÈ[z^KÙÎXË®K¸ŞXúş{º~{ºŞKÛşyJ8"rÀ¢7F—fT–çfVçF÷'•Væf–Æ&ÆS¢~kK¾‹x>[z^KÙÎXË®kˆ^XÙ^i¨.i{nKˆŞXúşyJûÉ¾[{.zk¾ˆÎŠë[Ù^K¸ŞXúşiú^yÈ¾8"rÀ¢7F—fT6÷VçEVæf–Æ&ÆS¢~kK¾‹x>i[˜xşKˆŞXúşyJ‚rÀ¢÷fW'f–WuF—FÆS¢~[z^KÙÎXË®h¾Šx‚rÀ¢v÷&·76U6–æwVÆ#¢w·¶6÷VçG×ÒKŠ®[z^KÙÎXË¢rÀ¢v÷&·76UÇW&Ã¢w·¶6÷VçG×ÒKŠ®[z^KÙÎXË¢rÀ¢÷F†W#¢~X[nK¹brÀ¢FW'FVEF—FÆS¢~[{.zk¾ˆÎ[z^KÙÎXË¢rÀ¢FW'FVDFW67&—F–öã¢~[{.zk¾ˆÎ[z^KÙÎXË®KØŞK¨îkK¾‹x>[z^KÙÎXË®yºî[Ù^K˜¾ZIn8.h.ZHŞKÉ®[ŠnY¹îXéşj8X{®Y(ÎKÉ®ŠùŞzÛîYŞûÉ¾kK˜^kˆ^ynKÉ®XŠ™šNih~K»nûÈÎKØnKùŞyYXènXû.Z)>z)8"rÀ¢FW'FVDæõ&V6öã¢~iÊ®Šë[Ù^zk¾ˆÎXéşYº8"rÀ¢FW'FVD'6÷&&VD–çFó¢~[z^KÙÎih~K»n[{.Zêj[›nY[›nX‹rÀ¢FW'FVE6W76–öå6–æwVÆ#¢w·¶6÷VçG×ÒKŠ®KÉ®ŠùÒrÀ¢FW'FVE6W76–öåÇW&Ã¢w·¶6÷VçG×ÒKŠ®KÉ®ŠùÒrÀ¢FW'FVD÷Vä—77VU6–æwVÆ#¢w·¶6÷VçG×ÒKŠ®iÊ®{¹>Šêîš)‚rÀ¢FW'FVD÷Vä—77VUÇW&Ã¢w·¶6÷VçG×ÒKŠ®iÊ®{¹>Šêîš)‚rÀ¢FW'FVDÆVv7”–×÷'C¢~iz~x˜ZûÎXZRrÀ¢FW'FVDÆ–fV7–6ÆS¢°¢7F—fS¢~kK¾‹x2rÀ¢öff&ö&F–æs¢~jÚ>YÊX©îynzk¾ˆÂrÀ¢FW'FVC¢~[{.zk¾ˆÂrÀ¢&W7F÷&–æs¢~jÚ>YÊh.ZHÒrÀ¢W&v–æs¢~jÚ>YÊkK˜^kˆ^ybrÀ¢W&vVC¢~[{.kK˜^kˆ^ybrÀ¢ÒÀ¢&W7F÷&Uv÷&·76S¢~h.ZHÒrÀ¢&W7F÷&Uv÷&·76T&–¢~h.ZHÒ··v÷&·76W×ÒrÀ¢&W7F÷&–æuv÷&·76S¢~jÚ>YÊh.ZHŞ(
+brÀ¢W&vTf–ÆW3¢~kK˜^kˆ^ynih~K»brÀ¢W&vTf–ÆW4&–¢~kK˜^kˆ^yb··v÷&·76W×Òy¨Nih~K»brÀ¢W&vUv÷&¶–æs¢~jÚ>YÊkK˜^kˆ^yn(
+brÀ¢W&vT6öæf—&ÕF—FÆS¢~kK˜^kˆ^yb··v÷&·76W×ŞûÉòrÀ¢W&vT6öæf—&ÔÖW76vS¢~‹ùKÉ®kK˜^XŠ™šB··v÷&·76W×Òy¨N[Ù.j>j8X{®8KªNK©.KÉ®ŠùŞŠë[Ù^Y(Â6†VÆÂXènXû.‹é>X{®ûÈÎK‰Nizk9^h.ZHŞ8$÷VäÆ–6RK¸ŞKÉ®KùŞyYyºî[Ù^Z)>z)8[{.˜[Û‹ª¾K»Ş8izZKN‹ùŠÎXènXû.8iKnK»nzëiÚyºîY(ÎKª~xškªşk©8"rÀ¢7F—fTvó¢~kK¾‹x>K¨ç··F–ÖW×ÒrÀ¢6W76–öç3¢~KÉ®ŠùÒrÀ¢æõ6W76–öç3¢~‹ùk*iÈKÉ®ŠùÒrÀ¢f–WtÆÅ6W76–öç3¢~iú^yÈ¾XZ˜:‚·¶6÷VçG×ÒKŠ®KÉ®ŠùÒrÀ¢g&öÕFV×ÆFS¢~iÚ^ˆz¢··FV×ÆFW×Òg··fW'6–öç×ÒrÀ¢÷fW'&–FS¢~[z^KÙÎXË®Šhny¹n˜XŞ{Úâ+r·¶vVçG7×ÒrÀ¢FV×ÆFUWw&FS¢~iú^yÈ²g·¶g&ö××Ò(i"g··F÷×Òy¨NjŠiÛş‹XNKª~Xùi»N8"rÀ¢Ww&FTÆöF–æs¢~jÚ>YÊyIşh‰KˆikXØ~{ª~š(NŠx(
+brÀ¢Ww&FUVæf–Æ&ÆUF—FÆS¢~jÚNjŠiÛşKˆŞiJşhÈXéşYËXØ~{ªrrÀ¢Ww&FTÖævVD76WG3¢~jŠiÛşzêyn‹XNKªrrÀ¢Ww&FT7W'&VçDFW67&—F–öã¢~jÚN[z^KÙÎXË®[{.KÛşyJiÈiky¨NjŠiÛşYû®{«şûÉ¾Zè>ˆz®[{y¨NZé®X‹nXh^ZëK¸ŞKùŞhÈxºÎz¸¾8"rÀ¢Ww&FTFW67&—F–öã¢~‹ù˜xÎXú®jùN‹è>yK÷VäÆ–6Rzêyny¨NŠûNiˆîY(Â6¶–ÆÎ8.z	Nz›n8hª^Y®8—77V^8XzŞhÚîXø®X[nK¹n[z^KÙÎKª~xšKˆŞKÉ®Xø.KˆîXØ~{ª~8"rÀ¢Ww&FU&Vg&W6ƒ¢~X‹~ikš(NŠx‚rÀ¢Ww&FU&VG•6†÷'C¢~Xúşi»NikrÀ¢Ww&FU&W6W'fVE6†÷'C¢~KùŞyY’rÀ¢Ww&FT6öæfÆ–7G56†÷'C¢~[è^˜hº’rÀ¢Ww&FTÆVv7”&6VÆ–æS¢~‹ùKŠ®ˆ[z^KÙÎXË®k*iÈKùŞZÙ‹ø~jŠiÛş[ú¾xZ~ûÈÎYºjÚB÷VäÆ–6RXXK¸îZè>y¨Bv—BjhùKªN˜xŞ[»®Yû®{«şûÈÎXhŞjùN‹è>iÊÎjÊXùi»N8"rÀ¢Ww&FT&Æö6¶VEF—FÆS¢~[©NyJX˜Ş™ÈŠhXXi[Nyn[z^KÙÎXË¢rÀ¢6÷W&6UWw&FTÆöF–æs¢~jÚ>YÊyIşh‰†&æW72k©zY[›nš(NŠx(
+brÀ¢6÷W&6UWw&FUF—FÆS¢t†&æW72k©zXØ~{ªrrÀ¢6÷W&6UWw&FUfW&–f–VC¢~[{.˜	®‹ør÷VäÆ–6RŠêNŠørÀ¢6÷W&6UWw&FUVçfW&–f–VC¢~iÊ®{¸ò÷VäÆ–6RŠêNŠørÀ¢6÷W&6UWw&FUVçfW&–f–VEF—FÆS¢~jÚNx˜iÊÎ[	®iÊ®˜	®‹ør÷VäÆ–6RŠêNŠørÀ¢6÷W&6UWw&FUVçfW&–f–VDFW67&—F–öã¢~Zè>iŠò†&æW72K¹>[©>KŠŞKˆŞXúşXùy¨Nz‹>Zé¢F~ûÈÎK™ş˜	®‹ø~K¨nkˆ^XÙ^j
+š¨ÎûÈÎKØb÷VäÆ–6R[	®iÊ®š¨ÎŠøX[n‹ùŠÎŠÎK‹®8.{º~{ºŞX˜ŞŠû~Zê™ˆ^KúîiK8"rÀ¢6÷W&6UWw&FT6†ævW3¢~Kˆ®k‹KúîiKK¨b·¶6÷VçG×ÒKŠ®ih~K»brÀ¢6÷W&6UWw&FT6†ævW4FW67&—F–öã¢~XØ~{ª~KÉ®h¨®‹ùKŠ®{+îzîy¨NKˆ®k‹hùKªNY[›n‹ù²v÷&·76RXˆniJşûÉ¾KÚ[{.{¸şhùKªNy¨Bv÷&·76RXènXû.KÉ®ZèÎi[NKùŞyY8"rÀ¢6÷W&6UWw&FTÇ“¢~Zê™ˆ^ZèÎh‰ûÈÎ[©NyJ[{.ŠêNŠøXØ~{ªrrÀ¢6÷W&6UWw&FTÇ•VçfW&–f–VC¢~h‰[{.K¨nŠz>ûÈÎ[©NyJiÊ®ŠêNŠøXØ~{ªrrÀ¢6÷W&6UWw&FT6ö×ÆWFS¢t†&æW72k©z[{.XØ~{ªrrÀ¢6÷W&6UWw&FT&Æö6¶W#¢°¢7F—fU÷'VçF–ÖS¢~Šû~XXXÎjÚ.kK¾‹x26W76–öî8†VFÆW72K»¾XªY(Â7GVF–ş8"rÀ¢v÷&¶–æu÷G&VUö6†ævW3¢~Šû~XXhùKªNh‰nKŠ.[È>[z^KÙÎXË®KúîiK8"rÀ¢ÖW&vUö6öæfÆ–7G3¢uv÷&·76RhùKªNKˆîKˆ®k‹Xk.z¨ûÈÎ™ÈŠhŠê’6öF–ærvVçBZHNyn8"rÀ¢–æ6ö×F–&ÆUöÖæ–fW7C¢~yºîj~x˜iÊÎk*iÈZéîxëXù~iJşhÈy¨B†&æW72æ§6öâXØşŠêî8"rÀ¢ÒÀ¢Ww&FT&Æö6¶VE6W76–öç3¢~Šû~i¨.XÎX[nKŠŞh™>[Èy¨B6W76–öâY(Â†VFÆW72[z^KÙÎûÈÎ˜şXXÒvVçB‹ùŠÎi{nˆI®Kˆ¾y¨NŠûNiˆîih~K»nXùyIşXùXÉn8"rÀ¢Ww&FT&Æö6¶VE6W76–öä—FVÓ¢w·¶æÖW×Ò+r·¶vVçG×Ò+r··7W&f6W×ÒK¸ŞYÊh™>[È8"rÀ¢Ww&FT&Æö6¶VD†VFÆW74—FVÓ¢w·¶vVçG×Òy¨B†VFÆW72‹ùŠÂ··'Vç×ÒK¸ŞYÊ[z^KÙÎ8"rÀ¢Ww&FU7–æ6‡&öæ÷W5'Vã¢~YÎjÚ^‹ùŠÂrÀ¢Ww&FT&Æö6¶VE7FvVC¢~Šû~XXhùKªNh‰nXùnkhi¨.ZÙih~K»nûÈÎŠêjŠiÛşXØ~{ª~hº^iÈKˆiÚ[›.Xx8xºÎz¸¾y¨Bv—BhùKªN8"rÀ¢Ww&FU&VG•F—FÆS¢~XúşKº^y»Nhê^i»NikrÀ¢Ww&FU&VG”FW67&—F–öã¢~jŠiÛşKúîiKK¨n‹ùK©¾ih~K»nûÈÎˆÎ[z^KÙÎXË®k*iÈKúîiKûÉ¾Zè>KºÎKÉ®ˆz®Xª[©NyJ8"rÀ¢Ww&FU&W6W'fVEF—FÆS¢~KùŞyYKÚy¨NZé®X‹brÀ¢Ww&FU&W6W'fVDFW67&—F–öã¢~Xú®iÈ[z^KÙÎXË®iK‹ø~‹ùK©¾ih~K»nûÈÄ÷VäÆ–6RKˆŞKÉ®z+Zè>KºÎ8"rÀ¢Ww&FT6öæfÆ–7EF—FÆS¢~™ÈŠhKÚiÚ^˜hº’rÀ¢Ww&FTÖW&vVC¢~[{.Y[›brÀ¢Ww&FT&6T6÷“¢~iz~x˜Yû®{«òrÀ¢Ww&FU&W6öÇfT–ä6†C¢~YÊˆ®ZJKŠŞZHNybrÀ¢Ww&FT6öæfÆ–7DFW67&—F–öã¢tv—Bizk9^ˆz®XªY[›n‹ùK©¾KúîiK8.XúşKº^Šê[z^KÙÎXË¢’Y[›nXk.z¨ûÈÎK™şXúşKº^YÊKˆ¾ik˜hºKùŞyYY:®KŠ®x˜iÊÎ8"rÀ¢Ww&FT6ö×ÆWFUF—FÆS¢~jŠiÛşXØ~{ª~ZèÎh‰rÀ¢Ww&FT6ö×ÆWFTFW67&—F–öã¢~[{.YÊ‚v—BhùKªB·¶6öÖÖ—G×ÒKŠŞi»Nik·¶6÷VçG×ÒKŠ®zêynih~K»nûÉ¾[z^KÙÎXË®K‰>[îKúîiKYØ~[{.KùŞyY8"rÀ¢Ww&FUVç&W6öÇfVC¢~‹ùiÈ’·¶6÷VçG×ÒKŠ®ih~K»n™ÈŠh˜hº’rÀ¢Ww&FTÆÅ&W6öÇfVC¢~h˜iÈXk.z¨˜;Ş[{.˜hº8"rÀ¢Ww&FTæô6öæfÆ–7G3¢~k*iÈXk.z¨ûÈÎXúşKº^ZèXZ[©NyJ8"rÀ¢Ww&FTÇ––æs¢~jÚ>YÊ[©NyJ(
+brÀ¢Ww&FTÇ“¢~[©NyJ[›nhùKªBrÀ¢Ww&FT¶VWv÷&·76S¢~KùŞyY[z^KÙÎXË¢rÀ¢Ww&FUW6UFV×ÆFS¢~˜x~yJjŠiÛòrÀ¢Ww&FT6ö×&S¢~jùN‹è>KŠNKŠ®x˜iÊÂrÀ¢Ww&FUv÷&·76T6÷“¢~[z^KÙÎXË®x˜iÊÂrÀ¢Ww&FUFV×ÆFT6÷“¢~jŠiÛşx˜iÊÂrÀ¢Ww&FU&Wf–WuG'Væ6FVC¢~š(NŠx[{.hŠ®yúÒrÀ¢Ww&FTf–ÆTÖ—76–æs¢u¾ih~K»nKˆŞZÙYÊ…ÒrÀ¢f–ÇFW%6W76–öç3¢~zÙ¾˜KÉ®ŠùÒrÀ¢f–ÇFW$ÆÃ¢~XZ˜:‚rÀ¢f–ÇFW%'Vææ–æs¢~‹ùŠÎKŠÒrÀ¢f–ÇFW%W6VC¢~[{.i¨.XÂrÀ¢f–ÇFW$&6†—fVC¢~[{.[Ù.j2rÀ¢–6µW¢~{º~{ºŞKˆ®jÊy¨N[z^KÙÂrÀ¢÷#¢~h‰nˆRrÀ¢6öçF–çVS¢~{º~{ºÒrÀ¢g&öÔ†&æW756÷W&6S¢t†&æW72iÚ^k©··fW'6–öç×Ò+r·¶6öÖÖ—G×ÒrÀ¢ÒÀ¢7&VFUv÷&·76S¢°¢F–ÆöuF—FÆS¢~ik[»®[z^KÙÎXË¢rÀ¢F–Æöu7V'F—FÆS¢~X‰¾[»®KˆKŠ®hº^iÈxºÎz¸¾ih~K»n8—77VRY(Îi›®ˆ;ŞKÙ>Kˆ®Kˆ¾ih~y¨NhÈK˜^[z^KÙÎXË®8"rÀ¢FV×ÆFTÆ&VÃ¢~jŠiÛòrÀ¢6÷W&6UfW'6–öäÆ&VÃ¢t†&æW72x˜iÊÂrÀ¢6÷W&6UfW'6–öä†–çC¢~ik[z^KÙÎXË®KÉ®™HZé®X‹‹ùKŠ®{+îzîy¨NKˆ®k‹x˜iÊÎ8"rÀ¢6öÖ×Væ—G•7Vff—ƒ¢~ûÈzKîXË®ûÈ’rÀ¢FtÆ&VÃ¢uFrrÀ¢6æ6VÃ¢~Xùnkh‚rÀ¢7&VF–æs¢~X‰¾[»®KŠŞ(
+brÀ¢7&VFS¢~X‰¾[»®[z^KÙÎXË¢rÀ¢ÒÀ¢WFƒ¢°¢†VF–æs¢~y›¾[ÙR÷VäÆ–6RrÀ¢–ç7G'V7F–öã¢~{)‹KNšinjÊY
+şXªi{ni‹îzK®y¨NzêynYKºNx˜Î8"rÀ¢FÖ–åFö¶VäÆ&VÃ¢~zêynYKºNx˜ÂrÀ¢6–væ–æt–ã¢~y›¾[Ù^KŠŞ(
+brÀ¢6–vä–ã¢~y›¾[ÙRrÀ¢æõFö¶Vä†VF–æs¢~iÊ®˜XŞ{ÚîzêynYKºNx˜ÂrÀ¢Æöv–äf–ÆVC¢~y›¾[Ù^ZK‹JRrÀ¢&V6öææV7F–æs¢~jÚ>YÊ˜xŞik‹ùîhêR÷VäÆ–6^(
+brÀ¢&6¶VæEVæf–Æ&ÆTW–V'&÷s¢~j[ø>iÈŞXªzk¾{«òrÀ¢&6¶VæEVæf–Æ&ÆT†VF–æs¢t÷VäÆ–6R[{.ZKXë¾Yîzºş‹ùîhêRrÀ¢&6¶VæEVæf–Æ&ÆU&VÖ÷FT†VF–æs¢t÷VäÆ–6R[{.ijŞ[ÈKˆâ··F&vWG×Òy¨N‹ùîhêRrÀ¢&6¶VæEVæf–Æ&ÆTFW67&—F–öã ¢~‹ùKˆŞiŠşiùKŠ®š^™Ú.y¨Ni[hÚî™IŠúş8.[z^KÙÎXË®8ˆz®XªXÉnY(ÎKªNi‰>i8ŞKÙÎ˜;ŞKéŞ‹Yb÷VäÆ–6RYîzºşûÈÎYºjÚNYÊiÈŞXªh.ZHŞY8Ş[©NX˜ŞûÈÎi[NKŠ®[©NyJKÉ®i¨.i{nXÎyJ8"rÀ¢&6¶VæEVæf–Æ&ÆU&VÖ÷FTFW67&—F–öã ¢~iÊÎYËkXşŠxYšK¸ŞYÊ‹ùŠÎûÈÎKØb54‚™ª~˜>[{.{¸şizk9^Šëş™zî‹ùÎzºò÷VäÆ–6R'VçF–Ö^8.‹ùÎzºş[z^KÙÎXË®8ˆz®XªXÉnY(ÎKªNi‰>i8ŞKÙÎxë[{.i¨.XÎ8"rÀ¢&6¶VæEVæf–Æ&ÆT–×7C ¢~Šû~KùŞhÈjÚNz©~Xú>h™>[È8.‹ùîhê^h.ZHŞYîûÈÎKÚKÉ®ˆz®XªY¹îX‹[Ù>X˜Şš^™Ú.8"rÀ¢&6¶VæEVæf–Æ&ÆT†VÇ ¢~Šû~j8iú^h›ş‹ÛŞjÚNš^™Ú.y¨B÷VäÆ–6R‹ùŠÎi{nûÈÎxKnYî˜xŞŠù^8.Zh.iéÎiŠşK¸î{¸zºşY
+şXªy¨NûÈÎŠû~zîŠêBçÒFWbh‰b÷VæÆ–6RWK¸ŞYÊ‹ùŠÎ8"rÀ¢&6¶VæEVæf–Æ&ÆU&VÖ÷FT†VÇ ¢~Šû~j8iú^hÈiÈjÚN™ª~˜>y¨N{¸zºşûÈÎh‰n˜xŞik‹ùŠÂ÷VæÆ–6R&VÖ÷FR··F&vWG×ŞûÈÎxKnYî˜xŞŠù^8"rÀ¢&V6öææV7F–æu&VÖ÷FS¢~jÚ>YÊ˜xŞik‹ùîhêR··F&vWG×Ş(
+brÀ¢6öææV7F–öåG—S¢~‹ùîhê^ik[ÈòrÀ¢76…GVææVÃ¢u54‚™ª~˜2rÀ¢&VÖ÷FUF&vWC¢~‹ùÎzºşyºîjrrÀ¢Æö6ÅGVææVÄVæGö–çC¢~iÊÎYË™ª~˜2rÀ¢&VÖ÷FU'VçF–ÖTVæGö–çC¢~‹ùÎzºò'VçF–ÖRrÀ¢&WG'”æ÷s¢~z¸¾XÛ>˜xŞŠùRrÀ¢ÒÀ¢v÷&¶&Væ6ƒ¢°¢'&÷w6W#¢~kXşŠxYš‚rÀ¢FG&W73¢~‹é>XZ^{ÙYØûÈ†‡GG3¢òş(
+nûÈ’rÀ¢7F'D'&÷w6–æs¢~[ÈZx¾kXşŠx‚rÀ¢VçFW$FG&W73¢~‹é>XZRU$ÂKº^h™>[Èš^™Ú"rÀ¢–çfÆ–DFG&W73¢~Šû~‹é>XZ^iÈiXy¨B…EEh‰b…EE2YËYØ8"rÀ¢&6³¢~Kˆ®KˆKŠ®YËYØrÀ¢f÷'v&C¢~Kˆ¾KˆKŠ®YËYØrÀ¢7GVF–ô7F–öç3¢u7GVF–òi8ŞKÙÂrÀ ¢6Æ÷6TæÖVC¢~X[>™zÒ·¶æÖW×ÒrÀ¢F—FÆS¢~[z^KÙÎ™Ú.iÛòrÀ¢&W6—¦S¢~‹>i[N[z^KÙÎ™Ú.iÛşZëŞ[ªbrÀ¢F'3¢~[z^KÙÎ™Ú.iÛşj~zÛîšRrÀ¢FC¢~YÊ[z^KÙÎ™Ú.iÛşh™>[ÈrÀ¢6Æ÷6UF#¢~X[>™zŞ[Ù>X˜Şj~zÛîšRrÀ¢6öÆÆ6S¢~‹ùNY¹îZûŠùÒòh©Xú™Ú.iÛòrÀ¢ÒÀ§Ğ

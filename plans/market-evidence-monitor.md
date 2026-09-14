@@ -1,7 +1,7 @@
 # Market Evidence Monitor
 
-Status: operational health and sustained-run performance increment verified on
-`MAD42CAP/OpenAlice:feature/market-evidence-monitor`; live Mac acceptance remains.
+Status: multi-timeframe, Wyckoff-structure and daily-brief increment implemented
+on `MAD42CAP/OpenAlice:feature/market-evidence-monitor`; live Mac visual acceptance remains.
 
 Related issues: none.
 
@@ -17,6 +17,23 @@ intent, persist settings/observations/alerts under the OpenAlice data root, and
 present the result as a responsive dashboard with deterministic demo data.
 
 ## Decisions
+
+- Multi-timeframe direction and Wyckoff interpretation are deterministic domain
+  outputs, not prose invented by a model. The dashboard may later pass those
+  structured facts through an optional narrator, but loss of an Agent runtime
+  must never remove the monitor's daily brief.
+- Daily briefs are keyed by asset, strategy and the latest attributed daily-bar
+  date. Repeated intraday scans may update live evidence but do not create a
+  second nominal daily brief or a second model-cost boundary for that market
+  date.
+- The first Wyckoff module exposes the complete analysis vocabulary (range,
+  phase candidate, event candidates, test state, supporting and opposing
+  evidence, confirmation and invalidation) while remaining explicit that phase
+  and event labels are hypotheses. It never claims to identify a coordinated
+  market actor.
+- Short, medium and long horizons remain separate. Their disagreement is a
+  first-class `mixed` alignment state rather than being averaged into a false
+  single-direction answer.
 
 - A slow asset must not hold the scheduler's poll lock for other assets.
   Poll exclusion and per-asset scan exclusion have separate lifetimes.
@@ -116,6 +133,11 @@ present the result as a responsive dashboard with deterministic demo data.
 - [x] Add a Mac source launcher for environment checks, demo and real dashboard.
 - [x] Prepare UI workspace package exports automatically on a fresh clone.
 - [x] Add controllable Mac background start, status, open and stop lifecycle.
+- [x] Add deterministic short, medium and long trend assessments.
+- [x] Add candidate-based Wyckoff range, phase, event and test-state analysis.
+- [x] Add one daily brief identity per asset/strategy/attributed daily date.
+- [x] Present localized trend, Wyckoff and daily-brief surfaces in the dashboard.
+- [x] Verify the new analysis with backend, UI, typecheck and demo-build gates.
 - [ ] Check the updated dashboard visually on the Mac (cloud browser blocks localhost).
 - [ ] Verify decision-scale BTC fingerprinting with consecutive live scans.
 - [ ] Run the live command on macOS and observe scheduling for 24–72 hours.
@@ -153,6 +175,13 @@ Verified in the managed Linux workspace on 2026-09-12:
   `deribit-btc-v1` and `openalice-tsla-v1`, then completed BTC and TSLA scans.
   Restricted workspace access left Deribit visibly unavailable without
   interrupting BTC price evidence; TSLA fundamentals remained healthy.
+- On 2026-09-14, the multi-timeframe/Wyckoff/daily-brief increment passed root
+  and UI TypeScript, 19 focused domain tests, 11 dashboard tests, all 325 UI
+  owner files (1,907 tests), and the demo production build. The Alice owner
+  suite passed 160/161 files; its two config-bootstrap lock assertions failed
+  only under the parallel suite and the same file then passed 4/4 in isolation.
+  Cloud Browser again returned `ERR_BLOCKED_BY_CLIENT` for localhost, leaving
+  the actual Mac window as the visual acceptance environment.
 
 ## Completion
 
