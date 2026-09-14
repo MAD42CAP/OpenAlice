@@ -17,8 +17,11 @@ beforeEach(async () => {
   mocks.health.mockImplementation(async (asset: 'BTC' | 'TSLA', hours: 24 | 72) => demoMonitorHealth(asset, hours))
   const settings = { backgroundEnabled: false, codexNarrationEnabled: true, enabledAssets: ['BTC', 'TSLA'], strategyId: 'evidence-chain-v1', intervalMinutes: 15, notifications: false, alertConfidence: 68, abnormalVolumeRatio: 1.8, abnormalMovePercent: 1.5 }
   mocks.status.mockResolvedValue({ running: true, backgroundEnabled: false, intervalMinutes: 15, checkedAt: null, error: null, assets: ['BTC', 'TSLA'].map((asset) => ({ asset, enabled: true, scanning: false, nextScanAt: null, lastReceipt: null })) })
-  mocks.narratorStatus.mockResolvedValue({ enabled: true, state: 'ready', issueId: 'mad42lab-market-daily-interpretation', schedule: { cron: '30 17 * * *', timezone: 'America/Vancouver', localTime: '17:30' }, message: 'Codex daily narration is enabled.' })
-  mocks.runNarratorNow.mockResolvedValue({ enabled: true, state: 'ready', issueId: 'mad42lab-market-daily-interpretation', schedule: { cron: '30 17 * * *', timezone: 'America/Vancouver', localTime: '17:30' }, message: 'Run dispatched.' })
+  const narratorBase = { enabled: true, state: 'ready', issueId: 'mad42lab-market-daily-interpretation', schedule: { cron: '30 17 * * *', timezone: 'America/Vancouver', localTime: '17:30' } }
+  mocks.narratorStatus.mockImplementation(async () => mocks.runNarratorNow.mock.calls.length
+    ? { ...narratorBase, message: 'Run complete.', lastRun: { taskId: 'codex-run-1', status: 'done', startedAt: '2026-09-12T17:30:00Z', finishedAt: '2026-09-12T17:31:00Z' } }
+    : { ...narratorBase, message: 'Codex daily narration is enabled.' })
+  mocks.runNarratorNow.mockResolvedValue({ ...narratorBase, message: 'Run dispatched.', lastRun: { taskId: 'codex-run-1', status: 'running', startedAt: '2026-09-12T17:30:00Z' } })
   mocks.settings.mockResolvedValue(settings)
   mocks.strategies.mockResolvedValue({ strategies: [{ id: 'evidence-chain-v1', label: 'Evidence chain', version: 1, description: 'fixture', requiredData: ['daily-bars', 'hourly-bars', 'asset-context'] }] })
   mocks.snapshots.mockImplementation(async (asset: 'BTC' | 'TSLA') => ({ snapshots: [demoMonitorSnapshot(asset)], count: 1 }))
@@ -53,8 +56,21 @@ it('keeps the rendered snapshot when a background refresh fails', async () => {
   await screen.findAllByText('Demand has provisional control')
   mocks.scan.mockRejectedValueOnce(new Error('offline'))
   fireEvent.click(screen.getByRole('button', { name: /Scan now/ }))
-  await waitFor(() => expect(screen.getByText(/last successful view is retained/i)).toBeTruthy())
+  await waitFor(() => expect(screen.getByText('BTC scan failed: offline')).toBeTruthy())
   expect(screen.getAllByText('Demand has provisional control').length).toBeGreaterThan(0)
+})
+
+it('shows scan progress immediately and confirms a new result when it finishes', async () => {
+  let finishScan!: (value: unknown) => void
+  mocks.scan.mockImplementationOnce(() => new Promise((resolve) => { finishScan = resolve }))
+  render(<MarketEvidenceMonitorPage />)
+  await screen.findAllByText('Demand has provisional control')
+  fireEvent.click(screen.getByRole('button', { name: /Scan now/ }))
+  expect(screen.getByRole('button', { name: 'Scanning BTC…' }).getAttribute('aria-busy')).toBe('true')
+  expect(screen.getByText('Scanning BTC, fetching market data and recalculating evidence…')).toBeTruthy()
+  finishScan({ snapshot: demoMonitorSnapshot('BTC'), stored: true, alert: null, receipt: {} })
+  expect(await screen.findByText('BTC scan complete. New monitor results are now displayed.')).toBeTruthy()
+  expect(screen.getByRole('button', { name: /Scan now/ }).getAttribute('aria-busy')).toBe('false')
 })
 
 it('renders the registered strategy in monitor settings', async () => {
@@ -70,8 +86,29 @@ it('keeps Codex daily interpretation enabled by default and can dispatch it now'
   await screen.findAllByText('Codex daily interpretation')
   fireEvent.click(screen.getByRole('button', { name: /Run Codex/ }))
   await waitFor(() => expect(mocks.runNarratorNow).toHaveBeenCalledOnce())
+  expect(await screen.findByText('Codex interpretation complete. The latest available BTC and TSLA results are now displayed.')).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: 'Monitor settings' }))
   expect((screen.getByRole('checkbox', { name: /Codex daily interpretation/ }) as HTMLInputElement).checked).toBe(true)
+})
+
+it('keeps Codex visibly busy until its background task actually finishes', async () => {
+  render(<MarketEvidenceMonitorPage />)
+  await screen.findAllByText('Codex daily interpretation')
+  let finishStatus!: (value: unknown) => void
+  mocks.narratorStatus.mockImplementationOnce(() => new Promise((resolve) => { finishStatus = resolve }))
+  fireEvent.click(screen.getByRole('button', { name: /Run Codex/ }))
+  await waitFor(() => expect(mocks.narratorStatus).toHaveBeenCalledTimes(2))
+  expect(screen.getByRole('button', { name: 'Codex analyzing…' }).getAttribute('aria-busy')).toBe('true')
+  expect(screen.getByText('Codex is analyzing BTC and TSLA. Results will appear automatically when complete.')).toBeTruthy()
+  finishStatus({
+    enabled: true,
+    state: 'ready',
+    issueId: 'mad42lab-market-daily-interpretation',
+    schedule: { cron: '30 17 * * *', timezone: 'America/Vancouver', localTime: '17:30' },
+    message: 'Run complete.',
+    lastRun: { taskId: 'codex-run-1', status: 'done', startedAt: '2026-09-12T17:30:00Z', finishedAt: '2026-09-12T17:31:00Z' },
+  })
+  expect(await screen.findByText('Codex interpretation complete. The latest available BTC and TSLA results are now displayed.')).toBeTruthy()
 })
 
 it('opens empty history without silently dispatching a scan', async () => {

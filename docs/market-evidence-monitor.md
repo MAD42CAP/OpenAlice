@@ -175,6 +175,15 @@ They supplement but never replace deterministic scores, phases, confirmation
 conditions or invalidation conditions. This keeps model use and failure history
 visible without adding an in-process model client or any trading authority.
 
+Manual **Scan now** and **Run Codex** actions expose their lifecycle directly
+below the page header. A scan keeps its selected asset visible while market data
+is fetched, then distinguishes a newly stored observation from a successful
+check with no material evidence change. Run Codex remains busy after dispatch
+and polls the exact headless task id until it finishes; only then does the page
+reload the latest BTC/TSLA narrations and announce completion. Failures remain
+visible with retry and dismiss actions. Status regions are announced to assistive
+technology, and progress animation honors reduced-motion preferences.
+
 ## Fork branding
 
 The web shell is branded `MAD42Lab` in the browser title, desktop activity rail,

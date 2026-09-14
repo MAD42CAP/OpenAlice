@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Bell, Download, RefreshCw, Settings2, Sparkles } from 'lucide-react'
+import { Bell, CheckCircle2, Download, LoaderCircle, RefreshCw, Settings2, Sparkles, TriangleAlert, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api'
 import type {
@@ -57,6 +57,19 @@ const DEFAULT_SETTINGS: MonitorSettings = {
 
 type Timeframe = '1D' | '1H'
 
+type ActionFeedback = {
+  state: 'running' | 'success' | 'error'
+  message: string
+  asset?: MonitorAsset
+}
+
+const NARRATOR_POLL_INTERVAL_MS = 2_000
+const NARRATOR_POLL_ATTEMPTS = 450
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, ms))
+}
+
 function formatNumber(value: unknown, digits = 2): string {
   return typeof value === 'number' && Number.isFinite(value)
     ? new Intl.NumberFormat(getIntlLocale(), { maximumFractionDigits: digits }).format(value)
@@ -92,20 +105,24 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
   const [alerts, setAlerts] = useState<MonitorAlert[]>([])
   const [evaluation, setEvaluation] = useState<MonitorEvaluation | null>(null)
   const [loading, setLoading] = useState(true)
-  const [scanning, setScanning] = useState(false)
+  const [scanningAsset, setScanningAsset] = useState<MonitorAsset | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [refreshError, setRefreshError] = useState<string | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [narratorStatus, setNarratorStatus] = useState<MarketNarratorStatus | null>(null)
   const [narratorRunning, setNarratorRunning] = useState(false)
+  const [scanFeedback, setScanFeedback] = useState<ActionFeedback | null>(null)
+  const [narratorFeedback, setNarratorFeedback] = useState<ActionFeedback | null>(null)
   const runtime = useMarketMonitorStatus(visible)
   const [reportHours, setReportHours] = useState<24 | 72>(24)
   const [healthRevision, setHealthRevision] = useState(0)
   const health = useMarketMonitorHealth(asset, reportHours, visible, `${runtime.status?.assets.find((item) => item.asset === asset)?.lastReceipt?.id ?? ''}:${healthRevision}`)
   const seenAlerts = useRef<Set<string> | null>(null)
   const loadGeneration = useRef(0)
+  const narratorRunGeneration = useRef(0)
   const snapshots = history[asset]
   const snapshot = snapshots.at(-1) ?? null
+  const scanning = scanningAsset !== null
 
   const notifyNewAlerts = useCallback((next: MonitorAlert[], allowNotifications: boolean) => {
     if (!seenAlerts.current) {
@@ -151,23 +168,32 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
   }, [notifyNewAlerts])
 
   const scan = useCallback(async (target: MonitorAsset, trigger: 'manual' | 'scheduled') => {
-    setScanning(true)
+    setScanningAsset(target)
+    if (trigger === 'manual') setScanFeedback({ state: 'running', asset: target, message: t('marketMonitor.feedback.scanRunning', { asset: target }) })
     try {
       const result = await api.marketMonitor.scan(target, trigger)
       // Reload persisted, active-strategy observations, including coalesced scans.
       await Promise.all([loadState(false), runtime.refresh()])
       setError(null)
+      if (trigger === 'manual') {
+        setScanFeedback({
+          state: 'success',
+          asset: target,
+          message: t(result.stored ? 'marketMonitor.feedback.scanCompleteNew' : 'marketMonitor.feedback.scanCompleteUnchanged', { asset: target }),
+        })
+      }
       return result
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : String(cause)
       if (!history[target].length) setError(message)
+      if (trigger === 'manual') setScanFeedback({ state: 'error', asset: target, message: t('marketMonitor.feedback.scanFailed', { asset: target, error: message }) })
       else setRefreshError(message)
       return null
     } finally {
-      setScanning(false)
+      setScanningAsset(null)
       setHealthRevision((revision) => revision + 1)
     }
-  }, [history, loadState, runtime.refresh])
+  }, [history, loadState, runtime.refresh, t])
 
   useEffect(() => { void loadState(true) }, [loadState])
 
@@ -183,6 +209,8 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
     document.addEventListener('visibilitychange', refresh)
     return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', refresh) }
   }, [loadState, visible])
+
+  useEffect(() => () => { narratorRunGeneration.current += 1 }, [])
 
   const saveSettings = async (next: MonitorSettings) => {
     if (next.notifications && typeof Notification !== 'undefined' && Notification.permission === 'default') {
@@ -200,15 +228,42 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
   }
 
   const runNarratorNow = async () => {
+    const generation = ++narratorRunGeneration.current
     setNarratorRunning(true)
     setRefreshError(null)
+    setNarratorFeedback({ state: 'running', message: t('marketMonitor.feedback.narratorRunning') })
     try {
-      setNarratorStatus(await api.marketMonitor.runNarratorNow())
-      window.setTimeout(() => { void loadState(false) }, 2_000)
+      const dispatched = await api.marketMonitor.runNarratorNow()
+      if (generation !== narratorRunGeneration.current) return
+      setNarratorStatus(dispatched)
+      const taskId = dispatched.lastRun?.taskId
+      if (!taskId) throw new Error(t('marketMonitor.feedback.narratorDispatchUnknown'))
+
+      let completed: MarketNarratorStatus | null = null
+      for (let attempt = 0; attempt < NARRATOR_POLL_ATTEMPTS; attempt++) {
+        if (attempt > 0) await wait(NARRATOR_POLL_INTERVAL_MS)
+        if (generation !== narratorRunGeneration.current) return
+        const status = await api.marketMonitor.narratorStatus()
+        if (generation !== narratorRunGeneration.current) return
+        setNarratorStatus(status)
+        if (status.lastRun?.taskId !== taskId || status.lastRun.status === 'running') continue
+        completed = status
+        break
+      }
+
+      if (!completed) throw new Error(t('marketMonitor.feedback.narratorTimedOut'))
+      if (completed.lastRun?.status !== 'done') {
+        throw new Error(completed.lastRun?.error || t('marketMonitor.feedback.narratorStopped', { status: completed.lastRun?.status ?? 'unknown' }))
+      }
+      await loadState(false)
+      if (generation !== narratorRunGeneration.current) return
+      setNarratorFeedback({ state: 'success', message: t('marketMonitor.feedback.narratorComplete') })
     } catch (cause) {
-      setRefreshError(cause instanceof Error ? cause.message : String(cause))
+      if (generation !== narratorRunGeneration.current) return
+      const message = cause instanceof Error ? cause.message : String(cause)
+      setNarratorFeedback({ state: 'error', message: t('marketMonitor.feedback.narratorFailed', { error: message }) })
     } finally {
-      setNarratorRunning(false)
+      if (generation === narratorRunGeneration.current) setNarratorRunning(false)
     }
   }
 
@@ -231,13 +286,18 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
         title={t('marketMonitor.title')}
         description={t('marketMonitor.description', { strategy: monitorStrategyLabel(t, settings.strategyId, strategies.find((strategy) => strategy.id === settings.strategyId)?.label ?? settings.strategyId) })}
         live={{ lastUpdated: snapshot ? new Date(snapshot.capturedAt) : null, label: snapshot ? t('marketMonitor.scannedAt', { time: formatDate(snapshot.capturedAt) }) : t('marketMonitor.waitingFirstScan'), hideDot: !snapshot }}
-        right={<div className="flex items-center gap-1.5">
+        right={<div className="flex flex-wrap items-center justify-end gap-1.5">
           {import.meta.env.VITE_DEMO_MODE && <span className="rounded-sm border border-warning/50 bg-warning/10 px-2 py-1 text-[10px] font-semibold tracking-wide text-warning">{t('marketMonitor.demoBadge')}</span>}
           <Button variant="ghost" size="sm" onClick={() => setSettingsOpen((value) => !value)} aria-label={t('marketMonitor.settingsTitle')}><Settings2 className="size-4" /></Button>
-          <Button variant="ghost" size="sm" onClick={() => void runNarratorNow()} disabled={!settings.codexNarrationEnabled || narratorRunning}><Sparkles className={cn('size-3.5', narratorRunning && 'animate-pulse')} />{t('marketMonitor.narrator.runNow')}</Button>
-          <Button size="sm" onClick={() => void scan(asset, 'manual')} disabled={scanning}><RefreshCw className={cn('size-3.5', scanning && 'animate-spin')} />{t('marketMonitor.scanNow')}</Button>
+          <Button variant="ghost" size="sm" onClick={() => void runNarratorNow()} disabled={!settings.codexNarrationEnabled || narratorRunning} aria-busy={narratorRunning}>{narratorRunning ? <LoaderCircle className="size-3.5 animate-spin motion-reduce:animate-none" aria-hidden /> : <Sparkles className="size-3.5" aria-hidden />}{t(narratorRunning ? 'marketMonitor.narrator.running' : 'marketMonitor.narrator.runNow')}</Button>
+          <Button size="sm" onClick={() => void scan(asset, 'manual')} disabled={scanning} aria-busy={scanning}><RefreshCw className={cn('size-3.5', scanning && 'animate-spin motion-reduce:animate-none')} aria-hidden />{t(scanning ? 'marketMonitor.scanRunning' : 'marketMonitor.scanNow', { asset: scanningAsset ?? asset })}</Button>
         </div>}
       />
+
+      {(narratorFeedback || scanFeedback) && <div className="mx-4 mt-2 space-y-2 md:mx-6">
+        {narratorFeedback && <ActionFeedbackBar feedback={narratorFeedback} onDismiss={() => setNarratorFeedback(null)} onRetry={narratorFeedback.state === 'error' ? () => void runNarratorNow() : undefined} />}
+        {scanFeedback && <ActionFeedbackBar feedback={scanFeedback} onDismiss={() => setScanFeedback(null)} onRetry={scanFeedback.state === 'error' ? () => void scan(scanFeedback.asset ?? asset, 'manual') : undefined} />}
+      </div>}
 
       {refreshError && <div role="status" className="mx-4 mt-2 flex items-center justify-between border-l-2 border-warning bg-warning/5 px-3 py-2 text-xs text-muted-foreground md:mx-6"><span>{t('marketMonitor.refreshFailed', { error: refreshError })}</span><Button variant="ghost" size="sm" onClick={() => void loadState(false)}>{t('marketMonitor.retry')}</Button></div>}
 
@@ -279,6 +339,29 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
       </div>
     </div>
   )
+}
+
+function ActionFeedbackBar({ feedback, onDismiss, onRetry }: { feedback: ActionFeedback; onDismiss: () => void; onRetry?: () => void }) {
+  const { t } = useTranslation()
+  const running = feedback.state === 'running'
+  const Icon = running ? LoaderCircle : feedback.state === 'success' ? CheckCircle2 : TriangleAlert
+  return <div
+    role={feedback.state === 'error' ? 'alert' : 'status'}
+    aria-live={feedback.state === 'error' ? 'assertive' : 'polite'}
+    aria-atomic="true"
+    aria-busy={running}
+    className={cn(
+      'flex min-h-10 items-center gap-2 border-l-2 px-3 py-2 text-xs',
+      running && 'border-primary bg-primary/5 text-foreground',
+      feedback.state === 'success' && 'border-success bg-success/5 text-foreground',
+      feedback.state === 'error' && 'border-warning bg-warning/5 text-foreground',
+    )}
+  >
+    <Icon className={cn('size-4 shrink-0', running && 'animate-spin text-primary motion-reduce:animate-none', feedback.state === 'success' && 'text-success', feedback.state === 'error' && 'text-warning')} aria-hidden />
+    <span className="min-w-0 flex-1 leading-5">{feedback.message}</span>
+    {onRetry && <Button variant="ghost" size="sm" onClick={onRetry}>{t('marketMonitor.retry')}</Button>}
+    {!running && <Button variant="ghost" size="icon" onClick={onDismiss} aria-label={t('marketMonitor.feedback.dismiss')}><X className="size-3.5" aria-hidden /></Button>}
+  </div>
 }
 
 function DailyBriefPanel({ snapshot, narratorStatus }: { snapshot: MonitorSnapshot; narratorStatus: MarketNarratorStatus | null }) {
