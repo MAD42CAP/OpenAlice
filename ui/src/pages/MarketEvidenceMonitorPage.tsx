@@ -42,7 +42,8 @@ import {
   monitorWyckoffTestLabel,
 } from './market/market-monitor-presentation'
 
-const ASSETS: MonitorAsset[] = ['BTC', 'TSLA']
+const ASSETS: MonitorAsset[] = ['BTC', 'TSLA', 'MSTR']
+const EMPTY_HISTORY: Record<MonitorAsset, MonitorSnapshot[]> = { BTC: [], TSLA: [], MSTR: [] }
 const DEFAULT_SETTINGS: MonitorSettings = {
   backgroundEnabled: false,
   codexNarrationEnabled: true,
@@ -87,7 +88,10 @@ function formatDate(value: string | null | undefined): string {
 }
 
 function usePersistedAsset(): [MonitorAsset, (asset: MonitorAsset) => void] {
-  const [asset, setAssetState] = useState<MonitorAsset>(() => window.localStorage.getItem('market-monitor.asset') === 'TSLA' ? 'TSLA' : 'BTC')
+  const [asset, setAssetState] = useState<MonitorAsset>(() => {
+    const saved = window.localStorage.getItem('market-monitor.asset') as MonitorAsset | null
+    return saved && ASSETS.includes(saved) ? saved : 'BTC'
+  })
   const setAsset = (next: MonitorAsset) => {
     window.localStorage.setItem('market-monitor.asset', next)
     setAssetState(next)
@@ -101,7 +105,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
   const [timeframe, setTimeframe] = useState<Timeframe>('1D')
   const [settings, setSettings] = useState<MonitorSettings>(DEFAULT_SETTINGS)
   const [strategies, setStrategies] = useState<MonitorStrategy[]>([])
-  const [history, setHistory] = useState<Record<MonitorAsset, MonitorSnapshot[]>>({ BTC: [], TSLA: [] })
+  const [history, setHistory] = useState<Record<MonitorAsset, MonitorSnapshot[]>>(EMPTY_HISTORY)
   const [alerts, setAlerts] = useState<MonitorAlert[]>([])
   const [evaluation, setEvaluation] = useState<MonitorEvaluation | null>(null)
   const [loading, setLoading] = useState(true)
@@ -143,16 +147,15 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
         api.marketMonitor.strategies(),
       ])
       const nextNarrator = await api.marketMonitor.narratorStatus().catch(() => null)
-      const [btc, tsla, nextAlerts] = await Promise.all([
-        api.marketMonitor.snapshots('BTC', 120, nextSettings.strategyId),
-        api.marketMonitor.snapshots('TSLA', 120, nextSettings.strategyId),
+      const [assetHistories, nextAlerts] = await Promise.all([
+        Promise.all(ASSETS.map(async (item) => [item, (await api.marketMonitor.snapshots(item, 120, nextSettings.strategyId)).snapshots] as const)),
         api.marketMonitor.alerts(undefined, 100),
       ])
       if (request !== loadGeneration.current) return
       setSettings(nextSettings)
       setStrategies(nextStrategies.strategies)
       setNarratorStatus(nextNarrator)
-      setHistory({ BTC: btc.snapshots, TSLA: tsla.snapshots })
+      setHistory(Object.fromEntries(assetHistories) as Record<MonitorAsset, MonitorSnapshot[]>)
       setAlerts(nextAlerts.alerts)
       notifyNewAlerts(nextAlerts.alerts, nextSettings.notifications)
       setRefreshError(null)
@@ -220,10 +223,10 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
     ++loadGeneration.current
     const saved = await api.marketMonitor.saveSettings(next)
     setSettings(saved)
-    setHistory((current) => ({
-      BTC: current.BTC.filter((row) => row.strategyId === saved.strategyId),
-      TSLA: current.TSLA.filter((row) => row.strategyId === saved.strategyId),
-    }))
+    setHistory((current) => Object.fromEntries(ASSETS.map((item) => [
+      item,
+      current[item].filter((row) => row.strategyId === saved.strategyId),
+    ])) as Record<MonitorAsset, MonitorSnapshot[]>)
     await Promise.all([loadState(false), runtime.refresh()])
   }
 
@@ -307,7 +310,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
 
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border/60 px-4 py-3 md:px-6">
         <div role="tablist" aria-label={t('marketMonitor.monitoredAsset')} className="inline-flex rounded-md border border-border bg-muted/35 p-0.5">
-          {ASSETS.map((item) => <button key={item} role="tab" aria-selected={asset === item} onClick={() => setAsset(item)} className={cn('rounded-[5px] px-4 py-1.5 text-xs font-semibold transition-colors', asset === item ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground')}>{item}<span className="ml-1.5 font-normal text-muted-foreground">{item === 'BTC' ? t('marketMonitor.assetBitcoin') : t('marketMonitor.assetTesla')}</span></button>)}
+          {ASSETS.map((item) => <button key={item} role="tab" aria-selected={asset === item} onClick={() => setAsset(item)} className={cn('rounded-[5px] px-4 py-1.5 text-xs font-semibold transition-colors', asset === item ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground')}>{item}<span className="ml-1.5 font-normal text-muted-foreground">{t(item === 'BTC' ? 'marketMonitor.assetBitcoin' : item === 'TSLA' ? 'marketMonitor.assetTesla' : 'marketMonitor.assetStrategy')}</span></button>)}
         </div>
         <div className="flex items-center gap-2">
           <div role="group" aria-label={t('marketMonitor.chartTimeframe')} className="inline-flex rounded-md border border-border p-0.5">

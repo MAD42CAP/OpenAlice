@@ -1,6 +1,6 @@
 import type { BarMeta, OhlcvBar } from '../market-data/bars/index.js'
 
-export const MARKET_MONITOR_ASSETS = ['BTC', 'TSLA'] as const
+export const MARKET_MONITOR_ASSETS = ['BTC', 'TSLA', 'MSTR'] as const
 export type MarketMonitorAsset = typeof MARKET_MONITOR_ASSETS[number]
 export type MarketMonitorTrigger = 'manual' | 'scheduled'
 export type EvidenceTone = 'positive' | 'negative' | 'neutral'
@@ -28,6 +28,7 @@ export interface MarketMonitorAssetConfig {
 export const MARKET_MONITOR_ASSET_CONFIG: Record<MarketMonitorAsset, MarketMonitorAssetConfig> = {
   BTC: { asset: 'BTC', label: 'Bitcoin', symbol: 'BTC-USD', assetClass: 'crypto', barId: 'yfinance|BTC-USD' },
   TSLA: { asset: 'TSLA', label: 'Tesla', symbol: 'TSLA', assetClass: 'equity', barId: 'yfinance|TSLA' },
+  MSTR: { asset: 'MSTR', label: 'Strategy', symbol: 'MSTR', assetClass: 'equity', barId: 'yfinance|MSTR' },
 }
 
 export interface MarketMonitorSettings {
@@ -46,7 +47,7 @@ export interface MarketMonitorSettings {
 export const DEFAULT_MARKET_MONITOR_SETTINGS: MarketMonitorSettings = {
   backgroundEnabled: false,
   codexNarrationEnabled: true,
-  enabledAssets: ['BTC', 'TSLA'],
+  enabledAssets: ['BTC', 'TSLA', 'MSTR'],
   strategyId: DEFAULT_MARKET_MONITOR_STRATEGY_ID,
   intervalMinutes: 15,
   notifications: false,

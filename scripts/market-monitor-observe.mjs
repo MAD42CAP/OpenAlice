@@ -3,7 +3,7 @@ import { mkdir, rename, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-const ASSETS = ['BTC', 'TSLA']
+const ASSETS = ['BTC', 'TSLA', 'MSTR']
 const DEFAULT_BASE_URL = 'http://127.0.0.1:47331'
 const DEFAULT_OUTPUT = 'dist/market-monitor-observation.json'
 
@@ -44,7 +44,7 @@ export function parseObservationOptions(argv, env = process.env) {
       options.sampleSeconds = Number(arg.slice('--sample-seconds='.length))
     } else if (arg.startsWith('--asset=')) {
       const asset = arg.slice('--asset='.length).toUpperCase()
-      if (!ASSETS.includes(asset)) throw new Error('--asset must be BTC or TSLA')
+      if (!ASSETS.includes(asset)) throw new Error('--asset must be BTC, TSLA or MSTR')
       options.assets = [asset]
     } else throw new Error(`unknown option: ${arg}`)
   }
@@ -225,7 +225,7 @@ settings or dispatching scans. A checkpoint is saved after every probe.
 Options:
   --duration=24h|72h      Observation duration (default 24h; 1m–72h accepted)
   --sample-seconds=60     Probe interval from 15 to 3600 seconds
-  --asset=BTC|TSLA        Limit observation to one asset
+  --asset=BTC|TSLA|MSTR   Limit observation to one asset
   --base-url=<url>        OpenAlice Web endpoint (default ${DEFAULT_BASE_URL})
   --output=<path>         Report path (default ${DEFAULT_OUTPUT})
   --allow-remote          Permit a non-loopback endpoint

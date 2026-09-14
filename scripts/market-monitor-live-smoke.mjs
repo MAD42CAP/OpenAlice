@@ -3,7 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-const ASSETS = ['BTC', 'TSLA']
+const ASSETS = ['BTC', 'TSLA', 'MSTR']
 const DEFAULT_BASE_URL = 'http://127.0.0.1:47331'
 const DEFAULT_OUTPUT = 'dist/market-monitor-acceptance.json'
 
@@ -27,7 +27,7 @@ export function parseOptions(argv, env = process.env) {
     else if (arg.startsWith('--output=')) options.output = arg.slice('--output='.length)
     else if (arg.startsWith('--asset=')) {
       const asset = arg.slice('--asset='.length).toUpperCase()
-      if (!ASSETS.includes(asset)) throw new Error('--asset must be BTC or TSLA')
+      if (!ASSETS.includes(asset)) throw new Error('--asset must be BTC, TSLA or MSTR')
       options.assets = [asset]
     } else throw new Error(`unknown option: ${arg}`)
   }
@@ -250,7 +250,7 @@ Options:
   --scan                 Run two real read-only market scans per asset
   --background           Test backend scheduling; temporarily enable a paused
                          monitor at 1 minute, then restore its original settings
-  --asset=BTC|TSLA       Limit acceptance to one asset
+  --asset=BTC|TSLA|MSTR  Limit acceptance to one asset
   --base-url=<url>       OpenAlice Web endpoint (default ${DEFAULT_BASE_URL})
   --output=<path>        Receipt path (default ${DEFAULT_OUTPUT})
   --allow-remote         Permit a non-loopback endpoint

@@ -269,6 +269,7 @@ export function monitorHypothesisCopy(t: Translate, snapshot: MonitorSnapshot) {
 }
 
 export function monitorSourceLabel(t: Translate, source: Pick<SourceHealth, 'id' | 'label'>, asset?: string): string {
+  const equityAsset = source.id.match(/^([a-z0-9]+)-(?:reference|calendar-news)$/)?.[1]?.toUpperCase()
   switch (source.id) {
     case 'daily-bars': return t('marketMonitor.source.dailyBars')
     case 'intraday-bars': return t('marketMonitor.source.intradayBars')
@@ -276,7 +277,10 @@ export function monitorSourceLabel(t: Translate, source: Pick<SourceHealth, 'id'
     case 'tsla-reference': return t('marketMonitor.source.tslaReference')
     case 'tsla-calendar-news': return t('marketMonitor.source.tslaCalendarNews')
     case 'context': return t('marketMonitor.source.assetContext', { asset: asset ?? '' })
-    default: return source.label
+    default:
+      if (source.id.endsWith('-reference') && equityAsset) return t('marketMonitor.source.equityReference', { asset: equityAsset })
+      if (source.id.endsWith('-calendar-news') && equityAsset) return t('marketMonitor.source.equityCalendarNews', { asset: equityAsset })
+      return source.label
   }
 }
 
@@ -304,11 +308,11 @@ export function monitorSourceDetail(t: Translate, source: SourceHealth): string 
     detail = source.status === 'unavailable'
       ? t('marketMonitor.source.unavailable')
       : `${t('marketMonitor.source.derivativesLoaded')}${source.detail.includes('futures unavailable') ? t('marketMonitor.source.futuresUnavailable') : ''}${source.detail.includes('options unavailable') ? t('marketMonitor.source.optionsUnavailable') : ''}`
-  } else if (source.id === 'tsla-reference') {
+  } else if (source.id.endsWith('-reference')) {
     detail = source.status === 'ok'
       ? t('marketMonitor.source.tslaFieldsLoaded')
       : t('marketMonitor.source.tslaFieldsUnavailable')
-  } else if (source.id === 'tsla-calendar-news') {
+  } else if (source.id.endsWith('-calendar-news')) {
     const count = Number(source.detail.match(/; (\d+) recent/)?.[1] ?? 0)
     detail = `${source.detail.startsWith('Earnings date available') ? t('marketMonitor.source.earningsAvailable') : t('marketMonitor.source.noEarnings')}; ${t('marketMonitor.source.recentStories', { count })}${source.detail.includes('not configured') ? t('marketMonitor.source.newsNotConfigured') : ''}.`
   } else if (source.id === 'context' && source.detail.includes('Static context')) {

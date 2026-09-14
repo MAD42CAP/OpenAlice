@@ -10,7 +10,7 @@ const assetSchema = z.enum(MARKET_MONITOR_ASSETS)
 const settingsSchema = z.object({
   backgroundEnabled: z.boolean().default(false),
   codexNarrationEnabled: z.boolean().default(true),
-  enabledAssets: z.array(assetSchema).min(1).max(2).refine((assets) => new Set(assets).size === assets.length, 'Assets must be unique'),
+  enabledAssets: z.array(assetSchema).min(1).max(MARKET_MONITOR_ASSETS.length).refine((assets) => new Set(assets).size === assets.length, 'Assets must be unique'),
   strategyId: z.string().trim().min(1).default(DEFAULT_MARKET_MONITOR_SETTINGS.strategyId),
   intervalMinutes: z.number().int().min(1).max(1440),
   notifications: z.boolean(),
@@ -83,7 +83,7 @@ export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketM
   app.post('/scan', async (c) => {
     const body = await c.req.json().catch(() => null)
     const parsed = z.object({ asset: assetSchema, trigger: z.enum(['manual', 'scheduled']).default('manual') }).safeParse(body)
-    if (!parsed.success) return c.json({ error: 'asset must be BTC or TSLA' }, 400)
+    if (!parsed.success) return c.json({ error: `asset must be one of: ${MARKET_MONITOR_ASSETS.join(', ')}` }, 400)
     try {
       return c.json(await service.scan(parsed.data.asset, parsed.data.trigger))
     } catch (error) {
@@ -94,7 +94,7 @@ export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketM
   app.get('/snapshots', async (c) => {
     const raw = c.req.query('asset')
     const asset = assetFrom(raw)
-    if (raw && !asset) return c.json({ error: 'asset must be BTC or TSLA' }, 400)
+    if (raw && !asset) return c.json({ error: `asset must be one of: ${MARKET_MONITOR_ASSETS.join(', ')}` }, 400)
     const strategyId = c.req.query('strategyId')
     if (strategyId && !service.strategies().some((strategy) => strategy.id === strategyId)) {
       return c.json({ error: 'Unknown monitor strategy' }, 400)
@@ -106,7 +106,7 @@ export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketM
   app.get('/alerts', async (c) => {
     const raw = c.req.query('asset')
     const asset = assetFrom(raw)
-    if (raw && !asset) return c.json({ error: 'asset must be BTC or TSLA' }, 400)
+    if (raw && !asset) return c.json({ error: `asset must be one of: ${MARKET_MONITOR_ASSETS.join(', ')}` }, 400)
     const alerts = await service.alerts(asset, limitFrom(c.req.query('limit')))
     return c.json({ alerts, count: alerts.length })
   })
@@ -114,21 +114,21 @@ export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketM
   app.get('/receipts', async (c) => {
     const raw = c.req.query('asset')
     const asset = assetFrom(raw)
-    if (raw && !asset) return c.json({ error: 'asset must be BTC or TSLA' }, 400)
+    if (raw && !asset) return c.json({ error: `asset must be one of: ${MARKET_MONITOR_ASSETS.join(', ')}` }, 400)
     const receipts = await service.receipts(asset, limitFrom(c.req.query('limit')))
     return c.json({ receipts, count: receipts.length })
   })
 
   app.get('/evaluation', async (c) => {
     const asset = assetFrom(c.req.query('asset'))
-    if (!asset) return c.json({ error: 'asset must be BTC or TSLA' }, 400)
+    if (!asset) return c.json({ error: `asset must be one of: ${MARKET_MONITOR_ASSETS.join(', ')}` }, 400)
     return c.json(await service.evaluation(asset))
   })
 
   app.get('/health', async (c) => {
     const asset = assetFrom(c.req.query('asset'))
     const hours = c.req.query('hours') ?? '24'
-    if (!asset || !['24', '72'].includes(hours)) return c.json({ error: 'asset must be BTC or TSLA; hours must be 24 or 72' }, 400)
+    if (!asset || !['24', '72'].includes(hours)) return c.json({ error: `asset must be one of: ${MARKET_MONITOR_ASSETS.join(', ')}; hours must be 24 or 72` }, 400)
     return c.json(await service.health(asset, Number(hours) as 24 | 72))
   })
 

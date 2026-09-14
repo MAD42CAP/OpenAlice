@@ -13,7 +13,7 @@ function response(value: unknown, status = 200) {
 
 describe('market monitor long-run observer', () => {
   it('defaults to a local 24-hour read-only observation and validates bounds', () => {
-    expect(parseObservationOptions([], {})).toMatchObject({ duration: '24h', durationMs: 86_400_000, sampleSeconds: 60, assets: ['BTC', 'TSLA'] })
+    expect(parseObservationOptions([], {})).toMatchObject({ duration: '24h', durationMs: 86_400_000, sampleSeconds: 60, assets: ['BTC', 'TSLA', 'MSTR'] })
     expect(parseObservationOptions(['--duration=72h', '--sample-seconds=15', '--asset=tsla'], {})).toMatchObject({ durationMs: 259_200_000, assets: ['TSLA'] })
     expect(() => parseObservationOptions(['--duration=73h'], {})).toThrow(/between 1m and 72h/)
     expect(() => parseObservationOptions(['--base-url=https://example.com'], {})).toThrow(/allow-remote/)

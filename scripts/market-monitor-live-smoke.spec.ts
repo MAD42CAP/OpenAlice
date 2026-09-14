@@ -28,7 +28,7 @@ describe('market monitor live acceptance', () => {
     expect(() => validateHealthReport('BTC', { ...report, summary: { ...report.summary, attempts: 0 } })).toThrow('counts')
   })
   it('defaults to a loopback, read-only acceptance run', () => {
-    expect(parseOptions([], {})).toMatchObject({ baseUrl: 'http://127.0.0.1:47331', scan: false, background: false, assets: ['BTC', 'TSLA'] })
+    expect(parseOptions([], {})).toMatchObject({ baseUrl: 'http://127.0.0.1:47331', scan: false, background: false, assets: ['BTC', 'TSLA', 'MSTR'] })
     expect(isLoopbackHost('::1')).toBe(true)
     expect(() => parseOptions(['--base-url=https://example.com'], {})).toThrow(/allow-remote/)
   })
@@ -95,7 +95,7 @@ describe('market monitor live acceptance', () => {
 
   it('requires explicit and valid asset selection', () => {
     expect(parseOptions(['--', '--scan', '--asset=tsla'], {})).toMatchObject({ scan: true, assets: ['TSLA'] })
-    expect(() => parseOptions(['--asset=ETH'], {})).toThrow(/BTC or TSLA/)
+    expect(() => parseOptions(['--asset=ETH'], {})).toThrow(/BTC, TSLA or MSTR/)
   })
 
   it('keeps an unavailable hourly source empty', () => {

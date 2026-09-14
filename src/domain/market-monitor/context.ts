@@ -1,11 +1,12 @@
 import type { EquityClientLike } from '../market-data/client/types.js'
 import type { ReferenceDataService } from '../market-data/reference/types.js'
 import type { INewsProvider } from '../news/types.js'
-import type {
-  MarketContext,
-  MarketContextProviderManifest,
-  MarketMonitorAsset,
-  SourceHealth,
+import {
+  MARKET_MONITOR_ASSET_CONFIG,
+  type MarketContext,
+  type MarketContextProviderManifest,
+  type MarketMonitorAsset,
+  type SourceHealth,
 } from './types.js'
 
 export type MarketMonitorFetch = typeof fetch
@@ -132,11 +133,22 @@ async function bitcoinContext(fetcher: MarketMonitorFetch, at: Date): Promise<Ma
   }
 }
 
-async function teslaContext(deps: Pick<MarketContextProviderDeps, 'equityClient' | 'reference' | 'newsProvider'>, at: Date): Promise<MarketContextProviderResult> {
+const EQUITY_NEWS_ALIASES: Record<'TSLA' | 'MSTR', string[]> = {
+  TSLA: ['TSLA', 'Tesla'],
+  MSTR: ['MSTR', 'MicroStrategy', 'Strategy Inc'],
+}
+
+async function equityContext(
+  deps: Pick<MarketContextProviderDeps, 'equityClient' | 'reference' | 'newsProvider'>,
+  asset: 'TSLA' | 'MSTR',
+  at: Date,
+): Promise<MarketContextProviderResult> {
+  const symbol = MARKET_MONITOR_ASSET_CONFIG[asset].symbol
+  const sourceId = asset.toLowerCase()
   const [metrics, estimates, shares, calendar, news] = await Promise.allSettled([
-    deps.equityClient.getKeyMetrics({ symbol: 'TSLA' }),
-    deps.equityClient.getEstimateConsensus({ symbol: 'TSLA' }),
-    deps.equityClient.getShareStatistics({ symbol: 'TSLA' }),
+    deps.equityClient.getKeyMetrics({ symbol }),
+    deps.equityClient.getEstimateConsensus({ symbol }),
+    deps.equityClient.getShareStatistics({ symbol }),
     deps.reference.calendar({ days: 90 }),
     deps.newsProvider?.getNewsV2({ endTime: at, lookback: '7d', limit: 100 }) ?? Promise.resolve([]),
   ])
@@ -144,9 +156,12 @@ async function teslaContext(deps: Pick<MarketContextProviderDeps, 'equityClient'
   const estimate = estimates.status === 'fulfilled' ? estimates.value[0] : undefined
   const share = shares.status === 'fulfilled' ? shares.value[0] : undefined
   const earnings = calendar.status === 'fulfilled'
-    ? calendar.value.earnings.find((row) => String((row as { symbol?: unknown }).symbol ?? '').toUpperCase() === 'TSLA')
+    ? calendar.value.earnings.find((row) => String((row as { symbol?: unknown }).symbol ?? '').toUpperCase() === symbol)
     : undefined
-  const newsRows = news.status === 'fulfilled' ? news.value.filter((item) => `${item.title}\n${item.content}`.toUpperCase().includes('TSLA') || `${item.title}\n${item.content}`.toLowerCase().includes('tesla')).slice(-5).reverse() : []
+  const newsRows = news.status === 'fulfilled' ? news.value.filter((item) => {
+    const text = `${item.title}\n${item.content}`.toLowerCase()
+    return EQUITY_NEWS_ALIASES[asset].some((alias) => text.includes(alias.toLowerCase()))
+  }).slice(-5).reverse() : []
   const context: MarketContext = {
     marketCap: numberFrom(metric, ['market_cap']),
     trailingPe: numberFrom(metric, ['price_to_earnings', 'pe_ratio']),
@@ -160,8 +175,8 @@ async function teslaContext(deps: Pick<MarketContextProviderDeps, 'equityClient'
   const calendarOk = calendar.status === 'fulfilled'
   const newsOk = Boolean(deps.newsProvider && news.status === 'fulfilled')
   return { context, health: [
-    { id: 'tsla-reference', label: 'TSLA fundamentals and positioning', status: coreOk ? 'ok' : 'unavailable', provider: 'OpenAlice equity providers', asOf: coreOk ? at.toISOString() : null, detail: coreOk ? 'Valuation, analyst and short-interest fields loaded where supported.' : 'Configured equity providers returned no usable context.' },
-    { id: 'tsla-calendar-news', label: 'TSLA calendar and news', status: calendarOk && newsOk ? 'ok' : calendarOk || newsOk ? 'degraded' : 'unavailable', provider: 'OpenAlice reference/news', asOf: calendarOk || newsOk ? at.toISOString() : null, detail: `${context.nextEarningsAt ? 'Earnings date available' : 'No earnings date'}; ${context.recentNews?.length ?? 0} recent matching stories${!deps.newsProvider ? '; news collector not configured' : ''}.` },
+    { id: `${sourceId}-reference`, label: `${asset} fundamentals and positioning`, status: coreOk ? 'ok' : 'unavailable', provider: 'OpenAlice equity providers', asOf: coreOk ? at.toISOString() : null, detail: coreOk ? 'Valuation, analyst and short-interest fields loaded where supported.' : 'Configured equity providers returned no usable context.' },
+    { id: `${sourceId}-calendar-news`, label: `${asset} calendar and news`, status: calendarOk && newsOk ? 'ok' : calendarOk || newsOk ? 'degraded' : 'unavailable', provider: 'OpenAlice reference/news', asOf: calendarOk || newsOk ? at.toISOString() : null, detail: `${context.nextEarningsAt ? 'Earnings date available' : 'No earnings date'}; ${context.recentNews?.length ?? 0} recent matching stories${!deps.newsProvider ? '; news collector not configured' : ''}.` },
   ] }
 }
 
@@ -173,8 +188,11 @@ export function createDefaultMarketContextProviderRegistry(deps: MarketContextPr
       load: ({ at }) => bitcoinContext(fetcher, at),
     },
     {
-      manifest: { id: 'openalice-tsla-v1', label: 'TSLA reference', assets: ['TSLA'], description: 'Configured OpenAlice fundamentals, estimates, calendar and news providers.' },
-      load: ({ at }) => teslaContext(deps, at),
+      manifest: { id: 'openalice-equity-v1', label: 'Equity reference', assets: ['TSLA', 'MSTR'], description: 'Configured OpenAlice fundamentals, estimates, calendar and news providers.' },
+      load: ({ asset, at }) => {
+        if (asset !== 'TSLA' && asset !== 'MSTR') throw new Error(`Unsupported equity context asset: ${asset}`)
+        return equityContext(deps, asset, at)
+      },
     },
   ])
 }

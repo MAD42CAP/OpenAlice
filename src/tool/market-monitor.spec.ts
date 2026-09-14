@@ -26,8 +26,8 @@ describe('market monitor Workspace tools', () => {
   it('refreshes deterministic daily input without accepting write provenance from the agent', async () => {
     const svc = service()
     const input = createMarketMonitorToolFactories(svc).find((factory) => factory.name === 'market_monitor_daily_input')!
-    await expect(run(input.build(context()), { assets: ['BTC'] })).resolves.toMatchObject({ strategyId: 'evidence-chain-v1' })
-    expect(svc.dailyNarrationInput).toHaveBeenCalledWith(['BTC'])
+    await expect(run(input.build(context()), { assets: ['BTC', 'TSLA', 'MSTR'] })).resolves.toMatchObject({ strategyId: 'evidence-chain-v1' })
+    expect(svc.dailyNarrationInput).toHaveBeenCalledWith(['BTC', 'TSLA', 'MSTR'])
   })
 
   it('allows only the exact scheduled Codex Issue to publish', async () => {

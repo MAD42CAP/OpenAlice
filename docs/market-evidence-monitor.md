@@ -1,6 +1,6 @@
 # Market Evidence Monitor
 
-This guide owns the read-only BTC/TSLA evidence monitor, its persistence and
+This guide owns the read-only BTC/TSLA/MSTR evidence monitor, its persistence and
 the `/market/evidence` dashboard. Market-data provider selection and candle
 semantics remain owned by [[docs/market-data-architecture.md]].
 
@@ -14,6 +14,7 @@ Its initial asset registry contains:
 |---|---|---|
 | BTC | `BTC-USD` | Deribit public funding, perpetual/futures and options summaries |
 | TSLA | `TSLA` | Configured OpenAlice equity/reference/news providers |
+| MSTR | `MSTR` | Configured OpenAlice equity/reference/news providers |
 
 Daily and hourly candles are separate attributed requests through BarService.
 If the hourly source fails, the UI reports it as unavailable; daily candles are
@@ -65,7 +66,7 @@ Adding another strategy now means implementing `MarketMonitorStrategy` and
 registering it. It automatically appears in `GET /api/market-monitor/strategies`
 and the dashboard settings selector; HTTP routes and React do not need new
 decision rules. A new context source implements `MarketContextProvider` and may
-be composed with existing providers for BTC, TSLA or a future asset.
+be composed with existing providers for BTC, TSLA, MSTR or a future asset.
 
 ## Localization
 
@@ -85,7 +86,7 @@ evidence rather than being machine-translated.
 
 ## Runtime Behaviour
 
-The page loads histories for both assets and source settings, and refreshes
+The page loads histories for all registered assets and source settings, and refreshes
 the view while visible. Hidden pages pause view polling and reload on return;
 they do not stop the backend. A refresh error keeps the last successful render
 visible but labels the connection as unavailable rather than claiming it is
@@ -93,7 +94,7 @@ currently active. Empty histories require an explicit **Scan now** or enabling
 background monitoring; opening multiple pages does not dispatch extra scans.
 
 **Monitor settings → Background monitoring** is off by default. Enable it,
-select BTC and/or TSLA, and save a cadence of 1–1440 minutes (default 15).
+select BTC, TSLA and/or MSTR, and save a cadence of 1–1440 minutes (default 15).
 The backend checks configuration every 15 seconds, including while the page is
 closed. Settings changes take effect on the next check. Pause prevents new
 dispatch; an active read finishes. The machine must remain awake with the
@@ -107,8 +108,8 @@ poll interval later. Source health remains the authority for data availability.
 Completion receipts anchor cadence across restart, including manual scans and
 failed attempts. Older receipts use their request time. Missed intervals are
 collapsed into one scan, never replayed as a burst. One failed asset does not
-stop the other. A pending BTC scan does not block future TSLA dispatches (or
-vice versa): the short polling lock is separate from per-asset scan lifetime.
+stop the others. A pending scan for one asset does not block dispatches for the
+other assets: the short polling lock is separate from per-asset scan lifetime.
 If a scan cannot persist its failure receipt, runtime status retains its error
 in memory until a later attempt succeeds or supersedes it. Requests overlapping
 on one asset share one result and one
@@ -154,14 +155,14 @@ testable price/volume hypotheses; they do not claim knowledge of a coordinated
 market actor.
 
 The dashboard creates one logical brief for each attributed daily-candle date.
-BTC advances when its next daily candle arrives; TSLA advances on its next
-trading-day candle, so weekends and market holidays do not produce empty
+BTC advances when its next daily candle arrives; TSLA and MSTR advance on their
+next trading-day candle, so weekends and market holidays do not produce empty
 briefs. Intraday scans may refresh the live evidence under the same date. The
 deterministic narrator remains the authoritative bilingual record. A
 supplemental native-Codex interpretation is enabled by default and runs from an
 OpenAlice scheduled Issue at 17:30 `America/Vancouver` (`catchUp: true`). One
-Issue handles BTC and TSLA: BTC can advance every day, while TSLA is skipped
-until a new attributed trading-day candle exists. The dashboard also exposes an
+Issue handles BTC, TSLA and MSTR: BTC can advance every day, while equities are
+skipped until a new attributed trading-day candle exists. The dashboard also exposes an
 explicit **Run Codex** action for immediate verification.
 
 The scheduled Issue uses the existing native Codex login and inherits its model
@@ -180,7 +181,7 @@ below the page header. A scan keeps its selected asset visible while market data
 is fetched, then distinguishes a newly stored observation from a successful
 check with no material evidence change. Run Codex remains busy after dispatch
 and polls the exact headless task id until it finishes; only then does the page
-reload the latest BTC/TSLA narrations and announce completion. Failures remain
+reload the latest BTC/TSLA/MSTR narrations and announce completion. Failures remain
 visible with retry and dismiss actions. Status regions are announced to assistive
 technology, and progress animation honors reduced-motion preferences.
 
@@ -194,7 +195,7 @@ base platform's compatibility or making future upstream merges needlessly hard.
 
 ## Operational Reports
 
-The dashboard's **Monitor operations** section follows BTC/TSLA selection and
+The dashboard's **Monitor operations** section follows the selected asset and
 offers **24 hours**, **72 hours**, refresh and **Export report** (JSON). It is
 available even when no valid market snapshot exists, so failed attempts remain
 inspectable. Reports refresh every 30 seconds while visible, after a manual
@@ -356,8 +357,8 @@ does not call the scan endpoint. It restores the original settings in a
 during the run (those newer settings are preserved and the command fails with
 an explanation). Do not edit settings concurrently. If the acceptance process
 is forcibly killed, check the background switch manually. An already-enabled
-monitor is rejected rather than interrupted. `--asset=TSLA` or `--asset=BTC`
-can narrow the test.
+monitor is rejected rather than interrupted. `--asset=TSLA`, `--asset=MSTR` or
+`--asset=BTC` can narrow the test.
 
 The command accepts `--base-url=http://127.0.0.1:<port>` when Guardian selected
 a non-default port, and writes `dist/market-monitor-acceptance.json`. Non-local
@@ -374,8 +375,9 @@ pnpm market-monitor:observe -- --duration=72h
 The observer is read-only: it does not enable the monitor, edit cadence or call
 the scan endpoint. Once per minute it reads runtime status and the 72-hour
 health reports, saving an atomic checkpoint to
-`dist/market-monitor-observation.json`. `--asset=BTC` or `--asset=TSLA` narrows
-the scope; `--sample-seconds=15` through `3600` changes probe frequency.
+`dist/market-monitor-observation.json`. `--asset=BTC`, `--asset=TSLA` or
+`--asset=MSTR` narrows the scope; `--sample-seconds=15` through `3600` changes
+probe frequency.
 
 The final report distinguishes local API reachability, scheduler heartbeat and
 configuration interruptions, newly observed scheduled receipts, scan failures,

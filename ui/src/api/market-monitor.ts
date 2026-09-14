@@ -1,7 +1,7 @@
 import { fetchJson, headers } from './client'
 import type { BarMeta, HistoricalBar } from './market'
 
-export type MonitorAsset = 'BTC' | 'TSLA'
+export type MonitorAsset = 'BTC' | 'TSLA' | 'MSTR'
 export type MonitorTrigger = 'manual' | 'scheduled'
 
 export interface MonitorSettings {

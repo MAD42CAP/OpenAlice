@@ -29,14 +29,19 @@ export function demoMonitorHealth(asset: MonitorAsset, hours: 24 | 72 = 24): Mon
 
 function bars(asset: MonitorAsset, interval: '1D' | '1H'): HistoricalBar[] {
   const count = interval === '1D' ? 150 : 96
-  const base = asset === 'BTC' ? 104_000 : 338
+  const config = asset === 'BTC'
+    ? { base: 104_000, trend: 95, volume: 32_000 }
+    : asset === 'TSLA'
+      ? { base: 338, trend: 0.18, volume: 88_000_000 }
+      : { base: 318, trend: 0.24, volume: 18_000_000 }
+  const { base } = config
   const step = interval === '1D' ? 86400000 : 3600000
   const end = Date.parse(interval === '1D' ? '2026-09-11T00:00:00Z' : '2026-09-12T12:00:00Z')
   return Array.from({ length: count }, (_, index) => {
-    const trend = asset === 'BTC' ? index * 95 : index * 0.18
+    const trend = index * config.trend
     const wave = Math.sin(index / (interval === '1D' ? 6 : 4)) * base * (interval === '1D' ? 0.018 : 0.004)
     const close = base + trend + wave
-    const previous = index ? base + (index - 1) * (asset === 'BTC' ? 95 : 0.18) + Math.sin((index - 1) / (interval === '1D' ? 6 : 4)) * base * (interval === '1D' ? 0.018 : 0.004) : close * 0.998
+    const previous = index ? base + (index - 1) * config.trend + Math.sin((index - 1) / (interval === '1D' ? 6 : 4)) * base * (interval === '1D' ? 0.018 : 0.004) : close * 0.998
     const band = close * (interval === '1D' ? 0.009 : 0.002)
     return {
       date: new Date(end - (count - index - 1) * step).toISOString(),
@@ -44,7 +49,7 @@ function bars(asset: MonitorAsset, interval: '1D' | '1H'): HistoricalBar[] {
       high: Math.max(previous, close) + band,
       low: Math.min(previous, close) - band,
       close,
-      volume: (asset === 'BTC' ? 32_000 : 88_000_000) * (1 + Math.sin(index / 5) * 0.2),
+      volume: config.volume * (1 + Math.sin(index / 5) * 0.2),
     }
   })
 }
@@ -122,7 +127,7 @@ export function demoMonitorSnapshot(asset: MonitorAsset, sequence = 0): MonitorS
     aiNarration: {
       id: `demo-codex-${asset.toLowerCase()}`, asset, strategyId: 'evidence-chain-v1', periodKey: last.date.slice(0, 10),
       promptVersion: 'codex-daily-v1', generatedAt: '2026-09-12T17:30:00Z', language: 'zh-CN', agent: 'codex', model: 'gpt-5.6-sol', effort: 'medium',
-      headline: bullish ? '多周期证据暂时一致偏多，但仍要观察突破后的承接。' : 'TSLA 处于周期分歧阶段，暂按区间与转换结构处理。',
+      headline: bullish ? '多周期证据暂时一致偏多，但仍要观察突破后的承接。' : `${asset} 处于周期分歧阶段，暂按区间与转换结构处理。`,
       summary: bullish ? '价格结构、周线延续与日内脉冲相互支持，威科夫上涨阶段仍只是候选解释。' : '短中期尚未形成一致方向，长期结构偏强，当前不宜把单次波动解释成确定趋势。',
       shortTerm: bullish ? '短期偏多，小时级推进尚未异常扩张。' : '短期转换中，日内反弹和回落都缺少确认。',
       mediumTerm: bullish ? '中期趋势偏多，重点验证突破位是否转为支撑。' : '中期横盘，等待价格离开区间后完成测试。',
@@ -132,7 +137,7 @@ export function demoMonitorSnapshot(asset: MonitorAsset, sequence = 0): MonitorS
       watchFor: bullish ? ['观察回踩是否缩量并形成更高低点。'] : ['等待有效离开区间及后续测试。'],
       provenance: { workspaceId: 'demo-chat', runId: 'demo-run', issueId: 'mad42lab-market-daily-interpretation' },
     },
-    context: asset === 'BTC' ? { fundingRate: 0.00012, openInterest: 812_500_000, annualizedBasisPercent: 5.7, optionOpenInterest: 198_400, putCallOpenInterestRatio: 0.78 } : { marketCap: 1_087_000_000_000, trailingPe: 186.4, forwardPe: 98.6, analystTargetMean: 352.5, shortPercentFloat: 2.74, nextEarningsAt: '2026-10-21', recentNews: [{ title: 'Tesla delivery expectations remain in focus', time: '2026-09-12T09:00:00Z', source: 'Demo Wire' }] },
+    context: asset === 'BTC' ? { fundingRate: 0.00012, openInterest: 812_500_000, annualizedBasisPercent: 5.7, optionOpenInterest: 198_400, putCallOpenInterestRatio: 0.78 } : asset === 'TSLA' ? { marketCap: 1_087_000_000_000, trailingPe: 186.4, forwardPe: 98.6, analystTargetMean: 352.5, shortPercentFloat: 2.74, nextEarningsAt: '2026-10-21', recentNews: [{ title: 'Tesla delivery expectations remain in focus', time: '2026-09-12T09:00:00Z', source: 'Demo Wire' }] } : { marketCap: 95_000_000_000, analystTargetMean: 420, shortPercentFloat: 8.1, nextEarningsAt: '2026-10-29', recentNews: [{ title: 'MSTR capital strategy remains in focus', time: '2026-09-12T08:30:00Z', source: 'Demo Wire' }] },
     sourceHealth: [
       { id: 'daily-bars', label: 'Daily OHLCV', status: 'ok', provider: 'demo/yfinance', asOf: last.date, detail: 'Deterministic attributed demo bars.' },
       { id: 'intraday-bars', label: 'Hourly OHLCV', status: 'ok', provider: 'demo/yfinance', asOf: intraday.at(-1)!.date, detail: 'Deterministic attributed hourly demo bars.' },
@@ -140,8 +145,8 @@ export function demoMonitorSnapshot(asset: MonitorAsset, sequence = 0): MonitorS
     ],
     chart: {
       daily, intraday,
-      dailyMeta: { symbol: asset === 'BTC' ? 'BTC-USD' : 'TSLA', from: daily[0].date, to: last.date, bars: daily.length, source: 'vendor', sourceId: 'demo/yfinance', barId: `demo|${asset}`, provider: 'demo', barCapability: 'delayed' },
-      intradayMeta: { symbol: asset === 'BTC' ? 'BTC-USD' : 'TSLA', from: intraday[0].date, to: intraday.at(-1)!.date, bars: intraday.length, source: 'vendor', sourceId: 'demo/yfinance', barId: `demo|${asset}`, provider: 'demo', barCapability: 'delayed' },
+      dailyMeta: { symbol: asset === 'BTC' ? 'BTC-USD' : asset, from: daily[0].date, to: last.date, bars: daily.length, source: 'vendor', sourceId: 'demo/yfinance', barId: `demo|${asset}`, provider: 'demo', barCapability: 'delayed' },
+      intradayMeta: { symbol: asset === 'BTC' ? 'BTC-USD' : asset, from: intraday[0].date, to: intraday.at(-1)!.date, bars: intraday.length, source: 'vendor', sourceId: 'demo/yfinance', barId: `demo|${asset}`, provider: 'demo', barCapability: 'delayed' },
     },
   }
 }

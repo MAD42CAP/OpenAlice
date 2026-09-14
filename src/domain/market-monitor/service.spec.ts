@@ -110,6 +110,21 @@ describe('market monitor service', () => {
     expect(store.data.receipts).toHaveLength(2)
   })
 
+  it('scans MSTR through the reusable equity context provider', async () => {
+    const store = memoryStore()
+    const deps = dependencies()
+    const service = createMarketMonitorService({ ...deps, store, now: () => new Date('2026-04-01T00:00:00Z') })
+    const result = await service.scan('MSTR', 'manual')
+    expect(result.snapshot.asset).toBe('MSTR')
+    expect(deps.equityClient.getKeyMetrics).toHaveBeenCalledWith({ symbol: 'MSTR' })
+    expect(deps.equityClient.getEstimateConsensus).toHaveBeenCalledWith({ symbol: 'MSTR' })
+    expect(deps.equityClient.getShareStatistics).toHaveBeenCalledWith({ symbol: 'MSTR' })
+    expect(result.snapshot.sourceHealth).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'mstr-reference' }),
+      expect.objectContaining({ id: 'mstr-calendar-news' }),
+    ]))
+  })
+
   it('releases its scan lock after failure so later attempts can recover', async () => {
     const store = memoryStore()
     const deps = dependencies()

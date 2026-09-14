@@ -16,7 +16,7 @@ function service(): MarketMonitorService {
     snapshots: vi.fn(async () => []), alerts: vi.fn(async () => []), receipts: vi.fn(async () => []),
     evaluation: vi.fn(async (asset) => ({ asset, samples: 0, resolved: 0, directionalAccuracy: null, averageForwardChangePercent: null, rows: [] })),
     strategies: vi.fn((): MarketMonitorStrategyManifest[] => [{ id: 'evidence-chain-v1', label: 'Evidence chain', version: 1, description: 'fixture', requiredData: ['daily-bars', 'hourly-bars', 'asset-context'] }]),
-    contextProviders: vi.fn((): MarketContextProviderManifest[] => [{ id: 'fixture-context', label: 'Fixture', assets: ['BTC', 'TSLA'], description: 'fixture' }]),
+    contextProviders: vi.fn((): MarketContextProviderManifest[] => [{ id: 'fixture-context', label: 'Fixture', assets: ['BTC', 'TSLA', 'MSTR'], description: 'fixture' }]),
     dailyNarrationInput: vi.fn(async () => ({ generatedAt: new Date().toISOString(), strategyId: 'evidence-chain-v1', assets: [] })),
     publishNarration: vi.fn(),
     narrations: vi.fn(async () => []),
@@ -89,7 +89,7 @@ describe('market monitor routes', () => {
     const { createMarketMonitorScheduler } = await import('../../domain/market-monitor/scheduler.js')
     const scheduler = createMarketMonitorScheduler(fake)
     const app = createMarketMonitorRoutes({} as EngineContext, fake, scheduler)
-    expect(await (await app.request('/status')).json()).toMatchObject({ running: false, backgroundEnabled: false, assets: [{ asset: 'BTC' }, { asset: 'TSLA' }] })
+    expect(await (await app.request('/status')).json()).toMatchObject({ running: false, backgroundEnabled: false, assets: [{ asset: 'BTC' }, { asset: 'TSLA' }, { asset: 'MSTR' }] })
   })
 
   it('persists explicit background consent and rejects duplicate assets', async () => {
