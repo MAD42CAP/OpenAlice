@@ -1,4 +1,5 @@
 import type { Resources } from './en'
+import { zh } from './zh'
 
 /**
  * 繁體中文 (Traditional Chinese, Hant script). Typed as `Resources` → must
@@ -1889,6 +1890,9 @@ export const zhHant: Resources = {
   simulator: {
     title: '模擬器',
   },
+  // The monitor follows the global locale immediately. Its Simplified-Chinese
+  // catalog is the compatibility source until the dedicated Hant copy lands.
+  marketMonitor: zh.marketMonitor,
   market: {
     openSymbol: '開啟 {{symbol}} 詳情',
     pageTitle: '市場',

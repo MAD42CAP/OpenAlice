@@ -1,4 +1,4 @@
-import type { Resources } from './en'
+import { en, type Resources } from './en'
 
 /** 日本語. Typed as `Resources` → must match en's key structure exactly. */
 export const ja: Resources = {
@@ -1882,6 +1882,9 @@ export const ja: Resources = {
   simulator: {
     title: 'シミュレーター',
   },
+  // English is the intentional fallback for this newly added surface until a
+  // reviewed Japanese financial copy catalog is available.
+  marketMonitor: en.marketMonitor,
   market: {
     openSymbol: '{{symbol}} の詳細を開く',
     pageTitle: 'マーケット',

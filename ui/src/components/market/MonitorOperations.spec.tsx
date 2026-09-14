@@ -1,9 +1,11 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { demoMonitorHealth } from '../../demo/fixtures/market-monitor'
+import { i18n } from '../../i18n'
 import { MonitorOperations } from './MonitorOperations'
 
+beforeEach(async () => { await i18n.changeLanguage('en') })
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 it('exports the displayed report with its asset, window and source issues intact', async () => {
@@ -38,4 +40,13 @@ it('labels retained reports and sample limits, and does not invent legacy source
   expect(screen.getByText(/earlier attempts in this window are excluded/)).toBeTruthy()
   expect(screen.getByText('Source health is unknown for these attempts.')).toBeTruthy()
   expect(screen.getByText(/3 attempts have no source checks/)).toBeTruthy()
+})
+
+it('renders operational history in Chinese when the global locale changes', async () => {
+  await i18n.changeLanguage('zh')
+  render(<MonitorOperations asset="BTC" hours={24} onHoursChange={vi.fn()} report={demoMonitorHealth('BTC')} error={null} loading={false} onRefresh={vi.fn()} />)
+  expect(screen.getByRole('region', { name: 'BTC 监测运行情况' })).toBeTruthy()
+  expect(screen.getByRole('table', { name: '数据源可靠性' })).toBeTruthy()
+  expect(screen.getByText('1 / 3 已检查')).toBeTruthy()
+  expect(screen.getByText(/不代表持续在线率或交易表现/)).toBeTruthy()
 })

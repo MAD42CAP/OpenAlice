@@ -3,6 +3,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { demoMonitorHealth, demoMonitorSnapshot } from '../demo/fixtures/market-monitor'
+import { i18n } from '../i18n'
 import { MarketEvidenceMonitorPage } from './MarketEvidenceMonitorPage'
 
 const mocks = vi.hoisted(() => ({
@@ -10,7 +11,8 @@ const mocks = vi.hoisted(() => ({
 }))
 vi.mock('../api', () => ({ api: { marketMonitor: mocks } }))
 
-beforeEach(() => {
+beforeEach(async () => {
+  await i18n.changeLanguage('en')
   window.localStorage.clear()
   mocks.health.mockImplementation(async (asset: 'BTC' | 'TSLA', hours: 24 | 72) => demoMonitorHealth(asset, hours))
   const settings = { backgroundEnabled: false, enabledAssets: ['BTC', 'TSLA'], strategyId: 'evidence-chain-v1', intervalMinutes: 15, notifications: false, alertConfidence: 68, abnormalVolumeRatio: 1.8, abnormalMovePercent: 1.5 }
@@ -106,4 +108,15 @@ it('does not label a disconnected backend as active', async () => {
   await screen.findByText('Monitor connection unavailable')
   expect(screen.getByRole('button', { name: 'Retry status' })).toBeTruthy()
   expect(screen.queryByText('Background monitoring active')).toBeNull()
+})
+
+it('follows the global Chinese locale for current and previously stored evidence', async () => {
+  await i18n.changeLanguage('zh')
+  render(<MarketEvidenceMonitorPage />)
+  expect(await screen.findByText('市场证据监测')).toBeTruthy()
+  expect(screen.getAllByText('需求暂时占优').length).toBeGreaterThan(0)
+  expect(screen.getByText('收盘价位于60日区间的 82%。')).toBeTruthy()
+  expect(screen.getByText('确认条件')).toBeTruthy()
+  expect(screen.getByRole('table', { name: '数据源可靠性' })).toBeTruthy()
+  expect(screen.queryByText('Demand has provisional control')).toBeNull()
 })

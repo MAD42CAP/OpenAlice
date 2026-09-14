@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Bell, Download, RefreshCw, Settings2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { api } from '../api'
 import type {
   MonitorAlert,
@@ -18,6 +19,15 @@ import { cn } from '../lib/utils'
 import { useMarketMonitorStatus } from '../hooks/useMarketMonitorStatus'
 import { useMarketMonitorHealth } from '../hooks/useMarketMonitorHealth'
 import { MonitorOperations } from '../components/market/MonitorOperations'
+import { getIntlLocale } from '../lib/intl'
+import {
+  monitorAlertCopy,
+  monitorEvidenceCopy,
+  monitorHypothesisCopy,
+  monitorSourceDetail,
+  monitorSourceLabel,
+  monitorStrategyLabel,
+} from './market/market-monitor-presentation'
 
 const ASSETS: MonitorAsset[] = ['BTC', 'TSLA']
 const DEFAULT_SETTINGS: MonitorSettings = {
@@ -35,7 +45,7 @@ type Timeframe = '1D' | '1H'
 
 function formatNumber(value: unknown, digits = 2): string {
   return typeof value === 'number' && Number.isFinite(value)
-    ? new Intl.NumberFormat(undefined, { maximumFractionDigits: digits }).format(value)
+    ? new Intl.NumberFormat(getIntlLocale(), { maximumFractionDigits: digits }).format(value)
     : '—'
 }
 
@@ -46,7 +56,7 @@ function formatPercent(value: number | null | undefined): string {
 function formatDate(value: string | null | undefined): string {
   if (!value) return '—'
   const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString()
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString(getIntlLocale())
 }
 
 function usePersistedAsset(): [MonitorAsset, (asset: MonitorAsset) => void] {
@@ -59,6 +69,7 @@ function usePersistedAsset(): [MonitorAsset, (asset: MonitorAsset) => void] {
 }
 
 export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolean }) {
+  const { t } = useTranslation()
   const [asset, setAsset] = usePersistedAsset()
   const [timeframe, setTimeframe] = useState<Timeframe>('1D')
   const [settings, setSettings] = useState<MonitorSettings>(DEFAULT_SETTINGS)
@@ -186,28 +197,28 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <PageHeader
-        title="Evidence Monitor"
-        description={`BTC + TSLA · ${strategies.find((strategy) => strategy.id === settings.strategyId)?.label ?? settings.strategyId} · facts, hypotheses, confirmation and invalidation`}
-        live={{ lastUpdated: snapshot ? new Date(snapshot.capturedAt) : null, label: snapshot ? `scanned ${formatDate(snapshot.capturedAt)}` : 'waiting for first scan', hideDot: !snapshot }}
+        title={t('marketMonitor.title')}
+        description={t('marketMonitor.description', { strategy: monitorStrategyLabel(t, settings.strategyId, strategies.find((strategy) => strategy.id === settings.strategyId)?.label ?? settings.strategyId) })}
+        live={{ lastUpdated: snapshot ? new Date(snapshot.capturedAt) : null, label: snapshot ? t('marketMonitor.scannedAt', { time: formatDate(snapshot.capturedAt) }) : t('marketMonitor.waitingFirstScan'), hideDot: !snapshot }}
         right={<div className="flex items-center gap-1.5">
-          {import.meta.env.VITE_DEMO_MODE && <span className="rounded-sm border border-warning/50 bg-warning/10 px-2 py-1 text-[10px] font-semibold tracking-wide text-warning">DEMO DATA · NOT LIVE</span>}
-          <Button variant="ghost" size="sm" onClick={() => setSettingsOpen((value) => !value)} aria-label="Monitor settings"><Settings2 className="size-4" /></Button>
-          <Button size="sm" onClick={() => void scan(asset, 'manual')} disabled={scanning}><RefreshCw className={cn('size-3.5', scanning && 'animate-spin')} />Scan now</Button>
+          {import.meta.env.VITE_DEMO_MODE && <span className="rounded-sm border border-warning/50 bg-warning/10 px-2 py-1 text-[10px] font-semibold tracking-wide text-warning">{t('marketMonitor.demoBadge')}</span>}
+          <Button variant="ghost" size="sm" onClick={() => setSettingsOpen((value) => !value)} aria-label={t('marketMonitor.settingsTitle')}><Settings2 className="size-4" /></Button>
+          <Button size="sm" onClick={() => void scan(asset, 'manual')} disabled={scanning}><RefreshCw className={cn('size-3.5', scanning && 'animate-spin')} />{t('marketMonitor.scanNow')}</Button>
         </div>}
       />
 
-      {refreshError && <div role="status" className="mx-4 mt-2 flex items-center justify-between border-l-2 border-warning bg-warning/5 px-3 py-2 text-xs text-muted-foreground md:mx-6"><span>Refresh failed; the last successful view is retained. {refreshError}</span><Button variant="ghost" size="sm" onClick={() => void loadState(false)}>Retry</Button></div>}
+      {refreshError && <div role="status" className="mx-4 mt-2 flex items-center justify-between border-l-2 border-warning bg-warning/5 px-3 py-2 text-xs text-muted-foreground md:mx-6"><span>{t('marketMonitor.refreshFailed', { error: refreshError })}</span><Button variant="ghost" size="sm" onClick={() => void loadState(false)}>{t('marketMonitor.retry')}</Button></div>}
 
       {settingsOpen && <SettingsPanel settings={settings} strategies={strategies} onSave={saveSettings} onClose={() => setSettingsOpen(false)} />}
 
       <RuntimeStatus asset={asset} status={runtime.status} error={runtime.error} onRetry={runtime.refresh} />
 
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border/60 px-4 py-3 md:px-6">
-        <div role="tablist" aria-label="Monitored asset" className="inline-flex rounded-md border border-border bg-muted/35 p-0.5">
-          {ASSETS.map((item) => <button key={item} role="tab" aria-selected={asset === item} onClick={() => setAsset(item)} className={cn('rounded-[5px] px-4 py-1.5 text-xs font-semibold transition-colors', asset === item ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground')}>{item}<span className="ml-1.5 font-normal text-muted-foreground">{item === 'BTC' ? 'Bitcoin' : 'Tesla'}</span></button>)}
+        <div role="tablist" aria-label={t('marketMonitor.monitoredAsset')} className="inline-flex rounded-md border border-border bg-muted/35 p-0.5">
+          {ASSETS.map((item) => <button key={item} role="tab" aria-selected={asset === item} onClick={() => setAsset(item)} className={cn('rounded-[5px] px-4 py-1.5 text-xs font-semibold transition-colors', asset === item ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground')}>{item}<span className="ml-1.5 font-normal text-muted-foreground">{item === 'BTC' ? t('marketMonitor.assetBitcoin') : t('marketMonitor.assetTesla')}</span></button>)}
         </div>
         <div className="flex items-center gap-2">
-          <div role="group" aria-label="Chart timeframe" className="inline-flex rounded-md border border-border p-0.5">
+          <div role="group" aria-label={t('marketMonitor.chartTimeframe')} className="inline-flex rounded-md border border-border p-0.5">
             {(['1D', '1H'] as const).map((item) => <button key={item} aria-pressed={timeframe === item} onClick={() => setTimeframe(item)} className={cn('rounded px-2.5 py-1 text-[11px]', timeframe === item ? 'bg-muted font-semibold text-foreground' : 'text-muted-foreground')}>{item}</button>)}
           </div>
           <Button variant="ghost" size="sm" onClick={() => exportData('csv')} disabled={!snapshots.length}><Download className="size-3.5" />CSV</Button>
@@ -216,7 +227,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-6">
-        {loading && !snapshot ? <MonitorSkeleton /> : error && !snapshot ? <div><EmptyState title="Evidence monitor unavailable" description={error} /><div className="-mt-9 flex justify-center pb-10"><Button onClick={() => void scan(asset, 'manual')}>Retry scan</Button></div></div> : snapshot ? (
+        {loading && !snapshot ? <MonitorSkeleton /> : error && !snapshot ? <div><EmptyState title={t('marketMonitor.unavailable')} description={error} /><div className="-mt-9 flex justify-center pb-10"><Button onClick={() => void scan(asset, 'manual')}>{t('marketMonitor.retryScan')}</Button></div></div> : snapshot ? (
           <div className="mx-auto flex max-w-[1320px] flex-col gap-4 pb-8">
             <Overview snapshot={snapshot} timeframe={timeframe} />
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(300px,0.7fr)]">
@@ -229,7 +240,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
             </div>
             <HistoryPanel snapshots={snapshots} evaluation={evaluation} alerts={alerts.filter((item) => item.asset === asset)} />
           </div>
-        ) : <EmptyState title="No observations yet" description="Choose Scan now for a one-time check, or enable background monitoring in settings." />}
+        ) : <EmptyState title={t('marketMonitor.noObservations')} description={t('marketMonitor.noObservationsDescription')} />}
         <MonitorOperations asset={asset} hours={reportHours} onHoursChange={setReportHours} report={health.report} loading={health.loading} error={health.error} onRefresh={health.refresh} />
       </div>
     </div>
@@ -237,21 +248,22 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
 }
 
 function RuntimeStatus({ asset, status, error, onRetry }: { asset: MonitorAsset; status: MonitorSchedulerStatus | null; error: string | null; onRetry: () => Promise<void> }) {
+  const { t } = useTranslation()
   const item = status?.assets.find((row) => row.asset === asset)
-  const label = error ? 'Monitor connection unavailable'
-    : import.meta.env.VITE_DEMO_MODE ? 'Demo · background scans are not running'
-    : !status ? 'Checking background monitor…'
-    : status.error ? 'Background monitor needs attention'
-    : !status.running ? 'Background monitor stopped'
-    : !status.backgroundEnabled ? 'Background monitoring paused'
-    : !item?.enabled ? `${asset} excluded from background monitoring`
-    : item.scanning ? `${asset} scan in progress`
-    : 'Background monitoring active'
-  return <section aria-label="Background monitor status" className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 border-b border-border/60 px-4 py-2 text-[11px] text-muted-foreground md:px-6">
+  const label = error ? t('marketMonitor.runtime.connectionUnavailable')
+    : import.meta.env.VITE_DEMO_MODE ? t('marketMonitor.runtime.demoPaused')
+    : !status ? t('marketMonitor.runtime.checking')
+    : status.error ? t('marketMonitor.runtime.attention')
+    : !status.running ? t('marketMonitor.runtime.stopped')
+    : !status.backgroundEnabled ? t('marketMonitor.runtime.paused')
+    : !item?.enabled ? t('marketMonitor.runtime.excluded', { asset })
+    : item.scanning ? t('marketMonitor.runtime.scanning', { asset })
+    : t('marketMonitor.runtime.active')
+  return <section aria-label={t('marketMonitor.runtime.aria')} className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 border-b border-border/60 px-4 py-2 text-[11px] text-muted-foreground md:px-6">
     <span role="status" className={cn('font-medium', (error || status?.error) && 'text-warning')}>{label}</span>
-    {error ? <><span>Last known state only. {error}</span><Button variant="ghost" size="sm" onClick={() => void onRetry()}>Retry status</Button></> : <>
-      {item?.lastReceipt && <span>Last attempt: {formatDate(item.lastReceipt.completedAt ?? item.lastReceipt.requestedAt)} · {item.lastReceipt.outcome}</span>}
-      {item?.nextScanAt && !import.meta.env.VITE_DEMO_MODE && <span>Next: {formatDate(item.nextScanAt)}</span>}
+    {error ? <><span>{t('marketMonitor.runtime.retained', { error })}</span><Button variant="ghost" size="sm" onClick={() => void onRetry()}>{t('marketMonitor.runtime.retry')}</Button></> : <>
+      {item?.lastReceipt && <span>{t('marketMonitor.runtime.lastAttempt', { time: formatDate(item.lastReceipt.completedAt ?? item.lastReceipt.requestedAt), outcome: t(`marketMonitor.outcome.${item.lastReceipt.outcome}`) })}</span>}
+      {item?.nextScanAt && !import.meta.env.VITE_DEMO_MODE && <span>{t('marketMonitor.runtime.next', { time: formatDate(item.nextScanAt) })}</span>}
       {item?.lastError && <span className="text-warning">{item.lastError}</span>}
       {status?.error && <span className="text-warning">{status.error}</span>}
     </>}
@@ -263,25 +275,27 @@ function Panel({ title, trailing, children }: { title: string; trailing?: React.
 }
 
 function Overview({ snapshot, timeframe }: { snapshot: MonitorSnapshot; timeframe: Timeframe }) {
+  const { t } = useTranslation()
   const bars = timeframe === '1D' ? snapshot.chart.daily : snapshot.chart.intraday
-  return <Panel title={`${snapshot.asset} market state`} trailing={<span className="text-[11px] text-muted-foreground">{timeframe === '1D' ? snapshot.chart.dailyMeta.sourceId : snapshot.chart.intradayMeta?.sourceId ?? 'hourly unavailable'} · {formatDate(timeframe === '1D' ? snapshot.metrics.lastBarAt : snapshot.metrics.intraday.latestAt)}</span>}>
+  return <Panel title={t('marketMonitor.panels.marketState', { asset: snapshot.asset })} trailing={<span className="text-[11px] text-muted-foreground">{timeframe === '1D' ? snapshot.chart.dailyMeta.sourceId : snapshot.chart.intradayMeta?.sourceId ?? t('marketMonitor.chart.hourlyUnavailable')} · {formatDate(timeframe === '1D' ? snapshot.metrics.lastBarAt : snapshot.metrics.intraday.latestAt)}</span>}>
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1.65fr)_minmax(300px,0.85fr)]">
       <div className="min-h-[260px] border-y border-border/60 py-3"><PriceChart bars={bars} unavailable={timeframe === '1H' && !snapshot.metrics.intraday.available} /></div>
       <div className="grid grid-cols-2 gap-x-5 gap-y-4 content-start">
-        <Metric label="Last price" value={snapshot.asset === 'BTC' ? `$${formatNumber(snapshot.metrics.lastPrice, 0)}` : `$${formatNumber(snapshot.metrics.lastPrice)}`} />
-        <Metric label="1-day change" value={formatPercent(snapshot.metrics.change1dPercent)} tone={snapshot.metrics.change1dPercent} />
-        <Metric label="5-day change" value={formatPercent(snapshot.metrics.change5dPercent)} tone={snapshot.metrics.change5dPercent} />
-        <Metric label="Weekly follow-through" value={formatPercent(snapshot.metrics.weeklyChangePercent)} tone={snapshot.metrics.weeklyChangePercent} />
-        <Metric label="60-day range" value={snapshot.metrics.rangePosition60d == null ? '—' : `${Math.round(snapshot.metrics.rangePosition60d * 100)}%`} />
-        <Metric label="20-day volume" value={snapshot.metrics.volumeRatio20d == null ? '—' : `${formatNumber(snapshot.metrics.volumeRatio20d)}×`} />
-        <Metric label="Latest hour" value={formatPercent(snapshot.metrics.intraday.latestChangePercent)} tone={snapshot.metrics.intraday.latestChangePercent} />
-        <Metric label="Rolling 4 hours" value={formatPercent(snapshot.metrics.intraday.fourHourChangePercent)} tone={snapshot.metrics.intraday.fourHourChangePercent} />
+        <Metric label={t('marketMonitor.metrics.lastPrice')} value={snapshot.asset === 'BTC' ? `$${formatNumber(snapshot.metrics.lastPrice, 0)}` : `$${formatNumber(snapshot.metrics.lastPrice)}`} />
+        <Metric label={t('marketMonitor.metrics.oneDayChange')} value={formatPercent(snapshot.metrics.change1dPercent)} tone={snapshot.metrics.change1dPercent} />
+        <Metric label={t('marketMonitor.metrics.fiveDayChange')} value={formatPercent(snapshot.metrics.change5dPercent)} tone={snapshot.metrics.change5dPercent} />
+        <Metric label={t('marketMonitor.metrics.weeklyFollowThrough')} value={formatPercent(snapshot.metrics.weeklyChangePercent)} tone={snapshot.metrics.weeklyChangePercent} />
+        <Metric label={t('marketMonitor.metrics.sixtyDayRange')} value={snapshot.metrics.rangePosition60d == null ? '—' : `${Math.round(snapshot.metrics.rangePosition60d * 100)}%`} />
+        <Metric label={t('marketMonitor.metrics.twentyDayVolume')} value={snapshot.metrics.volumeRatio20d == null ? '—' : `${formatNumber(snapshot.metrics.volumeRatio20d)}×`} />
+        <Metric label={t('marketMonitor.metrics.latestHour')} value={formatPercent(snapshot.metrics.intraday.latestChangePercent)} tone={snapshot.metrics.intraday.latestChangePercent} />
+        <Metric label={t('marketMonitor.metrics.rollingFourHours')} value={formatPercent(snapshot.metrics.intraday.fourHourChangePercent)} tone={snapshot.metrics.intraday.fourHourChangePercent} />
       </div>
     </div>
   </Panel>
 }
 
 function PriceChart({ bars, unavailable }: { bars: HistoricalBar[]; unavailable: boolean }) {
+  const { t } = useTranslation()
   const points = useMemo(() => {
     const rows = bars.slice(-120)
     if (rows.length < 2) return ''
@@ -290,11 +304,11 @@ function PriceChart({ bars, unavailable }: { bars: HistoricalBar[]; unavailable:
     const spread = max - min || 1
     return rows.map((row, index) => `${(index / (rows.length - 1)) * 100},${92 - ((row.close - min) / spread) * 80}`).join(' ')
   }, [bars])
-  if (unavailable || !points) return <div className="flex h-[230px] items-center justify-center text-sm text-muted-foreground">No attributed hourly series. Daily bars are not substituted.</div>
+  if (unavailable || !points) return <div className="flex h-[230px] items-center justify-center text-sm text-muted-foreground">{t('marketMonitor.chart.noHourlySeries')}</div>
   const latest = bars.at(-1)!
   const first = bars[Math.max(0, bars.length - 120)]
   const up = latest.close >= first.close
-  return <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="h-[230px] w-full" role="img" aria-label={`Price path ending ${formatNumber(latest.close)}`}>
+  return <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="h-[230px] w-full" role="img" aria-label={t('marketMonitor.chart.aria', { price: formatNumber(latest.close) })}>
     {[20, 40, 60, 80].map((y) => <line key={y} x1="0" x2="100" y1={y} y2={y} vectorEffect="non-scaling-stroke" className="stroke-border/60" />)}
     <polyline points={points} fill="none" vectorEffect="non-scaling-stroke" strokeWidth="1.75" className={up ? 'stroke-success' : 'stroke-destructive'} />
   </svg>
@@ -305,12 +319,18 @@ function Metric({ label, value, tone }: { label: string; value: string; tone?: n
 }
 
 function EvidenceTable({ snapshot }: { snapshot: MonitorSnapshot }) {
-  return <Panel title="Evidence chain"><div className="overflow-x-auto"><table className="w-full min-w-[660px] text-left text-xs"><thead className="border-b border-border text-[11px] text-muted-foreground"><tr><th className="pb-2 pr-3 font-medium">Signal</th><th className="pb-2 pr-3 font-medium">Frame</th><th className="pb-2 pr-3 font-medium">Observed fact</th><th className="pb-2 font-medium">Interpretation</th></tr></thead><tbody>{snapshot.evidence.map((item) => <tr key={item.id} className="border-b border-border/50 align-top"><td className="py-3 pr-3 font-medium"><span className={cn('mr-2 inline-block size-1.5 rounded-full', item.tone === 'positive' ? 'bg-success' : item.tone === 'negative' ? 'bg-destructive' : 'bg-muted-foreground')} />{item.label}</td><td className="py-3 pr-3 font-mono text-muted-foreground">{item.timeframe}</td><td className="py-3 pr-4 leading-5">{item.observation}</td><td className="py-3 leading-5 text-muted-foreground">{item.interpretation}</td></tr>)}</tbody></table></div></Panel>
+  const { t } = useTranslation()
+  return <Panel title={t('marketMonitor.panels.evidenceChain')}><div className="overflow-x-auto"><table className="w-full min-w-[660px] text-left text-xs"><thead className="border-b border-border text-[11px] text-muted-foreground"><tr><th className="pb-2 pr-3 font-medium">{t('marketMonitor.evidence.signal')}</th><th className="pb-2 pr-3 font-medium">{t('marketMonitor.evidence.frame')}</th><th className="pb-2 pr-3 font-medium">{t('marketMonitor.evidence.observedFact')}</th><th className="pb-2 font-medium">{t('marketMonitor.evidence.interpretation')}</th></tr></thead><tbody>{snapshot.evidence.map((item) => {
+    const copy = monitorEvidenceCopy(t, snapshot, item, formatNumber)
+    return <tr key={item.id} className="border-b border-border/50 align-top"><td className="py-3 pr-3 font-medium"><span className={cn('mr-2 inline-block size-1.5 rounded-full', item.tone === 'positive' ? 'bg-success' : item.tone === 'negative' ? 'bg-destructive' : 'bg-muted-foreground')} />{copy.label}</td><td className="py-3 pr-3 font-mono text-muted-foreground">{item.timeframe}</td><td className="py-3 pr-4 leading-5">{copy.observation}</td><td className="py-3 leading-5 text-muted-foreground">{copy.interpretation}</td></tr>
+  })}</tbody></table></div></Panel>
 }
 
 function HypothesisPanel({ snapshot }: { snapshot: MonitorSnapshot }) {
+  const { t } = useTranslation()
   const hypothesis = snapshot.hypothesis
-  return <Panel title="Current hypothesis" trailing={<span className={cn('text-xs font-semibold tabular-nums', hypothesis.bias === 'bullish' ? 'text-success' : hypothesis.bias === 'bearish' ? 'text-destructive' : 'text-muted-foreground')}>{hypothesis.confidence}%</span>}><h4 className="text-lg font-semibold">{hypothesis.label}</h4><p className="mt-2 text-xs leading-5 text-muted-foreground">{hypothesis.summary}</p><ConditionList title="Confirmation" rows={hypothesis.confirm} tone="positive" /><ConditionList title="Invalidation" rows={hypothesis.invalidate} tone="negative" /><ConditionList title="Competing explanations" rows={hypothesis.alternatives} tone="neutral" /></Panel>
+  const copy = monitorHypothesisCopy(t, snapshot)
+  return <Panel title={t('marketMonitor.panels.currentHypothesis')} trailing={<span className={cn('text-xs font-semibold tabular-nums', hypothesis.bias === 'bullish' ? 'text-success' : hypothesis.bias === 'bearish' ? 'text-destructive' : 'text-muted-foreground')}>{hypothesis.confidence}%</span>}><h4 className="text-lg font-semibold">{copy.label}</h4><p className="mt-2 text-xs leading-5 text-muted-foreground">{copy.summary}</p><ConditionList title={t('marketMonitor.panels.confirmation')} rows={copy.confirm} tone="positive" /><ConditionList title={t('marketMonitor.panels.invalidation')} rows={copy.invalidate} tone="negative" /><ConditionList title={t('marketMonitor.panels.alternatives')} rows={copy.alternatives} tone="neutral" /></Panel>
 }
 
 function ConditionList({ title, rows, tone }: { title: string; rows: string[]; tone: 'positive' | 'negative' | 'neutral' }) {
@@ -318,20 +338,27 @@ function ConditionList({ title, rows, tone }: { title: string; rows: string[]; t
 }
 
 function ContextPanel({ snapshot }: { snapshot: MonitorSnapshot }) {
-  const labels: Record<string, string> = { fundingRate: 'Funding rate', openInterest: 'Perpetual OI', annualizedBasisPercent: 'Annualized basis', optionOpenInterest: 'Options OI', putCallOpenInterestRatio: 'Put/call OI', marketCap: 'Market cap', trailingPe: 'Trailing P/E', forwardPe: 'Forward P/E', analystTargetMean: 'Analyst target', shortPercentFloat: 'Short % float', nextEarningsAt: 'Next earnings' }
+  const { t } = useTranslation()
+  const labels: Record<string, string> = { fundingRate: t('marketMonitor.context.fundingRate'), openInterest: t('marketMonitor.context.openInterest'), annualizedBasisPercent: t('marketMonitor.context.annualizedBasisPercent'), optionOpenInterest: t('marketMonitor.context.optionOpenInterest'), putCallOpenInterestRatio: t('marketMonitor.context.putCallOpenInterestRatio'), marketCap: t('marketMonitor.context.marketCap'), trailingPe: t('marketMonitor.context.trailingPe'), forwardPe: t('marketMonitor.context.forwardPe'), analystTargetMean: t('marketMonitor.context.analystTargetMean'), shortPercentFloat: t('marketMonitor.context.shortPercentFloat'), nextEarningsAt: t('marketMonitor.context.nextEarningsAt') }
   const rows = Object.entries(labels).filter(([key]) => snapshot.context[key] != null)
-  return <Panel title={`${snapshot.asset} context`}><dl className="grid grid-cols-2 gap-x-5 gap-y-3">{rows.length ? rows.map(([key, label]) => <div key={key}><dt className="text-[11px] text-muted-foreground">{label}</dt><dd className="mt-1 text-sm font-medium tabular-nums">{key.toLowerCase().includes('percent') || key === 'annualizedBasisPercent' ? `${formatNumber(snapshot.context[key])}%` : key.endsWith('At') ? formatDate(String(snapshot.context[key])) : formatNumber(snapshot.context[key])}</dd></div>) : <p className="col-span-2 text-xs text-muted-foreground">Context source unavailable. Price/volume evidence remains usable and explicitly attributed.</p>}</dl>{snapshot.context.recentNews?.length ? <div className="mt-4 border-t border-border/60 pt-3"><div className="mb-2 text-[11px] font-semibold text-muted-foreground">Recent matching news</div><ul className="space-y-2">{snapshot.context.recentNews.map((item) => <li key={`${item.time}:${item.title}`} className="text-xs"><span className="text-muted-foreground">{formatDate(item.time)} · {item.source ?? 'unknown'}</span><div className="mt-0.5 line-clamp-2">{item.title}</div></li>)}</ul></div> : null}</Panel>
+  return <Panel title={t('marketMonitor.panels.context', { asset: snapshot.asset })}><dl className="grid grid-cols-2 gap-x-5 gap-y-3">{rows.length ? rows.map(([key, label]) => <div key={key}><dt className="text-[11px] text-muted-foreground">{label}</dt><dd className="mt-1 text-sm font-medium tabular-nums">{key.toLowerCase().includes('percent') || key === 'annualizedBasisPercent' ? `${formatNumber(snapshot.context[key])}%` : key.endsWith('At') ? formatDate(String(snapshot.context[key])) : formatNumber(snapshot.context[key])}</dd></div>) : <p className="col-span-2 text-xs text-muted-foreground">{t('marketMonitor.context.unavailable')}</p>}</dl>{snapshot.context.recentNews?.length ? <div className="mt-4 border-t border-border/60 pt-3"><div className="mb-2 text-[11px] font-semibold text-muted-foreground">{t('marketMonitor.context.recentNews')}</div><ul className="space-y-2">{snapshot.context.recentNews.map((item) => <li key={`${item.time}:${item.title}`} className="text-xs"><span className="text-muted-foreground">{formatDate(item.time)} · {item.source ?? t('marketMonitor.context.unknown')}</span><div className="mt-0.5 line-clamp-2">{item.title}</div></li>)}</ul></div> : null}</Panel>
 }
 
 function SourcePanel({ snapshot }: { snapshot: MonitorSnapshot }) {
-  return <Panel title="Source health"><div className="space-y-3">{snapshot.sourceHealth.map((source) => <div key={source.id} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2"><span className={cn('mt-1.5 size-2 rounded-full', source.status === 'ok' ? 'bg-success' : source.status === 'degraded' ? 'bg-warning' : 'bg-destructive')} /><div><div className="flex flex-wrap items-baseline justify-between gap-2"><span className="text-xs font-medium">{source.label}</span><span className="text-[10px] text-muted-foreground">{source.provider}</span></div><p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{source.detail}</p><div className="mt-0.5 text-[10px] text-muted-foreground/70">As of {formatDate(source.asOf)}</div></div></div>)}</div></Panel>
+  const { t } = useTranslation()
+  return <Panel title={t('marketMonitor.panels.sourceHealth')}><div className="space-y-3">{snapshot.sourceHealth.map((source) => <div key={source.id} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2"><span className={cn('mt-1.5 size-2 rounded-full', source.status === 'ok' ? 'bg-success' : source.status === 'degraded' ? 'bg-warning' : 'bg-destructive')} /><div><div className="flex flex-wrap items-baseline justify-between gap-2"><span className="text-xs font-medium">{monitorSourceLabel(t, source, snapshot.asset)}</span><span className="text-[10px] text-muted-foreground">{source.provider}</span></div><p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{monitorSourceDetail(t, source)}</p><div className="mt-0.5 text-[10px] text-muted-foreground/70">{t('marketMonitor.source.asOf', { time: formatDate(source.asOf) })}</div></div></div>)}</div></Panel>
 }
 
 function HistoryPanel({ snapshots, evaluation, alerts }: { snapshots: MonitorSnapshot[]; evaluation: MonitorEvaluation | null; alerts: MonitorAlert[] }) {
-  return <Panel title="Observation history" trailing={evaluation ? <span className="text-[11px] text-muted-foreground">{evaluation.resolved} resolved · accuracy {evaluation.directionalAccuracy == null ? '—' : `${formatNumber(evaluation.directionalAccuracy)}%`}</span> : undefined}><div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.6fr)]"><div className="overflow-x-auto"><table className="w-full min-w-[560px] text-xs"><thead className="border-b border-border text-left text-[11px] text-muted-foreground"><tr><th className="pb-2 font-medium">Captured</th><th className="pb-2 font-medium">Price</th><th className="pb-2 font-medium">Hypothesis</th><th className="pb-2 text-right font-medium">Confidence</th><th className="pb-2 text-right font-medium">Trigger</th></tr></thead><tbody>{snapshots.slice(-12).reverse().map((row) => <tr key={row.id} className="border-b border-border/50"><td className="py-2.5 text-muted-foreground">{formatDate(row.capturedAt)}</td><td className="py-2.5 tabular-nums">{formatNumber(row.metrics.lastPrice)}</td><td className="py-2.5">{row.hypothesis.label}</td><td className="py-2.5 text-right tabular-nums">{row.hypothesis.confidence}%</td><td className="py-2.5 text-right text-muted-foreground">{row.trigger}</td></tr>)}</tbody></table></div><div><div className="mb-2 flex items-center gap-2 text-[11px] font-semibold text-muted-foreground"><Bell className="size-3.5" />Recent alerts</div>{alerts.length ? <ul className="space-y-2">{alerts.slice(-6).reverse().map((alert) => <li key={alert.id} className="border-l-2 border-warning pl-2 text-xs"><div className="font-medium">{alert.title}</div><div className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{alert.message}</div></li>)}</ul> : <p className="text-xs text-muted-foreground">No alert conditions recorded.</p>}</div></div></Panel>
+  const { t } = useTranslation()
+  return <Panel title={t('marketMonitor.panels.history')} trailing={evaluation ? <span className="text-[11px] text-muted-foreground">{t('marketMonitor.history.summary', { resolved: evaluation.resolved, accuracy: evaluation.directionalAccuracy == null ? '—' : `${formatNumber(evaluation.directionalAccuracy)}%` })}</span> : undefined}><div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.6fr)]"><div className="overflow-x-auto"><table className="w-full min-w-[560px] text-xs"><thead className="border-b border-border text-left text-[11px] text-muted-foreground"><tr><th className="pb-2 font-medium">{t('marketMonitor.history.captured')}</th><th className="pb-2 font-medium">{t('marketMonitor.history.price')}</th><th className="pb-2 font-medium">{t('marketMonitor.history.hypothesis')}</th><th className="pb-2 text-right font-medium">{t('marketMonitor.history.confidence')}</th><th className="pb-2 text-right font-medium">{t('marketMonitor.history.trigger')}</th></tr></thead><tbody>{snapshots.slice(-12).reverse().map((row) => <tr key={row.id} className="border-b border-border/50"><td className="py-2.5 text-muted-foreground">{formatDate(row.capturedAt)}</td><td className="py-2.5 tabular-nums">{formatNumber(row.metrics.lastPrice)}</td><td className="py-2.5">{monitorHypothesisCopy(t, row).label}</td><td className="py-2.5 text-right tabular-nums">{row.hypothesis.confidence}%</td><td className="py-2.5 text-right text-muted-foreground">{t(`marketMonitor.history.${row.trigger}`)}</td></tr>)}</tbody></table></div><div><div className="mb-2 flex items-center gap-2 text-[11px] font-semibold text-muted-foreground"><Bell className="size-3.5" />{t('marketMonitor.panels.recentAlerts')}</div>{alerts.length ? <ul className="space-y-2">{alerts.slice(-6).reverse().map((alert) => {
+    const copy = monitorAlertCopy(t, alert, snapshots.find((row) => row.id === alert.snapshotId))
+    return <li key={alert.id} className="border-l-2 border-warning pl-2 text-xs"><div className="font-medium">{copy.title}</div><div className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{copy.message}</div></li>
+  })}</ul> : <p className="text-xs text-muted-foreground">{t('marketMonitor.history.noAlerts')}</p>}</div></div></Panel>
 }
 
 function SettingsPanel({ settings, strategies, onSave, onClose }: { settings: MonitorSettings; strategies: MonitorStrategy[]; onSave: (settings: MonitorSettings) => Promise<void>; onClose: () => void }) {
+  const { t } = useTranslation()
   const [draft, setDraft] = useState(settings)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -343,25 +370,25 @@ function SettingsPanel({ settings, strategies, onSave, onClose }: { settings: Mo
     catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)) }
     finally { setSaving(false) }
   }
-  return <form aria-label="Monitor settings" onSubmit={(event) => { event.preventDefault(); void commit() }} className="max-h-[60vh] shrink-0 overflow-y-auto border-b border-border bg-muted/20 px-4 py-3 md:px-6">
+  return <form aria-label={t('marketMonitor.settingsTitle')} onSubmit={(event) => { event.preventDefault(); void commit() }} className="max-h-[60vh] shrink-0 overflow-y-auto border-b border-border bg-muted/20 px-4 py-3 md:px-6">
     <fieldset disabled={saving} className="mx-auto max-w-[1160px] space-y-3">
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
-        <label className="flex items-center gap-2 font-medium"><input type="checkbox" checked={draft.backgroundEnabled} onChange={(event) => setDraft({ ...draft, backgroundEnabled: event.target.checked })} />Background monitoring</label>
-        <fieldset className="flex items-center gap-3"><legend className="sr-only">Scheduled assets</legend>{ASSETS.map((item) => <label key={item} className="flex items-center gap-1.5"><input type="checkbox" checked={draft.enabledAssets.includes(item)} onChange={(event) => setDraft({ ...draft, enabledAssets: event.target.checked ? [...draft.enabledAssets, item] : draft.enabledAssets.filter((asset) => asset !== item) })} />{item}</label>)}</fieldset>
+        <label className="flex items-center gap-2 font-medium"><input type="checkbox" checked={draft.backgroundEnabled} onChange={(event) => setDraft({ ...draft, backgroundEnabled: event.target.checked })} />{t('marketMonitor.settings.background')}</label>
+        <fieldset className="flex items-center gap-3"><legend className="sr-only">{t('marketMonitor.settings.scheduledAssets')}</legend>{ASSETS.map((item) => <label key={item} className="flex items-center gap-1.5"><input type="checkbox" checked={draft.enabledAssets.includes(item)} onChange={(event) => setDraft({ ...draft, enabledAssets: event.target.checked ? [...draft.enabledAssets, item] : draft.enabledAssets.filter((asset) => asset !== item) })} />{item}</label>)}</fieldset>
       </div>
-      <p className="text-[11px] leading-5 text-muted-foreground">Runs with the OpenAlice backend, even after closing this page. Stops when the backend exits or the computer sleeps. Pause prevents new scans; an active scan finishes. Browser alerts require an open page.</p>
+      <p className="text-[11px] leading-5 text-muted-foreground">{t('marketMonitor.settings.explanation')}</p>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <label className="text-[11px] text-muted-foreground">Strategy<select className={fieldClass} value={draft.strategyId} onChange={(event) => setDraft({ ...draft, strategyId: event.target.value })}>{strategies.map((strategy) => <option key={strategy.id} value={strategy.id}>{strategy.label} v{strategy.version}</option>)}</select></label>
-        <label className="text-[11px] text-muted-foreground">Scan interval (min)<input className={fieldClass} type="number" required min={1} max={1440} value={draft.intervalMinutes} onChange={(event) => setDraft({ ...draft, intervalMinutes: Number(event.target.value) })} /></label>
-        <label className="text-[11px] text-muted-foreground">Alert confidence<input className={fieldClass} type="number" required min={50} max={95} value={draft.alertConfidence} onChange={(event) => setDraft({ ...draft, alertConfidence: Number(event.target.value) })} /></label>
-        <label className="text-[11px] text-muted-foreground">Volume ratio<input className={fieldClass} type="number" required min={1} max={10} step={0.1} value={draft.abnormalVolumeRatio} onChange={(event) => setDraft({ ...draft, abnormalVolumeRatio: Number(event.target.value) })} /></label>
-        <label className="text-[11px] text-muted-foreground">Hourly move %<input className={fieldClass} type="number" required min={0.1} max={25} step={0.1} value={draft.abnormalMovePercent} onChange={(event) => setDraft({ ...draft, abnormalMovePercent: Number(event.target.value) })} /></label>
+        <label className="text-[11px] text-muted-foreground">{t('marketMonitor.settings.strategy')}<select className={fieldClass} value={draft.strategyId} onChange={(event) => setDraft({ ...draft, strategyId: event.target.value })}>{strategies.map((strategy) => <option key={strategy.id} value={strategy.id}>{monitorStrategyLabel(t, strategy.id, strategy.label)} v{strategy.version}</option>)}</select></label>
+        <label className="text-[11px] text-muted-foreground">{t('marketMonitor.settings.interval')}<input className={fieldClass} type="number" required min={1} max={1440} value={draft.intervalMinutes} onChange={(event) => setDraft({ ...draft, intervalMinutes: Number(event.target.value) })} /></label>
+        <label className="text-[11px] text-muted-foreground">{t('marketMonitor.settings.alertConfidence')}<input className={fieldClass} type="number" required min={50} max={95} value={draft.alertConfidence} onChange={(event) => setDraft({ ...draft, alertConfidence: Number(event.target.value) })} /></label>
+        <label className="text-[11px] text-muted-foreground">{t('marketMonitor.settings.volumeRatio')}<input className={fieldClass} type="number" required min={1} max={10} step={0.1} value={draft.abnormalVolumeRatio} onChange={(event) => setDraft({ ...draft, abnormalVolumeRatio: Number(event.target.value) })} /></label>
+        <label className="text-[11px] text-muted-foreground">{t('marketMonitor.settings.hourlyMove')}<input className={fieldClass} type="number" required min={0.1} max={25} step={0.1} value={draft.abnormalMovePercent} onChange={(event) => setDraft({ ...draft, abnormalMovePercent: Number(event.target.value) })} /></label>
       </div>
-      {!draft.enabledAssets.length && <p role="alert" className="text-xs text-warning">Select at least one asset, or turn off background monitoring with your asset selection retained.</p>}
-      {error && <p role="alert" className="text-xs text-warning">Settings were not saved. {error}</p>}
+      {!draft.enabledAssets.length && <p role="alert" className="text-xs text-warning">{t('marketMonitor.settings.selectAsset')}</p>}
+      {error && <p role="alert" className="text-xs text-warning">{t('marketMonitor.settings.saveFailed', { error })}</p>}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={draft.notifications} onChange={(event) => setDraft({ ...draft, notifications: event.target.checked })} />Browser alerts</label>
-        <div className="flex gap-1"><Button type="button" variant="ghost" size="sm" onClick={onClose}>Cancel</Button><Button type="submit" size="sm" disabled={saving || !draft.enabledAssets.length}>{saving ? 'Saving…' : 'Save'}</Button></div>
+        <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={draft.notifications} onChange={(event) => setDraft({ ...draft, notifications: event.target.checked })} />{t('marketMonitor.settings.browserAlerts')}</label>
+        <div className="flex gap-1"><Button type="button" variant="ghost" size="sm" onClick={onClose}>{t('marketMonitor.settings.cancel')}</Button><Button type="submit" size="sm" disabled={saving || !draft.enabledAssets.length}>{saving ? t('marketMonitor.settings.saving') : t('marketMonitor.settings.save')}</Button></div>
       </div>
     </fieldset>
   </form>

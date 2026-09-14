@@ -57,6 +57,22 @@ and the dashboard settings selector; HTTP routes and React do not need new
 decision rules. A new context source implements `MarketContextProvider` and may
 be composed with existing providers for BTC, TSLA or a future asset.
 
+## Localization
+
+The dashboard and its Market navigator entry follow OpenAlice's one global
+locale; the monitor does not own a second language switch. UI chrome, settings,
+runtime status, operational reports, evidence, hypotheses and confirmation /
+invalidation conditions use the typed i18next catalog. Number and date display
+uses the same global Intl locale.
+
+Persisted observations remain language-neutral inputs for presentation. Known
+strategy evidence and hypothesis IDs are rendered from their structured values,
+so observations recorded before localization switch immediately with the UI and
+do not require deletion or another scan. Unknown future strategy IDs retain
+their stored text until that strategy provides presentation copy. Provider
+names, exported JSON/CSV fields and external news headlines remain original
+evidence rather than being machine-translated.
+
 ## Runtime Behaviour
 
 The page loads histories for both assets and source settings, and refreshes

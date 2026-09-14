@@ -217,7 +217,7 @@ export function MarketSidebar({ onNavigate }: { onNavigate?: () => void }) {
         </MarketSection>
         <MarketSection label={t('market.analyticsSection')}>
           <SidebarRow
-            label="Evidence Monitor"
+            label={t('marketMonitor.navLabel')}
             active={isFocused('market-monitor')}
             onClick={() => openOrFocus({ kind: 'market-monitor', params: {} })}
           />
