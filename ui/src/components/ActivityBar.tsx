@@ -23,6 +23,7 @@ import {
 import { SelectionIndicator } from './SelectionIndicator'
 import { Button } from '@/components/ui/button'
 import { ChatWorkspaceSection } from './workspace/ChatWorkspaceSection'
+import { PRODUCT_NAME } from '../lib/product-brand'
 
 /**
  * Map ActivityBar page enum (visual layout grouping) to the ActivitySection
@@ -130,7 +131,7 @@ export function ActivityBar({
   const railContent = (
     <>
         <div className={`oa-activity-brand ${denseRail ? 'h-10 md:h-8' : 'h-10'} flex shrink-0 items-center ${compactRail ? 'justify-center px-0' : narrowRail ? 'gap-1.5 px-2.5' : 'gap-2.5 px-3.5'}`}>
-              <h1 className={`min-w-0 flex-1 truncate text-[13px] font-semibold leading-[18px] tracking-[-0.01em] text-foreground ${compactRail ? 'md:hidden' : ''}`}>OpenAlice</h1>
+              <h1 className={`min-w-0 flex-1 truncate text-[13px] font-semibold leading-[18px] tracking-[-0.01em] text-foreground ${compactRail ? 'md:hidden' : ''}`}>{PRODUCT_NAME}</h1>
               {!desktopStatic ? (
                 <Button
                   type="button"

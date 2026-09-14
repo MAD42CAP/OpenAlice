@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { RefObject } from 'react'
 import type { MobilePageNavigation } from '../contexts/MobilePageNavigationContext'
 import { MobileRailMenuButton } from './MobileRailMenuButton'
+import { PRODUCT_NAME } from '../lib/product-brand'
 
 interface MobileContextBarProps {
   railOpen: boolean
@@ -59,7 +60,7 @@ export function MobileContextBar({
           </span>
         </>
       ) : (
-        <span className="min-w-0 truncate px-1 text-sm font-semibold text-foreground">OpenAlice</span>
+        <span className="min-w-0 truncate px-1 text-sm font-semibold text-foreground">{PRODUCT_NAME}</span>
       )}
     </div>
   )

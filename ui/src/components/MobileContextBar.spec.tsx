@@ -66,6 +66,6 @@ describe('MobileContextBar', () => {
     )
 
     expect(screen.getAllByRole('button')).toHaveLength(1)
-    expect(screen.getByText('OpenAlice')).toBeTruthy()
+    expect(screen.getByText('MAD42Lab')).toBeTruthy()
   })
 })

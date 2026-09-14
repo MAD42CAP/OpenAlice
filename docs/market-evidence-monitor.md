@@ -161,6 +161,22 @@ current narrator is deterministic and bilingual; a future optional Agent-CLI
 narrator can rewrite only these structured facts and must use the same daily
 identity to avoid repeat model calls.
 
+Codex availability in Chat does not automatically make it the monitor's
+narrator. Chat is an interactive native Codex session, while the monitor is a
+browser-independent domain service. An optional daily AI reading should be an
+OpenAlice scheduled Issue assigned to `codex`, reading the persisted structured
+brief and publishing its result back to the monitor/Inbox. This preserves model
+selection, credential provenance, run history and failure visibility without
+adding an in-process model client to the monitor.
+
+## Fork branding
+
+The web shell is branded `MAD42Lab` in the browser title, desktop activity rail,
+mobile header and empty workspace. Internal package scopes, HTTP headers, data
+directories, CLI commands and the upstream About/update attribution keep their
+OpenAlice names. That split makes the product visibly ours without breaking the
+base platform's compatibility or making future upstream merges needlessly hard.
+
 ## Operational Reports
 
 The dashboard's **Monitor operations** section follows BTC/TSLA selection and

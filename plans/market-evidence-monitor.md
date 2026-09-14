@@ -22,6 +22,13 @@ present the result as a responsive dashboard with deterministic demo data.
   outputs, not prose invented by a model. The dashboard may later pass those
   structured facts through an optional narrator, but loss of an Agent runtime
   must never remove the monitor's daily brief.
+- A Codex narrator must run through OpenAlice's native Workspace/Issue Agent
+  path, never as a second in-process model loop inside the monitor service. It
+  is opt-in because each scheduled narration consumes an Agent run; the
+  deterministic brief remains the fallback and source of truth.
+- The user-facing fork brand is `MAD42Lab`. Protocol names, package scopes,
+  data paths and upstream attribution retain `OpenAlice` so future upstream
+  upgrades do not become a repository-wide compatibility migration.
 - Daily briefs are keyed by asset, strategy and the latest attributed daily-bar
   date. Repeated intraday scans may update live evidence but do not create a
   second nominal daily brief or a second model-cost boundary for that market
@@ -138,6 +145,8 @@ present the result as a responsive dashboard with deterministic demo data.
 - [x] Add one daily brief identity per asset/strategy/attributed daily date.
 - [x] Present localized trend, Wyckoff and daily-brief surfaces in the dashboard.
 - [x] Verify the new analysis with backend, UI, typecheck and demo-build gates.
+- [x] Rebrand the web shell's primary visible identity as MAD42Lab while
+  preserving OpenAlice compatibility identifiers and attribution.
 - [ ] Check the updated dashboard visually on the Mac (cloud browser blocks localhost).
 - [ ] Verify decision-scale BTC fingerprinting with consecutive live scans.
 - [ ] Run the live command on macOS and observe scheduling for 24–72 hours.
