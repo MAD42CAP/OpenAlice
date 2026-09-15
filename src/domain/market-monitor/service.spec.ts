@@ -152,6 +152,25 @@ describe('market monitor service', () => {
     ]))
   })
 
+  it('prefers Coinbase bars for BTC and explicitly falls back to Yahoo', async () => {
+    const deps = dependencies()
+    await createMarketMonitorService({ ...deps, store: memoryStore() }).scan('BTC', 'manual')
+    expect(deps.barService.getBars).toHaveBeenNthCalledWith(1, { barId: 'coinbase|BTC-USD', assetClass: 'crypto' }, expect.objectContaining({ interval: '1d' }))
+    expect(deps.barService.getBars).toHaveBeenNthCalledWith(2, { barId: 'coinbase|BTC-USD', assetClass: 'crypto' }, expect.objectContaining({ interval: '1h' }))
+
+    const fallbackDeps = dependencies()
+    vi.mocked(fallbackDeps.barService.getBars).mockImplementation(async (ref, opts) => {
+      if ('barId' in ref && ref.barId.startsWith('coinbase|')) throw new Error('Coinbase unavailable')
+      const rows = opts.interval === '1h' ? bars(48, 3600000) : bars(90, 86400000)
+      return { bars: rows, meta: { symbol: 'BTC-USD', from: rows[0]!.date, to: rows.at(-1)!.date, bars: rows.length, source: 'vendor', sourceId: 'yfinance', provider: 'yfinance', interval: opts.interval } }
+    })
+    const fallback = await createMarketMonitorService({ ...fallbackDeps, store: memoryStore() }).scan('BTC', 'manual')
+    expect(fallback.snapshot.sourceHealth).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'daily-bars', status: 'degraded', provider: 'yfinance', detail: expect.stringContaining('coinbase') }),
+      expect.objectContaining({ id: 'intraday-bars', status: 'degraded', provider: 'yfinance', detail: expect.stringContaining('fallback used') }),
+    ]))
+  })
+
   it('releases its scan lock after failure so later attempts can recover', async () => {
     const store = memoryStore()
     const deps = dependencies()

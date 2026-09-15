@@ -29,7 +29,7 @@ export interface MarketMonitorAssetConfig {
 }
 
 export const MARKET_MONITOR_ASSET_CONFIG: Record<MarketMonitorAsset, MarketMonitorAssetConfig> = {
-  BTC: { asset: 'BTC', label: 'Bitcoin', symbol: 'BTC-USD', assetClass: 'crypto', barId: 'yfinance|BTC-USD' },
+  BTC: { asset: 'BTC', label: 'Bitcoin', symbol: 'BTC-USD', assetClass: 'crypto', preferredBarId: 'coinbase|BTC-USD', barId: 'yfinance|BTC-USD' },
   TSLA: { asset: 'TSLA', label: 'Tesla', symbol: 'TSLA', assetClass: 'equity', preferredBarId: 'alpaca|TSLA', barId: 'yfinance|TSLA' },
   MSTR: { asset: 'MSTR', label: 'Strategy', symbol: 'MSTR', assetClass: 'equity', preferredBarId: 'alpaca|MSTR', barId: 'yfinance|MSTR' },
 }

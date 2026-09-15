@@ -345,6 +345,10 @@ const marketDataSchema = z.object({
      * credentials so the evidence monitor never gains order permissions. */
     alpacaKeyId: z.string().optional(),
     alpacaSecretKey: z.string().optional(),
+    /** Optional Coinbase CDP credentials. Empty fields retain public spot
+     * market data; complete ECDSA credentials use authenticated read-only data. */
+    coinbaseKeyName: z.string().optional(),
+    coinbasePrivateKey: z.string().optional(),
   }).default({}),
   /** Hosted reference-data hub (TraderHub). Enabled by default: anonymous
    *  GETs of public boards, no user data attached; one switch to opt out.

@@ -67,7 +67,9 @@ Configuration lives in
   "extraVendors": [],
   "providerKeys": {
     "alpacaKeyId": "",
-    "alpacaSecretKey": ""
+    "alpacaSecretKey": "",
+    "coinbaseKeyName": "",
+    "coinbasePrivateKey": ""
   },
   "hub": {
     "enabled": true,
@@ -90,7 +92,7 @@ BarService federates:
 
 - vendor K-lines from the embedded provider adapters;
 - native read-only vendor K-lines that own no trading account (currently
-  Alpaca Market Data with the free IEX feed);
+  Alpaca Market Data with the free IEX feed and Coinbase spot crypto);
 - broker/exchange K-lines exposed through UTA;
 - source metadata such as capability and freshness.
 
@@ -113,6 +115,16 @@ separate broker/account integration. The Evidence Monitor uses the former and
 requests `feed=iex`, so its volume is IEX volume rather than consolidated US
 market volume. Missing or rejected credentials are explicit source failures;
 the monitor may attribute a Yahoo fallback but never relabel it as Alpaca.
+
+`coinbase|BTC-USD` is a separate read-only spot-crypto source and is not a
+Coinbase trading account. Coinbase's public Advanced Trade market endpoint
+works without credentials. Optional CDP **API Key Name + ECDSA Private Key**
+credentials switch the adapter to request-bound ES256 JWT authentication and
+the private product-candle endpoint. A partial pair fails explicitly; it is
+never silently ignored. Ed25519 keys are rejected because Coinbase App APIs
+require ECDSA. The credential test checks public product access when both fields
+are empty and key permissions when both are set. No account, balance or order
+endpoint belongs to the provider.
 
 ## Embedded Compatibility Package
 

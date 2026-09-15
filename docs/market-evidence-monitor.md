@@ -12,13 +12,19 @@ Its initial asset registry contains:
 
 | Asset | Bar symbol | Context |
 |---|---|---|
-| BTC | `BTC-USD` | Deribit public funding, perpetual/futures and options summaries |
+| BTC | `BTC-USD` | Coinbase preferred spot bars; Deribit public funding, perpetual/futures and options summaries |
 | TSLA | `TSLA` | Alpaca IEX preferred bars; OpenAlice equity/reference/news and SEC EDGAR context |
 | MSTR | `MSTR` | Alpaca IEX preferred bars; OpenAlice equity/reference/news and SEC EDGAR context |
 
 Daily and hourly candles are separate attributed requests through BarService.
 If the hourly source fails, the UI reports it as unavailable; daily candles are
 never relabelled as intraday data.
+
+BTC prefers the read-only `coinbase|BTC-USD` spot source and falls back
+explicitly to `yfinance|BTC-USD` when Coinbase is unavailable. Coinbase public
+spot candles require no key. Optional CDP ECDSA credentials enable its
+authenticated read-only endpoint without adding account or order access to the
+monitor.
 
 TSLA and MSTR prefer the read-only `alpaca|SYMBOL` Market Data provider. If its
 two credentials are absent, rejected or temporarily unavailable, each request

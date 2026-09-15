@@ -31,6 +31,8 @@ vi.mock('../hooks/useConfigPage', () => ({
       providerKeys: {
         alpacaKeyId: 'test-alpaca-id',
         alpacaSecretKey: 'test-alpaca-secret',
+        coinbaseKeyName: 'organizations/test/apiKeys/key-id',
+        coinbasePrivateKey: '-----BEGIN EC PRIVATE KEY-----\ntest\n-----END EC PRIVATE KEY-----',
         fmp: 'test-fmp-key',
         fred: 'test-fred-key',
         bls: 'test-bls-key',
@@ -83,6 +85,19 @@ describe('MarketDataPage provider credentials', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Test Alpaca key' }))
     expect(await screen.findByRole('button', { name: 'Alpaca key test passed' })).toBeTruthy()
     expect(mocks.testProvider).toHaveBeenCalledWith('alpaca', 'test-alpaca-id', 'test-alpaca-secret')
+  })
+
+  it('keeps Coinbase CDP credentials paired and tests them together', async () => {
+    openProviderKeys()
+    expect(screen.getByLabelText('CDP API Key Name')).toBeTruthy()
+    expect(screen.getByLabelText('ECDSA Private Key')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Test Coinbase key' }))
+    expect(await screen.findByRole('button', { name: 'Coinbase key test passed' })).toBeTruthy()
+    expect(mocks.testProvider).toHaveBeenCalledWith(
+      'coinbase',
+      'organizations/test/apiKeys/key-id',
+      '-----BEGIN EC PRIVATE KEY-----\ntest\n-----END EC PRIVATE KEY-----',
+    )
   })
 
   it('associates provider test progress and success with the matching field', async () => {

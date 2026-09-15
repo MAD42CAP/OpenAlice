@@ -107,7 +107,13 @@ function deriveSourceRows(
   const hubLive = hubOn && ping !== 'down' // optimistic while checking
   const hub = { source: 'Hub', state: 'ok' as const }
   const alpacaReady = Boolean(keys.alpacaKeyId && keys.alpacaSecretKey)
-  const chartVendors = [alpacaReady ? 'Alpaca IEX (TSLA/MSTR primary)' : null, 'yfinance', ...extraVendors].filter(Boolean).join(', ')
+  const coinbaseAuthenticated = Boolean(keys.coinbaseKeyName && keys.coinbasePrivateKey)
+  const chartVendors = [
+    `Coinbase Advanced (${coinbaseAuthenticated ? 'authenticated, ' : ''}BTC primary)`,
+    alpacaReady ? 'Alpaca IEX (TSLA/MSTR primary)' : null,
+    'yfinance',
+    ...extraVendors,
+  ].filter(Boolean).join(', ')
 
   return [
     {
@@ -542,6 +548,8 @@ function KeyProvidersSection({
     for (const p of ALL_PROVIDERS) init[p.key] = providerKeys[p.key] || ''
     init.alpacaKeyId = providerKeys.alpacaKeyId || ''
     init.alpacaSecretKey = providerKeys.alpacaSecretKey || ''
+    init.coinbaseKeyName = providerKeys.coinbaseKeyName || ''
+    init.coinbasePrivateKey = providerKeys.coinbasePrivateKey || ''
     return init
   })
   const [testStatus, setTestStatus] = useState<Record<string, ProviderTestStatus>>({})
@@ -553,10 +561,11 @@ function KeyProvidersSection({
   }
 
   const testProvider = async (keyName: string) => {
-    const alpaca = keyName === 'alpaca'
-    const key = alpaca ? localKeys.alpacaKeyId : localKeys[keyName]
-    const secret = alpaca ? localKeys.alpacaSecretKey : undefined
-    if (!key || (alpaca && !secret)) return
+    const paired = keyName === 'alpaca' || keyName === 'coinbase'
+    const key = keyName === 'alpaca' ? localKeys.alpacaKeyId : keyName === 'coinbase' ? localKeys.coinbaseKeyName : localKeys[keyName]
+    const secret = keyName === 'alpaca' ? localKeys.alpacaSecretKey : keyName === 'coinbase' ? localKeys.coinbasePrivateKey : undefined
+    const partialPair = paired && Boolean(key) !== Boolean(secret)
+    if ((!key && keyName !== 'coinbase') || partialPair) return
     setTestStatus((prev) => ({ ...prev, [keyName]: 'testing' }))
     try {
       const result = await api.marketData.testProvider(keyName, key, secret)
@@ -569,7 +578,7 @@ function KeyProvidersSection({
   return (
     <ConfigSection
       title="Provider credentials"
-      description="Alpaca credentials enable read-only IEX stock bars. The remaining keys cover low-frequency boards, economy and fundamentals outside the Data Hub."
+      description="Coinbase and Alpaca feed the read-only evidence monitor. The remaining keys cover low-frequency boards, economy and fundamentals outside the Data Hub."
     >
       <div className="space-y-4">
         <div>
@@ -620,6 +629,57 @@ function KeyProvidersSection({
             <p className="mt-2 text-[12px] text-muted-foreground/60">Paper or Live dashboard keys both authenticate market data; the monitor requests the free IEX feed only.</p>
             <span id="alpaca-market-data-test-status" className="sr-only" role="status" aria-live="polite">
               {testStatus.alpaca ? providerTestStatusLabel('Alpaca', testStatus.alpaca) : ''}
+            </span>
+          </div>
+        </div>
+        <div>
+          <p className="mb-3 border-t border-border/40 pt-3 text-[11px] font-medium text-muted-foreground">
+            Read-only crypto market data
+          </p>
+          <div className="rounded-lg border border-border/60 p-3.5">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div className="text-[13px] font-medium text-foreground">Coinbase Advanced Market Data</div>
+                <p id="coinbase-market-data-description" className="mt-1 text-[12px] text-muted-foreground/70">
+                  BTC-USD spot bars. Public data works without a key; a complete CDP ECDSA key pair enables authenticated read-only requests.
+                </p>
+              </div>
+              <TestButton
+                providerName="Coinbase"
+                status={testStatus.coinbase || 'idle'}
+                disabled={Boolean(localKeys.coinbaseKeyName) !== Boolean(localKeys.coinbasePrivateKey) || testStatus.coinbase === 'testing'}
+                onClick={() => testProvider('coinbase')}
+              />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label htmlFor="market-data-provider-coinbase-key-name" className="mb-1.5 block text-[12px] font-medium text-foreground">CDP API Key Name</label>
+                <input
+                  id="market-data-provider-coinbase-key-name"
+                  className={inputClass}
+                  type="password"
+                  value={localKeys.coinbaseKeyName}
+                  onChange={(e) => handleKeyChange('coinbaseKeyName', e.target.value)}
+                  aria-describedby="coinbase-market-data-description coinbase-market-data-test-status"
+                  placeholder="organizations/.../apiKeys/... (optional)"
+                />
+              </div>
+              <div>
+                <label htmlFor="market-data-provider-coinbase-private-key" className="mb-1.5 block text-[12px] font-medium text-foreground">ECDSA Private Key</label>
+                <textarea
+                  id="market-data-provider-coinbase-private-key"
+                  className={`${inputClass} min-h-20 resize-y font-mono text-[11px]`}
+                  value={localKeys.coinbasePrivateKey}
+                  onChange={(e) => handleKeyChange('coinbasePrivateKey', e.target.value)}
+                  aria-describedby="coinbase-market-data-description coinbase-market-data-test-status"
+                  placeholder="-----BEGIN EC PRIVATE KEY----- (optional)"
+                  spellCheck={false}
+                />
+              </div>
+            </div>
+            <p className="mt-2 text-[12px] text-muted-foreground/60">Use an ECDSA/ES256 Coinbase App key with view permission. Ed25519 keys are not accepted by this API.</p>
+            <span id="coinbase-market-data-test-status" className="sr-only" role="status" aria-live="polite">
+              {testStatus.coinbase ? providerTestStatusLabel('Coinbase', testStatus.coinbase) : ''}
             </span>
           </div>
         </div>

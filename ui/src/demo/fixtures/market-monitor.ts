@@ -139,15 +139,15 @@ export function demoMonitorSnapshot(asset: MonitorAsset, sequence = 0): MonitorS
     },
     context: asset === 'BTC' ? { fundingRate: 0.00012, openInterest: 812_500_000, annualizedBasisPercent: 5.7, optionOpenInterest: 198_400, putCallOpenInterestRatio: 0.78 } : asset === 'TSLA' ? { marketCap: 1_087_000_000_000, trailingPe: 186.4, forwardPe: 98.6, analystTargetMean: 352.5, shortPercentFloat: 2.74, nextEarningsAt: '2026-10-21', recentFilings: [{ form: '8-K', filingDate: '2026-09-10', reportDate: '2026-09-10', description: 'Current report', url: 'https://www.sec.gov/Archives/edgar/data/1318605/demo/tsla-8k.htm' }], recentNews: [{ title: 'Tesla delivery expectations remain in focus', time: '2026-09-12T09:00:00Z', source: 'Demo Wire' }] } : { marketCap: 95_000_000_000, analystTargetMean: 420, shortPercentFloat: 8.1, nextEarningsAt: '2026-10-29', recentFilings: [{ form: '10-Q', filingDate: '2026-08-01', reportDate: '2026-06-30', description: 'Quarterly report', url: 'https://www.sec.gov/Archives/edgar/data/1050446/demo/mstr-10q.htm' }], recentNews: [{ title: 'MSTR capital strategy remains in focus', time: '2026-09-12T08:30:00Z', source: 'Demo Wire' }] },
     sourceHealth: [
-      { id: 'daily-bars', label: 'Daily OHLCV', status: 'ok', provider: asset === 'BTC' ? 'demo/yfinance' : 'demo/alpaca-iex', asOf: last.date, detail: 'Deterministic attributed demo bars.' },
-      { id: 'intraday-bars', label: 'Hourly OHLCV', status: 'ok', provider: asset === 'BTC' ? 'demo/yfinance' : 'demo/alpaca-iex', asOf: intraday.at(-1)!.date, detail: 'Deterministic attributed hourly demo bars.' },
+      { id: 'daily-bars', label: 'Daily OHLCV', status: 'ok', provider: asset === 'BTC' ? 'demo/coinbase' : 'demo/alpaca-iex', asOf: last.date, detail: 'Deterministic attributed demo bars.' },
+      { id: 'intraday-bars', label: 'Hourly OHLCV', status: 'ok', provider: asset === 'BTC' ? 'demo/coinbase' : 'demo/alpaca-iex', asOf: intraday.at(-1)!.date, detail: 'Deterministic attributed hourly demo bars.' },
       { id: 'context', label: `${asset} context`, status: 'ok', provider: asset === 'BTC' ? 'demo/Deribit' : 'demo/OpenAlice reference', asOf: '2026-09-12T12:00:00Z', detail: 'Static context for UI acceptance; not live.' },
       ...(asset === 'BTC' ? [] : [{ id: `${asset.toLowerCase()}-sec-filings`, label: `${asset} SEC filings`, status: 'ok' as const, provider: 'demo/SEC EDGAR', asOf: '2026-09-12T12:00:00Z', detail: '1 recent material filings loaded from the official submissions feed.' }]),
     ],
     chart: {
       daily, intraday,
-      dailyMeta: { symbol: asset === 'BTC' ? 'BTC-USD' : asset, from: daily[0].date, to: last.date, bars: daily.length, source: 'vendor', sourceId: asset === 'BTC' ? 'demo/yfinance' : 'demo/alpaca-iex', barId: `demo|${asset}`, provider: 'demo', barCapability: asset === 'BTC' ? 'delayed' : 'iex' },
-      intradayMeta: { symbol: asset === 'BTC' ? 'BTC-USD' : asset, from: intraday[0].date, to: intraday.at(-1)!.date, bars: intraday.length, source: 'vendor', sourceId: asset === 'BTC' ? 'demo/yfinance' : 'demo/alpaca-iex', barId: `demo|${asset}`, provider: 'demo', barCapability: asset === 'BTC' ? 'delayed' : 'iex' },
+      dailyMeta: { symbol: asset === 'BTC' ? 'BTC-USD' : asset, from: daily[0].date, to: last.date, bars: daily.length, source: 'vendor', sourceId: asset === 'BTC' ? 'demo/coinbase' : 'demo/alpaca-iex', barId: `demo|${asset}`, provider: 'demo', barCapability: asset === 'BTC' ? 'realtime' : 'iex' },
+      intradayMeta: { symbol: asset === 'BTC' ? 'BTC-USD' : asset, from: intraday[0].date, to: intraday.at(-1)!.date, bars: intraday.length, source: 'vendor', sourceId: asset === 'BTC' ? 'demo/coinbase' : 'demo/alpaca-iex', barId: `demo|${asset}`, provider: 'demo', barCapability: asset === 'BTC' ? 'realtime' : 'iex' },
     },
   }
 }

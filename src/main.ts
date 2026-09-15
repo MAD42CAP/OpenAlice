@@ -44,7 +44,7 @@ import { createVendorTools } from './tool/market-vendors.js'
 import { createQuantTools } from './tool/quant.js'
 import { createSnapshotTools } from './tool/snapshot.js'
 import { createSimulateTools } from './tool/simulate.js'
-import { createAlpacaMarketDataProvider, createBarService } from './domain/market-data/bars/index.js'
+import { createAlpacaMarketDataProvider, createBarService, createCoinbaseMarketDataProvider } from './domain/market-data/bars/index.js'
 import { createReferenceData } from './domain/market-data/reference/service.js'
 import { createSectorRotationTools } from './tool/sector-rotation.js'
 import { createReferenceBoardTools } from './tool/reference-board.js'
@@ -231,6 +231,15 @@ async function main() {
           return {
             keyId: marketData.providerKeys.alpacaKeyId,
             secretKey: marketData.providerKeys.alpacaSecretKey,
+          }
+        },
+      }),
+      coinbase: createCoinbaseMarketDataProvider({
+        credentials: async () => {
+          const marketData = await readMarketDataConfig()
+          return {
+            keyName: marketData.providerKeys.coinbaseKeyName,
+            privateKey: marketData.providerKeys.coinbasePrivateKey,
           }
         },
       }),

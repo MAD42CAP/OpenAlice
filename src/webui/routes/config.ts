@@ -30,7 +30,7 @@ import { resolveModelSemantics } from '../../ai-providers/model-semantics.js'
 import { resolveAnthropicAuthMode } from '../../core/credential-inference.js'
 import { probeByWireShape } from '../../workspaces/agent-probe.js'
 import { createBuiltinAdapterRegistry } from '../../workspaces/adapters/index.js'
-import { testAlpacaMarketDataCredentials } from '../../domain/market-data/bars/index.js'
+import { testAlpacaMarketDataCredentials, testCoinbaseMarketDataCredentials } from '../../domain/market-data/bars/index.js'
 import {
   isAgentRuntime,
   type AdapterRegistry,
@@ -481,6 +481,10 @@ export function createMarketDataRoutes(ctx: EngineContext) {
       if (provider === 'alpaca') {
         await testAlpacaMarketDataCredentials({ keyId: key, secretKey: secret })
         return c.json({ ok: true })
+      }
+      if (provider === 'coinbase') {
+        const mode = await testCoinbaseMarketDataCredentials({ keyName: key, privateKey: secret })
+        return c.json({ ok: true, mode })
       }
       const endpoint = TEST_ENDPOINTS[provider]
       if (!endpoint) return c.json({ ok: false, error: `Unknown provider: ${provider}` }, 400)

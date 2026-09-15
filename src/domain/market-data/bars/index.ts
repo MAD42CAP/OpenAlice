@@ -1,6 +1,8 @@
 export { createBarService } from './bar-service.js'
 export { createAlpacaMarketDataProvider, testAlpacaMarketDataCredentials } from './alpaca.js'
 export type { AlpacaMarketDataCredentials, AlpacaMarketDataProviderDeps } from './alpaca.js'
+export { createCoinbaseMarketDataProvider, createCoinbaseRestJwt, testCoinbaseMarketDataCredentials } from './coinbase.js'
+export type { CoinbaseMarketDataCredentials, CoinbaseMarketDataProviderDeps } from './coinbase.js'
 export {
   parseBarId,
   formatBarId,

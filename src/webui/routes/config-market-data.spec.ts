@@ -1,3 +1,4 @@
+import { generateKeyPairSync } from 'node:crypto'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { EngineContext } from '../../core/types.js'
 import { createMarketDataRoutes } from './config.js'
@@ -35,5 +36,33 @@ describe('market-data provider credential probes', () => {
 
     expect(await response.json()).toMatchObject({ ok: false, error: expect.stringContaining('not configured') })
     expect(fetcher).not.toHaveBeenCalled()
+  })
+
+  it('tests public Coinbase connectivity without requiring a key', async () => {
+    const fetcher = vi.fn(async (_input: string | URL | Request, _init?: RequestInit) => new Response(JSON.stringify({ product_id: 'BTC-USD' }), { status: 200 }))
+    vi.stubGlobal('fetch', fetcher)
+    const routes = createMarketDataRoutes({} as EngineContext)
+    const response = await routes.request('/test-provider', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ provider: 'coinbase' }),
+    })
+
+    expect(await response.json()).toEqual({ ok: true, mode: 'public' })
+    expect(String(fetcher.mock.calls[0][0])).toContain('/market/products/BTC-USD')
+  })
+
+  it('tests complete Coinbase CDP credentials against key permissions', async () => {
+    const { privateKey } = generateKeyPairSync('ec', { namedCurve: 'P-256' })
+    const pem = privateKey.export({ format: 'pem', type: 'pkcs8' }).toString()
+    const fetcher = vi.fn(async (_input: string | URL | Request, _init?: RequestInit) => new Response(JSON.stringify({ can_view: true }), { status: 200 }))
+    vi.stubGlobal('fetch', fetcher)
+    const routes = createMarketDataRoutes({} as EngineContext)
+    const response = await routes.request('/test-provider', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ provider: 'coinbase', key: 'organizations/test/apiKeys/key-id', secret: pem }),
+    })
+
+    expect(await response.json()).toEqual({ ok: true, mode: 'authenticated' })
+    expect(String(fetcher.mock.calls[0][0])).toContain('/key_permissions')
+    expect((fetcher.mock.calls[0][1]?.headers as Record<string, string>).Authorization).toMatch(/^Bearer /)
   })
 })

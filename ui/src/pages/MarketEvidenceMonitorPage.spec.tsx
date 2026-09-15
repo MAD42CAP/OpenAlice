@@ -35,7 +35,7 @@ afterEach(() => { cleanup(); vi.clearAllMocks() })
 it('shows attributed BTC evidence and switches to the independent hourly series', async () => {
   render(<MarketEvidenceMonitorPage />)
   expect((await screen.findAllByText('Demand has provisional control')).length).toBeGreaterThan(0)
-  expect(screen.getAllByText('demo/yfinance').length).toBeGreaterThan(0)
+  expect(screen.getAllByText('demo/coinbase').length).toBeGreaterThan(0)
   fireEvent.click(screen.getByRole('button', { name: '1H' }))
   expect(screen.getByRole('button', { name: '1H' }).getAttribute('aria-pressed')).toBe('true')
   expect(screen.getByRole('img', { name: /Price path ending/ })).toBeTruthy()
