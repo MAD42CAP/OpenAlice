@@ -65,7 +65,10 @@ Configuration lives in
     "commodity": "yfinance"
   },
   "extraVendors": [],
-  "providerKeys": {},
+  "providerKeys": {
+    "alpacaKeyId": "",
+    "alpacaSecretKey": ""
+  },
   "hub": {
     "enabled": true,
     "baseUrl": "https://traderhub.openalice.ai"
@@ -86,6 +89,8 @@ across search, charting, snapshots, and raw exports.
 BarService federates:
 
 - vendor K-lines from the embedded provider adapters;
+- native read-only vendor K-lines that own no trading account (currently
+  Alpaca Market Data with the free IEX feed);
 - broker/exchange K-lines exposed through UTA;
 - source metadata such as capability and freshness.
 
@@ -100,6 +105,14 @@ different vendor.
 New K-line sources should implement the bar/provider contract and appear in bar
 source discovery. They should not require a new OpenBB-style asset-class client
 or a copied OpenBB route hierarchy.
+
+Alpaca has two deliberately separate integrations. `alpaca|SYMBOL` is a
+market-data-only vendor source configured under **Settings → Market Data →
+Advanced**; it cannot place orders and works in Lite mode. An Alpaca UTA is a
+separate broker/account integration. The Evidence Monitor uses the former and
+requests `feed=iex`, so its volume is IEX volume rather than consolidated US
+market volume. Missing or rejected credentials are explicit source failures;
+the monitor may attribute a Yahoo fallback but never relabel it as Alpaca.
 
 ## Embedded Compatibility Package
 

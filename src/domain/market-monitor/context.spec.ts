@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
-import { MarketContextProviderRegistry } from './context.js'
+import { createDefaultMarketContextProviderRegistry, MarketContextProviderRegistry } from './context.js'
+import type { EquityClientLike } from '../market-data/client/types.js'
+import type { ReferenceDataService } from '../market-data/reference/types.js'
 
 describe('market context provider registry', () => {
   it('allows multiple independent providers for one asset', () => {
@@ -26,5 +28,32 @@ describe('market context provider registry', () => {
       manifest: { id: 'bad/provider', label: 'Bad', assets: ['BTC'], description: 'fixture' },
       load: vi.fn(),
     }])).toThrow(/Invalid market context provider id/)
+  })
+
+  it('loads official recent SEC filings for TSLA with attributed links', async () => {
+    const fetcher = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      expect(String(input)).toContain('CIK0001318605.json')
+      expect((init?.headers as Record<string, string>)['User-Agent']).toContain('MAD42Lab')
+      return new Response(JSON.stringify({ filings: { recent: {
+        form: ['8-K', '4', '10-Q'],
+        accessionNumber: ['0001318605-26-000001', '0000000000-26-000002', '0001318605-26-000003'],
+        filingDate: ['2026-09-10', '2026-09-09', '2026-08-01'],
+        reportDate: ['2026-09-10', '', '2026-06-30'],
+        primaryDocument: ['tsla-8k.htm', 'form4.xml', 'tsla-10q.htm'],
+        primaryDocDescription: ['Current report', 'Insider filing', 'Quarterly report'],
+      } } }), { status: 200 })
+    }) as typeof fetch
+    const registry = createDefaultMarketContextProviderRegistry({
+      equityClient: {} as EquityClientLike,
+      reference: {} as ReferenceDataService,
+      fetcher,
+    })
+    const sec = registry.forAsset('TSLA').find((provider) => provider.manifest.id === 'sec-edgar-equity-v1')!
+    const result = await sec.load({ asset: 'TSLA', at: new Date('2026-09-15T00:00:00Z') })
+    expect(result.context.recentFilings).toEqual([
+      expect.objectContaining({ form: '8-K', filingDate: '2026-09-10', url: expect.stringContaining('/1318605/000131860526000001/tsla-8k.htm') }),
+      expect.objectContaining({ form: '10-Q', reportDate: '2026-06-30' }),
+    ])
+    expect(result.health[0]).toMatchObject({ id: 'tsla-sec-filings', status: 'ok', provider: 'SEC EDGAR' })
   })
 })

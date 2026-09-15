@@ -29,6 +29,8 @@ vi.mock('../hooks/useConfigPage', () => ({
       hub: { enabled: false, baseUrl: 'https://traderhub.openalice.ai' },
       extraVendors: [],
       providerKeys: {
+        alpacaKeyId: 'test-alpaca-id',
+        alpacaSecretKey: 'test-alpaca-secret',
         fmp: 'test-fmp-key',
         fred: 'test-fred-key',
         bls: 'test-bls-key',
@@ -72,6 +74,15 @@ describe('MarketDataPage provider credentials', () => {
       )
       expect(screen.getByRole('button', { name: `Test ${provider} key` })).toBeTruthy()
     }
+  })
+
+  it('keeps Alpaca market-data credentials paired and tests them together', async () => {
+    openProviderKeys()
+    expect(screen.getByLabelText('API Key ID')).toBeTruthy()
+    expect(screen.getByLabelText('Secret Key')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Test Alpaca key' }))
+    expect(await screen.findByRole('button', { name: 'Alpaca key test passed' })).toBeTruthy()
+    expect(mocks.testProvider).toHaveBeenCalledWith('alpaca', 'test-alpaca-id', 'test-alpaca-secret')
   })
 
   it('associates provider test progress and success with the matching field', async () => {

@@ -47,6 +47,8 @@ it('switches between BTC, TSLA and MSTR without losing independent asset history
   fireEvent.click(screen.getByRole('tab', { name: /TSLA/ }))
   expect((await screen.findAllByText('Evidence remains balanced')).length).toBeGreaterThan(0)
   expect(screen.getByText('Trailing P/E')).toBeTruthy()
+  expect(screen.getByRole('link', { name: '8-K' }).getAttribute('href')).toContain('sec.gov/Archives/edgar')
+  expect(screen.getAllByText('TSLA SEC filings').length).toBeGreaterThan(0)
   expect(mocks.snapshots).toHaveBeenCalledWith('BTC', 120, 'evidence-chain-v1')
   expect(mocks.snapshots).toHaveBeenCalledWith('TSLA', 120, 'evidence-chain-v1')
   expect(mocks.snapshots).toHaveBeenCalledWith('MSTR', 120, 'evidence-chain-v1')

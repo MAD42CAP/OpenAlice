@@ -30,6 +30,7 @@ import { resolveModelSemantics } from '../../ai-providers/model-semantics.js'
 import { resolveAnthropicAuthMode } from '../../core/credential-inference.js'
 import { probeByWireShape } from '../../workspaces/agent-probe.js'
 import { createBuiltinAdapterRegistry } from '../../workspaces/adapters/index.js'
+import { testAlpacaMarketDataCredentials } from '../../domain/market-data/bars/index.js'
 import {
   isAgentRuntime,
   type AdapterRegistry,
@@ -476,7 +477,11 @@ export function createMarketDataRoutes(ctx: EngineContext) {
 
   app.post('/test-provider', async (c) => {
     try {
-      const { provider, key } = await c.req.json<{ provider: string; key: string }>()
+      const { provider, key, secret } = await c.req.json<{ provider: string; key: string; secret?: string }>()
+      if (provider === 'alpaca') {
+        await testAlpacaMarketDataCredentials({ keyId: key, secretKey: secret })
+        return c.json({ ok: true })
+      }
       const endpoint = TEST_ENDPOINTS[provider]
       if (!endpoint) return c.json({ ok: false, error: `Unknown provider: ${provider}` }, 400)
       if (!key) return c.json({ ok: false, error: 'No API key provided' }, 400)

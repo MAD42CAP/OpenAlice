@@ -1998,7 +1998,7 @@ export const zh: Resources = {
       fundingRate: '资金费率', openInterest: '永续合约未平仓量', annualizedBasisPercent: '年化基差', optionOpenInterest: '期权未平仓量',
       putCallOpenInterestRatio: '看跌/看涨期权持仓比', marketCap: '市值', trailingPe: '滚动市盈率', forwardPe: '预期市盈率',
       analystTargetMean: '分析师平均目标价', shortPercentFloat: '流通股做空比例', nextEarningsAt: '下次财报',
-      unavailable: '背景数据源不可用；价格和成交量证据仍然有效，并保留来源标记。', recentNews: '近期相关新闻', unknown: '未知',
+      unavailable: '背景数据源不可用；价格和成交量证据仍然有效，并保留来源标记。', recentNews: '近期相关新闻', recentFilings: '近期 SEC 申报', reportPeriod: '报告期', unknown: '未知',
     },
     source: {
       asOf: '截至 {{time}}', dailyBars: '日线 OHLCV', intradayBars: '小时 OHLCV', btcDerivatives: 'BTC 衍生品背景',
@@ -2006,10 +2006,11 @@ export const zh: Resources = {
       equityCalendarNews: '{{asset}} 日历与新闻', assetContext: '{{asset}} 背景数据',
       ok: '数据源可用且来源明确。', degraded: '数据源部分可用或正在使用备用源。', unavailable: '本次监测无法使用该数据源。',
       retained: ' 已保留最近一次有效字段。',
-      fallbackUsed: '配置的数据源失败，已明确使用 Yahoo 备用源。', staleDays: '比请求基准滞后 {{count}} 个工作日。', attributedBars: '{{count}} 根行情数据，来源明确。',
+      fallbackUsed: '首选数据源不可用，当前正使用来源明确的备用数据。', staleDays: '比请求基准滞后 {{count}} 个工作日。', attributedBars: '{{count}} 根行情数据，来源明确。',
       derivativesLoaded: '已载入只读衍生品背景数据。', futuresUnavailable: ' 期货数据不可用。', optionsUnavailable: ' 期权数据不可用。',
       tslaFieldsLoaded: '已载入数据源支持的估值、分析师预期和做空比例。', tslaFieldsUnavailable: '已配置的股票数据源未返回可用背景数据。',
       earningsAvailable: '有下一次财报日期', noEarnings: '没有财报日期', recentStories: '{{count}} 条近期相关新闻', newsNotConfigured: '；未配置新闻采集器',
+      secFilings: '{{asset}} SEC 申报', secFilingsLoaded: '已从 SEC EDGAR 官方数据载入 {{count}} 份近期重要申报。',
       demoBars: '确定性演示日线数据，来源明确。', demoHourlyBars: '确定性演示小时数据，来源明确。', demoContext: '用于界面验收的静态背景数据，并非实时数据。',
     },
     history: {

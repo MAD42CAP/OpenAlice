@@ -160,7 +160,10 @@ export interface MonitorSnapshot {
   wyckoff?: WyckoffAssessment
   dailyBrief?: MarketDailyBrief
   aiNarration?: MarketAiNarration
-  context: Record<string, unknown> & { recentNews?: Array<{ title: string; time: string; source: string | null }> }
+  context: Record<string, unknown> & {
+    recentNews?: Array<{ title: string; time: string; source: string | null }>
+    recentFilings?: Array<{ form: string; filingDate: string; reportDate: string | null; description: string | null; url: string }>
+  }
   sourceHealth: SourceHealth[]
   chart: { daily: HistoricalBar[]; intraday: HistoricalBar[]; dailyMeta: BarMeta; intradayMeta: BarMeta | null }
 }

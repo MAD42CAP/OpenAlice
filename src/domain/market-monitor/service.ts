@@ -128,16 +128,49 @@ function retainPreviousContext(current: MarketContext, previous: MarketContext |
     merged.recentNews = previous.recentNews
     retained = true
   }
+  if (!current.recentFilings?.length && previous.recentFilings?.length) {
+    merged.recentFilings = previous.recentFilings
+    retained = true
+  }
   return { context: merged, retained }
 }
 
-async function loadBars(barService: BarService, asset: MarketMonitorAsset, interval: '1d' | '1h', count: number): Promise<{ result: BarsResult; fallback: boolean }> {
+interface BarFallback {
+  from: string
+  to: string
+  reason: string
+}
+
+async function loadBars(barService: BarService, asset: MarketMonitorAsset, interval: '1d' | '1h', count: number): Promise<{ result: BarsResult; fallback: BarFallback | null }> {
   const config = MARKET_MONITOR_ASSET_CONFIG[asset]
+  if (config.preferredBarId) {
+    try {
+      return { result: await barService.getBars({ barId: config.preferredBarId, assetClass: config.assetClass }, { interval, count }), fallback: null }
+    } catch (preferredError) {
+      const result = await barService.getBars({ barId: config.barId, assetClass: config.assetClass }, { interval, count })
+      return {
+        result,
+        fallback: {
+          from: config.preferredBarId.split('|')[0] ?? config.preferredBarId,
+          to: result.meta.sourceId ?? result.meta.provider ?? config.barId.split('|')[0] ?? 'fallback',
+          reason: preferredError instanceof Error ? preferredError.message : String(preferredError),
+        },
+      }
+    }
+  }
   try {
-    return { result: await barService.getBars({ symbol: config.symbol, assetClass: config.assetClass }, { interval, count }), fallback: false }
+    return { result: await barService.getBars({ symbol: config.symbol, assetClass: config.assetClass }, { interval, count }), fallback: null }
   } catch (primaryError) {
     try {
-      return { result: await barService.getBars({ barId: config.barId, assetClass: config.assetClass }, { interval, count }), fallback: true }
+      const result = await barService.getBars({ barId: config.barId, assetClass: config.assetClass }, { interval, count })
+      return {
+        result,
+        fallback: {
+          from: 'configured provider',
+          to: result.meta.sourceId ?? result.meta.provider ?? config.barId.split('|')[0] ?? 'fallback',
+          reason: primaryError instanceof Error ? primaryError.message : String(primaryError),
+        },
+      }
     } catch {
       throw primaryError
     }
@@ -268,7 +301,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
           const strategy = strategyRegistry.get(settings.strategyId)
           strategyId = strategy.manifest.id
           const daily = await loadBars(deps.barService, asset, '1d', 400)
-          let intraday: { result: BarsResult; fallback: boolean } | null = null
+          let intraday: { result: BarsResult; fallback: BarFallback | null } | null = null
           let intradayError: unknown
           try { intraday = await loadBars(deps.barService, asset, '1h', 180) } catch (error) { intradayError = error }
           const analysis = strategy.analyze({
@@ -362,13 +395,13 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
   }
 }
 
-function healthFromMeta(id: string, label: string, meta: BarMeta, fallback: boolean): SourceHealth {
+function healthFromMeta(id: string, label: string, meta: BarMeta, fallback: BarFallback | null): SourceHealth {
   const asOf = meta.freshness?.latestRecordAt ?? meta.to ?? null
   const stale = meta.staleTradingDays != null && meta.staleTradingDays > 2
   return {
     id, label, status: stale || fallback ? 'degraded' : 'ok',
     provider: meta.sourceId ?? meta.provider ?? 'OpenAlice BarService', asOf,
-    detail: `${fallback ? 'Configured source failed; explicit Yahoo fallback used. ' : ''}${stale ? `${meta.staleTradingDays} weekday(s) behind the request anchor.` : `${meta.bars} attributed bars.`}`,
+    detail: `${fallback ? `Preferred source ${fallback.from} failed; explicit ${fallback.to} fallback used (${fallback.reason}). ` : ''}${stale ? `${meta.staleTradingDays} weekday(s) behind the request anchor.` : `${meta.bars} attributed bars.`}`,
   }
 }
 

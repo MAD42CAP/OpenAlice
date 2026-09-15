@@ -114,6 +114,19 @@ describe('getBars — vendor branch', () => {
 })
 
 describe('getBars — barId forms', () => {
+  it('routes a direct read-only market-data vendor without a trading UTA', async () => {
+    const getBars = vi.fn(async () => RAW)
+    const svc = createBarService(makeDeps({
+      directVendorProviders: {
+        alpaca: { id: 'alpaca', capability: 'iex', assetClasses: ['equity'], getBars },
+      },
+    }))
+    const result = await svc.getBars({ barId: 'alpaca|TSLA', assetClass: 'equity' }, { interval: '1d', count: 2 })
+    expect(result.bars.map((bar) => bar.date)).toEqual(['2024-01-02', '2024-01-03'])
+    expect(result.meta).toMatchObject({ source: 'vendor', sourceId: 'alpaca', barId: 'alpaca|TSLA', barCapability: 'iex' })
+    expect(getBars).toHaveBeenCalledWith(expect.objectContaining({ symbol: 'TSLA', assetClass: 'equity', interval: '1d', count: 2 }))
+  })
+
   it('vendor barId routes to the vendor client (needs assetClass)', async () => {
     const deps = makeDeps()
     const svc = createBarService(deps)
@@ -246,6 +259,29 @@ describe('searchBarSources — federated candidates', () => {
     })
     expect(out[0].label).toContain('AAPL')
     expect(out[0].label).toContain('delayed') // freshness surfaced in the label, not just the structured field
+  })
+
+  it('discovers a configured direct provider as a parallel source', async () => {
+    const svc = createBarService(makeDeps({
+      directVendorProviders: {
+        alpaca: { id: 'alpaca', capability: 'iex', assetClasses: ['equity'], isConfigured: () => true, getBars: vi.fn() },
+      },
+    }))
+    const out = await svc.searchBarSources('AAPL')
+    expect(out).toEqual(expect.arrayContaining([
+      expect.objectContaining({ barId: 'alpaca|AAPL', sourceId: 'alpaca', barCapability: 'iex' }),
+      expect.objectContaining({ barId: 'yfinance|AAPL', sourceId: 'yfinance', barCapability: 'delayed' }),
+    ]))
+    expect(out[0]?.barId).toBe('alpaca|AAPL')
+  })
+
+  it('does not advertise a direct provider until its credentials are configured', async () => {
+    const svc = createBarService(makeDeps({
+      directVendorProviders: {
+        alpaca: { id: 'alpaca', capability: 'iex', assetClasses: ['equity'], isConfigured: () => false, getBars: vi.fn() },
+      },
+    }))
+    expect((await svc.searchBarSources('AAPL')).some((row) => row.sourceId === 'alpaca')).toBe(false)
   })
 
   it('unions UTA broker hits (barId = aliceId, secType → assetClass)', async () => {

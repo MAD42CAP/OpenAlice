@@ -1,4 +1,6 @@
 export { createBarService } from './bar-service.js'
+export { createAlpacaMarketDataProvider, testAlpacaMarketDataCredentials } from './alpaca.js'
+export type { AlpacaMarketDataCredentials, AlpacaMarketDataProviderDeps } from './alpaca.js'
 export {
   parseBarId,
   formatBarId,
@@ -16,4 +18,5 @@ export {
   type BarServiceDeps,
   type UtaBarAccount,
   type UtaBarGateway,
+  type VendorBarProvider,
 } from './types.js'

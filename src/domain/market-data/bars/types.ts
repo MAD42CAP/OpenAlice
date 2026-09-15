@@ -115,6 +115,25 @@ export interface BarsResult {
   meta: BarMeta
 }
 
+/** A read-only, market-data-only vendor adapter. Unlike a UTA source it owns
+ * no account state and cannot place orders. The bar service still owns final
+ * validation, sorting, count limits, quality and freshness metadata. */
+export interface VendorBarProvider {
+  id: string
+  capability: BarCapability
+  assetClasses: readonly AssetClass[]
+  /** Optional hot readiness check used by source discovery. */
+  isConfigured?(): Promise<boolean> | boolean
+  getBars(input: {
+    symbol: string
+    assetClass: AssetClass
+    interval: string
+    start: string
+    end?: string
+    count?: number
+  }): Promise<Array<Record<string, unknown>>>
+}
+
 // ==================== service contract ====================
 
 /** Window options. Supply a bounding pair; a hard max-bars cap always applies. */
@@ -173,4 +192,6 @@ export interface BarServiceDeps {
   utaManager: UtaBarGateway
   /** Configured default provider per asset class — the `provider` we report. */
   vendorProviders: Record<AssetClass, string>
+  /** Native read-only vendor adapters that do not belong to a trading UTA. */
+  directVendorProviders?: Record<string, VendorBarProvider>
 }

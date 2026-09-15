@@ -13,12 +13,23 @@ Its initial asset registry contains:
 | Asset | Bar symbol | Context |
 |---|---|---|
 | BTC | `BTC-USD` | Deribit public funding, perpetual/futures and options summaries |
-| TSLA | `TSLA` | Configured OpenAlice equity/reference/news providers |
-| MSTR | `MSTR` | Configured OpenAlice equity/reference/news providers |
+| TSLA | `TSLA` | Alpaca IEX preferred bars; OpenAlice equity/reference/news and SEC EDGAR context |
+| MSTR | `MSTR` | Alpaca IEX preferred bars; OpenAlice equity/reference/news and SEC EDGAR context |
 
 Daily and hourly candles are separate attributed requests through BarService.
 If the hourly source fails, the UI reports it as unavailable; daily candles are
 never relabelled as intraday data.
+
+TSLA and MSTR prefer the read-only `alpaca|SYMBOL` Market Data provider. If its
+two credentials are absent, rejected or temporarily unavailable, each request
+falls back explicitly to `yfinance|SYMBOL`; source health records the attempted
+source, selected fallback and reason. This is independent from the money-capable
+Alpaca UTA and remains available in the monitor's default Lite launch.
+
+SEC EDGAR is a separate keyless context module. It reads each company's official
+submissions feed with an identifying User-Agent and retains the latest material
+10-K, 10-Q and 8-K family filings as linked evidence. A SEC outage does not
+discard Alpaca/Yahoo bars or other successful context modules.
 
 ## Modules
 

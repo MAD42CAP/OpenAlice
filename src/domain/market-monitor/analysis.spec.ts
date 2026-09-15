@@ -58,6 +58,16 @@ describe('market evidence analysis', () => {
     }))
   })
 
+  it('treats a new official filing as new semantic evidence', () => {
+    const analysis = analyzeEvidence({ dailyBars: series(90, 86400000), intradayBars: series(48, 3600000), abnormalVolumeRatio: 1.8, abnormalMovePercent: 1.5 })
+    const filing = { form: '8-K', filingDate: '2026-09-10', reportDate: '2026-09-10', description: 'Current report', url: 'https://www.sec.gov/example' }
+    const base = { asset: 'TSLA' as const, ...analysis, context: { recentFilings: [filing] }, sourceHealth: [] }
+    expect(semanticFingerprint(base)).not.toBe(semanticFingerprint({
+      ...base,
+      context: { recentFilings: [{ ...filing, filingDate: '2026-09-11', url: 'https://www.sec.gov/new' }] },
+    }))
+  })
+
   it('evaluates only resolved directional hypotheses', () => {
     const make = (price: number, bias: 'bullish' | 'bearish' | 'neutral', capturedAt: string): MarketMonitorSnapshot => ({
       id: capturedAt, asset: 'BTC', capturedAt, trigger: 'manual', strategyId: 'evidence-chain-v1', fingerprint: capturedAt,

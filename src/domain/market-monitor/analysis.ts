@@ -43,6 +43,7 @@ function semanticContext(context: MarketContext): MarketContext {
     shortPercentFloat: context.shortPercentFloat == null ? context.shortPercentFloat : rounded(context.shortPercentFloat, 4),
     nextEarningsAt: context.nextEarningsAt,
     recentNews: context.recentNews?.map(({ title, time, source }) => ({ title, time, source })),
+    recentFilings: context.recentFilings?.map(({ form, filingDate, reportDate, description, url }) => ({ form, filingDate, reportDate, description, url })),
   }
 }
 

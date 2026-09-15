@@ -106,7 +106,8 @@ function deriveSourceRows(
 ): SourceRow[] {
   const hubLive = hubOn && ping !== 'down' // optimistic while checking
   const hub = { source: 'Hub', state: 'ok' as const }
-  const chartVendors = ['yfinance', ...extraVendors].join(', ')
+  const alpacaReady = Boolean(keys.alpacaKeyId && keys.alpacaSecretKey)
+  const chartVendors = [alpacaReady ? 'Alpaca IEX (TSLA/MSTR primary)' : null, 'yfinance', ...extraVendors].filter(Boolean).join(', ')
 
   return [
     {
@@ -539,6 +540,8 @@ function KeyProvidersSection({
   const [localKeys, setLocalKeys] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {}
     for (const p of ALL_PROVIDERS) init[p.key] = providerKeys[p.key] || ''
+    init.alpacaKeyId = providerKeys.alpacaKeyId || ''
+    init.alpacaSecretKey = providerKeys.alpacaSecretKey || ''
     return init
   })
   const [testStatus, setTestStatus] = useState<Record<string, ProviderTestStatus>>({})
@@ -550,11 +553,13 @@ function KeyProvidersSection({
   }
 
   const testProvider = async (keyName: string) => {
-    const key = localKeys[keyName]
-    if (!key) return
+    const alpaca = keyName === 'alpaca'
+    const key = alpaca ? localKeys.alpacaKeyId : localKeys[keyName]
+    const secret = alpaca ? localKeys.alpacaSecretKey : undefined
+    if (!key || (alpaca && !secret)) return
     setTestStatus((prev) => ({ ...prev, [keyName]: 'testing' }))
     try {
-      const result = await api.marketData.testProvider(keyName, key)
+      const result = await api.marketData.testProvider(keyName, key, secret)
       setTestStatus((prev) => ({ ...prev, [keyName]: result.ok ? 'ok' : 'error' }))
     } catch {
       setTestStatus((prev) => ({ ...prev, [keyName]: 'error' }))
@@ -563,10 +568,61 @@ function KeyProvidersSection({
 
   return (
     <ConfigSection
-      title="Data Provider Keys"
-      description="Low-frequency data — boards, economy, fundamentals — is served by the Data Hub. Add a key only to go direct, or to unlock the slice the hub doesn't serve (FMP fundamentals)."
+      title="Provider credentials"
+      description="Alpaca credentials enable read-only IEX stock bars. The remaining keys cover low-frequency boards, economy and fundamentals outside the Data Hub."
     >
       <div className="space-y-4">
+        <div>
+          <p className="mb-3 text-[11px] font-medium text-muted-foreground">
+            Read-only stock market data
+          </p>
+          <div className="rounded-lg border border-border/60 p-3.5">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div className="text-[13px] font-medium text-foreground">Alpaca Market Data</div>
+                <p id="alpaca-market-data-description" className="mt-1 text-[12px] text-muted-foreground/70">
+                  IEX stock bars for TSLA and MSTR. These credentials are used only by the read-only market-data provider, never for orders.
+                </p>
+              </div>
+              <TestButton
+                providerName="Alpaca"
+                status={testStatus.alpaca || 'idle'}
+                disabled={!localKeys.alpacaKeyId || !localKeys.alpacaSecretKey || testStatus.alpaca === 'testing'}
+                onClick={() => testProvider('alpaca')}
+              />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label htmlFor="market-data-provider-alpaca-key-id" className="mb-1.5 block text-[12px] font-medium text-foreground">API Key ID</label>
+                <input
+                  id="market-data-provider-alpaca-key-id"
+                  className={inputClass}
+                  type="password"
+                  value={localKeys.alpacaKeyId}
+                  onChange={(e) => handleKeyChange('alpacaKeyId', e.target.value)}
+                  aria-describedby="alpaca-market-data-description alpaca-market-data-test-status"
+                  placeholder="Not configured"
+                />
+              </div>
+              <div>
+                <label htmlFor="market-data-provider-alpaca-secret-key" className="mb-1.5 block text-[12px] font-medium text-foreground">Secret Key</label>
+                <input
+                  id="market-data-provider-alpaca-secret-key"
+                  className={inputClass}
+                  type="password"
+                  value={localKeys.alpacaSecretKey}
+                  onChange={(e) => handleKeyChange('alpacaSecretKey', e.target.value)}
+                  aria-describedby="alpaca-market-data-description alpaca-market-data-test-status"
+                  placeholder="Not configured"
+                />
+              </div>
+            </div>
+            <p className="mt-2 text-[12px] text-muted-foreground/60">Paper or Live dashboard keys both authenticate market data; the monitor requests the free IEX feed only.</p>
+            <span id="alpaca-market-data-test-status" className="sr-only" role="status" aria-live="polite">
+              {testStatus.alpaca ? providerTestStatusLabel('Alpaca', testStatus.alpaca) : ''}
+            </span>
+          </div>
+        </div>
         {KEY_GROUPS.map((group, gi) => (
           <div key={gi}>
             {group.label && (

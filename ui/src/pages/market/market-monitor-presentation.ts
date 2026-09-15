@@ -269,7 +269,7 @@ export function monitorHypothesisCopy(t: Translate, snapshot: MonitorSnapshot) {
 }
 
 export function monitorSourceLabel(t: Translate, source: Pick<SourceHealth, 'id' | 'label'>, asset?: string): string {
-  const equityAsset = source.id.match(/^([a-z0-9]+)-(?:reference|calendar-news)$/)?.[1]?.toUpperCase()
+  const equityAsset = source.id.match(/^([a-z0-9]+)-(?:reference|calendar-news|sec-filings)$/)?.[1]?.toUpperCase()
   switch (source.id) {
     case 'daily-bars': return t('marketMonitor.source.dailyBars')
     case 'intraday-bars': return t('marketMonitor.source.intradayBars')
@@ -280,6 +280,7 @@ export function monitorSourceLabel(t: Translate, source: Pick<SourceHealth, 'id'
     default:
       if (source.id.endsWith('-reference') && equityAsset) return t('marketMonitor.source.equityReference', { asset: equityAsset })
       if (source.id.endsWith('-calendar-news') && equityAsset) return t('marketMonitor.source.equityCalendarNews', { asset: equityAsset })
+      if (source.id.endsWith('-sec-filings') && equityAsset) return t('marketMonitor.source.secFilings', { asset: equityAsset })
       return source.label
   }
 }
@@ -291,7 +292,7 @@ export function monitorSourceDetail(t: Translate, source: SourceHealth): string 
     const stale = source.detail.match(/(\d+) weekday\(s\) behind/)
     const bars = source.detail.match(/(\d+) attributed bars/)
     const demo = source.detail.includes('Deterministic attributed')
-    detail = `${source.detail.includes('Yahoo fallback') ? t('marketMonitor.source.fallbackUsed') : ''}${
+    detail = `${source.detail.includes('fallback used') ? t('marketMonitor.source.fallbackUsed') : ''}${
       demo
         ? t(source.id === 'daily-bars' ? 'marketMonitor.source.demoBars' : 'marketMonitor.source.demoHourlyBars')
         : stale
@@ -315,6 +316,11 @@ export function monitorSourceDetail(t: Translate, source: SourceHealth): string 
   } else if (source.id.endsWith('-calendar-news')) {
     const count = Number(source.detail.match(/; (\d+) recent/)?.[1] ?? 0)
     detail = `${source.detail.startsWith('Earnings date available') ? t('marketMonitor.source.earningsAvailable') : t('marketMonitor.source.noEarnings')}; ${t('marketMonitor.source.recentStories', { count })}${source.detail.includes('not configured') ? t('marketMonitor.source.newsNotConfigured') : ''}.`
+  } else if (source.id.endsWith('-sec-filings')) {
+    const count = Number(source.detail.match(/(\d+) recent material/)?.[1] ?? 0)
+    detail = source.status === 'ok'
+      ? t('marketMonitor.source.secFilingsLoaded', { count })
+      : t('marketMonitor.source.unavailable')
   } else if (source.id === 'context' && source.detail.includes('Static context')) {
     detail = t('marketMonitor.source.demoContext')
   } else {

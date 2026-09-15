@@ -23,12 +23,15 @@ export interface MarketMonitorAssetConfig {
   symbol: string
   assetClass: 'crypto' | 'equity'
   barId: string
+  /** Optional preferred read-only market-data source. `barId` remains the
+   * explicit keyless fallback when this source is unavailable. */
+  preferredBarId?: string
 }
 
 export const MARKET_MONITOR_ASSET_CONFIG: Record<MarketMonitorAsset, MarketMonitorAssetConfig> = {
   BTC: { asset: 'BTC', label: 'Bitcoin', symbol: 'BTC-USD', assetClass: 'crypto', barId: 'yfinance|BTC-USD' },
-  TSLA: { asset: 'TSLA', label: 'Tesla', symbol: 'TSLA', assetClass: 'equity', barId: 'yfinance|TSLA' },
-  MSTR: { asset: 'MSTR', label: 'Strategy', symbol: 'MSTR', assetClass: 'equity', barId: 'yfinance|MSTR' },
+  TSLA: { asset: 'TSLA', label: 'Tesla', symbol: 'TSLA', assetClass: 'equity', preferredBarId: 'alpaca|TSLA', barId: 'yfinance|TSLA' },
+  MSTR: { asset: 'MSTR', label: 'Strategy', symbol: 'MSTR', assetClass: 'equity', preferredBarId: 'alpaca|MSTR', barId: 'yfinance|MSTR' },
 }
 
 export interface MarketMonitorSettings {
@@ -223,6 +226,13 @@ export interface MarketContext {
   shortPercentFloat?: number | null
   nextEarningsAt?: string | null
   recentNews?: Array<{ title: string; time: string; source: string | null }>
+  recentFilings?: Array<{
+    form: string
+    filingDate: string
+    reportDate: string | null
+    description: string | null
+    url: string
+  }>
 }
 
 export interface MarketMonitorSnapshot {

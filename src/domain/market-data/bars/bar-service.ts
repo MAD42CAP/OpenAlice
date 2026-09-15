@@ -36,6 +36,7 @@ const VENDOR_CAPABILITY: Record<string, BarCapability> = {
   fmp: 'delayed',
   eastmoney: 'delayed',
   twse: 'delayed', // K-lines via Yahoo chart (symbols are .TW/.TWO)
+  alpaca: 'iex',
 }
 
 const BAR_INTERVALS: readonly BarInterval[] = ['1m', '5m', '15m', '30m', '1h', '4h', '1d', '1w']
@@ -221,20 +222,26 @@ export function createBarService(deps: BarServiceDeps): BarService {
     const end_date = opts.end ?? opts.asOf
     const p = (extra?: Record<string, unknown>) => ({ symbol, start_date, provider, ...(end_date ? { end_date } : {}), ...extra })
     let raw: Array<Record<string, unknown>>
-    switch (assetClass) {
-      case 'equity':
-        raw = await deps.equityClient.getHistorical(p({ interval: opts.interval }))
-        break
-      case 'crypto':
-        raw = await deps.cryptoClient.getHistorical(p({ interval: opts.interval }))
-        break
-      case 'currency':
-        raw = await deps.currencyClient.getHistorical(p({ interval: opts.interval }))
-        break
-      case 'commodity':
-        if (opts.interval !== '1d') throw new Error('Commodity vendor bars support only 1d; choose an explicit broker source for other intervals')
-        raw = await deps.commodityClient.getSpotPrices(p())
-        break
+    const direct = deps.directVendorProviders?.[provider]
+    if (direct) {
+      if (!direct.assetClasses.includes(assetClass)) throw new Error(`${provider} does not support ${assetClass} bars`)
+      raw = await direct.getBars({ symbol, assetClass, interval: opts.interval, start: start_date, ...(end_date ? { end: end_date } : {}), ...(opts.count ? { count: opts.count } : {}) })
+    } else {
+      switch (assetClass) {
+        case 'equity':
+          raw = await deps.equityClient.getHistorical(p({ interval: opts.interval }))
+          break
+        case 'crypto':
+          raw = await deps.cryptoClient.getHistorical(p({ interval: opts.interval }))
+          break
+        case 'currency':
+          raw = await deps.currencyClient.getHistorical(p({ interval: opts.interval }))
+          break
+        case 'commodity':
+          if (opts.interval !== '1d') throw new Error('Commodity vendor bars support only 1d; choose an explicit broker source for other intervals')
+          raw = await deps.commodityClient.getSpotPrices(p())
+          break
+      }
     }
     const boundedRaw = raw.filter(row =>
       (!opts.start || String(row.date).slice(0, 10) >= opts.start) &&
@@ -253,8 +260,8 @@ export function createBarService(deps: BarServiceDeps): BarService {
         sourceId: provider,
         barId: formatBarId(provider, symbol),
         provider,
-        barCapability: VENDOR_CAPABILITY[provider],
-        ...computeFreshness(filtered[filtered.length - 1]?.date ?? '', opts, () => new Date(), filtered[0]?.date ?? '', VENDOR_CAPABILITY[provider]),
+        barCapability: direct?.capability ?? VENDOR_CAPABILITY[provider],
+        ...computeFreshness(filtered[filtered.length - 1]?.date ?? '', opts, () => new Date(), filtered[0]?.date ?? '', direct?.capability ?? VENDOR_CAPABILITY[provider]),
       }),
     }
   }
@@ -315,10 +322,14 @@ export function createBarService(deps: BarServiceDeps): BarService {
       // Federate embedded vendor + broker (UTA) search. allSettled so one
       // side failing (e.g. no UTA configured) doesn't kill the other. Flat
       // candidates, no cross-source dedup — redundancy is the feature.
-      const [vendorRes, utaRes, capsRes] = await Promise.allSettled([
+      const [vendorRes, utaRes, capsRes, directRes] = await Promise.allSettled([
         aggregateSymbolSearch(deps.marketSearch, query, limit),
         deps.utaManager.searchContracts(query),
         deps.utaManager.getBarCapabilities?.() ?? Promise.resolve<Record<string, BarCapability>>({}),
+        Promise.all(Object.values(deps.directVendorProviders ?? {}).map(async (provider) => ({
+          provider,
+          configured: await provider.isConfigured?.() ?? true,
+        }))),
       ])
       const caps: Record<string, BarCapability> = capsRes.status === 'fulfilled' ? capsRes.value : {}
       const out: BarSourceCandidate[] = []
@@ -350,6 +361,25 @@ export function createBarService(deps: BarServiceDeps): BarService {
             label: cap ? `${base} · ${cap}` : base,
             barCapability: cap,
           })
+        }
+        if (directRes.status === 'fulfilled') {
+          for (const { provider, configured } of directRes.value) {
+            if (!configured) continue
+            for (const r of vendorRes.value) {
+              const symbol = String(r.symbol ?? r.id ?? '').trim().toUpperCase()
+              if (!provider.assetClasses.includes(r.assetClass) || !/^[A-Z][A-Z0-9.-]{0,19}$/.test(symbol)) continue
+              append({
+                barId: formatBarId(provider.id, symbol),
+                source: 'vendor',
+                sourceId: provider.id,
+                symbol,
+                name: r.name ?? undefined,
+                assetClass: r.assetClass,
+                label: r.name ? `${symbol} · ${r.name} (${provider.id}) · ${provider.capability}` : `${symbol} (${provider.id}) · ${provider.capability}`,
+                barCapability: provider.capability,
+              })
+            }
+          }
         }
       }
 

@@ -44,7 +44,7 @@ import { createVendorTools } from './tool/market-vendors.js'
 import { createQuantTools } from './tool/quant.js'
 import { createSnapshotTools } from './tool/snapshot.js'
 import { createSimulateTools } from './tool/simulate.js'
-import { createBarService } from './domain/market-data/bars/index.js'
+import { createAlpacaMarketDataProvider, createBarService } from './domain/market-data/bars/index.js'
 import { createReferenceData } from './domain/market-data/reference/service.js'
 import { createSectorRotationTools } from './tool/sector-rotation.js'
 import { createReferenceBoardTools } from './tool/reference-board.js'
@@ -224,6 +224,17 @@ async function main() {
     commodityClient,
     utaManager,
     vendorProviders: config.marketData.providers,
+    directVendorProviders: {
+      alpaca: createAlpacaMarketDataProvider({
+        credentials: async () => {
+          const marketData = await readMarketDataConfig()
+          return {
+            keyId: marketData.providerKeys.alpacaKeyId,
+            secretKey: marketData.providerKeys.alpacaSecretKey,
+          }
+        },
+      }),
+    },
   })
 
   // Hub-first calendars: tools, CLI and boards all inherit through the

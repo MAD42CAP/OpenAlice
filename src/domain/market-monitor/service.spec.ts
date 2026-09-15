@@ -51,7 +51,13 @@ function dependencies(hourly = true) {
     getShareStatistics: vi.fn(async () => [{ short_percent_of_float: 0.03 }]),
   } as unknown as EquityClientLike
   const reference = { calendar: vi.fn(async () => ({ earnings: [], ipos: [], dividends: [], window: { start: '2026-01-01', end: '2026-04-01' }, meta: { provider: 'test', asOf: '2026-01-01' } })) } as unknown as ReferenceDataService
-  return { barService, equityClient, reference }
+  const fetcher = vi.fn(async (input: string | URL | Request) => {
+    if (String(input).includes('data.sec.gov')) {
+      return new Response(JSON.stringify({ filings: { recent: { form: [], accessionNumber: [], filingDate: [], reportDate: [], primaryDocument: [], primaryDocDescription: [] } } }), { status: 200 })
+    }
+    return new Response(JSON.stringify({ result: [] }), { status: 200 })
+  }) as typeof fetch
+  return { barService, equityClient, reference, fetcher }
 }
 
 describe('market monitor service', () => {
@@ -122,6 +128,27 @@ describe('market monitor service', () => {
     expect(result.snapshot.sourceHealth).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'mstr-reference' }),
       expect.objectContaining({ id: 'mstr-calendar-news' }),
+      expect.objectContaining({ id: 'mstr-sec-filings', provider: 'SEC EDGAR', status: 'ok' }),
+    ]))
+  })
+
+  it('prefers Alpaca bars for monitored equities and explicitly falls back to Yahoo', async () => {
+    const store = memoryStore()
+    const deps = dependencies()
+    await createMarketMonitorService({ ...deps, store }).scan('TSLA', 'manual')
+    expect(deps.barService.getBars).toHaveBeenNthCalledWith(1, { barId: 'alpaca|TSLA', assetClass: 'equity' }, expect.objectContaining({ interval: '1d' }))
+    expect(deps.barService.getBars).toHaveBeenNthCalledWith(2, { barId: 'alpaca|TSLA', assetClass: 'equity' }, expect.objectContaining({ interval: '1h' }))
+
+    const fallbackDeps = dependencies()
+    vi.mocked(fallbackDeps.barService.getBars).mockImplementation(async (ref, opts) => {
+      if ('barId' in ref && ref.barId.startsWith('alpaca|')) throw new Error('Alpaca credentials are not configured')
+      const rows = opts.interval === '1h' ? bars(48, 3600000) : bars(90, 86400000)
+      return { bars: rows, meta: { symbol: 'TSLA', from: rows[0]!.date, to: rows.at(-1)!.date, bars: rows.length, source: 'vendor', sourceId: 'yfinance', provider: 'yfinance', interval: opts.interval } }
+    })
+    const fallback = await createMarketMonitorService({ ...fallbackDeps, store: memoryStore() }).scan('TSLA', 'manual')
+    expect(fallback.snapshot.sourceHealth).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'daily-bars', status: 'degraded', provider: 'yfinance', detail: expect.stringContaining('alpaca') }),
+      expect.objectContaining({ id: 'intraday-bars', status: 'degraded', provider: 'yfinance', detail: expect.stringContaining('fallback used') }),
     ]))
   })
 
