@@ -5,6 +5,7 @@ import type { INewsProvider } from '../news/types.js'
 import type { ReferenceDataService } from '../market-data/reference/types.js'
 import { evaluateSnapshots } from './analysis.js'
 import { createDailyMarketBrief } from './daily-brief.js'
+import { safeMarketDataError } from '../market-data/bars/safe-error.js'
 import { HEALTH_RECEIPT_LIMIT, summarizeMonitorHealth } from './health.js'
 import {
   createDefaultMarketContextProviderRegistry,
@@ -141,40 +142,39 @@ interface BarFallback {
   reason: string
 }
 
+class BarSourcesError extends Error {
+  constructor(message: string, readonly sources: SourceHealth[]) { super(message) }
+}
+
+export class MarketMonitorScanError extends Error {
+  constructor(readonly receipt: MarketMonitorReceipt) { super(receipt.error) }
+}
+
 async function loadBars(barService: BarService, asset: MarketMonitorAsset, interval: '1d' | '1h', count: number): Promise<{ result: BarsResult; fallback: BarFallback | null }> {
   const config = MARKET_MONITOR_ASSET_CONFIG[asset]
-  if (config.preferredBarId) {
+  const attempts: SourceHealth[] = []
+  for (const barId of [config.preferredBarId, config.barId]) {
+    const provider = barId?.split('|')[0] ?? 'configured provider'
     try {
-      return { result: await barService.getBars({ barId: config.preferredBarId, assetClass: config.assetClass }, { interval, count }), fallback: null }
-    } catch (preferredError) {
-      const result = await barService.getBars({ barId: config.barId, assetClass: config.assetClass }, { interval, count })
+      const ref = barId ? { barId, assetClass: config.assetClass } : { symbol: config.symbol, assetClass: config.assetClass }
+      const result = await barService.getBars(ref, { interval, count })
+      const minimum = interval === '1d' ? 20 : 2
+      if (result.bars.length < minimum) {
+        const quality = result.meta.quality
+        throw new Error(`Only ${result.bars.length} usable ${interval} bars; at least ${minimum} required.${quality ? ` Quality excluded ${quality.excludedRows}/${quality.inspectedRows} rows (${quality.reason ?? 'none'}).` : ''}`)
+      }
       return {
         result,
-        fallback: {
-          from: config.preferredBarId.split('|')[0] ?? config.preferredBarId,
-          to: result.meta.sourceId ?? result.meta.provider ?? config.barId.split('|')[0] ?? 'fallback',
-          reason: preferredError instanceof Error ? preferredError.message : String(preferredError),
-        },
+        fallback: attempts.length ? { from: attempts[0]!.provider, to: result.meta.sourceId ?? result.meta.provider ?? provider, reason: attempts[0]!.detail } : null,
       }
+    } catch (error) {
+      attempts.push({
+        id: interval === '1d' ? 'daily-bars' : 'intraday-bars', label: interval === '1d' ? 'Daily OHLCV' : 'Hourly OHLCV',
+        provider, status: 'unavailable', asOf: null, detail: safeMarketDataError(error).slice(0, 500),
+      })
     }
   }
-  try {
-    return { result: await barService.getBars({ symbol: config.symbol, assetClass: config.assetClass }, { interval, count }), fallback: null }
-  } catch (primaryError) {
-    try {
-      const result = await barService.getBars({ barId: config.barId, assetClass: config.assetClass }, { interval, count })
-      return {
-        result,
-        fallback: {
-          from: 'configured provider',
-          to: result.meta.sourceId ?? result.meta.provider ?? config.barId.split('|')[0] ?? 'fallback',
-          reason: primaryError instanceof Error ? primaryError.message : String(primaryError),
-        },
-      }
-    } catch {
-      throw primaryError
-    }
-  }
+  throw new BarSourcesError(`${asset} ${interval}: ${attempts.map(source => `${source.provider} failed (${source.detail})`).join('; ')}`, attempts)
 }
 
 export function createMarketMonitorService(deps: MarketMonitorServiceDeps): MarketMonitorService {
@@ -295,27 +295,30 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
         const requestedAt = now().toISOString()
         const started = performance.now()
         let strategyId: string | undefined
+        let failureStage: MarketMonitorReceipt['failureStage'] = 'configuration'
+        const sourceHealth: SourceHealth[] = []
         const receiptBase = { id: randomUUID(), asset, requestedAt, trigger } as const
         try {
           const settings = await loadSettings()
           const strategy = strategyRegistry.get(settings.strategyId)
           strategyId = strategy.manifest.id
+          failureStage = 'daily-bars'
           const daily = await loadBars(deps.barService, asset, '1d', 400)
+          sourceHealth.push(healthFromMeta('daily-bars', 'Daily OHLCV', daily.result.meta, daily.fallback))
           let intraday: { result: BarsResult; fallback: BarFallback | null } | null = null
           let intradayError: unknown
           try { intraday = await loadBars(deps.barService, asset, '1h', 180) } catch (error) { intradayError = error }
+          sourceHealth.push(intraday
+            ? healthFromMeta('intraday-bars', 'Hourly OHLCV', intraday.result.meta, intraday.fallback)
+            : { id: 'intraday-bars', label: 'Hourly OHLCV', status: 'unavailable', provider: 'OpenAlice BarService', asOf: null, detail: safeMarketDataError(intradayError) })
+          failureStage = 'analysis'
           const analysis = strategy.analyze({
             asset,
             dailyBars: daily.result.bars, intradayBars: intraday?.result.bars ?? [],
             abnormalMovePercent: settings.abnormalMovePercent,
             abnormalVolumeRatio: settings.abnormalVolumeRatio,
           })
-          const sourceHealth: SourceHealth[] = [
-            healthFromMeta('daily-bars', 'Daily OHLCV', daily.result.meta, daily.fallback),
-            intraday
-              ? healthFromMeta('intraday-bars', 'Hourly OHLCV', intraday.result.meta, intraday.fallback)
-              : { id: 'intraday-bars', label: 'Hourly OHLCV', status: 'unavailable', provider: 'OpenAlice BarService', asOf: null, detail: intradayError instanceof Error ? intradayError.message : 'Hourly source unavailable.' },
-          ]
+          failureStage = 'context'
           const previous = (await store.snapshots(asset, 1000)).filter((row) => row.strategyId === strategy.manifest.id).at(-1)
           const previousCapturedAt = previous?.capturedAt ?? 'an earlier scan'
           const providers = contextProviderRegistry.forAsset(asset)
@@ -331,7 +334,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
                   status: 'unavailable' as const,
                   provider: provider.manifest.id,
                   asOf: null,
-                  detail: error instanceof Error ? error.message : String(error),
+                  detail: safeMarketDataError(error),
                 }],
               }
             }
@@ -365,6 +368,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
               dailyMeta: daily.result.meta, intradayMeta: intraday?.result.meta ?? null,
             },
           }
+          failureStage = 'storage'
           const stored = previous?.fingerprint !== fingerprint
           await store.saveLatestSeries(asset, snapshot.chart, snapshot.strategyId)
           if (stored) {
@@ -374,19 +378,21 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
           const receipt: MarketMonitorReceipt = {
             ...receiptBase, completedAt: now().toISOString(), strategyId,
             durationMs: Math.max(0, Math.round(performance.now() - started)),
-            sourceHealth: sourceHealth.map(({ id, label, provider, status, asOf }) => ({ id, label, provider, status, asOf })),
+            sourceHealth,
             outcome: stored ? 'stored' : 'duplicate', snapshotId: stored ? snapshot.id : previous?.id,
           }
           await store.appendReceipt(receipt)
           return { snapshot, stored, alert, receipt }
         } catch (error) {
+          if (error instanceof BarSourcesError) sourceHealth.push(...error.sources)
           const receipt: MarketMonitorReceipt = {
             ...receiptBase, completedAt: now().toISOString(), strategyId,
             durationMs: Math.max(0, Math.round(performance.now() - started)),
-            outcome: 'failed', error: error instanceof Error ? error.message : String(error),
+            sourceHealth, failureStage,
+            outcome: 'failed', error: `${failureStage}: ${safeMarketDataError(error)}`,
           }
           await store.appendReceipt(receipt)
-          throw error
+          throw new MarketMonitorScanError(receipt)
         }
       })().finally(() => { inFlight.delete(asset) })
       inFlight.set(asset, task)

@@ -24,7 +24,10 @@ BTC prefers the read-only `coinbase|BTC-USD` spot source and falls back
 explicitly to `yfinance|BTC-USD` when Coinbase is unavailable. Coinbase public
 spot candles require no key. Optional CDP ECDSA credentials enable its
 authenticated read-only endpoint without adding account or order access to the
-monitor.
+monitor. Empty or insufficient usable bars also trigger fallback (minimum 20
+daily bars, two hourly bars), including rows excluded by quality checks. If both
+sources fail, both provider reasons remain visible. A daily failure stops the
+scan; an hourly failure preserves daily analysis and marks intraday unavailable.
 
 TSLA and MSTR prefer the read-only `alpaca|SYMBOL` Market Data provider. If its
 two credentials are absent, rejected or temporarily unavailable, each request
@@ -230,10 +233,14 @@ the prior report; a refresh failure explicitly labels retained facts.
   plus the latest check time and underlying market-data time.
 - The latest 12 attempts, including errors and strategy identity when known.
 
-Receipts now include optional duration, strategy and compact source checks,
-including for unchanged evidence. Older receipts remain readable but missing
-telemetry is unknown, not healthy. A failed scan before source collection has
-no source checks. Source recoveries require adjacent observed checks for the
+Receipts include optional duration, strategy and source checks with diagnostic
+details, including for unchanged evidence and failed bar acquisition. Failed
+scans also carry `failureStage` (configuration, daily-bars, analysis, context or
+storage). Source checks collected before a later failure are retained; dual
+provider failures retain both causes. The dashboard displays actual providers,
+fallback reasons and failure stages in source health and recent attempts. Older
+receipts remain readable but missing telemetry is unknown, not healthy. Source
+recoveries require adjacent observed checks for the
 same provider; an unknown gap does not establish recovery. Operational reports
 include all strategies; strategy performance evaluation remains separate.
 

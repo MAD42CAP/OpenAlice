@@ -61,6 +61,70 @@ function dependencies(hourly = true) {
 }
 
 describe('market monitor service', () => {
+  it.each([0, 19])('falls back when Coinbase returns %s usable daily bars without throwing', async (count) => {
+    const deps = dependencies()
+    const original = deps.barService.getBars
+    const good = await original({ symbol: 'BTC-USD', assetClass: 'crypto' }, { interval: '1d' })
+    vi.mocked(deps.barService.getBars).mockImplementation(async (ref, opts) => {
+      if ('barId' in ref && ref.barId.startsWith('coinbase|')) return { bars: good.bars.slice(0, count), meta: { ...good.meta, sourceId: 'coinbase', bars: count, quality: { scope: 'fetched_window_before_count', inspectedRows: 350, excludedRows: 350 - count, latestExcludedRecordAt: null, latestExcludedFields: ['open'], reason: 'missing_or_non_finite_ohlc' } } }
+      return good
+    })
+    const result = await createMarketMonitorService({ ...deps, store: memoryStore() }).scan('BTC', 'manual')
+    expect(result.snapshot.chart.daily).toHaveLength(90)
+    expect(result.receipt.sourceHealth).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'daily-bars', provider: 'yfinance', status: 'degraded', detail: expect.stringContaining(`Only ${count} usable 1d bars`) }),
+    ]))
+  })
+
+  it('preserves both daily source failures and their stage in receipts and health reports', async () => {
+    const deps = dependencies(), store = memoryStore()
+    vi.mocked(deps.barService.getBars).mockImplementation(async (ref) => {
+      throw new Error('barId' in ref && ref.barId.startsWith('coinbase|') ? 'Coinbase HTTP 403: view denied' : 'Yahoo HTTP 429: rate limited')
+    })
+    const service = createMarketMonitorService({ ...deps, store })
+    await expect(service.scan('BTC', 'manual')).rejects.toThrow(/daily-bars: BTC 1d: coinbase failed.*403.*yfinance failed.*429/)
+    expect(deps.barService.getBars).toHaveBeenCalledTimes(2)
+    expect(store.data.receipts[0]).toMatchObject({ failureStage: 'daily-bars', outcome: 'failed', sourceHealth: [
+      { provider: 'coinbase', status: 'unavailable', detail: 'Coinbase HTTP 403: view denied' },
+      { provider: 'yfinance', status: 'unavailable', detail: 'Yahoo HTTP 429: rate limited' },
+    ] })
+    const health = await service.health('BTC', 24)
+    expect(health.summary.scansWithSourceIssues).toBe(1)
+    expect(health.sources.map(source => [source.provider, source.unavailable])).toEqual([['coinbase', 1], ['yfinance', 1]])
+  })
+
+  it('rejects empty Yahoo fallback data and retains the original Coinbase reason', async () => {
+    const deps = dependencies(), store = memoryStore()
+    vi.mocked(deps.barService.getBars).mockRejectedValueOnce(new Error('Coinbase timed out')).mockResolvedValueOnce({ bars: [], meta: { symbol: 'BTC-USD', from: '', to: '', bars: 0, sourceId: 'yfinance' } })
+    await expect(createMarketMonitorService({ ...deps, store }).scan('BTC', 'manual')).rejects.toThrow(/Coinbase timed out.*yfinance failed.*Only 0 usable 1d bars/)
+  })
+
+  it('continues daily analysis when both hourly sources fail and records both reasons', async () => {
+    const deps = dependencies(false)
+    const result = await createMarketMonitorService({ ...deps, store: memoryStore() }).scan('BTC', 'manual')
+    expect(result.receipt.outcome).toBe('stored')
+    expect(result.snapshot.chart.intraday).toEqual([])
+    expect(result.receipt.sourceHealth).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'intraday-bars', status: 'unavailable', detail: expect.stringMatching(/BTC 1h: coinbase failed.*yfinance failed/) }),
+    ]))
+  })
+
+  it('redacts credential-shaped text before persisting combined failures', async () => {
+    const deps = dependencies(), store = memoryStore()
+    vi.mocked(deps.barService.getBars).mockRejectedValue(new Error('HTTP 401 organizations/example/apiKeys/sentinel token=sentinel-secret Bearer sentinel-bearer eyJhbGciOi.test.signature'))
+    await createMarketMonitorService({ ...deps, store }).scan('BTC', 'manual').catch(() => undefined)
+    const persisted = JSON.stringify(store.data.receipts)
+    expect(persisted).toContain('401')
+    expect(persisted).not.toMatch(/sentinel|eyJhbGciOi/)
+  })
+
+  it('bounds each provider error without losing the fallback reason', async () => {
+    const deps = dependencies(), store = memoryStore()
+    vi.mocked(deps.barService.getBars).mockRejectedValueOnce(new Error(`Coinbase: ${'x'.repeat(2000)}`)).mockRejectedValueOnce(new Error('Yahoo HTTP 429'))
+    await expect(createMarketMonitorService({ ...deps, store }).scan('BTC', 'manual')).rejects.toThrow(/coinbase failed.*yfinance failed \(Yahoo HTTP 429\)/)
+    expect(store.data.receipts[0]!.error!.length).toBeLessThan(1500)
+  })
+
   it('runs browser-free with real persisted receipts and resumes cadence after restart', async () => {
     const root = await mkdtemp(join(tmpdir(), 'market-monitor-background-'))
     let clock = Date.parse('2026-09-13T00:00:00Z')

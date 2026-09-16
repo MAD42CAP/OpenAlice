@@ -82,7 +82,12 @@ export function MonitorOperations({ asset, hours, onHoursChange, report, loading
               <td className="py-2.5 pr-4">{t(`marketMonitor.history.${receipt.trigger}`)}</td>
               <td className={cn('py-2.5 pr-4', receipt.outcome === 'failed' && 'text-warning')}>{receipt.outcome === 'duplicate' ? t('marketMonitor.operations.unchangedEvidence') : receipt.outcome === 'stored' ? t('marketMonitor.operations.newEvidence') : t('marketMonitor.operations.failed')}</td>
               <td className="py-2.5 pr-4 tabular-nums">{duration(receipt.durationMs)}</td>
-              <td className="max-w-sm break-words py-2.5 text-muted-foreground">{receipt.error ?? receipt.strategyId ?? '—'}</td>
+              <td className="max-w-sm break-words py-2.5 text-muted-foreground">
+                <div>{receipt.error ?? receipt.strategyId ?? '—'}</div>
+                {receipt.sourceHealth?.map(source => <div key={`${source.id}:${source.provider}`} className="mt-1 text-[11px]">
+                  {monitorSourceLabel(t, source, asset)} · {source.provider} · {statusLabel[source.status]}{source.detail ? ` · ${source.detail}` : ''}
+                </div>)}
+              </td>
             </tr>)}</tbody>
           </table>
         </div>

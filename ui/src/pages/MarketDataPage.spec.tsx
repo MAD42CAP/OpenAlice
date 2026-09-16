@@ -93,11 +93,29 @@ describe('MarketDataPage provider credentials', () => {
     expect(screen.getByLabelText('ECDSA Private Key')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Test Coinbase key' }))
     expect(await screen.findByRole('button', { name: 'Coinbase key test passed' })).toBeTruthy()
+    expect(screen.getByText('BTC-USD daily and hourly candles verified.')).toBeTruthy()
     expect(mocks.testProvider).toHaveBeenCalledWith(
       'coinbase',
       'organizations/test/apiKeys/key-id',
       '-----BEGIN EC PRIVATE KEY-----\ntest\n-----END EC PRIVATE KEY-----',
     )
+  })
+
+  it('shows the failing Coinbase candle interval and diagnostic', async () => {
+    mocks.testProvider.mockResolvedValueOnce({ ok: false, error: 'Coinbase BTC-USD 1h candle test failed: No usable OHLC candles returned.' })
+    openProviderKeys()
+    fireEvent.click(screen.getByRole('button', { name: 'Test Coinbase key' }))
+    expect(await screen.findByText(/1h candle test failed/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Coinbase key test failed' })).toBeTruthy()
+  })
+
+  it('clears a passed Coinbase result when either credential field changes', async () => {
+    openProviderKeys()
+    fireEvent.click(screen.getByRole('button', { name: 'Test Coinbase key' }))
+    await screen.findByText('BTC-USD daily and hourly candles verified.')
+    fireEvent.change(screen.getByLabelText('ECDSA Private Key'), { target: { value: 'replacement-test-value' } })
+    expect(screen.queryByText('BTC-USD daily and hourly candles verified.')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Test Coinbase key' })).toBeTruthy()
   })
 
   it('associates provider test progress and success with the matching field', async () => {

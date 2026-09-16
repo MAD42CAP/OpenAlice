@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
 import type { EngineContext } from '../../core/types.js'
-import { createMarketMonitorService, type MarketMonitorService } from '../../domain/market-monitor/service.js'
+import { createMarketMonitorService, MarketMonitorScanError, type MarketMonitorService } from '../../domain/market-monitor/service.js'
 import type { MarketMonitorScheduler } from '../../domain/market-monitor/scheduler.js'
 import type { MarketNarratorCoordinator } from '../market-monitor-narrator.js'
 import { DEFAULT_MARKET_MONITOR_SETTINGS, MARKET_MONITOR_ASSETS, type MarketMonitorAsset } from '../../domain/market-monitor/types.js'
@@ -87,6 +87,7 @@ export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketM
     try {
       return c.json(await service.scan(parsed.data.asset, parsed.data.trigger))
     } catch (error) {
+      if (error instanceof MarketMonitorScanError) return c.json({ error: error.message, failureStage: error.receipt.failureStage, sourceHealth: error.receipt.sourceHealth }, 502)
       return c.json({ error: error instanceof Error ? error.message : String(error) }, 502)
     }
   })

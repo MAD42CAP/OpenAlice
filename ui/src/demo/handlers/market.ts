@@ -166,7 +166,12 @@ export const marketHandlers = [
   http.get('/api/market/equity/income', aaplOnly(demoMarketAAPL.income)),
   http.get('/api/market/equity/cash', aaplOnly(demoMarketAAPL.cash)),
 
-  http.post('/api/market-data/test-provider', () => HttpResponse.json({ ok: true })),
+  http.post('/api/market-data/test-provider', async ({ request }) => {
+    const body = await request.json() as { provider?: string; key?: string; secret?: string }
+    return HttpResponse.json(body.provider === 'coinbase'
+      ? { ok: true, mode: body.key && body.secret ? 'authenticated' : 'public', checked: ['BTC-USD 1d candles', 'BTC-USD 1h candles'] }
+      : { ok: true })
+  }),
   http.get('/api/market-data/hub-status', () =>
     HttpResponse.json({ enabled: true, baseUrl: 'https://traderhub.openalice.ai', reachable: true }),
   ),

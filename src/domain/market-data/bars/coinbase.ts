@@ -1,5 +1,6 @@
 import { createPrivateKey, randomBytes, sign } from 'node:crypto'
 import type { VendorBarProvider } from './types.js'
+import { invalidOhlcFields } from './quality.js'
 
 export interface CoinbaseMarketDataCredentials {
   keyName?: string
@@ -80,12 +81,30 @@ function assertProduct(symbol: string): string {
   return product
 }
 
-function endpointError(status: number, body: string): Error {
-  if (status === 401) return new Error('Coinbase rejected the API Key Name or ECDSA Private Key.')
-  if (status === 403) return new Error('Coinbase denied this read-only market-data request. Confirm that the key has view permission and any IP allowlist includes this machine.')
-  if (status === 429) return new Error('Coinbase market-data rate limit reached; retry after the provider window resets.')
-  const safeBody = body.replace(/\s+/g, ' ').trim().slice(0, 180)
-  return new Error(`Coinbase Market Data HTTP ${status}${safeBody ? `: ${safeBody}` : ''}`)
+function endpointError(status: number): Error {
+  if (status === 401) return new Error('Coinbase HTTP 401: authentication rejected. Check the ECDSA key, request-bound JWT and system clock.')
+  if (status === 403) return new Error('Coinbase HTTP 403: read-only market-data request denied. Confirm that the key has view permission and any IP allowlist includes this machine.')
+  if (status === 429) return new Error('Coinbase HTTP 429: market-data rate limit reached; retry after the provider window resets.')
+  // Provider error bodies may echo authorization material. Never persist them.
+  return new Error(`Coinbase Market Data HTTP ${status}${status === 400 ? ': invalid candle request parameters' : ''}`)
+}
+
+function candleNumber(value: unknown): number | null {
+  if (typeof value !== 'number' && (typeof value !== 'string' || !value.trim())) return null
+  const number = Number(value)
+  return Number.isFinite(number) ? number : null
+}
+
+async function requestJson(fetcher: typeof fetch, url: string, headers: Record<string, string>): Promise<unknown> {
+  let response: Response
+  try {
+    response = await fetcher(url, { headers, signal: AbortSignal.timeout(10_000) })
+  } catch (error) {
+    throw new Error(error instanceof Error && ['TimeoutError', 'AbortError'].includes(error.name)
+      ? 'Coinbase market-data request timed out.' : 'Coinbase market-data network request failed.')
+  }
+  if (!response.ok) throw endpointError(response.status)
+  try { return await response.json() } catch { throw new Error('Coinbase returned an invalid JSON response.') }
 }
 
 function requestHeaders(input: {
@@ -133,27 +152,32 @@ export function createCoinbaseMarketDataProvider(deps: CoinbaseMarketDataProvide
         ? `/api/v3/brokerage/products/${encodeURIComponent(product)}/candles`
         : `/api/v3/brokerage/market/products/${encodeURIComponent(product)}/candles`
       const first = epoch(input.start)
-      const last = input.end ? epoch(input.end, true) : Math.floor(now().getTime() / 1000)
+      const last = Math.min(input.end ? epoch(input.end, true) : Infinity, Math.floor(now().getTime() / 1000))
+      if (!Number.isFinite(first) || !Number.isFinite(last)) throw new Error('Coinbase candle date range is invalid.')
+      if (Math.ceil((last - first + 1) / (granularity.seconds * MAX_CANDLES)) > 50) {
+        throw new Error('Coinbase candle date range exceeds the 50-page limit; request a smaller window.')
+      }
       const rows = new Map<string, Record<string, unknown>>()
       let cursor = first
 
       for (let page = 0; cursor <= last && page < 50; page++) {
         const windowEnd = Math.min(last, cursor + granularity.seconds * (MAX_CANDLES - 1))
         const query = new URLSearchParams({
-          start: String(cursor), end: String(windowEnd), granularity: granularity.name, limit: String(MAX_CANDLES),
+          // With limit set Coinbase returns the latest N candles, ignoring the
+          // date window. Bound pages by timestamps instead (at most 350 buckets).
+          start: String(cursor), end: String(windowEnd), granularity: granularity.name,
         })
         const headers = requestHeaders({ credentials, method: 'GET', host: baseUrl.host, path, now: now() })
-        const response = await fetcher(`${baseUrl.origin}${path}?${query}`, { headers, signal: AbortSignal.timeout(10_000) })
-        if (!response.ok) throw endpointError(response.status, await response.text().catch(() => ''))
-        const body = await response.json() as {
+        const body = await requestJson(fetcher, `${baseUrl.origin}${path}?${query}`, headers) as {
           candles?: Array<{ start?: unknown; low?: unknown; high?: unknown; open?: unknown; close?: unknown; volume?: unknown }>
         }
-        for (const candle of body.candles ?? []) {
-          const timestamp = Number(candle.start)
-          if (!Number.isFinite(timestamp)) continue
+        if (!body || !Array.isArray(body.candles)) throw new Error(`Coinbase ${input.interval} candles response is missing the candles array.`)
+        for (const candle of body.candles) {
+          const timestamp = candleNumber(candle?.start)
+          if (timestamp === null || timestamp < cursor || timestamp > windowEnd) continue
           const instant = new Date(timestamp * 1000).toISOString()
           const date = input.interval === '1d' ? instant.slice(0, 10) : instant
-          rows.set(date, { date, open: candle.open, high: candle.high, low: candle.low, close: candle.close, volume: candle.volume ?? null })
+          rows.set(date, { date, open: candleNumber(candle.open), high: candleNumber(candle.high), low: candleNumber(candle.low), close: candleNumber(candle.close), volume: candleNumber(candle.volume) })
         }
         if (windowEnd >= last) break
         cursor = windowEnd + granularity.seconds
@@ -176,9 +200,20 @@ export async function testCoinbaseMarketDataCredentials(
     ? '/api/v3/brokerage/key_permissions'
     : '/api/v3/brokerage/market/products/BTC-USD'
   const headers = requestHeaders({ credentials: normalized, method: 'GET', host: baseUrl.host, path, now })
-  const response = await fetcher(`${baseUrl.origin}${path}`, { headers, signal: AbortSignal.timeout(6_000) })
-  if (!response.ok) throw endpointError(response.status, await response.text().catch(() => ''))
-  const body = await response.json().catch(() => null)
+  const body = await requestJson(fetcher, `${baseUrl.origin}${path}`, headers)
   if (!body || typeof body !== 'object') throw new Error(`Coinbase ${mode} endpoint returned no usable response.`)
+  if (mode === 'authenticated' && (!('can_view' in body) || body.can_view !== true)) {
+    throw new Error('Coinbase key_permissions: the key does not have view permission.')
+  }
+  const provider = createCoinbaseMarketDataProvider({ credentials: () => normalized, fetcher, baseUrl: base, now: () => now })
+  for (const interval of ['1d', '1h'] as const) {
+    try {
+      const start = new Date(now.getTime() - (interval === '1d' ? 2 : 1) * 86400000).toISOString().slice(0, 10)
+      const rows = await provider.getBars({ symbol: 'BTC-USD', assetClass: 'crypto', interval, start })
+      if (!rows.some(row => invalidOhlcFields(row).length === 0)) throw new Error('No usable OHLC candles returned.')
+    } catch (error) {
+      throw new Error(`Coinbase BTC-USD ${interval} candle test failed: ${error instanceof Error ? error.message : 'Request failed.'}`)
+    }
+  }
   return mode
 }

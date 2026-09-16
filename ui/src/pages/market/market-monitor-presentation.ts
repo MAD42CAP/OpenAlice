@@ -289,6 +289,9 @@ export function monitorSourceDetail(t: Translate, source: SourceHealth): string 
   const retained = source.detail.includes('retained') || source.detail.includes('Last valid fields')
   let detail: string
   if (source.id === 'daily-bars' || source.id === 'intraday-bars') {
+    // Keep provider failure diagnostics visible instead of replacing them with
+    // a generic translated "unavailable" or "fallback" badge.
+    if (source.status === 'unavailable' || source.detail.includes('fallback used')) return source.detail
     const stale = source.detail.match(/(\d+) weekday\(s\) behind/)
     const bars = source.detail.match(/(\d+) attributed bars/)
     const demo = source.detail.includes('Deterministic attributed')
@@ -299,11 +302,9 @@ export function monitorSourceDetail(t: Translate, source: SourceHealth): string 
           ? t('marketMonitor.source.staleDays', { count: Number(stale[1]) })
           : bars
             ? t('marketMonitor.source.attributedBars', { count: Number(bars[1]) })
-            : source.status === 'unavailable'
-              ? t('marketMonitor.source.unavailable')
-              : source.status === 'degraded'
-                ? t('marketMonitor.source.degraded')
-                : t('marketMonitor.source.ok')
+            : source.status === 'degraded'
+              ? t('marketMonitor.source.degraded')
+              : t('marketMonitor.source.ok')
     }`
   } else if (source.id === 'btc-derivatives') {
     detail = source.status === 'unavailable'

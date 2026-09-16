@@ -123,8 +123,17 @@ credentials switch the adapter to request-bound ES256 JWT authentication and
 the private product-candle endpoint. A partial pair fails explicitly; it is
 never silently ignored. Ed25519 keys are rejected because Coinbase App APIs
 require ECDSA. The credential test checks public product access when both fields
-are empty and key permissions when both are set. No account, balance or order
-endpoint belongs to the provider.
+are empty and requires `can_view=true` when both are set, then validates usable
+BTC-USD daily and hourly candles through the same adapter. No account, balance
+or order endpoint belongs to the provider.
+
+Coinbase returns string OHLCV values; the adapter converts finite numeric values
+before BarService quality checks, while missing/blank values remain null.
+Timestamp windows page at most 350 buckets and omit `limit`: live verification
+on 2026-09-16 found that supplying `limit` returned the latest candles regardless
+of `start`/`end`, repeating the same page. Each response is bounded to its window,
+sorted and deduplicated. Requests exceeding 50 pages fail explicitly. Provider
+HTTP bodies and network exceptions are never echoed into credential-test errors.
 
 ## Embedded Compatibility Package
 

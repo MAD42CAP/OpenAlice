@@ -11,7 +11,7 @@ export function demoMonitorHealth(asset: MonitorAsset, hours: 24 | 72 = 24): Mon
     completedAt: new Date(Date.parse('2026-09-12T12:05:00Z') + index * 900_000 + (index + 1) * 600).toISOString(),
     trigger: index ? 'scheduled' : 'manual', outcome: index ? 'duplicate' : 'stored',
     snapshotId: snapshot.id, strategyId: snapshot.strategyId, durationMs: (index + 1) * 600,
-    sourceHealth: snapshot.sourceHealth.map(({ detail: _detail, ...source }) => ({ ...source, status: source.id === 'context' && index === 0 ? 'degraded' : 'ok' })),
+    sourceHealth: snapshot.sourceHealth.map(source => ({ ...source, status: source.id === 'context' && index === 0 ? 'degraded' : 'ok' })),
   }))
   return {
     schemaVersion: 1, asset, generatedAt,

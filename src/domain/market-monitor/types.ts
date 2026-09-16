@@ -281,7 +281,8 @@ export interface MarketMonitorReceipt {
   completedAt?: string
   strategyId?: string
   durationMs?: number
-  sourceHealth?: Array<Pick<SourceHealth, 'id' | 'label' | 'provider' | 'status' | 'asOf'>>
+  sourceHealth?: Array<Pick<SourceHealth, 'id' | 'label' | 'provider' | 'status' | 'asOf'> & { detail?: string }>
+  failureStage?: 'configuration' | 'daily-bars' | 'analysis' | 'context' | 'storage'
   trigger: MarketMonitorTrigger
   outcome: 'stored' | 'duplicate' | 'failed'
   snapshotId?: string

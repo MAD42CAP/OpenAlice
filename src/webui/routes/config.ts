@@ -484,7 +484,7 @@ export function createMarketDataRoutes(ctx: EngineContext) {
       }
       if (provider === 'coinbase') {
         const mode = await testCoinbaseMarketDataCredentials({ keyName: key, privateKey: secret })
-        return c.json({ ok: true, mode })
+        return c.json({ ok: true, mode, checked: ['BTC-USD 1d candles', 'BTC-USD 1h candles'] })
       }
       const endpoint = TEST_ENDPOINTS[provider]
       if (!endpoint) return c.json({ ok: false, error: `Unknown provider: ${provider}` }, 400)

@@ -190,7 +190,8 @@ export interface MonitorReceipt {
   error?: string
   strategyId?: string
   durationMs?: number
-  sourceHealth?: Array<Pick<SourceHealth, 'id' | 'label' | 'provider' | 'status' | 'asOf'>>
+  sourceHealth?: Array<Pick<SourceHealth, 'id' | 'label' | 'provider' | 'status' | 'asOf'> & { detail?: string }>
+  failureStage?: 'configuration' | 'daily-bars' | 'analysis' | 'context' | 'storage'
 }
 
 export interface MonitorHealthReport {

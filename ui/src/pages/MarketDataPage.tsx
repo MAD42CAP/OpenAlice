@@ -553,10 +553,13 @@ function KeyProvidersSection({
     return init
   })
   const [testStatus, setTestStatus] = useState<Record<string, ProviderTestStatus>>({})
+  const [testDetails, setTestDetails] = useState<Record<string, string>>({})
 
   const handleKeyChange = (keyName: string, value: string) => {
     setLocalKeys((prev) => ({ ...prev, [keyName]: value }))
-    setTestStatus((prev) => ({ ...prev, [keyName]: 'idle' }))
+    const provider = keyName.startsWith('coinbase') ? 'coinbase' : keyName.startsWith('alpaca') ? 'alpaca' : keyName
+    setTestStatus((prev) => ({ ...prev, [provider]: 'idle' }))
+    setTestDetails((prev) => ({ ...prev, [provider]: '' }))
     onKeyChange(keyName, value)
   }
 
@@ -567,9 +570,11 @@ function KeyProvidersSection({
     const partialPair = paired && Boolean(key) !== Boolean(secret)
     if ((!key && keyName !== 'coinbase') || partialPair) return
     setTestStatus((prev) => ({ ...prev, [keyName]: 'testing' }))
+    setTestDetails((prev) => ({ ...prev, [keyName]: '' }))
     try {
       const result = await api.marketData.testProvider(keyName, key, secret)
       setTestStatus((prev) => ({ ...prev, [keyName]: result.ok ? 'ok' : 'error' }))
+      setTestDetails((prev) => ({ ...prev, [keyName]: result.ok && keyName === 'coinbase' ? 'BTC-USD daily and hourly candles verified.' : result.error ?? '' }))
     } catch {
       setTestStatus((prev) => ({ ...prev, [keyName]: 'error' }))
     }
@@ -642,6 +647,7 @@ function KeyProvidersSection({
                 <div className="text-[13px] font-medium text-foreground">Coinbase Advanced Market Data</div>
                 <p id="coinbase-market-data-description" className="mt-1 text-[12px] text-muted-foreground/70">
                   BTC-USD spot bars. Public data works without a key; a complete CDP ECDSA key pair enables authenticated read-only requests.
+                  {' '}Test checks access plus usable daily and hourly candles.
                 </p>
               </div>
               <TestButton
@@ -681,6 +687,7 @@ function KeyProvidersSection({
             <span id="coinbase-market-data-test-status" className="sr-only" role="status" aria-live="polite">
               {testStatus.coinbase ? providerTestStatusLabel('Coinbase', testStatus.coinbase) : ''}
             </span>
+            {testDetails.coinbase && <p role="status" className="mt-2 break-words text-xs text-muted-foreground">{testDetails.coinbase}</p>}
           </div>
         </div>
         {KEY_GROUPS.map((group, gi) => (

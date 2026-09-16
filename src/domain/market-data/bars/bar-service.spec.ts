@@ -4,6 +4,7 @@
  */
 import { describe, it, expect, vi } from 'vitest'
 import { createBarService, parseBarId, formatBarId, isDerivativeBarId } from './index.js'
+import { createCoinbaseMarketDataProvider } from './coinbase.js'
 import type { BarServiceDeps, UtaBarGateway } from './types.js'
 import type {
   EquityClientLike, CryptoClientLike, CurrencyClientLike, CommodityClientLike,
@@ -65,6 +66,21 @@ describe('barId helpers', () => {
 })
 
 describe('getBars — vendor branch', () => {
+  it.each(['1d', '1h'])('keeps real Coinbase wire-format %s prices through quality checks', async (interval) => {
+    const provider = createCoinbaseMarketDataProvider({ credentials: () => ({}), now: () => new Date('2026-09-15T12:00:00Z'),
+      fetcher: async () => new Response(JSON.stringify({ candles: [
+        { start: '1789430400', open: '60000', high: '61000', low: '59000', close: '60500', volume: '12.5' },
+        { start: '1789344000', open: null, high: '61000', low: '59000', close: '60500', volume: '' },
+      ] })),
+    })
+    const svc = createBarService(makeDeps({ directVendorProviders: { coinbase: provider } }))
+    const result = await svc.getBars({ barId: 'coinbase|BTC-USD', assetClass: 'crypto' }, { interval, start: '2026-09-14', end: '2026-09-15' })
+    expect(result.bars).toHaveLength(1)
+    expect(result.bars[0]).toMatchObject({ open: 60000, close: 60500, volume: 12.5 })
+    expect(result.meta.quality).toMatchObject({ inspectedRows: 2, excludedRows: 1 })
+    expect(result.meta.sourceId).toBe('coinbase')
+  })
+
   it('filters null-OHLC bars, sorts ascending, builds meta', async () => {
     const svc = createBarService(makeDeps())
     const { bars, meta } = await svc.getBars({ symbol: 'AAPL', assetClass: 'equity' }, { interval: '1d' })

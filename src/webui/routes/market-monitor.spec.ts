@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { EngineContext } from '../../core/types.js'
-import type { MarketMonitorService } from '../../domain/market-monitor/service.js'
+import { MarketMonitorScanError, type MarketMonitorService } from '../../domain/market-monitor/service.js'
 import { DEFAULT_MARKET_MONITOR_SETTINGS, type MarketContextProviderManifest, type MarketMonitorStrategyManifest } from '../../domain/market-monitor/types.js'
 import { createMarketMonitorRoutes } from './market-monitor.js'
 import { summarizeMonitorHealth } from '../../domain/market-monitor/health.js'
@@ -24,6 +24,15 @@ function service(): MarketMonitorService {
 }
 
 describe('market monitor routes', () => {
+  it('returns the failed stage and both source checks with a failed scan', async () => {
+    const fake = service()
+    const sourceHealth = ['coinbase', 'yfinance'].map(provider => ({ id: 'daily-bars', label: 'Daily OHLCV', provider, status: 'unavailable' as const, asOf: null, detail: 'network unavailable' }))
+    vi.mocked(fake.scan).mockRejectedValue(new MarketMonitorScanError({ id: 'test', asset: 'BTC', requestedAt: '2026-09-15T00:00:00Z', trigger: 'manual', outcome: 'failed', error: 'daily-bars: both sources failed', failureStage: 'daily-bars', sourceHealth }))
+    const response = await createMarketMonitorRoutes({} as EngineContext, fake).request('/scan', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ asset: 'BTC' }) })
+    expect(response.status).toBe(502)
+    expect(await response.json()).toMatchObject({ failureStage: 'daily-bars', sourceHealth })
+  })
+
   it('exposes narrator health, reconciles settings and dispatches an immediate run', async () => {
     const fake = service()
     const status = { enabled: true, state: 'ready' as const, issueId: 'mad42lab-market-daily-interpretation', schedule: { cron: '30 17 * * *', timezone: 'America/Vancouver', localTime: '17:30' }, message: 'ready' }

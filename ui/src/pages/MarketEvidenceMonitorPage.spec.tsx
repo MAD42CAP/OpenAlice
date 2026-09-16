@@ -32,6 +32,25 @@ beforeEach(async () => {
 })
 afterEach(() => { cleanup(); vi.clearAllMocks() })
 
+it('shows actual fallback attribution, original errors and failed stage in Chinese too', async () => {
+  await i18n.changeLanguage('zh-CN')
+  const fallback = 'Preferred source coinbase failed; explicit yfinance fallback used (Only 0 usable 1d bars). 400 attributed bars.'
+  mocks.snapshots.mockImplementation(async (asset: 'BTC' | 'TSLA' | 'MSTR') => {
+    const snapshot = demoMonitorSnapshot(asset)
+    snapshot.sourceHealth[0] = { id: 'daily-bars', label: 'Daily OHLCV', provider: 'yfinance', status: 'degraded', asOf: '2026-09-15', detail: fallback }
+    return { snapshots: [snapshot], count: 1 }
+  })
+  mocks.health.mockImplementation(async (asset: 'BTC' | 'TSLA' | 'MSTR', hours: 24 | 72) => {
+    const report = demoMonitorHealth(asset, hours)
+    report.recent[0] = { ...report.recent[0]!, outcome: 'failed', failureStage: 'daily-bars', error: 'daily-bars: BTC 1d: coinbase failed (HTTP 403); yfinance failed (HTTP 429)', sourceHealth: [{ id: 'daily-bars', label: 'Daily OHLCV', provider: 'coinbase', status: 'unavailable', asOf: null, detail: 'HTTP 403 view denied' }] }
+    return report
+  })
+  render(<MarketEvidenceMonitorPage />)
+  expect(await screen.findByText(fallback)).toBeTruthy()
+  expect(await screen.findByText(/daily-bars: BTC 1d: coinbase failed.*yfinance failed/)).toBeTruthy()
+  expect(screen.getByText(/HTTP 403 view denied/)).toBeTruthy()
+})
+
 it('shows attributed BTC evidence and switches to the independent hourly series', async () => {
   render(<MarketEvidenceMonitorPage />)
   expect((await screen.findAllByText('Demand has provisional control')).length).toBeGreaterThan(0)
