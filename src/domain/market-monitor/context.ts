@@ -1,3 +1,4 @@
+import { safeMarketDataError } from '../market-data/bars/safe-error.js'
 import type { EquityClientLike } from '../market-data/client/types.js'
 import type { ReferenceDataService } from '../market-data/reference/types.js'
 import type { INewsProvider } from '../news/types.js'
@@ -143,24 +144,31 @@ async function secEdgarContext(fetcher: MarketMonitorFetch, asset: 'TSLA' | 'MST
         status: 'unavailable',
         provider: 'SEC EDGAR',
         asOf: null,
-        detail: error instanceof Error ? error.message : String(error),
+        detail: safeMarketDataError(error),
       }],
     }
   }
+}
+
+async function deribitRows(fetcher: MarketMonitorFetch, kind: 'future' | 'option'): Promise<Array<Record<string, unknown>>> {
+  const raw = await fetchJson(fetcher, `https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=BTC&kind=${kind}`) as { error?: { code?: unknown; message?: unknown }; result?: unknown }
+  if (raw?.error) throw new Error(`${kind}: Deribit RPC ${String(raw.error.code ?? 'error')}: ${safeMarketDataError(String(raw.error.message ?? 'request failed'))}`)
+  if (!Array.isArray(raw?.result) || !raw.result.length) throw new Error(`${kind}: Deribit returned no usable market data`)
+  const rows = raw.result.filter((row): row is Record<string, unknown> => row != null && typeof row === 'object' && typeof row.instrument_name === 'string' && numberFrom(row, ['open_interest']) != null)
+  if (!rows.length || (kind === 'future' && !rows.some(row => row.instrument_name === 'BTC-PERPETUAL'))) throw new Error(`${kind}: Deribit response is missing required instruments or open interest`)
+  return rows
 }
 
 async function bitcoinContext(fetcher: MarketMonitorFetch, at: Date): Promise<MarketContextProviderResult> {
   const capturedAt = at.toISOString()
   try {
     const [futureResult, optionResult] = await Promise.allSettled([
-      fetchJson(fetcher, 'https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=BTC&kind=future'),
-      fetchJson(fetcher, 'https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=BTC&kind=option'),
+      deribitRows(fetcher, 'future'),
+      deribitRows(fetcher, 'option'),
     ])
-    if (futureResult.status === 'rejected' && optionResult.status === 'rejected') throw futureResult.reason
-    const futureRaw = futureResult.status === 'fulfilled' ? futureResult.value : undefined
-    const optionRaw = optionResult.status === 'fulfilled' ? optionResult.value : undefined
-    const futures = ((futureRaw as { result?: unknown[] })?.result ?? []) as Array<Record<string, unknown>>
-    const options = ((optionRaw as { result?: unknown[] })?.result ?? []) as Array<Record<string, unknown>>
+    if (futureResult.status === 'rejected' && optionResult.status === 'rejected') throw new Error(`futures: ${safeMarketDataError(futureResult.reason)}; options: ${safeMarketDataError(optionResult.reason)}`)
+    const futures = futureResult.status === 'fulfilled' ? futureResult.value : []
+    const options = optionResult.status === 'fulfilled' ? optionResult.value : []
     const perpetual = futures.find((row) => row.instrument_name === 'BTC-PERPETUAL')
     const dated = futures
       .map((row) => ({ row, expiry: Date.parse(String(row.instrument_name ?? '').split('-').at(-1) ?? '') }))
@@ -182,18 +190,18 @@ async function bitcoinContext(fetcher: MarketMonitorFetch, at: Date): Promise<Ma
     }
     return {
       context: {
-        fundingRate: numberFrom(perpetual, ['funding_8h', 'current_funding']),
+        fundingRate: numberFrom(perpetual, ['funding_8h']),
         openInterest: numberFrom(perpetual, ['open_interest']),
         annualizedBasisPercent: basis == null ? null : Number(basis.toFixed(2)),
         optionOpenInterest: callOi + putOi || null,
         putCallOpenInterestRatio: callOi > 0 ? Number((putOi / callOi).toFixed(2)) : null,
       },
-      health: [{ id: 'btc-derivatives', label: 'BTC derivatives context', status: futureResult.status === 'fulfilled' && optionResult.status === 'fulfilled' ? 'ok' : 'degraded', provider: 'Deribit public API', asOf: capturedAt, detail: `Read-only derivatives context loaded${futureResult.status === 'rejected' ? '; futures unavailable' : ''}${optionResult.status === 'rejected' ? '; options unavailable' : ''}.` }],
+      health: [{ id: 'btc-derivatives', label: 'BTC derivatives context', status: futureResult.status === 'fulfilled' && optionResult.status === 'fulfilled' ? 'ok' : 'degraded', provider: 'Deribit public API', asOf: capturedAt, detail: `Read-only derivatives context loaded${futureResult.status === 'rejected' ? `; futures unavailable (${safeMarketDataError(futureResult.reason)})` : ''}${optionResult.status === 'rejected' ? `; options unavailable (${safeMarketDataError(optionResult.reason)})` : ''}.` }],
     }
   } catch (error) {
     return {
       context: {},
-      health: [{ id: 'btc-derivatives', label: 'BTC derivatives context', status: 'unavailable', provider: 'Deribit public API', asOf: null, detail: error instanceof Error ? error.message : String(error) }],
+      health: [{ id: 'btc-derivatives', label: 'BTC derivatives context', status: 'unavailable', provider: 'Deribit public API', asOf: null, detail: safeMarketDataError(error) }],
     }
   }
 }

@@ -121,6 +121,11 @@ export class WebPlugin implements Plugin {
     const { bootstrapToken, getTokenInfo } = await import('@/services/auth/index.js')
     await bootstrapToken({
       onFirstGeneration: (token) => {
+        // Detached launchers pipe stdout to a log. Never send credentials there.
+        if (!process.stdout.isTTY) {
+          console.log('[Auth] Admin credentials initialized; first-run credential display requires an interactive terminal.')
+          return
+        }
         console.log('')
         console.log('═══════════════════════════════════════════════════════════════')
         console.log('  First-run admin token (save this — won\'t be shown again):')

@@ -1,7 +1,8 @@
 # Market Evidence Monitor
 
-Status: multi-timeframe, Wyckoff-structure and daily-brief increment implemented
-on `MAD42CAP/OpenAlice:feature/market-evidence-monitor`; live Mac visual acceptance remains.
+Status: core platform implemented and live on the Mac. Quality hardening and
+sustained acceptance are active on `MAD42CAP/OpenAlice:feature/market-evidence-monitor`.
+No integration, merge or release is authorized.
 
 Related issues: none.
 
@@ -10,11 +11,37 @@ Owner guides: [[docs/market-data-architecture.md]],
 
 ## Scope
 
-Build a read-only evidence monitor for BTC and TSLA inside the existing Market
+Build a read-only evidence monitor for BTC, TSLA and MSTR inside the existing Market
 web shell. Reuse BarService for attributed daily and hourly candles, compute
 observable price/volume evidence without claiming to know a market actor's
 intent, persist settings/observations/alerts under the OpenAlice data root, and
 present the result as a responsive dashboard with deterministic demo data.
+
+## Current delivery checkpoint (2026-09-16)
+
+The original plan is a checklist, not a numbered phase schedule. Grouping that
+checklist by deliverable gives the current position:
+
+| Deliverable | Position |
+|---|---|
+| Read-only data, persistence, routes and dashboard | Implemented |
+| Provider fallback, MSTR, scheduling, receipts, health and Mac lifecycle | Implemented; real Coinbase scan previously repaired and verified |
+| Multi-timeframe evidence, Wyckoff candidates, brief and Codex narrative | Implemented; confidence/calibration and timing defects found in audit |
+| Data-quality and interpretation hardening | Active increment: closed bars, strict event tests, freshness, units, truthful source diagnostics |
+| Sustained acceptance and integration | Still pending: 24–72 hours after hardening; owner acceptance before any merge |
+
+The September 16 audit found issues that passing example-based tests had not
+covered. Functional completion does not imply calibrated prediction or final
+acceptance. Fixed-horizon evaluation/replay, narrative-to-snapshot binding,
+exchange holiday calendars, SEC access reliability and production operations
+remain follow-up work in this active plan; this increment does not claim them
+complete.
+
+Autonomous UI decision for this increment: retain the responsive dashboard and
+existing components. Add a visible closed-bar basis and scoring explanation,
+keep live charts separately labelled, preserve date-only session identifiers,
+and use explicit metric units. Text is visible without hover or color decoding;
+no new interactive primitive, navigation or focus behavior is introduced.
 
 ## Decisions
 
@@ -147,9 +174,42 @@ present the result as a responsive dashboard with deterministic demo data.
 - [x] Verify the new analysis with backend, UI, typecheck and demo-build gates.
 - [x] Rebrand the web shell's primary visible identity as MAD42Lab while
   preserving OpenAlice compatibility identifiers and attribution.
-- [ ] Check the updated dashboard visually on the Mac (cloud browser blocks localhost).
-- [ ] Verify decision-scale BTC fingerprinting with consecutive live scans.
-- [ ] Run the live command on macOS and observe scheduling for 24–72 hours.
+- [x] Recheck the hardened dashboard on the Mac and the deterministic demo.
+- [x] Verify hardened BTC/TSLA/MSTR scans, including consecutive BTC attribution and fingerprinting.
+- [ ] Observe the hardened Mac runtime for 24–72 hours; receipt history alone is not continuous uptime acceptance.
+- [ ] Complete fixed-horizon evaluation and historical input replay before claiming predictive validation.
+- [ ] Bind generated narrative to its input snapshot/version and resolve remaining source/operational acceptance findings.
+
+## September 16 Mac hardening acceptance
+
+- Closed daily/hourly analysis, completed-week comparison, elapsed-hour
+  continuity, stricter Wyckoff retests and rule-score wording are implemented.
+- Stale preferred bars trigger fallback; both-source diagnostics are preserved.
+  Deribit RPC errors/empty results are rejected, and retained context is scoped
+  to the failed source with a bounded age and the original source timestamp.
+- Percentage/OI units and date-only rendering are corrected. Evaluation is
+  honestly labelled adjacent-observation agreement; flat/same-day samples and
+  version transitions are excluded. Refresh follows latest observation identity.
+- Startup credential output is suppressed when stdout is redirected, including
+  the Mac background log. No existing credentials were inspected or rotated.
+- Nineteen focused files pass 188 tests. Root and UI typechecks pass; the demo
+  production build passes. Live and demo browser routes were verified.
+- The complete platform suite passes 7,167 tests, with four skipped and two
+  known pre-existing failures in `src/workspaces/adapters/ai-config.spec.ts`.
+  Those assertions predate the owner's uncommitted Codex environment changes;
+  the four pre-existing modified files were preserved byte-for-byte. Final
+  analysis/date additions were rechecked with the focused suite and typechecks.
+- Real BTC scanning returns Coinbase daily/hourly data, closed daily identity
+  `2026-09-15`, markdown candidate, pending test, score 60/100. Two consecutive
+  final scans share one fingerprint; the second is correctly a duplicate.
+- TSLA and MSTR both scan successfully using Alpaca. SEC EDGAR remains HTTP 403
+  and is shown unavailable; that residual is not claimed fixed.
+- Delivery uses the connected GitHub plugin to publish the hardening increment
+  on `MAD42CAP/OpenAlice:feature/market-evidence-monitor`. Terminal Git
+  authentication is separate and is not a blocker for this connected workflow.
+  No upstream or default branch is modified.
+- A new 24-hour read-only Mac observer is started after the final restart.
+  Its result remains incomplete until the duration and cadence gates finish.
 
 ## Verification
 

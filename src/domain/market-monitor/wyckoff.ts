@@ -30,20 +30,27 @@ function eventStatus(kind: 'spring' | 'upthrust' | 'sign-of-strength' | 'sign-of
   const latest = later.at(-1)!
   if (kind === 'spring') {
     if (later.some((bar) => bar.close < event.low)) return 'invalidated'
-    const quieter = event.volume == null || latest.volume == null || latest.volume < event.volume
+    const quieter = event.volume != null && latest.volume != null && latest.volume < event.volume
     return latest.low > event.low && latest.close > level && quieter ? 'confirmed' : 'candidate'
   }
   if (kind === 'upthrust') {
     if (later.some((bar) => bar.close > event.high)) return 'invalidated'
-    const quieter = event.volume == null || latest.volume == null || latest.volume < event.volume
+    const quieter = event.volume != null && latest.volume != null && latest.volume < event.volume
     return latest.high < event.high && latest.close < level && quieter ? 'confirmed' : 'candidate'
   }
   if (kind === 'sign-of-strength') {
-    if (latest.close < level) return 'invalidated'
+    if (later.some(bar => bar.close < level)) return 'invalidated'
     return later.filter((bar) => bar.close > level).length >= 2 || latest.low >= level ? 'confirmed' : 'candidate'
   }
-  if (latest.close > level) return 'invalidated'
+  if (later.some(bar => bar.close > level)) return 'invalidated'
   return later.filter((bar) => bar.close < level).length >= 2 || latest.high <= level ? 'confirmed' : 'candidate'
+}
+
+function retestStatus(test: OhlcvBar, breakout: OhlcvBar, later: OhlcvBar[], level: number, bullish: boolean): WyckoffEventStatus {
+  if (later.some(bar => bullish ? bar.close < level : bar.close > level)) return 'invalidated'
+  const quieter = test.volume != null && breakout.volume != null && test.volume < breakout.volume
+  const followThrough = later.some(bar => bullish ? bar.close > test.high : bar.close < test.low)
+  return quieter && followThrough ? 'confirmed' : 'candidate'
 }
 
 function detectEvents(bars: OhlcvBar[]): WyckoffEvent[] {
@@ -85,7 +92,7 @@ function detectEvents(bars: OhlcvBar[]): WyckoffEvent[] {
       const distance = latestStrength.level ? Math.abs(bar.low / latestStrength.level - 1) : Infinity
       return distance <= 0.025 && bar.close >= (latestStrength.level ?? Infinity)
     })
-    if (test) detected.push({ kind: 'last-point-of-support', status: 'confirmed', at: test.date, level: latestStrength.level, index: bars.indexOf(test) })
+    if (test) detected.push({ kind: 'last-point-of-support', status: retestStatus(test, bars[latestStrength.index]!, bars.slice(bars.indexOf(test) + 1), latestStrength.level!, true), at: test.date, level: latestStrength.level, index: bars.indexOf(test) })
   }
   const latestWeakness = detected.filter((event) => event.kind === 'sign-of-weakness' && event.status !== 'invalidated').at(-1)
   if (latestWeakness) {
@@ -93,7 +100,7 @@ function detectEvents(bars: OhlcvBar[]): WyckoffEvent[] {
       const distance = latestWeakness.level ? Math.abs(bar.high / latestWeakness.level - 1) : Infinity
       return distance <= 0.025 && bar.close <= (latestWeakness.level ?? -Infinity)
     })
-    if (test) detected.push({ kind: 'last-point-of-supply', status: 'confirmed', at: test.date, level: latestWeakness.level, index: bars.indexOf(test) })
+    if (test) detected.push({ kind: 'last-point-of-supply', status: retestStatus(test, bars[latestWeakness.index]!, bars.slice(bars.indexOf(test) + 1), latestWeakness.level!, false), at: test.date, level: latestWeakness.level, index: bars.indexOf(test) })
   }
 
   return detected

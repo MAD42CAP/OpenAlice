@@ -3,6 +3,7 @@ import type { EquityClientLike } from '../market-data/client/types.js'
 import type { BarMeta, BarService, BarsResult, OhlcvBar } from '../market-data/bars/index.js'
 import type { INewsProvider } from '../news/types.js'
 import type { ReferenceDataService } from '../market-data/reference/types.js'
+import { assertFreshBars, closedBars } from './bar-policy.js'
 import { evaluateSnapshots } from './analysis.js'
 import { createDailyMarketBrief } from './daily-brief.js'
 import { safeMarketDataError } from '../market-data/bars/safe-error.js'
@@ -106,34 +107,30 @@ function compactBars(bars: OhlcvBar[], max: number): OhlcvBar[] {
   return bars.slice(-max).map(({ date, open, high, low, close, volume }) => ({ date, open, high, low, close, volume }))
 }
 
-function retainPreviousContext(current: MarketContext, previous: MarketContext | undefined): { context: MarketContext; retained: boolean } {
-  if (!previous) return { context: current, retained: false }
-  const merged: MarketContext = { ...previous, ...current }
-  let retained = false
-  const numeric = [
-    'fundingRate', 'openInterest', 'annualizedBasisPercent', 'optionOpenInterest',
-    'putCallOpenInterestRatio', 'marketCap', 'trailingPe', 'forwardPe',
-    'analystTargetMean', 'shortPercentFloat',
-  ] as const
-  for (const key of numeric) {
-    if (current[key] == null && previous[key] != null) {
-      merged[key] = previous[key]
-      retained = true
+function retainPreviousContext(current: MarketContext, health: SourceHealth[], previous: MarketMonitorSnapshot | undefined, at: Date): { context: MarketContext; health: SourceHealth[] } {
+  const context = { ...current }
+  const sources = health.map(source => {
+    if (source.status === 'ok' || !previous) return source
+    const priorSource = previous.sourceHealth.find(item => item.id === source.id && item.status === 'ok')
+    const age = at.getTime() - Date.parse(priorSource?.asOf ?? '')
+    const ttl = source.id === 'btc-derivatives' ? 15 * 60_000 : 24 * 3_600_000
+    if (!Number.isFinite(age) || age < 0 || age > ttl) return source
+    const keys: Array<keyof MarketContext> = source.id === 'btc-derivatives'
+      ? ['fundingRate', 'openInterest', 'annualizedBasisPercent', 'optionOpenInterest', 'putCallOpenInterestRatio']
+      : source.id.endsWith('-reference') ? ['marketCap', 'trailingPe', 'forwardPe', 'analystTargetMean', 'shortPercentFloat']
+      : source.id.endsWith('-sec-filings') ? ['recentFilings']
+      : source.id.endsWith('-calendar-news') ? ['nextEarningsAt', 'recentNews'] : []
+    let retained = false
+    for (const key of keys) {
+      // An explicitly empty array is a successful empty result, not missing data.
+      if (context[key] == null && previous.context[key] != null) {
+        Object.assign(context, { [key]: previous.context[key] })
+        retained = true
+      }
     }
-  }
-  if (current.nextEarningsAt == null && previous.nextEarningsAt != null) {
-    merged.nextEarningsAt = previous.nextEarningsAt
-    retained = true
-  }
-  if (!current.recentNews?.length && previous.recentNews?.length) {
-    merged.recentNews = previous.recentNews
-    retained = true
-  }
-  if (!current.recentFilings?.length && previous.recentFilings?.length) {
-    merged.recentFilings = previous.recentFilings
-    retained = true
-  }
-  return { context: merged, retained }
+    return retained ? { ...source, asOf: priorSource!.asOf, detail: `${source.detail} Last valid fields retained from ${priorSource!.asOf}; retention expires after ${ttl / 60_000} minutes and is not renewed by failed scans.` } : source
+  })
+  return { context, health: sources }
 }
 
 interface BarFallback {
@@ -150,7 +147,7 @@ export class MarketMonitorScanError extends Error {
   constructor(readonly receipt: MarketMonitorReceipt) { super(receipt.error) }
 }
 
-async function loadBars(barService: BarService, asset: MarketMonitorAsset, interval: '1d' | '1h', count: number): Promise<{ result: BarsResult; fallback: BarFallback | null }> {
+async function loadBars(barService: BarService, asset: MarketMonitorAsset, interval: '1d' | '1h', count: number, at: Date): Promise<{ result: BarsResult; fallback: BarFallback | null }> {
   const config = MARKET_MONITOR_ASSET_CONFIG[asset]
   const attempts: SourceHealth[] = []
   for (const barId of [config.preferredBarId, config.barId]) {
@@ -163,6 +160,10 @@ async function loadBars(barService: BarService, asset: MarketMonitorAsset, inter
         const quality = result.meta.quality
         throw new Error(`Only ${result.bars.length} usable ${interval} bars; at least ${minimum} required.${quality ? ` Quality excluded ${quality.excludedRows}/${quality.inspectedRows} rows (${quality.reason ?? 'none'}).` : ''}`)
       }
+      assertFreshBars(result.bars, asset, interval, at)
+      const closed = closedBars(result.bars, asset, interval, at)
+      if (closed.length < minimum) throw new Error(`Only ${closed.length} closed ${interval} bars; at least ${minimum} required`)
+      assertFreshBars(closed, asset, interval, at)
       return {
         result,
         fallback: attempts.length ? { from: attempts[0]!.provider, to: result.meta.sourceId ?? result.meta.provider ?? provider, reason: attempts[0]!.detail } : null,
@@ -303,24 +304,23 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
           const strategy = strategyRegistry.get(settings.strategyId)
           strategyId = strategy.manifest.id
           failureStage = 'daily-bars'
-          const daily = await loadBars(deps.barService, asset, '1d', 400)
+          const daily = await loadBars(deps.barService, asset, '1d', 400, new Date(requestedAt))
           sourceHealth.push(healthFromMeta('daily-bars', 'Daily OHLCV', daily.result.meta, daily.fallback))
           let intraday: { result: BarsResult; fallback: BarFallback | null } | null = null
           let intradayError: unknown
-          try { intraday = await loadBars(deps.barService, asset, '1h', 180) } catch (error) { intradayError = error }
+          try { intraday = await loadBars(deps.barService, asset, '1h', 180, new Date(requestedAt)) } catch (error) { intradayError = error }
           sourceHealth.push(intraday
             ? healthFromMeta('intraday-bars', 'Hourly OHLCV', intraday.result.meta, intraday.fallback)
             : { id: 'intraday-bars', label: 'Hourly OHLCV', status: 'unavailable', provider: 'OpenAlice BarService', asOf: null, detail: safeMarketDataError(intradayError) })
           failureStage = 'analysis'
           const analysis = strategy.analyze({
-            asset,
-            dailyBars: daily.result.bars, intradayBars: intraday?.result.bars ?? [],
+            asset, asOf: new Date(requestedAt),
+            dailyBars: closedBars(daily.result.bars, asset, '1d', new Date(requestedAt)), intradayBars: closedBars(intraday?.result.bars ?? [], asset, '1h', new Date(requestedAt)),
             abnormalMovePercent: settings.abnormalMovePercent,
             abnormalVolumeRatio: settings.abnormalVolumeRatio,
           })
           failureStage = 'context'
           const previous = (await store.snapshots(asset, 1000)).filter((row) => row.strategyId === strategy.manifest.id).at(-1)
-          const previousCapturedAt = previous?.capturedAt ?? 'an earlier scan'
           const providers = contextProviderRegistry.forAsset(asset)
           const contextResults = await Promise.all(providers.map(async (provider) => {
             try {
@@ -343,13 +343,9 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
             context: Object.assign({}, ...contextResults.map((result) => result.context)) as MarketContext,
             health: contextResults.flatMap((result) => result.health),
           }
-          const fallback = contextResult.health.some((source) => source.status !== 'ok')
-            ? retainPreviousContext(contextResult.context, previous?.context)
-            : { context: contextResult.context, retained: false }
-          const context: MarketContext = fallback.context
-          sourceHealth.push(...contextResult.health.map((source) => fallback.retained && source.status !== 'ok'
-            ? { ...source, detail: `${source.detail} Last valid fields retained from ${previousCapturedAt}.` }
-            : source))
+          const fallback = retainPreviousContext(contextResult.context, contextResult.health, previous, new Date(requestedAt))
+          const context = fallback.context
+          sourceHealth.push(...fallback.health)
           const enrichedAnalysis = {
             ...analysis,
             dailyBrief: createDailyMarketBrief({
@@ -363,6 +359,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
           const snapshot: MarketMonitorSnapshot = {
             id: randomUUID(), asset, capturedAt: requestedAt, trigger,
             strategyId: strategy.manifest.id, fingerprint, ...enrichedAnalysis, context, sourceHealth,
+            analysisBasis: { version: 2, closedBarsOnly: true, dailyAt: analysis.metrics.lastBarAt.slice(0, 10), hourlyAt: analysis.metrics.intraday.latestAt },
             chart: {
               daily: compactBars(daily.result.bars, 400), intraday: compactBars(intraday?.result.bars ?? [], 180),
               dailyMeta: daily.result.meta, intradayMeta: intraday?.result.meta ?? null,
@@ -423,7 +420,7 @@ async function maybeAlert(store: MarketMonitorStore, snapshot: MarketMonitorSnap
     id: randomUUID(), asset: snapshot.asset, createdAt: snapshot.capturedAt, snapshotId: snapshot.id,
     severity: strong && abnormal ? 'warning' : 'info',
     title: changed ? `${snapshot.asset} evidence state changed` : `${snapshot.asset} abnormal intraday confirmation`,
-    message: `${snapshot.hypothesis.label} · ${snapshot.hypothesis.confidence}% confidence. ${snapshot.metrics.intraday.note}`,
+    message: `${snapshot.hypothesis.label} · ${snapshot.hypothesis.confidence}/100 evidence score. ${snapshot.metrics.intraday.note}`,
     fingerprint,
   }
   await store.appendAlert(alert)

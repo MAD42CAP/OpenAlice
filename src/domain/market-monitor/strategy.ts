@@ -16,6 +16,7 @@ import {
 
 export interface MarketMonitorStrategyInput {
   asset: MarketMonitorAsset
+  asOf?: Date
   dailyBars: OhlcvBar[]
   intradayBars: OhlcvBar[]
   abnormalVolumeRatio: number
@@ -76,7 +77,7 @@ export const evidenceChainV1Strategy: MarketMonitorStrategy = {
   manifest: {
     id: DEFAULT_MARKET_MONITOR_STRATEGY_ID,
     label: 'Evidence chain',
-    version: 1,
+    version: 2,
     description: 'Location, structure, effort/result, weekly follow-through and an independent hourly test.',
     requiredData: ['daily-bars', 'hourly-bars', 'asset-context'],
   },

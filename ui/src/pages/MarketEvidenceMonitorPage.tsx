@@ -20,6 +20,7 @@ import { cn } from '../lib/utils'
 import { useMarketMonitorStatus } from '../hooks/useMarketMonitorStatus'
 import { useMarketMonitorHealth } from '../hooks/useMarketMonitorHealth'
 import { MonitorOperations } from '../components/market/MonitorOperations'
+import { formatMonitorDate as formatDate, formatContextValue } from './market/market-monitor-format'
 import { getIntlLocale } from '../lib/intl'
 import {
   monitorAlertCopy,
@@ -79,12 +80,6 @@ function formatNumber(value: unknown, digits = 2): string {
 
 function formatPercent(value: number | null | undefined): string {
   return value == null ? '—' : `${value > 0 ? '+' : ''}${formatNumber(value)}%`
-}
-
-function formatDate(value: string | null | undefined): string {
-  if (!value) return '—'
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString(getIntlLocale())
 }
 
 function usePersistedAsset(): [MonitorAsset, (asset: MonitorAsset) => void] {
@@ -202,8 +197,11 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
 
   useEffect(() => {
     if (!visible) return
-    void api.marketMonitor.evaluation(asset).then(setEvaluation).catch(() => setEvaluation(null))
-  }, [asset, snapshots.length, visible])
+    let active = true
+    setEvaluation(null)
+    void api.marketMonitor.evaluation(asset).then(result => { if (active) setEvaluation(result) }).catch(() => { if (active) setEvaluation(null) })
+    return () => { active = false }
+  }, [asset, snapshots.at(-1)?.id, visible])
 
   useEffect(() => {
     if (!visible) return
@@ -383,7 +381,7 @@ function DailyBriefPanel({ snapshot, narratorStatus }: { snapshot: MonitorSnapsh
       {([trend.short, trend.medium, trend.long] as const).map((assessment) => <div key={assessment.horizon} className="py-3 sm:px-4 sm:first:pl-0 sm:last:pr-0">
         <dt className="text-[11px] text-muted-foreground">{monitorHorizonLabel(t, assessment.horizon)}</dt>
         <dd className={cn('mt-1 text-base font-semibold', assessment.direction === 'bullish' ? 'text-success' : assessment.direction === 'bearish' ? 'text-destructive' : '')}>{monitorTrendDirectionLabel(t, assessment.direction)}</dd>
-        <div className="mt-1 text-[11px] text-muted-foreground">{monitorTrendRegimeLabel(t, assessment.regime)} · {t('marketMonitor.trend.score', { score: assessment.score })} · {assessment.confidence}%</div>
+        <div className="mt-1 text-[11px] text-muted-foreground">{monitorTrendRegimeLabel(t, assessment.regime)} · {t('marketMonitor.trend.score', { score: assessment.score })} · {assessment.confidence}/100</div>
       </div>)}
     </dl>
     <div className="grid gap-x-6 lg:grid-cols-3">
@@ -446,11 +444,12 @@ function Panel({ title, trailing, children }: { title: string; trailing?: React.
 function Overview({ snapshot, timeframe }: { snapshot: MonitorSnapshot; timeframe: Timeframe }) {
   const { t } = useTranslation()
   const bars = timeframe === '1D' ? snapshot.chart.daily : snapshot.chart.intraday
-  return <Panel title={t('marketMonitor.panels.marketState', { asset: snapshot.asset })} trailing={<span className="text-[11px] text-muted-foreground">{timeframe === '1D' ? snapshot.chart.dailyMeta.sourceId : snapshot.chart.intradayMeta?.sourceId ?? t('marketMonitor.chart.hourlyUnavailable')} · {formatDate(timeframe === '1D' ? snapshot.metrics.lastBarAt : snapshot.metrics.intraday.latestAt)}</span>}>
+  return <Panel title={t('marketMonitor.panels.marketState', { asset: snapshot.asset })} trailing={<span className="text-[11px] text-muted-foreground">{timeframe === '1D' ? snapshot.chart.dailyMeta.sourceId : snapshot.chart.intradayMeta?.sourceId ?? t('marketMonitor.chart.hourlyUnavailable')} · {formatDate(timeframe === '1D' ? bars.at(-1)?.date.slice(0, 10) : bars.at(-1)?.date)}</span>}>
+    <p className="mb-3 text-xs leading-5 text-muted-foreground">{snapshot.analysisBasis ? t('marketMonitor.analysisBasis', { daily: formatDate(snapshot.analysisBasis.dailyAt), hourly: formatDate(snapshot.analysisBasis.hourlyAt) }) : t('marketMonitor.legacyBasis')}</p>
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1.65fr)_minmax(300px,0.85fr)]">
       <div className="min-h-[260px] border-y border-border/60 py-3"><PriceChart bars={bars} unavailable={timeframe === '1H' && !snapshot.metrics.intraday.available} /></div>
       <div className="grid grid-cols-2 gap-x-5 gap-y-4 content-start">
-        <Metric label={t('marketMonitor.metrics.lastPrice')} value={snapshot.asset === 'BTC' ? `$${formatNumber(snapshot.metrics.lastPrice, 0)}` : `$${formatNumber(snapshot.metrics.lastPrice)}`} />
+        <Metric label={t(snapshot.analysisBasis ? 'marketMonitor.metrics.closedPrice' : 'marketMonitor.metrics.lastPrice')} value={snapshot.asset === 'BTC' ? `$${formatNumber(snapshot.metrics.lastPrice, 0)}` : `$${formatNumber(snapshot.metrics.lastPrice)}`} />
         <Metric label={t('marketMonitor.metrics.oneDayChange')} value={formatPercent(snapshot.metrics.change1dPercent)} tone={snapshot.metrics.change1dPercent} />
         <Metric label={t('marketMonitor.metrics.fiveDayChange')} value={formatPercent(snapshot.metrics.change5dPercent)} tone={snapshot.metrics.change5dPercent} />
         <Metric label={t('marketMonitor.metrics.weeklyFollowThrough')} value={formatPercent(snapshot.metrics.weeklyChangePercent)} tone={snapshot.metrics.weeklyChangePercent} />
@@ -499,7 +498,7 @@ function HypothesisPanel({ snapshot }: { snapshot: MonitorSnapshot }) {
   const { t } = useTranslation()
   const hypothesis = snapshot.hypothesis
   const copy = monitorHypothesisCopy(t, snapshot)
-  return <Panel title={t('marketMonitor.panels.currentHypothesis')} trailing={<span className={cn('text-xs font-semibold tabular-nums', hypothesis.bias === 'bullish' ? 'text-success' : hypothesis.bias === 'bearish' ? 'text-destructive' : 'text-muted-foreground')}>{hypothesis.confidence}%</span>}><h4 className="text-lg font-semibold">{copy.label}</h4><p className="mt-2 text-xs leading-5 text-muted-foreground">{copy.summary}</p><ConditionList title={t('marketMonitor.panels.confirmation')} rows={copy.confirm} tone="positive" /><ConditionList title={t('marketMonitor.panels.invalidation')} rows={copy.invalidate} tone="negative" /><ConditionList title={t('marketMonitor.panels.alternatives')} rows={copy.alternatives} tone="neutral" /></Panel>
+  return <Panel title={t('marketMonitor.panels.currentHypothesis')} trailing={<span className={cn('text-xs font-semibold tabular-nums', hypothesis.bias === 'bullish' ? 'text-success' : hypothesis.bias === 'bearish' ? 'text-destructive' : 'text-muted-foreground')}>{hypothesis.confidence}/100</span>}><h4 className="text-lg font-semibold">{copy.label}</h4><p className="mt-2 text-xs leading-5 text-muted-foreground">{copy.summary}</p><ConditionList title={t('marketMonitor.panels.confirmation')} rows={copy.confirm} tone="positive" /><ConditionList title={t('marketMonitor.panels.invalidation')} rows={copy.invalidate} tone="negative" /><ConditionList title={t('marketMonitor.panels.alternatives')} rows={copy.alternatives} tone="neutral" /></Panel>
 }
 
 function WyckoffPanel({ snapshot }: { snapshot: MonitorSnapshot }) {
@@ -519,7 +518,7 @@ function WyckoffPanel({ snapshot }: { snapshot: MonitorSnapshot }) {
           <Metric label={t('marketMonitor.wyckoff.width')} value={formatPercent(wyckoff.range.widthPercent)} />
         </dl>}
         <div className="mt-4 text-[11px] font-semibold text-muted-foreground">{t('marketMonitor.wyckoff.events')}</div>
-        {wyckoff.events.length ? <ul className="mt-2 space-y-2">{wyckoff.events.map((event) => <li key={`${event.kind}:${event.at}`} className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border/50 pb-2 text-xs"><span>{monitorWyckoffEventLabel(t, event.kind)}</span><span className={cn('text-[11px]', event.status === 'confirmed' ? 'text-success' : event.status === 'invalidated' ? 'text-destructive' : 'text-warning')}>{monitorWyckoffEventStatus(t, event.status)} · {formatDate(event.at)}{event.level == null ? '' : ` · $${formatNumber(event.level, priceDigits)}`}</span></li>)}</ul> : <p className="mt-2 text-xs text-muted-foreground">{t('marketMonitor.wyckoff.noEvents')}</p>}
+        {wyckoff.events.length ? <ul className="mt-2 space-y-2">{wyckoff.events.map((event) => <li key={`${event.kind}:${event.at}`} className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border/50 pb-2 text-xs"><span>{monitorWyckoffEventLabel(t, event.kind)}</span><span className={cn('text-[11px]', event.status === 'confirmed' ? 'text-success' : event.status === 'invalidated' ? 'text-destructive' : 'text-warning')}>{monitorWyckoffEventStatus(t, event.status)} · {formatDate(event.at.slice(0, 10))}{event.level == null ? '' : ` · $${formatNumber(event.level, priceDigits)}`}</span></li>)}</ul> : <p className="mt-2 text-xs text-muted-foreground">{t('marketMonitor.wyckoff.noEvents')}</p>}
       </div>
       <div className="grid gap-x-6 md:grid-cols-2">
         <ConditionList title={t('marketMonitor.wyckoff.supporting')} rows={wyckoff.supportingEvidence.map((id) => monitorWyckoffEvidence(t, id))} tone="positive" />
@@ -540,7 +539,7 @@ function ContextPanel({ snapshot }: { snapshot: MonitorSnapshot }) {
   const labels: Record<string, string> = { fundingRate: t('marketMonitor.context.fundingRate'), openInterest: t('marketMonitor.context.openInterest'), annualizedBasisPercent: t('marketMonitor.context.annualizedBasisPercent'), optionOpenInterest: t('marketMonitor.context.optionOpenInterest'), putCallOpenInterestRatio: t('marketMonitor.context.putCallOpenInterestRatio'), marketCap: t('marketMonitor.context.marketCap'), trailingPe: t('marketMonitor.context.trailingPe'), forwardPe: t('marketMonitor.context.forwardPe'), analystTargetMean: t('marketMonitor.context.analystTargetMean'), shortPercentFloat: t('marketMonitor.context.shortPercentFloat'), nextEarningsAt: t('marketMonitor.context.nextEarningsAt') }
   const rows = Object.entries(labels).filter(([key]) => snapshot.context[key] != null)
   return <Panel title={t('marketMonitor.panels.context', { asset: snapshot.asset })}>
-    <dl className="grid grid-cols-2 gap-x-5 gap-y-3">{rows.length ? rows.map(([key, label]) => <div key={key}><dt className="text-[11px] text-muted-foreground">{label}</dt><dd className="mt-1 text-sm font-medium tabular-nums">{key.toLowerCase().includes('percent') || key === 'annualizedBasisPercent' ? `${formatNumber(snapshot.context[key])}%` : key.endsWith('At') ? formatDate(String(snapshot.context[key])) : formatNumber(snapshot.context[key])}</dd></div>) : <p className="col-span-2 text-xs text-muted-foreground">{t('marketMonitor.context.unavailable')}</p>}</dl>
+    <dl className="grid grid-cols-2 gap-x-5 gap-y-3">{rows.length ? rows.map(([key, label]) => <div key={key}><dt className="text-[11px] text-muted-foreground">{label}</dt><dd className="mt-1 text-sm font-medium tabular-nums">{formatContextValue(key, snapshot.context[key])}</dd></div>) : <p className="col-span-2 text-xs text-muted-foreground">{t('marketMonitor.context.unavailable')}</p>}</dl>
     {snapshot.context.recentFilings?.length ? <div className="mt-4 border-t border-border/60 pt-3"><div className="mb-2 text-[11px] font-semibold text-muted-foreground">{t('marketMonitor.context.recentFilings')}</div><ul className="space-y-2">{snapshot.context.recentFilings.map((item) => <li key={`${item.filingDate}:${item.form}:${item.url}`} className="text-xs"><a href={item.url} target="_blank" rel="noreferrer" className="font-medium text-primary hover:underline">{item.form}</a><span className="ml-2 text-muted-foreground">{formatDate(item.filingDate)}{item.reportDate ? ` · ${t('marketMonitor.context.reportPeriod')} ${formatDate(item.reportDate)}` : ''}</span>{item.description ? <div className="mt-0.5 line-clamp-2 text-muted-foreground">{item.description}</div> : null}</li>)}</ul></div> : null}
     {snapshot.context.recentNews?.length ? <div className="mt-4 border-t border-border/60 pt-3"><div className="mb-2 text-[11px] font-semibold text-muted-foreground">{t('marketMonitor.context.recentNews')}</div><ul className="space-y-2">{snapshot.context.recentNews.map((item) => <li key={`${item.time}:${item.title}`} className="text-xs"><span className="text-muted-foreground">{formatDate(item.time)} · {item.source ?? t('marketMonitor.context.unknown')}</span><div className="mt-0.5 line-clamp-2">{item.title}</div></li>)}</ul></div> : null}
   </Panel>
@@ -553,7 +552,7 @@ function SourcePanel({ snapshot }: { snapshot: MonitorSnapshot }) {
 
 function HistoryPanel({ snapshots, evaluation, alerts }: { snapshots: MonitorSnapshot[]; evaluation: MonitorEvaluation | null; alerts: MonitorAlert[] }) {
   const { t } = useTranslation()
-  return <Panel title={t('marketMonitor.panels.history')} trailing={evaluation ? <span className="text-[11px] text-muted-foreground">{t('marketMonitor.history.summary', { resolved: evaluation.resolved, accuracy: evaluation.directionalAccuracy == null ? '—' : `${formatNumber(evaluation.directionalAccuracy)}%` })}</span> : undefined}><div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.6fr)]"><div className="overflow-x-auto"><table className="w-full min-w-[560px] text-xs"><thead className="border-b border-border text-left text-[11px] text-muted-foreground"><tr><th className="pb-2 font-medium">{t('marketMonitor.history.captured')}</th><th className="pb-2 font-medium">{t('marketMonitor.history.price')}</th><th className="pb-2 font-medium">{t('marketMonitor.history.hypothesis')}</th><th className="pb-2 text-right font-medium">{t('marketMonitor.history.confidence')}</th><th className="pb-2 text-right font-medium">{t('marketMonitor.history.trigger')}</th></tr></thead><tbody>{snapshots.slice(-12).reverse().map((row) => <tr key={row.id} className="border-b border-border/50"><td className="py-2.5 text-muted-foreground">{formatDate(row.capturedAt)}</td><td className="py-2.5 tabular-nums">{formatNumber(row.metrics.lastPrice)}</td><td className="py-2.5">{monitorHypothesisCopy(t, row).label}</td><td className="py-2.5 text-right tabular-nums">{row.hypothesis.confidence}%</td><td className="py-2.5 text-right text-muted-foreground">{t(`marketMonitor.history.${row.trigger}`)}</td></tr>)}</tbody></table></div><div><div className="mb-2 flex items-center gap-2 text-[11px] font-semibold text-muted-foreground"><Bell className="size-3.5" />{t('marketMonitor.panels.recentAlerts')}</div>{alerts.length ? <ul className="space-y-2">{alerts.slice(-6).reverse().map((alert) => {
+  return <Panel title={t('marketMonitor.panels.history')} trailing={evaluation ? <span className="text-[11px] text-muted-foreground">{t('marketMonitor.history.summary', { resolved: evaluation.resolved, accuracy: evaluation.directionalAccuracy == null ? '—' : `${formatNumber(evaluation.directionalAccuracy)}%` })}</span> : undefined}><div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.6fr)]"><div className="overflow-x-auto"><table className="w-full min-w-[560px] text-xs"><thead className="border-b border-border text-left text-[11px] text-muted-foreground"><tr><th className="pb-2 font-medium">{t('marketMonitor.history.captured')}</th><th className="pb-2 font-medium">{t('marketMonitor.history.price')}</th><th className="pb-2 font-medium">{t('marketMonitor.history.hypothesis')}</th><th className="pb-2 text-right font-medium">{t('marketMonitor.history.confidence')}</th><th className="pb-2 text-right font-medium">{t('marketMonitor.history.trigger')}</th></tr></thead><tbody>{snapshots.slice(-12).reverse().map((row) => <tr key={row.id} className="border-b border-border/50"><td className="py-2.5 text-muted-foreground">{formatDate(row.capturedAt)}</td><td className="py-2.5 tabular-nums">{formatNumber(row.metrics.lastPrice)}</td><td className="py-2.5">{monitorHypothesisCopy(t, row).label}</td><td className="py-2.5 text-right tabular-nums">{row.hypothesis.confidence}/100</td><td className="py-2.5 text-right text-muted-foreground">{t(`marketMonitor.history.${row.trigger}`)}</td></tr>)}</tbody></table></div><div><div className="mb-2 flex items-center gap-2 text-[11px] font-semibold text-muted-foreground"><Bell className="size-3.5" />{t('marketMonitor.panels.recentAlerts')}</div>{alerts.length ? <ul className="space-y-2">{alerts.slice(-6).reverse().map((alert) => {
     const copy = monitorAlertCopy(t, alert, snapshots.find((row) => row.id === alert.snapshotId))
     return <li key={alert.id} className="border-l-2 border-warning pl-2 text-xs"><div className="font-medium">{copy.title}</div><div className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{copy.message}</div></li>
   })}</ul> : <p className="text-xs text-muted-foreground">{t('marketMonitor.history.noAlerts')}</p>}</div></div></Panel>

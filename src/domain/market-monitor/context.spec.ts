@@ -57,3 +57,26 @@ describe('market context provider registry', () => {
     expect(result.health[0]).toMatchObject({ id: 'tsla-sec-filings', status: 'ok', provider: 'SEC EDGAR' })
   })
 })
+
+it.each([
+  { error: { code: 10028, message: 'too_many_requests' } },
+  { result: [] },
+  { result: { unexpected: true } },
+])('does not report HTTP 200 as healthy when Deribit rejects or omits market data', async (body) => {
+  const registry = createDefaultMarketContextProviderRegistry({ equityClient: {} as EquityClientLike, reference: {} as ReferenceDataService, fetcher: vi.fn(async () => new Response(JSON.stringify(body))) as typeof fetch })
+  const result = await registry.forAsset('BTC')[0]!.load({ asset: 'BTC', at: new Date('2026-09-16T00:00:00Z') })
+  expect(result.health[0]).toMatchObject({ status: 'unavailable', asOf: null })
+  expect(result.health[0]!.detail).toMatch(/futures:.*options:/)
+  expect(result.context).toEqual({})
+})
+
+it('retains a partial Deribit result and the exact failed side without substituting instantaneous funding', async () => {
+  const fetcher = vi.fn(async (url) => new Response(JSON.stringify(String(url).includes('kind=future')
+    ? { result: [{ instrument_name: 'BTC-PERPETUAL', open_interest: 1000, current_funding: 0.01 }] }
+    : { error: { code: 10028, message: 'too_many_requests' } }))) as typeof fetch
+  const registry = createDefaultMarketContextProviderRegistry({ equityClient: {} as EquityClientLike, reference: {} as ReferenceDataService, fetcher })
+  const result = await registry.forAsset('BTC')[0]!.load({ asset: 'BTC', at: new Date('2026-09-16T00:00:00Z') })
+  expect(result.health[0]).toMatchObject({ status: 'degraded' })
+  expect(result.health[0]!.detail).toMatch(/options unavailable.*10028.*too_many_requests/)
+  expect(result.context).toMatchObject({ openInterest: 1000, fundingRate: null })
+})

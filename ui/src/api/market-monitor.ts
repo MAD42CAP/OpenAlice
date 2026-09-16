@@ -121,6 +121,8 @@ export interface MarketAiNarration {
 }
 
 export interface MonitorSnapshot {
+  /** Absent on legacy observations; scores are rules, not calibrated probabilities. */
+  analysisBasis?: { version: 2; closedBarsOnly: true; dailyAt: string; hourlyAt: string | null }
   id: string
   asset: MonitorAsset
   capturedAt: string

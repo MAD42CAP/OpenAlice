@@ -61,3 +61,22 @@ describe('Wyckoff structure analysis', () => {
     ]))
   })
 })
+
+it('requires a quieter LPSY and a later closed follow-through before confirmation', () => {
+  const base = [...rangeBars(), bar(80, { open: 100, high: 101, low: 94, close: 96, volume: 3000 })]
+  const test = bar(81, { open: 96, high: 99, low: 96, close: 98, volume: 800 })
+  const later = bar(82, { open: 98, high: 98, low: 94.5, close: 95, volume: 900 })
+  const event = (rows: OhlcvBar[]) => analyze(rows).wyckoff.events.find(row => row.kind === 'last-point-of-supply')
+  expect(event([...base, test])?.status).toBe('candidate')
+  expect(event([...base, test, later])?.status).toBe('confirmed')
+  expect(event([...base, { ...test, volume: 30000 }, later])?.status).toBe('candidate')
+  expect(event([...base, { ...test, volume: null }, later])?.status).toBe('candidate')
+})
+
+it('does not treat missing spring test volume as quieter volume', () => {
+  const result = analyze([...rangeBars(),
+    bar(80, { open: 100, high: 104, low: 95, close: 100.5, volume: 3000 }),
+    bar(81, { open: 100.5, high: 103, low: 99.5, close: 100.2, volume: null }),
+  ])
+  expect(result.wyckoff.events.find(row => row.kind === 'spring')?.status).toBe('candidate')
+})

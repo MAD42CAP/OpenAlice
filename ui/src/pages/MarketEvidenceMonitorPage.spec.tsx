@@ -207,3 +207,32 @@ it('keeps old stored observations readable and asks for one new scan', async () 
   expect(screen.getAllByText(/Run a new scan to create multi-timeframe and Wyckoff analysis/)).toHaveLength(2)
   expect(mocks.scan).not.toHaveBeenCalled()
 })
+
+it('shows scoring limits, closed-bar dates and precise derivative units together', async () => {
+  mocks.snapshots.mockImplementation(async (asset: 'BTC' | 'TSLA' | 'MSTR') => {
+    const snapshot = demoMonitorSnapshot(asset)
+    snapshot.context = { fundingRate: 0.00007141, openInterest: 790265750, optionOpenInterest: 433850.1 }
+    snapshot.wyckoff!.confidence = 75
+    snapshot.analysisBasis!.dailyAt = '2026-09-16'
+    return { snapshots: [snapshot], count: 1 }
+  })
+  render(<MarketEvidenceMonitorPage />)
+  expect(await screen.findByText('0.007141%')).toBeTruthy()
+  expect(screen.getByText('790,265,750 USD')).toBeTruthy()
+  expect(screen.getByText('433,850.1 BTC')).toBeTruthy()
+  expect(screen.getByText('Rule score 75/100')).toBeTruthy()
+  expect(screen.getByText(/Analysis uses closed bars: daily 2026-09-16/)).toBeTruthy()
+  expect(screen.getByText(/Rule scores are not probabilities/)).toBeTruthy()
+})
+
+it('refreshes evaluation when the latest observation changes while history length stays fixed', async () => {
+  let revision = 0
+  mocks.snapshots.mockImplementation(async (asset: 'BTC' | 'TSLA' | 'MSTR') => ({ snapshots: [demoMonitorSnapshot(asset, revision)], count: 1 }))
+  render(<MarketEvidenceMonitorPage />)
+  await waitFor(() => expect(mocks.evaluation).toHaveBeenCalledWith('BTC'))
+  const before = mocks.evaluation.mock.calls.length
+  revision = 1
+  mocks.scan.mockResolvedValueOnce({ snapshot: demoMonitorSnapshot('BTC', 1), stored: true, alert: null, receipt: {} })
+  fireEvent.click(screen.getByRole('button', { name: /Scan now/ }))
+  await waitFor(() => expect(mocks.evaluation.mock.calls.length).toBeGreaterThan(before))
+})

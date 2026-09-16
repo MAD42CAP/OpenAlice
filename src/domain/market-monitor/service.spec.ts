@@ -12,8 +12,8 @@ import { createMarketMonitorScheduler } from './scheduler.js'
 import { createMarketMonitorStrategyRegistry, evidenceChainV1Strategy } from './strategy.js'
 import { DEFAULT_MARKET_MONITOR_SETTINGS, type MarketAiNarration, type MarketMonitorAlert, type MarketMonitorReceipt, type MarketMonitorSnapshot } from './types.js'
 
-function bars(count: number, step: number): OhlcvBar[] {
-  return Array.from({ length: count }, (_, index) => ({ date: new Date(Date.parse('2026-01-01T00:00:00Z') + index * step).toISOString(), open: 100 + index, high: 102 + index, low: 99 + index, close: 101 + index, volume: 1000 + index }))
+function bars(count: number, step: number, end = '2026-04-01T00:00:00Z'): OhlcvBar[] {
+  return Array.from({ length: count }, (_, index) => ({ date: new Date(Date.parse(end) - (count - index) * step).toISOString(), open: 100 + index, high: 102 + index, low: 99 + index, close: 101 + index, volume: 1000 + index }))
 }
 
 function memoryStore(): MarketMonitorStore & { data: { snapshots: MarketMonitorSnapshot[]; alerts: MarketMonitorAlert[]; receipts: MarketMonitorReceipt[]; narrations: MarketAiNarration[] } } {
@@ -37,9 +37,9 @@ function memoryStore(): MarketMonitorStore & { data: { snapshots: MarketMonitorS
   }
 }
 
-function dependencies(hourly = true) {
-  const daily = bars(90, 86400000)
-  const intraday = bars(48, 3600000)
+function dependencies(hourly = true, at = '2026-04-01T00:00:00Z') {
+  const daily = bars(90, 86400000, at)
+  const intraday = bars(48, 3600000, at)
   const barService = { getBars: vi.fn(async (_ref, opts: { interval: string }) => {
     if (opts.interval === '1h' && !hourly) throw new Error('hourly unavailable')
     const rows = opts.interval === '1h' ? intraday : daily
@@ -57,7 +57,7 @@ function dependencies(hourly = true) {
     }
     return new Response(JSON.stringify({ result: [] }), { status: 200 })
   }) as typeof fetch
-  return { barService, equityClient, reference, fetcher }
+  return { barService, equityClient, reference, fetcher, now: () => new Date(at) }
 }
 
 describe('market monitor service', () => {
@@ -134,14 +134,14 @@ describe('market monitor service', () => {
       const store = createMarketMonitorStore(root)
       expect((await store.settings()).backgroundEnabled).toBe(false)
       await store.saveSettings({ ...DEFAULT_MARKET_MONITOR_SETTINGS, backgroundEnabled: true, enabledAssets: ['TSLA'], intervalMinutes: 1 })
-      scheduler = createMarketMonitorScheduler(createMarketMonitorService({ ...dependencies(), store, now }), { now })
+      scheduler = createMarketMonitorScheduler(createMarketMonitorService({ ...dependencies(true, now().toISOString()), store, now }), { now })
       scheduler.start()
       await scheduler.tick()
       await scheduler.stop()
       const reopenedStore = createMarketMonitorStore(root)
       expect(await reopenedStore.receipts('TSLA')).toHaveLength(1)
       expect((await reopenedStore.settings()).backgroundEnabled).toBe(true)
-      scheduler = createMarketMonitorScheduler(createMarketMonitorService({ ...dependencies(), store: reopenedStore, now }), { now })
+      scheduler = createMarketMonitorScheduler(createMarketMonitorService({ ...dependencies(true, now().toISOString()), store: reopenedStore, now }), { now })
       scheduler.start()
       await scheduler.tick()
       expect(await reopenedStore.receipts('TSLA')).toHaveLength(1)
@@ -357,4 +357,29 @@ describe('market monitor service', () => {
       expect.objectContaining({ id: 'context-provider:btc-onchain', status: 'unavailable' }),
     ]))
   })
+})
+
+it('falls back on stale preferred daily candles even when their metadata claims success', async () => {
+  const deps = dependencies()
+  const original = vi.mocked(deps.barService.getBars).getMockImplementation()!
+  vi.mocked(deps.barService.getBars).mockImplementation(async (ref, options) => {
+    const result = await original(ref, options)
+    return 'barId' in ref && ref.barId.startsWith('coinbase|') && options.interval === '1d'
+      ? { ...result, bars: result.bars.map(row => ({ ...row, date: new Date(Date.parse(row.date) - 7 * 86400000).toISOString() })) }
+      : result
+  })
+  const result = await createMarketMonitorService({ ...deps, store: memoryStore() }).scan('BTC', 'manual')
+  expect(result.receipt.sourceHealth?.find(row => row.id === 'daily-bars')).toMatchObject({ provider: 'yfinance', status: 'degraded', detail: expect.stringMatching(/coinbase.*Stale 1d/) })
+  expect(result.snapshot.analysisBasis).toMatchObject({ version: 2, closedBarsOnly: true })
+})
+
+it('does not resurrect old news when only SEC fails and the news result is successfully empty', async () => {
+  const deps = dependencies(), store = memoryStore()
+  const service = createMarketMonitorService({ ...deps, store })
+  await service.scan('TSLA', 'manual')
+  store.data.snapshots[0]!.context.recentNews = [{ title: 'Old headline', time: '2026-03-01', source: 'fixture' }]
+  vi.mocked(deps.fetcher).mockRejectedValue(new Error('HTTP 403'))
+  const next = await service.scan('TSLA', 'manual')
+  expect(next.snapshot.context.recentNews).toEqual([])
+  expect(next.snapshot.sourceHealth.find(row => row.id === 'tsla-sec-filings')?.detail).toContain('HTTP 403')
 })

@@ -40,6 +40,57 @@ submissions feed with an identifying User-Agent and retains the latest material
 10-K, 10-Q and 8-K family filings as linked evidence. A SEC outage does not
 discard Alpaca/Yahoo bars or other successful context modules.
 
+## Analysis timing, scores and context units
+
+Strategy manifest version 2 preserves the existing strategy ID and adds optional
+`analysisBasis` metadata to new observations. Old records remain readable and
+are labelled unverified for close status; stored history is never rewritten.
+Only completed candles enter analysis. BTC daily boundaries are UTC; equities
+use the New York session date with a conservative 16:15 cutoff (regular close
+plus vendor lag). Hourly candles need a complete elapsed hour. Weekly
+follow-through excludes the current Monday–Sunday calendar week. Live charts
+may include a forming candle and carry their own timestamp; the analysis price
+is explicitly the completed daily close. Date-only session identifiers are
+rendered without timezone conversion. Hour and four-hour changes require
+continuous hourly samples, so an overnight/weekend gap is not a four-hour move.
+
+Freshness is checked against actual usable candles before source acceptance.
+BTC daily/hourly maxima are 48/3 elapsed hours, including weekends. Equity
+hourly data must be within three hours during the regular session after 10:30
+New York; otherwise a four-calendar-day tolerance allows weekends and a
+holiday. This is a conservative policy, not a complete exchange holiday or
+early-close calendar. A stale source triggers the same explicit fallback and
+combined-error path as a failed request. An hourly failure still permits a
+clearly marked daily-only assessment.
+
+All confidence fields remain wire-compatible numbers but are displayed as
+rule scores out of 100, not probabilities. Event-test confirmation is local to
+the event and never confirms the future direction of a phase. LPS/LPSY require
+a quieter retest and a subsequent completed close beyond the test extreme;
+missing volume cannot count as quieter. A later boundary violation invalidates
+the original event. Historical evaluation is labelled adjacent-observation
+agreement, not a backtest; unchanged daily identities, flat prices and analysis-version transitions do not
+count as resolved directional trials. Fixed forward horizons are not yet
+implemented.
+
+Deribit `funding_8h` and equity short-float ratios are fractions and become
+percentages at display time. Instantaneous funding is not substituted for an
+8-hour value. Annualized basis already uses percent units. BTC perpetual open
+interest is USD; BTC option open interest is BTC. JSON-RPC errors, empty market
+responses and missing required instruments are unavailable even with HTTP 200;
+partial failures retain their individual causes.
+
+A failed context source can retain only its own missing fields, only from an
+immediately previous healthy source observation, within 15 minutes for BTC
+context or 24 hours for equity context. Its original source time remains
+visible. Failed scans cannot renew that freshness, and a successful empty
+news/filings array is never replaced with old entries. Raw failure details are
+redacted before persistence and remain visible in both interface languages.
+
+Detached first-run startup never sends an admin token to redirected stdout or
+the background log. The existing one-time credential display remains available
+only on an interactive terminal; this change does not rotate existing tokens.
+
 ## Modules
 
 - `src/domain/market-monitor/analysis.ts` owns the first strategy

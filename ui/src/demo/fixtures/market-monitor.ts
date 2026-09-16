@@ -36,7 +36,7 @@ function bars(asset: MonitorAsset, interval: '1D' | '1H'): HistoricalBar[] {
       : { base: 318, trend: 0.24, volume: 18_000_000 }
   const { base } = config
   const step = interval === '1D' ? 86400000 : 3600000
-  const end = Date.parse(interval === '1D' ? '2026-09-11T00:00:00Z' : '2026-09-12T12:00:00Z')
+  const end = Date.parse(interval === '1D' ? '2026-09-11T00:00:00Z' : '2026-09-12T11:00:00Z')
   return Array.from({ length: count }, (_, index) => {
     const trend = index * config.trend
     const wave = Math.sin(index / (interval === '1D' ? 6 : 4)) * base * (interval === '1D' ? 0.018 : 0.004)
@@ -44,7 +44,7 @@ function bars(asset: MonitorAsset, interval: '1D' | '1H'): HistoricalBar[] {
     const previous = index ? base + (index - 1) * config.trend + Math.sin((index - 1) / (interval === '1D' ? 6 : 4)) * base * (interval === '1D' ? 0.018 : 0.004) : close * 0.998
     const band = close * (interval === '1D' ? 0.009 : 0.002)
     return {
-      date: new Date(end - (count - index - 1) * step).toISOString(),
+      date: interval === '1D' ? new Date(end - (count - index - 1) * step).toISOString().slice(0, 10) : new Date(end - (count - index - 1) * step).toISOString(),
       open: previous,
       high: Math.max(previous, close) + band,
       low: Math.min(previous, close) - band,
@@ -66,6 +66,7 @@ export function demoMonitorSnapshot(asset: MonitorAsset, sequence = 0): MonitorS
     trigger: sequence ? 'scheduled' : 'manual',
     strategyId: 'evidence-chain-v1',
     fingerprint: `demo-${asset}-${sequence}`,
+    analysisBasis: { version: 2, closedBarsOnly: true, dailyAt: last.date, hourlyAt: intraday.at(-1)!.date },
     metrics: {
       lastPrice: last.close,
       lastBarAt: last.date,
@@ -141,8 +142,8 @@ export function demoMonitorSnapshot(asset: MonitorAsset, sequence = 0): MonitorS
     sourceHealth: [
       { id: 'daily-bars', label: 'Daily OHLCV', status: 'ok', provider: asset === 'BTC' ? 'demo/coinbase' : 'demo/alpaca-iex', asOf: last.date, detail: 'Deterministic attributed demo bars.' },
       { id: 'intraday-bars', label: 'Hourly OHLCV', status: 'ok', provider: asset === 'BTC' ? 'demo/coinbase' : 'demo/alpaca-iex', asOf: intraday.at(-1)!.date, detail: 'Deterministic attributed hourly demo bars.' },
-      { id: 'context', label: `${asset} context`, status: 'ok', provider: asset === 'BTC' ? 'demo/Deribit' : 'demo/OpenAlice reference', asOf: '2026-09-12T12:00:00Z', detail: 'Static context for UI acceptance; not live.' },
-      ...(asset === 'BTC' ? [] : [{ id: `${asset.toLowerCase()}-sec-filings`, label: `${asset} SEC filings`, status: 'ok' as const, provider: 'demo/SEC EDGAR', asOf: '2026-09-12T12:00:00Z', detail: '1 recent material filings loaded from the official submissions feed.' }]),
+      { id: 'context', label: `${asset} context`, status: 'ok', provider: asset === 'BTC' ? 'demo/Deribit' : 'demo/OpenAlice reference', asOf: '2026-09-12T11:00:00Z', detail: 'Static context for UI acceptance; not live.' },
+      ...(asset === 'BTC' ? [] : [{ id: `${asset.toLowerCase()}-sec-filings`, label: `${asset} SEC filings`, status: 'ok' as const, provider: 'demo/SEC EDGAR', asOf: '2026-09-12T11:00:00Z', detail: '1 recent material filings loaded from the official submissions feed.' }]),
     ],
     chart: {
       daily, intraday,

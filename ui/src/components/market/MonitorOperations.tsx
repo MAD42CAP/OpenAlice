@@ -4,6 +4,7 @@ import type { MonitorAsset, MonitorHealthReport } from '../../api/market-monitor
 import { Button } from '../ui/button'
 import { cn } from '../../lib/utils'
 import { getIntlLocale } from '../../lib/intl'
+import { formatMonitorDate as date } from '../../pages/market/market-monitor-format'
 import { monitorSourceLabel } from '../../pages/market/market-monitor-presentation'
 
 type Props = {
@@ -16,7 +17,6 @@ type Props = {
   onRefresh: () => Promise<void>
 }
 
-const date = (value: string | null | undefined) => value ? new Date(value).toLocaleString(getIntlLocale()) : '—'
 
 function exportReport(report: MonitorHealthReport) {
   const url = URL.createObjectURL(new Blob([`${JSON.stringify(report, null, 2)}\n`], { type: 'application/json' }))

@@ -14,6 +14,7 @@ import type {
   SourceHealth,
   WyckoffAssessment,
 } from './types.js'
+import { closedBars, completedWeekStart } from './bar-policy.js'
 import { createDailyMarketBrief } from './daily-brief.js'
 import { analyzeMultiTimeframeTrend } from './trend.js'
 import { analyzeWyckoffStructure } from './wyckoff.js'
@@ -75,9 +76,10 @@ function rangePosition(bars: OhlcvBar[], lookback: number): number | null {
   return high === low ? 0.5 : (latest.close - low) / (high - low)
 }
 
-function weeklyCloses(bars: OhlcvBar[]): number[] {
+function weeklyCloses(bars: OhlcvBar[], at: Date): number[] {
   const groups = new Map<string, OhlcvBar>()
   for (const bar of bars) {
+    if (bar.date.slice(0, 10) >= completedWeekStart(at)) continue
     const date = new Date(`${bar.date.slice(0, 10)}T00:00:00Z`)
     if (Number.isNaN(date.getTime())) continue
     const day = date.getUTCDay() || 7
@@ -93,8 +95,9 @@ function intradayPulse(bars: OhlcvBar[], abnormalVolumeRatio: number, abnormalMo
     return { available: false, latestAt: null, latestChangePercent: null, fourHourChangePercent: null, volumeRatio: null, abnormal: false, note: 'Hourly source unavailable; daily data was not substituted.' }
   }
   const latest = series.at(-1)!
-  const change = pct(latest.close, series.at(-2)!.close)
-  const fourHour = series.length >= 5 ? pct(latest.close, series.at(-5)!.close) : null
+  const uninterrupted = (count: number) => series.length >= count && series.slice(-count).every((bar, index, window) => index === 0 || Date.parse(bar.date) - Date.parse(window[index - 1]!.date) === 3_600_000)
+  const change = uninterrupted(2) ? pct(latest.close, series.at(-2)!.close) : null
+  const fourHour = uninterrupted(5) ? pct(latest.close, series.at(-5)!.close) : null
   const ratio = volumeRatio(series, 20)
   const abnormal = Math.abs(change ?? 0) >= abnormalMovePercent || (ratio ?? 0) >= abnormalVolumeRatio
   return {
@@ -110,21 +113,24 @@ function intradayPulse(bars: OhlcvBar[], abnormalVolumeRatio: number, abnormalMo
 
 export function analyzeEvidence(input: {
   asset?: MarketMonitorAsset
+  asOf?: Date
   dailyBars: OhlcvBar[]
   intradayBars: OhlcvBar[]
   abnormalVolumeRatio: number
   abnormalMovePercent: number
 }): { metrics: MarketMonitorMetrics; evidence: EvidenceItem[]; hypothesis: MarketHypothesis; trend: MultiTimeframeTrend; wyckoff: WyckoffAssessment; dailyBrief: MarketDailyBrief } {
-  const daily = sortedBars(input.dailyBars)
+  const asOf = input.asOf ?? new Date()
+  const daily = sortedBars(closedBars(input.dailyBars, input.asset ?? 'BTC', '1d', asOf))
+  const intraday = sortedBars(closedBars(input.intradayBars, input.asset ?? 'BTC', '1h', asOf))
   if (daily.length < 20) throw new Error('At least 20 daily bars are required for evidence analysis')
   const latest = daily.at(-1)!
   const change1d = pct(latest.close, daily.at(-2)!.close)
   const change5d = daily.length >= 6 ? pct(latest.close, daily.at(-6)!.close) : null
   const position = rangePosition(daily, 60)
   const dailyVolumeRatio = volumeRatio(daily, 20)
-  const weekly = weeklyCloses(daily)
+  const weekly = weeklyCloses(daily, asOf)
   const weeklyChange = weekly.length >= 2 ? pct(weekly.at(-1)!, weekly.at(-2)!) : null
-  const pulse = intradayPulse(input.intradayBars, input.abnormalVolumeRatio, input.abnormalMovePercent)
+  const pulse = intradayPulse(intraday, input.abnormalVolumeRatio, input.abnormalMovePercent)
   const recent20 = daily.slice(-21, -1)
   const priorHigh = Math.max(...recent20.map((bar) => bar.high))
   const priorLow = Math.min(...recent20.map((bar) => bar.low))
@@ -155,7 +161,7 @@ export function analyzeEvidence(input: {
   evidence.push({
     id: 'weekly', label: 'Weekly follow-through', timeframe: '1W',
     tone: (weeklyChange ?? 0) > 1 ? 'positive' : (weeklyChange ?? 0) < -1 ? 'negative' : 'neutral',
-    observation: `Latest calendar-week close is ${rounded(weeklyChange) ?? '—'}% from the previous week.`,
+    observation: `Latest completed calendar-week close is ${rounded(weeklyChange) ?? '—'}% from the previous week.`,
     interpretation: 'Weekly direction provides context; it does not confirm a reversal by itself.', weight: 2,
   })
   evidence.push({
@@ -198,7 +204,7 @@ export function analyzeEvidence(input: {
     weeklyChangePercent: rounded(weeklyChange), intraday: pulse,
   }
   const trend = analyzeMultiTimeframeTrend({
-    asset: input.asset ?? 'BTC', dailyBars: daily, intradayBars: input.intradayBars,
+    asset: input.asset ?? 'BTC', dailyBars: daily, intradayBars: intraday,
     metrics, abnormalVolumeRatio: input.abnormalVolumeRatio,
   })
   const wyckoff = analyzeWyckoffStructure({
@@ -219,6 +225,7 @@ export function semanticFingerprint(input: {
   sourceHealth: SourceHealth[]
 }): string {
   const semantic = {
+    analysisVersion: 2,
     asset: input.asset,
     lastBarAt: input.metrics.lastBarAt,
     lastPrice: rounded(input.metrics.lastPrice, 6),
@@ -255,7 +262,8 @@ export function evaluateSnapshots(asset: MarketMonitorAsset, snapshots: MarketMo
   const rows = ordered.map((snapshot, index) => {
     const next = ordered[index + 1]
     const change = next ? pct(next.metrics.lastPrice, snapshot.metrics.lastPrice) : null
-    const correct = change == null || snapshot.hypothesis.bias === 'neutral'
+    const comparable = next && (snapshot.analysisBasis?.version ?? 1) === (next.analysisBasis?.version ?? 1) && Date.parse(next.metrics.lastBarAt) > Date.parse(snapshot.metrics.lastBarAt)
+    const correct = !comparable || change == null || change === 0 || snapshot.hypothesis.bias === 'neutral'
       ? null
       : snapshot.hypothesis.bias === 'bullish' ? change > 0 : change < 0
     return {

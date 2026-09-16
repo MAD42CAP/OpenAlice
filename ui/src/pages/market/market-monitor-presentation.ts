@@ -286,52 +286,22 @@ export function monitorSourceLabel(t: Translate, source: Pick<SourceHealth, 'id'
 }
 
 export function monitorSourceDetail(t: Translate, source: SourceHealth): string {
-  const retained = source.detail.includes('retained') || source.detail.includes('Last valid fields')
-  let detail: string
+  // Error details are already redacted by the backend. Keep the actual cause.
+  if (source.status !== 'ok') return source.detail
   if (source.id === 'daily-bars' || source.id === 'intraday-bars') {
-    // Keep provider failure diagnostics visible instead of replacing them with
-    // a generic translated "unavailable" or "fallback" badge.
-    if (source.status === 'unavailable' || source.detail.includes('fallback used')) return source.detail
-    const stale = source.detail.match(/(\d+) weekday\(s\) behind/)
     const bars = source.detail.match(/(\d+) attributed bars/)
-    const demo = source.detail.includes('Deterministic attributed')
-    detail = `${source.detail.includes('fallback used') ? t('marketMonitor.source.fallbackUsed') : ''}${
-      demo
-        ? t(source.id === 'daily-bars' ? 'marketMonitor.source.demoBars' : 'marketMonitor.source.demoHourlyBars')
-        : stale
-          ? t('marketMonitor.source.staleDays', { count: Number(stale[1]) })
-          : bars
-            ? t('marketMonitor.source.attributedBars', { count: Number(bars[1]) })
-            : source.status === 'degraded'
-              ? t('marketMonitor.source.degraded')
-              : t('marketMonitor.source.ok')
-    }`
-  } else if (source.id === 'btc-derivatives') {
-    detail = source.status === 'unavailable'
-      ? t('marketMonitor.source.unavailable')
-      : `${t('marketMonitor.source.derivativesLoaded')}${source.detail.includes('futures unavailable') ? t('marketMonitor.source.futuresUnavailable') : ''}${source.detail.includes('options unavailable') ? t('marketMonitor.source.optionsUnavailable') : ''}`
-  } else if (source.id.endsWith('-reference')) {
-    detail = source.status === 'ok'
-      ? t('marketMonitor.source.tslaFieldsLoaded')
-      : t('marketMonitor.source.tslaFieldsUnavailable')
-  } else if (source.id.endsWith('-calendar-news')) {
-    const count = Number(source.detail.match(/; (\d+) recent/)?.[1] ?? 0)
-    detail = `${source.detail.startsWith('Earnings date available') ? t('marketMonitor.source.earningsAvailable') : t('marketMonitor.source.noEarnings')}; ${t('marketMonitor.source.recentStories', { count })}${source.detail.includes('not configured') ? t('marketMonitor.source.newsNotConfigured') : ''}.`
-  } else if (source.id.endsWith('-sec-filings')) {
-    const count = Number(source.detail.match(/(\d+) recent material/)?.[1] ?? 0)
-    detail = source.status === 'ok'
-      ? t('marketMonitor.source.secFilingsLoaded', { count })
-      : t('marketMonitor.source.unavailable')
-  } else if (source.id === 'context' && source.detail.includes('Static context')) {
-    detail = t('marketMonitor.source.demoContext')
-  } else {
-    detail = source.status === 'ok'
-      ? t('marketMonitor.source.ok')
-      : source.status === 'degraded'
-        ? t('marketMonitor.source.degraded')
-        : t('marketMonitor.source.unavailable')
+    if (source.detail.includes('Deterministic attributed')) return t(source.id === 'daily-bars' ? 'marketMonitor.source.demoBars' : 'marketMonitor.source.demoHourlyBars')
+    return bars ? t('marketMonitor.source.attributedBars', { count: Number(bars[1]) }) : t('marketMonitor.source.ok')
   }
-  return retained ? `${detail}${t('marketMonitor.source.retained')}` : detail
+  if (source.id === 'btc-derivatives') return t('marketMonitor.source.derivativesLoaded')
+  if (source.id.endsWith('-reference')) return t('marketMonitor.source.tslaFieldsLoaded')
+  if (source.id.endsWith('-calendar-news')) {
+    const count = Number(source.detail.match(/; (\d+) recent/)?.[1] ?? 0)
+    return `${source.detail.startsWith('Earnings date available') ? t('marketMonitor.source.earningsAvailable') : t('marketMonitor.source.noEarnings')}; ${t('marketMonitor.source.recentStories', { count })}${source.detail.includes('not configured') ? t('marketMonitor.source.newsNotConfigured') : ''}.`
+  }
+  if (source.id.endsWith('-sec-filings')) return t('marketMonitor.source.secFilingsLoaded', { count: Number(source.detail.match(/(\d+) recent material/)?.[1] ?? 0) })
+  if (source.id === 'context' && source.detail.includes('Static context')) return t('marketMonitor.source.demoContext')
+  return t('marketMonitor.source.ok')
 }
 
 export function monitorAlertCopy(

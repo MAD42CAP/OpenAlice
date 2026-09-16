@@ -78,5 +78,32 @@ describe('market evidence analysis', () => {
     const result = evaluateSnapshots('BTC', [make(100, 'bullish', '2026-01-01'), make(110, 'neutral', '2026-01-02')])
     expect(result.resolved).toBe(1)
     expect(result.directionalAccuracy).toBe(100)
+    expect(evaluateSnapshots('BTC', [make(100, 'bullish', '2026-01-01'), make(100, 'bearish', '2026-01-02')]).resolved).toBe(0)
+    const upgraded = { ...make(110, 'bearish', '2026-01-02'), analysisBasis: { version: 2 as const, closedBarsOnly: true as const, dailyAt: '2026-01-02', hourlyAt: null } }
+    expect(evaluateSnapshots('BTC', [make(100, 'bullish', '2026-01-01'), upgraded]).resolved).toBe(0)
   })
+})
+
+it('does not let a forming daily candle alter a closed-bar assessment', () => {
+  const daily = series(90, 86400000)
+  const input = { asset: 'BTC' as const, dailyBars: daily, intradayBars: [], asOf: new Date('2026-03-31T12:00:00Z'), abnormalVolumeRatio: 1.8, abnormalMovePercent: 1.5 }
+  const before = analyzeEvidence(input)
+  daily[89] = { ...daily[89]!, close: 1, low: 1, volume: 100_000_000 }
+  const after = analyzeEvidence(input)
+  expect(after).toEqual(before)
+  expect(after.metrics.lastBarAt).toBe('2026-03-30T00:00:00.000Z')
+  expect(after.dailyBrief.periodKey).toBe('2026-03-30')
+})
+
+it('excludes the current calendar week from weekly follow-through', () => {
+  const daily = series(90, 86400000)
+  const input = { dailyBars: daily, intradayBars: [], asOf: new Date('2026-04-01T12:00:00Z'), abnormalVolumeRatio: 1.8, abnormalMovePercent: 1.5 }
+  const before = analyzeEvidence(input).metrics.weeklyChangePercent
+  daily[89] = { ...daily[89]!, close: 1, low: 1 }
+  expect(analyzeEvidence(input).metrics.weeklyChangePercent).toBe(before)
+})
+
+it('does not label disconnected hourly samples as one-hour or four-hour changes', () => {
+  const result = analyzeEvidence({ dailyBars: series(90, 86400000), intradayBars: series(5, 86400000), abnormalVolumeRatio: 1.8, abnormalMovePercent: 1.5 })
+  expect(result.metrics.intraday).toMatchObject({ available: true, latestChangePercent: null, fourHourChangePercent: null })
 })
