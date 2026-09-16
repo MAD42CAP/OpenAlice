@@ -256,6 +256,50 @@ reload the latest BTC/TSLA/MSTR narrations and announce completion. Failures rem
 visible with retry and dismiss actions. Status regions are announced to assistive
 technology, and progress animation honors reduced-motion preferences.
 
+## Historical input replay and narration identity
+
+New observations reference a SHA-256 digest and strategy version. Their
+`inputs/<snapshot-uuid>.json.gz` sidecars contain schema version 1, the complete
+closed-bar inputs, analysis time, alert-independent analysis thresholds,
+strategy identity/version, public context, source health and the recorded
+snapshot with historical closed-bar chart data. No credentials, authenticated
+request headers or raw provider response objects enter these archives.
+
+The archive is published atomically without overwrite before its observation
+journal entry. Duplicate scans reuse the canonical saved identity and do not
+create another archive. A crash between archive and journal append may leave
+an unreferenced archive; no automatic destructive cleanup is performed. Files
+are compressed and retained with the complete data home. They are not a cache.
+Earlier records are not rewritten or backfilled from current provider data.
+
+`GET /api/market-monitor/snapshots/:id/replay` reads one UUID directly, independent
+of the bounded recent-history journal view. It never fetches market data,
+changes settings or launches Codex. It recomputes the registered strategy using
+the archived time/parameters and compares every deterministic output and the
+semantic fingerprint. Responses distinguish `verified`, `mismatch`,
+`unavailable` and `unsupported`. Corrupt or mismatched archives fail with HTTP
+422. Strategy behavior changes must advance the manifest version; unavailable
+older implementations cannot claim a successful same-version replay. A digest
+checks accidental input corruption; it is not a signature against someone able
+to rewrite the complete local home.
+
+The history table offers Replay check and an explicit input/result export.
+Results show original time, version, completed-bar counts and source attribution.
+The latest live chart may contain a forming candle; replay exports always use
+the original completed candles. Successful replay proves reproducibility, not
+forecast accuracy. Fixed-horizon outcome evaluation remains future work.
+
+`market_monitor_daily_input` returns `snapshotId` and `inputHash` per asset;
+`market_monitor_publish_narration` requires both unchanged. The writer validates
+the archived asset, strategy and daily period before accepting prose and stores
+its exact basis and strategy version under `codex-daily-v2`. Evidence may move
+while Codex writes: that prose retains its original basis, and the dashboard
+labels it stale when displayed alongside a later observation. Legacy prose
+without a basis is unverified. Only the exact historical input row (and the
+latest row with an explicit relationship label) receives that narration.
+The one-publication-per-asset/strategy/day budget and authorized Issue checks
+remain unchanged; stale prose does not automatically dispatch a new model run.
+
 ## Fork branding
 
 The web shell is branded `MAD42Lab` in the browser title, desktop activity rail,
@@ -280,7 +324,7 @@ the prior report; a refresh failure explicitly labels retained facts.
 - Successful, failed, new-evidence and unchanged-evidence attempts; scheduled
   versus manual counts; consecutive failures and observed scan recoveries.
 - Average and 95th-percentile scan duration, with the number of measurements.
-- Per-provider healthy/degraded/unavailable check counts and observed recoveries,
+- Historical per-provider healthy/degraded/unavailable check counts and observed recoveries,
   plus the latest check time and underlying market-data time.
 - The latest 12 attempts, including errors and strategy identity when known.
 
@@ -477,3 +521,11 @@ Development is retained in `MAD42CAP/OpenAlice` on
 `feature/market-evidence-monitor`. The former upstream PR #1494 is closed and
 unmerged. No upstream PR, release or third-party-team deployment is part of
 this workflow. Preview/build commands above are local.
+
+The long-run observer derives current scan/source incidents from the latest
+completed receipt, including scheduler receipts newer than the report read.
+It does not treat historical per-provider aggregates as current outages. A
+healthy replacement provider closes an earlier fallback incident. A new failed
+scan remains current across repeated probes; missing source telemetry or a
+partial scan cannot establish recovery for sources it never reached. Historical
+failed attempts remain in the acceptance report even after recovery.

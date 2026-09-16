@@ -17,6 +17,7 @@ import { PageHeader } from '../components/PageHeader'
 import { Button } from '../components/ui/button'
 import { EmptyState, Skeleton } from '../components/StateViews'
 import { cn } from '../lib/utils'
+import { useMarketMonitorReplay } from '../hooks/useMarketMonitorReplay'
 import { useMarketMonitorStatus } from '../hooks/useMarketMonitorStatus'
 import { useMarketMonitorHealth } from '../hooks/useMarketMonitorHealth'
 import { MonitorOperations } from '../components/market/MonitorOperations'
@@ -99,6 +100,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
   const [asset, setAsset] = usePersistedAsset()
   const [timeframe, setTimeframe] = useState<Timeframe>('1D')
   const [settings, setSettings] = useState<MonitorSettings>(DEFAULT_SETTINGS)
+  const replay = useMarketMonitorReplay(`${asset}:${settings.strategyId}`)
   const [strategies, setStrategies] = useState<MonitorStrategy[]>([])
   const [history, setHistory] = useState<Record<MonitorAsset, MonitorSnapshot[]>>(EMPTY_HISTORY)
   const [alerts, setAlerts] = useState<MonitorAlert[]>([])
@@ -333,7 +335,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
               <ContextPanel snapshot={snapshot} />
               <SourcePanel snapshot={snapshot} />
             </div>
-            <HistoryPanel snapshots={snapshots} evaluation={evaluation} alerts={alerts.filter((item) => item.asset === asset)} />
+            <HistoryPanel replay={replay} snapshots={snapshots} evaluation={evaluation} alerts={alerts.filter((item) => item.asset === asset)} />
           </div>
         ) : <EmptyState title={t('marketMonitor.noObservations')} description={t('marketMonitor.noObservationsDescription')} />}
         <MonitorOperations asset={asset} hours={reportHours} onHoursChange={setReportHours} report={health.report} loading={health.loading} error={health.error} onRefresh={health.refresh} />
@@ -396,6 +398,10 @@ function DailyBriefPanel({ snapshot, narratorStatus }: { snapshot: MonitorSnapsh
           : <span className={cn('text-[10px]', narratorStatus?.state === 'failed' || narratorStatus?.state === 'blocked' ? 'text-warning' : 'text-muted-foreground')}>{narratorStatus ? t(`marketMonitor.narrator.state.${narratorStatus.state}`) : t('marketMonitor.narrator.checking')}</span>}
       </div>
       {narration ? <div>
+        <p className={cn('mb-2 text-xs', snapshot.narrationStatus === 'current' ? 'text-muted-foreground' : 'text-warning')}>
+          {t(`marketMonitor.narrator.${snapshot.narrationStatus ?? 'unverified'}`)}
+          {narration.basis && <> · {t('marketMonitor.narrator.basedOn', { time: formatDate(narration.basis.capturedAt) })}</>}
+        </p>
         <h4 className="text-base font-semibold">{narration.headline}</h4>
         <p className="mt-2 text-xs leading-5 text-muted-foreground">{narration.summary}</p>
         <dl className="mt-4 grid gap-4 sm:grid-cols-3">
@@ -550,9 +556,9 @@ function SourcePanel({ snapshot }: { snapshot: MonitorSnapshot }) {
   return <Panel title={t('marketMonitor.panels.sourceHealth')}><div className="space-y-3">{snapshot.sourceHealth.map((source) => <div key={source.id} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2"><span className={cn('mt-1.5 size-2 rounded-full', source.status === 'ok' ? 'bg-success' : source.status === 'degraded' ? 'bg-warning' : 'bg-destructive')} /><div><div className="flex flex-wrap items-baseline justify-between gap-2"><span className="text-xs font-medium">{monitorSourceLabel(t, source, snapshot.asset)}</span><span className="text-[10px] text-muted-foreground">{source.provider}</span></div><p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{monitorSourceDetail(t, source)}</p><div className="mt-0.5 text-[10px] text-muted-foreground/70">{t('marketMonitor.source.asOf', { time: formatDate(source.asOf) })}</div></div></div>)}</div></Panel>
 }
 
-function HistoryPanel({ snapshots, evaluation, alerts }: { snapshots: MonitorSnapshot[]; evaluation: MonitorEvaluation | null; alerts: MonitorAlert[] }) {
+function HistoryPanel({ snapshots, evaluation, alerts, replay }: { replay: ReturnType<typeof useMarketMonitorReplay>; snapshots: MonitorSnapshot[]; evaluation: MonitorEvaluation | null; alerts: MonitorAlert[] }) {
   const { t } = useTranslation()
-  return <Panel title={t('marketMonitor.panels.history')} trailing={evaluation ? <span className="text-[11px] text-muted-foreground">{t('marketMonitor.history.summary', { resolved: evaluation.resolved, accuracy: evaluation.directionalAccuracy == null ? '—' : `${formatNumber(evaluation.directionalAccuracy)}%` })}</span> : undefined}><div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.6fr)]"><div className="overflow-x-auto"><table className="w-full min-w-[560px] text-xs"><thead className="border-b border-border text-left text-[11px] text-muted-foreground"><tr><th className="pb-2 font-medium">{t('marketMonitor.history.captured')}</th><th className="pb-2 font-medium">{t('marketMonitor.history.price')}</th><th className="pb-2 font-medium">{t('marketMonitor.history.hypothesis')}</th><th className="pb-2 text-right font-medium">{t('marketMonitor.history.confidence')}</th><th className="pb-2 text-right font-medium">{t('marketMonitor.history.trigger')}</th></tr></thead><tbody>{snapshots.slice(-12).reverse().map((row) => <tr key={row.id} className="border-b border-border/50"><td className="py-2.5 text-muted-foreground">{formatDate(row.capturedAt)}</td><td className="py-2.5 tabular-nums">{formatNumber(row.metrics.lastPrice)}</td><td className="py-2.5">{monitorHypothesisCopy(t, row).label}</td><td className="py-2.5 text-right tabular-nums">{row.hypothesis.confidence}/100</td><td className="py-2.5 text-right text-muted-foreground">{t(`marketMonitor.history.${row.trigger}`)}</td></tr>)}</tbody></table></div><div><div className="mb-2 flex items-center gap-2 text-[11px] font-semibold text-muted-foreground"><Bell className="size-3.5" />{t('marketMonitor.panels.recentAlerts')}</div>{alerts.length ? <ul className="space-y-2">{alerts.slice(-6).reverse().map((alert) => {
+  return <Panel title={t('marketMonitor.panels.history')} trailing={evaluation ? <span className="text-[11px] text-muted-foreground">{t('marketMonitor.history.summary', { resolved: evaluation.resolved, accuracy: evaluation.directionalAccuracy == null ? '—' : `${formatNumber(evaluation.directionalAccuracy)}%` })}</span> : undefined}><ReplayResult replay={replay} /><div className="grid gap-4 2xl:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.6fr)]"><div className="overflow-x-auto"><table className="w-full min-w-[720px] text-xs [&_th]:px-2 [&_td]:px-2 [&_th]:whitespace-nowrap [&_td]:whitespace-nowrap"><thead className="border-b border-border text-left text-[11px] text-muted-foreground"><tr><th className="pb-2 font-medium">{t('marketMonitor.history.captured')}</th><th className="pb-2 font-medium">{t('marketMonitor.history.price')}</th><th className="pb-2 font-medium">{t('marketMonitor.history.hypothesis')}</th><th className="pb-2 text-right font-medium">{t('marketMonitor.history.confidence')}</th><th className="pb-2 text-right font-medium">{t('marketMonitor.history.trigger')}</th><th className="pb-2 text-right font-medium">{t('marketMonitor.replay.title')}</th></tr></thead><tbody>{snapshots.slice(-12).reverse().map((row) => <tr key={row.id} className="border-b border-border/50"><td className="py-2.5 text-muted-foreground">{formatDate(row.capturedAt)}</td><td className="py-2.5 tabular-nums">{formatNumber(row.metrics.lastPrice)}</td><td className="py-2.5">{monitorHypothesisCopy(t, row).label}</td><td className="py-2.5 text-right tabular-nums">{row.hypothesis.confidence}/100</td><td className="py-2.5 text-right text-muted-foreground">{t(`marketMonitor.history.${row.trigger}`)}</td><td className="py-2.5 text-right"><Button variant="ghost" size="sm" aria-pressed={replay.selected === row.id} onClick={() => void replay.select(row.id)}>{t('marketMonitor.replay.action')}</Button></td></tr>)}</tbody></table></div><div><div className="mb-2 flex items-center gap-2 text-[11px] font-semibold text-muted-foreground"><Bell className="size-3.5" />{t('marketMonitor.panels.recentAlerts')}</div>{alerts.length ? <ul className="space-y-2">{alerts.slice(-6).reverse().map((alert) => {
     const copy = monitorAlertCopy(t, alert, snapshots.find((row) => row.id === alert.snapshotId))
     return <li key={alert.id} className="border-l-2 border-warning pl-2 text-xs"><div className="font-medium">{copy.title}</div><div className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{copy.message}</div></li>
   })}</ul> : <p className="text-xs text-muted-foreground">{t('marketMonitor.history.noAlerts')}</p>}</div></div></Panel>
@@ -598,4 +604,30 @@ function SettingsPanel({ settings, strategies, onSave, onClose }: { settings: Mo
 
 function MonitorSkeleton() {
   return <div className="mx-auto w-full max-w-[1320px] space-y-4"><Skeleton className="h-72 w-full" /><div className="grid gap-4 xl:grid-cols-2"><Skeleton className="h-80" /><Skeleton className="h-80" /></div></div>
+}
+
+function ReplayResult({ replay }: { replay: ReturnType<typeof useMarketMonitorReplay> }) {
+  const { t } = useTranslation()
+  const result = replay.result
+  const archive = result?.archive
+  if (!replay.selected) return null
+  const exportReplay = () => {
+    const url = URL.createObjectURL(new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `market-replay-${replay.selected}.json`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+  return <div className="mb-4 border-b border-border pb-3 text-xs" role="status" aria-live="polite">
+    {replay.loading ? t('marketMonitor.replay.loading') : replay.error ? <span className="text-warning">{replay.error}</span> : result && <>
+      <p className={cn('font-medium', result.status !== 'verified' && 'text-warning')}>{t(`marketMonitor.replay.${result.status}`)}</p>
+      {archive && <>
+        <p className="mt-2 text-muted-foreground">{t('marketMonitor.replay.basis', { time: formatDate(archive.input.asOf), version: archive.input.strategyVersion, daily: archive.input.dailyBars.length, hourly: archive.input.intradayBars.length })}</p>
+        <p className="mt-2">{monitorHypothesisCopy(t, archive.snapshot).label} · {archive.snapshot.hypothesis.confidence}/100 · {formatNumber(archive.snapshot.metrics.lastPrice)}</p>
+        <p className="mt-1 text-muted-foreground">{archive.snapshot.sourceHealth.map(source => `${monitorSourceLabel(t, source, archive.snapshot.asset)}: ${source.provider}`).join(' · ')}</p>
+        <Button className="mt-2" variant="ghost" size="sm" onClick={exportReplay}><Download className="size-3.5" />{t('marketMonitor.replay.export')}</Button>
+      </>}
+    </>}
+  </div>
 }

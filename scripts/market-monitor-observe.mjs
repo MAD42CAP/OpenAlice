@@ -101,7 +101,7 @@ function summarize(report, runtimeIntervalMinutes) {
   const scheduled = Object.fromEntries(report.assets.map((asset) => [asset, report.observedReceipts.filter((row) => row.asset === asset && row.trigger === 'scheduled' && row.outcome !== 'failed').length]))
   const longEnough = report.elapsedMs >= Math.max(1, runtimeIntervalMinutes ?? 15) * 120_000
   const missingCadence = longEnough && report.assets.some((asset) => scheduled[asset] === 0)
-  const attention = report.incidents.some((row) => ['api-unavailable', 'scan-failed', 'source-degraded', 'source-unavailable'].includes(row.kind))
+  const attention = report.observedReceipts.some(row => row.outcome === 'failed') || report.incidents.some((row) => ['api-unavailable', 'scan-failed', 'source-degraded', 'source-unavailable', 'source-checks-unknown'].includes(row.kind))
   return {
     probeSuccessPercent: report.samples.total ? Math.round(successRatio * 10_000) / 100 : null,
     incidentEpisodes: report.incidents.length,
@@ -177,11 +177,25 @@ export async function runObservation(options, dependencies = {}) {
           if (receiptTime(receipt) < started || receiptIds.has(receipt.id)) continue
           receiptIds.add(receipt.id)
           report.observedReceipts.push({ id: receipt.id, asset, trigger: receipt.trigger, outcome: receipt.outcome, requestedAt: receipt.requestedAt, completedAt: receipt.completedAt ?? null, durationMs: receipt.durationMs ?? null, error: receipt.error ?? null })
-          if (receipt.outcome === 'failed') incident(report, active, seenNow, at, 'scan-failed', receipt.error ?? 'Scan failed.', asset)
         }
-        for (const source of assetHealth.sources ?? []) {
-          if (source.latestStatus === 'ok') continue
-          incident(report, active, seenNow, at, `source-${source.latestStatus}`, `${source.label} (${source.provider}) is ${source.latestStatus}.`, asset, `${source.id}:${source.provider}`)
+        // Provider aggregates are historical. Only the newest completed attempt
+        // can establish the current state, including a switch away from fallback.
+        const latest = [...(assetHealth.recent ?? []), ...(item?.lastReceipt ? [item.lastReceipt] : [])]
+          .filter(row => Number.isFinite(receiptTime(row)))
+          .sort((a, b) => receiptTime(b) - receiptTime(a))[0]
+        if (latest?.outcome === 'failed') incident(report, active, seenNow, at, 'scan-failed', latest.error ?? 'Scan failed.', asset)
+        if (!latest?.sourceHealth?.length) incident(report, active, seenNow, at, 'source-checks-unknown', 'The latest attempt has no source checks; source health is unknown.', asset)
+        const checked = new Set((latest?.sourceHealth ?? []).map(source => source.id))
+        for (const [key, current] of active) {
+          if (current.asset !== asset) continue
+          // Missing telemetry or a partial daily failure cannot prove recovery
+          // for sources that were never reached. Keep that state explicitly open.
+          if (current.sourceId && current.kind.startsWith('source-') && !checked.has(current.sourceId.slice(0, current.sourceId.lastIndexOf(':')))) seenNow.add(key)
+          if (current.kind === 'scan-failed' && !latest) seenNow.add(key)
+        }
+        for (const source of latest?.sourceHealth ?? []) {
+          if (source.status === 'ok') continue
+          incident(report, active, seenNow, at, `source-${source.status}`, `${source.label} (${source.provider}) is ${source.status}.`, asset, `${source.id}:${source.provider}`)
         }
       })
       closeRecovered(active, seenNow, at)

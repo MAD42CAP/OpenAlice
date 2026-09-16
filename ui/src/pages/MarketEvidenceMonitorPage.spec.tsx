@@ -7,7 +7,7 @@ import { i18n } from '../i18n'
 import { MarketEvidenceMonitorPage } from './MarketEvidenceMonitorPage'
 
 const mocks = vi.hoisted(() => ({
-  health: vi.fn(), status: vi.fn(), narratorStatus: vi.fn(), runNarratorNow: vi.fn(), reconcileNarrator: vi.fn(), settings: vi.fn(), strategies: vi.fn(), snapshots: vi.fn(), alerts: vi.fn(), evaluation: vi.fn(), scan: vi.fn(), saveSettings: vi.fn(),
+  replay: vi.fn(), health: vi.fn(), status: vi.fn(), narratorStatus: vi.fn(), runNarratorNow: vi.fn(), reconcileNarrator: vi.fn(), settings: vi.fn(), strategies: vi.fn(), snapshots: vi.fn(), alerts: vi.fn(), evaluation: vi.fn(), scan: vi.fn(), saveSettings: vi.fn(),
 }))
 vi.mock('../api', () => ({ api: { marketMonitor: mocks } }))
 
@@ -235,4 +235,24 @@ it('refreshes evaluation when the latest observation changes while history lengt
   mocks.scan.mockResolvedValueOnce({ snapshot: demoMonitorSnapshot('BTC', 1), stored: true, alert: null, receipt: {} })
   fireEvent.click(screen.getByRole('button', { name: /Scan now/ }))
   await waitFor(() => expect(mocks.evaluation.mock.calls.length).toBeGreaterThan(before))
+})
+
+it('checks a selected historical record and explains unavailable legacy inputs', async () => {
+  mocks.replay.mockResolvedValue({ status: 'unavailable', snapshotId: 'old' })
+  render(<MarketEvidenceMonitorPage />)
+  fireEvent.click(await screen.findByRole('button', { name: 'Replay check' }))
+  expect(await screen.findByText(/Original inputs are unavailable/)).toBeTruthy()
+  expect(mocks.replay).toHaveBeenCalledWith(demoMonitorSnapshot('BTC').id)
+  expect(mocks.scan).not.toHaveBeenCalled()
+})
+
+it.each(['stale', 'unverified', 'current'] as const)('labels the narration input relationship as %s', async (status) => {
+  mocks.snapshots.mockImplementation(async (asset: 'BTC' | 'TSLA' | 'MSTR') => {
+    const row = demoMonitorSnapshot(asset)
+    row.narrationStatus = status
+    return { snapshots: [row], count: 1 }
+  })
+  render(<MarketEvidenceMonitorPage />)
+  const text = status === 'stale' ? /Evidence has changed since/ : status === 'current' ? 'Matches this observation' : /Older interpretation without/
+  expect(await screen.findByText(text)).toBeTruthy()
 })

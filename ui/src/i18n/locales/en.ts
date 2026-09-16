@@ -1997,7 +1997,10 @@ export const en = {
       longTrendBullish: 'The bullish long-term trend argues against a bearish phase label.',
       longTrendBearish: 'The bearish long-term trend argues against a bullish phase label.',
     },
+    replay: { title: 'Input replay', action: 'Replay check', loading: 'Replaying archived inputs…', verified: 'Archived inputs reproduce the recorded analysis. This does not validate a price forecast.', mismatch: 'Replay differs from the recorded analysis; review required.', unavailable: 'Original inputs are unavailable for this record. Historical data cannot be reconstructed from today’s feed.', unsupported: 'This strategy version is unavailable for replay.', basis: 'Observation {{time}} · strategy v{{version}} · {{daily}} daily / {{hourly}} hourly closed bars', export: 'Export inputs and replay' },
     narrator: {
+      current: 'Matches this observation', stale: 'Evidence has changed since this interpretation; read it as historical commentary.', unverified: 'Older interpretation without a verified input link.', basedOn: 'Based on observation {{time}}',
+
       title: 'Codex daily interpretation', runNow: 'Run Codex', running: 'Codex analyzing…', checking: 'Checking Codex schedule…', waiting: 'Waiting for the first Codex interpretation.',
       state: { ready: 'Scheduled', disabled: 'Disabled', blocked: 'Needs setup', failed: 'Last run needs attention' },
       evidence: 'Key evidence', watchFor: 'Watch next', risks: 'Risks and counter-evidence',

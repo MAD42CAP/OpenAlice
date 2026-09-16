@@ -12,6 +12,38 @@ function response(value: unknown, status = 200) {
 }
 
 describe('market monitor long-run observer', () => {
+  it('ignores historical fallback aggregates after the current source recovers', async () => {
+    let clock = Date.parse('2026-09-13T00:00:00Z')
+    const report = await runObservation(parseObservationOptions(['--duration=1m', '--asset=BTC'], {}), {
+      now: () => clock, wait: async (ms: number) => { clock += ms },
+      fetcher: async (url: string) => url.endsWith('/status')
+        ? response({ running: true, backgroundEnabled: true, intervalMinutes: 15, checkedAt: new Date(clock).toISOString(), assets: [{ asset: 'BTC', enabled: true }] })
+        : response({ sources: [{ id: 'daily-bars', provider: 'yfinance', latestStatus: 'degraded' }], recent: [{ id: 'current', requestedAt: new Date(clock).toISOString(), outcome: 'stored', sourceHealth: [{ id: 'daily-bars', provider: 'coinbase', status: 'ok' }] }] }),
+    })
+    expect(report.incidents).toEqual([])
+    expect(report.summary.verdict).toBe('pass')
+  })
+
+  it('keeps failed scans and missing source telemetry open until a new successful check', async () => {
+    let clock = Date.parse('2026-09-13T00:00:00Z'), probe = 0
+    const states = [
+      { id: '1', outcome: 'failed', sourceHealth: [{ id: 'daily-bars', label: 'Daily', provider: 'yfinance', status: 'unavailable' }] },
+      { id: '1', outcome: 'failed', sourceHealth: [{ id: 'daily-bars', label: 'Daily', provider: 'yfinance', status: 'unavailable' }] },
+      { id: '2', outcome: 'stored' },
+      { id: '3', outcome: 'stored', sourceHealth: [{ id: 'daily-bars', label: 'Daily', provider: 'coinbase', status: 'ok' }] },
+    ]
+    const checkpoints: number[] = []
+    const report = await runObservation({ ...parseObservationOptions(['--duration=1m', '--asset=BTC', '--sample-seconds=15'], {}), durationMs: 45_000 }, {
+      now: () => clock, wait: async (ms: number) => { clock += ms },
+      checkpoint: async (current: { summary: { openIncidents: number } }) => { checkpoints.push(current.summary.openIncidents) },
+      fetcher: async (url: string) => url.endsWith('/status')
+        ? response({ running: true, backgroundEnabled: true, intervalMinutes: 15, checkedAt: new Date(clock).toISOString(), assets: [{ asset: 'BTC', enabled: true }] })
+        : response({ sources: [], recent: [{ ...states[probe++], requestedAt: new Date(clock).toISOString() }] }),
+    })
+    expect(checkpoints.slice(0, 4)).toEqual([2, 2, 2, 0])
+    expect(report.incidents.find(row => row.kind === 'source-unavailable')?.recoveredAt).toBe('2026-09-13T00:00:45.000Z')
+  })
+
   it('defaults to a local 24-hour read-only observation and validates bounds', () => {
     expect(parseObservationOptions([], {})).toMatchObject({ duration: '24h', durationMs: 86_400_000, sampleSeconds: 60, assets: ['BTC', 'TSLA', 'MSTR'] })
     expect(parseObservationOptions(['--duration=72h', '--sample-seconds=15', '--asset=tsla'], {})).toMatchObject({ durationMs: 259_200_000, assets: ['TSLA'] })
@@ -25,7 +57,7 @@ describe('market monitor long-run observer', () => {
       expect(init?.method).toBeUndefined()
       if (url.endsWith('/status')) return response({ running: true, backgroundEnabled: true, intervalMinutes: 15, checkedAt: new Date(clock).toISOString(), error: null, assets: [{ asset: 'BTC', enabled: true, scanning: false, lastError: null }] })
       const recovered = clock > Date.parse('2026-09-13T00:00:00Z')
-      return response({ asset: 'BTC', sources: [{ id: 'context', label: 'Context', provider: 'fixture', latestStatus: recovered ? 'ok' : 'unavailable' }], recent: recovered ? [{ id: `scan-${clock}`, asset: 'BTC', trigger: 'scheduled', outcome: 'duplicate', requestedAt: new Date(clock).toISOString(), durationMs: 20 }] : [] })
+      return response({ asset: 'BTC', sources: [{ id: 'context', label: 'Context', provider: 'fixture', latestStatus: recovered ? 'ok' : 'unavailable' }], recent: [{ id: `scan-${clock}`, asset: 'BTC', trigger: 'scheduled', outcome: 'duplicate', requestedAt: new Date(clock - (recovered ? 0 : 60_000)).toISOString(), durationMs: 20, sourceHealth: [{ id: 'context', label: 'Context', provider: 'fixture', status: recovered ? 'ok' : 'unavailable' }] }] })
     }
     const report = await runObservation({ ...parseObservationOptions(['--duration=1h', '--asset=BTC'], {}), sampleSeconds: 15 }, {
       fetcher, now: () => clock, wait: async () => { clock += 30 * 60_000 }, checkpoint: async () => undefined,

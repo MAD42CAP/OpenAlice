@@ -8,6 +8,8 @@ const snapshots: Record<MonitorAsset, ReturnType<typeof demoMonitorSnapshot>[]> 
 const alerts: MonitorAlert[] = []
 
 export const marketMonitorHandlers = [
+  // Demo fixtures predate input archives; never manufacture a successful replay.
+  http.get('/api/market-monitor/snapshots/:id/replay', ({ params }) => HttpResponse.json({ status: 'unavailable', snapshotId: params.id })),
   http.get('/api/market-monitor/health', ({ request }) => {
     const params = new URL(request.url).searchParams
     const asset = params.get('asset')

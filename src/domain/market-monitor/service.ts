@@ -4,6 +4,7 @@ import type { BarMeta, BarService, BarsResult, OhlcvBar } from '../market-data/b
 import type { INewsProvider } from '../news/types.js'
 import type { ReferenceDataService } from '../market-data/reference/types.js'
 import { assertFreshBars, closedBars } from './bar-policy.js'
+import { analysisInputHash, replayAnalysis, type MarketAnalysisArchive, type MarketReplayResult } from './replay.js'
 import { evaluateSnapshots } from './analysis.js'
 import { createDailyMarketBrief } from './daily-brief.js'
 import { safeMarketDataError } from '../market-data/bars/safe-error.js'
@@ -54,6 +55,7 @@ export interface MarketMonitorService {
   settings(): Promise<MarketMonitorSettings>
   saveSettings(settings: MarketMonitorSettings): Promise<void>
   scan(asset: MarketMonitorAsset, trigger: MarketMonitorTrigger): Promise<MarketMonitorScanResult>
+  replay(snapshotId: string): Promise<MarketReplayResult>
   isScanning(asset: MarketMonitorAsset): boolean
   snapshots(asset?: MarketMonitorAsset, limit?: number, strategyId?: string): Promise<MarketMonitorSnapshot[]>
   alerts(asset?: MarketMonitorAsset, limit?: number): Promise<MarketMonitorAlert[]>
@@ -73,6 +75,8 @@ export interface MarketNarrationInput {
   assets: Array<{
     asset: MarketMonitorAsset
     status: 'ready' | 'already-published' | 'failed'
+    snapshotId?: string
+    inputHash?: string
     periodKey?: string
     snapshot?: Omit<MarketMonitorSnapshot, 'chart' | 'aiNarration'>
     existingNarration?: MarketAiNarration
@@ -81,6 +85,8 @@ export interface MarketNarrationInput {
 }
 
 export interface MarketNarrationPublishInput {
+  snapshotId: string
+  inputHash: string
   asset: MarketMonitorAsset
   strategyId: string
   periodKey: string
@@ -198,6 +204,10 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
   }
   return {
     settings: loadSettings,
+    async replay(snapshotId) {
+      const archive = await store.archive(snapshotId)
+      return archive ? replayAnalysis(archive, strategyRegistry) : { status: 'unavailable', snapshotId }
+    },
     async saveSettings(settings) {
       strategyRegistry.get(settings.strategyId)
       await store.saveSettings(settings)
@@ -224,7 +234,9 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
       const byPeriod = new Map(narrations.map((row) => [`${row.asset}:${row.strategyId}:${row.periodKey}`, row]))
       rows.forEach((row, index) => {
         const narration = row.dailyBrief && byPeriod.get(`${row.asset}:${row.strategyId}:${row.dailyBrief.periodKey}`)
-        if (narration) rows[index] = { ...row, aiNarration: narration }
+        if (narration && (narration.basis?.snapshotId === row.id || latestBySeries.get(`${row.asset}:${row.strategyId}`) === index)) rows[index] = { ...row, aiNarration: narration,
+          narrationStatus: !narration.basis ? 'unverified' : narration.basis.snapshotId === row.id && narration.basis.inputHash === row.analysisInput?.hash ? 'current' : 'stale',
+        }
       })
       return rows
     },
@@ -240,7 +252,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
           if (!periodKey) throw new Error('Daily deterministic brief is unavailable')
           const existingNarration = narrations.find((row) => row.asset === asset && row.strategyId === snapshot.strategyId && row.periodKey === periodKey)
           const { chart: _chart, aiNarration: _narration, ...compact } = snapshot
-          rows.push({ asset, status: existingNarration ? 'already-published' : 'ready', periodKey, snapshot: compact, ...(existingNarration ? { existingNarration } : {}) })
+          rows.push({ asset, snapshotId: snapshot.id, inputHash: snapshot.analysisInput?.hash, status: existingNarration ? 'already-published' : 'ready', periodKey, snapshot: compact, ...(existingNarration ? { existingNarration } : {}) })
         } catch (error) {
           rows.push({ asset, status: 'failed', error: error instanceof Error ? error.message : String(error) })
         }
@@ -250,19 +262,25 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
     publishNarration(input, provenance) {
       const key = `${input.asset}:${input.strategyId}:${input.periodKey}`
       const pending = narrationWrites.get(key)
-      if (pending) return pending
+      if (pending) return pending.then(() => this.publishNarration(input, provenance))
       const task = (async () => {
         if (provenance.agent !== 'codex' || provenance.issueId !== MARKET_DAILY_NARRATION_ISSUE_ID) throw new Error('Daily narration must be published by the authorized Codex Issue')
         const rows = (await store.snapshots(input.asset, 1000)).filter((row) => row.strategyId === input.strategyId)
         const latest = rows.at(-1)
         if (!latest || latest.dailyBrief?.periodKey !== input.periodKey) throw new Error('The narration period does not match the current deterministic daily brief')
+        const archive = await store.archive(input.snapshotId)
+        if (!archive || archive.snapshot.asset !== input.asset || archive.snapshot.strategyId !== input.strategyId
+          || archive.snapshot.dailyBrief?.periodKey !== input.periodKey || archive.snapshot.analysisInput?.hash !== input.inputHash) {
+          throw new Error('Narration input does not match an archived observation')
+        }
         const existing = (await store.narrations(input.asset, 1000)).find((row) => row.strategyId === input.strategyId && row.periodKey === input.periodKey)
         if (existing) return { stored: false, narration: existing }
         const clean = (value: string) => value.trim()
         const cleanList = (values: string[]) => values.map(clean).filter(Boolean).slice(0, 8)
         const narration: MarketAiNarration = {
           id: randomUUID(), asset: input.asset, strategyId: input.strategyId, periodKey: input.periodKey,
-          promptVersion: 'codex-daily-v1', generatedAt: now().toISOString(), language: 'zh-CN', agent: 'codex',
+          basis: { snapshotId: input.snapshotId, inputHash: input.inputHash, fingerprint: archive.snapshot.fingerprint, capturedAt: archive.snapshot.capturedAt, strategyVersion: archive.input.strategyVersion },
+          promptVersion: 'codex-daily-v2', generatedAt: now().toISOString(), language: 'zh-CN', agent: 'codex',
           ...(provenance.model ? { model: provenance.model } : {}),
           ...(provenance.effort ? { effort: provenance.effort } : {}),
           headline: clean(input.headline), summary: clean(input.summary), shortTerm: clean(input.shortTerm),
@@ -313,12 +331,13 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
             ? healthFromMeta('intraday-bars', 'Hourly OHLCV', intraday.result.meta, intraday.fallback)
             : { id: 'intraday-bars', label: 'Hourly OHLCV', status: 'unavailable', provider: 'OpenAlice BarService', asOf: null, detail: safeMarketDataError(intradayError) })
           failureStage = 'analysis'
-          const analysis = strategy.analyze({
+          const strategyInput = {
             asset, asOf: new Date(requestedAt),
             dailyBars: closedBars(daily.result.bars, asset, '1d', new Date(requestedAt)), intradayBars: closedBars(intraday?.result.bars ?? [], asset, '1h', new Date(requestedAt)),
             abnormalMovePercent: settings.abnormalMovePercent,
             abnormalVolumeRatio: settings.abnormalVolumeRatio,
-          })
+          }
+          const analysis = strategy.analyze(strategyInput)
           failureStage = 'context'
           const previous = (await store.snapshots(asset, 1000)).filter((row) => row.strategyId === strategy.manifest.id).at(-1)
           const providers = contextProviderRegistry.forAsset(asset)
@@ -355,10 +374,12 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
               sourceHealth,
             }),
           }
+          const input: MarketAnalysisArchive['input'] = { ...strategyInput, asOf: requestedAt, strategyId: strategy.manifest.id, strategyVersion: strategy.manifest.version, context, sourceHealth }
           const fingerprint = strategy.fingerprint({ asset, ...enrichedAnalysis, context, sourceHealth })
           const snapshot: MarketMonitorSnapshot = {
             id: randomUUID(), asset, capturedAt: requestedAt, trigger,
             strategyId: strategy.manifest.id, fingerprint, ...enrichedAnalysis, context, sourceHealth,
+            analysisInput: { hash: analysisInputHash(input), strategyVersion: strategy.manifest.version },
             analysisBasis: { version: 2, closedBarsOnly: true, dailyAt: analysis.metrics.lastBarAt.slice(0, 10), hourlyAt: analysis.metrics.intraday.latestAt },
             chart: {
               daily: compactBars(daily.result.bars, 400), intraday: compactBars(intraday?.result.bars ?? [], 180),
@@ -366,9 +387,10 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
             },
           }
           failureStage = 'storage'
-          const stored = previous?.fingerprint !== fingerprint
+          const stored = previous?.fingerprint !== fingerprint || !previous?.analysisInput || previous.analysisInput.strategyVersion !== strategy.manifest.version
           await store.saveLatestSeries(asset, snapshot.chart, snapshot.strategyId)
           if (stored) {
+            await store.saveArchive({ schemaVersion: 1, input, snapshot: { ...snapshot, chart: { ...snapshot.chart, daily: input.dailyBars, intraday: input.intradayBars } } })
             await store.appendSnapshot({ ...snapshot, chart: { ...snapshot.chart, daily: [], intraday: [] } })
           }
           const alert = stored ? await maybeAlert(store, snapshot, previous, settings) : null
@@ -379,7 +401,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
             outcome: stored ? 'stored' : 'duplicate', snapshotId: stored ? snapshot.id : previous?.id,
           }
           await store.appendReceipt(receipt)
-          return { snapshot, stored, alert, receipt }
+          return { snapshot: stored ? snapshot : { ...previous!, chart: snapshot.chart }, stored, alert, receipt }
         } catch (error) {
           if (error instanceof BarSourcesError) sourceHealth.push(...error.sources)
           const receipt: MarketMonitorReceipt = {

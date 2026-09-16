@@ -160,7 +160,8 @@ export interface MarketAiNarration {
   asset: MarketMonitorAsset
   strategyId: MarketMonitorStrategyId
   periodKey: string
-  promptVersion: 'codex-daily-v1'
+  promptVersion: 'codex-daily-v1' | 'codex-daily-v2'
+  basis?: { snapshotId: string; inputHash: string; fingerprint: string; capturedAt: string; strategyVersion: number }
   generatedAt: string
   language: 'zh-CN'
   agent: 'codex'
@@ -237,6 +238,8 @@ export interface MarketContext {
 
 export interface MarketMonitorSnapshot {
   /** Absent on legacy observations; scores are rules, not calibrated probabilities. */
+  analysisInput?: { hash: string; strategyVersion: number }
+  narrationStatus?: 'current' | 'stale' | 'unverified'
   analysisBasis?: { version: 2; closedBarsOnly: true; dailyAt: string; hourlyAt: string | null }
   id: string
   asset: MarketMonitorAsset

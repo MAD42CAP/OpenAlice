@@ -1929,7 +1929,10 @@ export const zh: Resources = {
       noDefiningEvent: '尚未识别到具有定义作用的威科夫事件。', noAbsorptionEvidence: '尚无高努力、低结果的吸收证据。',
       longTrendBullish: '长期趋势偏多，对偏空阶段标签构成反证。', longTrendBearish: '长期趋势偏空，对偏多阶段标签构成反证。',
     },
+    replay: { title: '输入回放', action: '回放核对', loading: '正在用归档输入重新计算…', verified: '归档输入可复现当时的分析。此结果不代表预测已验证。', mismatch: '重新计算与原记录不一致，需要检查。', unavailable: '该记录没有可用的原始输入，不能用今天的数据重建当时的判断。', unsupported: '暂不支持回放此策略版本。', basis: '观察时间 {{time}} · 策略 v{{version}} · {{daily}} 根日线 / {{hourly}} 根小时线（已收盘）', export: '导出输入和回放结果' },
     narrator: {
+      current: '与本条观察一致', stale: '解读生成后证据已变化，请按历史解读阅读。', unverified: '旧解读缺少可验证的输入关联。', basedOn: '依据 {{time}} 的观察',
+
       title: 'Codex 每日解读', runNow: '立即运行 Codex', running: 'Codex 正在分析…', checking: '正在检查 Codex 任务…', waiting: '等待首次 Codex 每日解读。',
       state: { ready: '已安排每日运行', disabled: '已关闭', blocked: '需要完成设置', failed: '上次运行需要处理' },
       evidence: '关键证据', watchFor: '下一步观察', risks: '风险与反证',
@@ -2036,7 +2039,7 @@ export const zh: Resources = {
       sourceIssues: '存在数据源问题的扫描', checked: '{{issues}} / {{checked}} 已检查', scheduledManual: '定时 / 手动', newUnchanged: '新证据 / 无变化',
       averageDuration: '平均耗时', p95Duration: '95分位耗时',
       qualification: '完成率只衡量已记录的扫描，不代表持续在线率或交易表现。{{missing}} 次没有数据源检查；{{durations}} 次记录了耗时。连续失败：{{failures}}。扫描恢复：{{recoveries}}。',
-      sourceTable: '数据源可靠性', source: '数据源', lastCheck: '最近状态', healthy: '正常', degraded: '降级', unavailableStatus: '不可用',
+      sourceTable: '数据源可靠性', source: '数据源', lastCheck: '该来源最近一次检查', healthy: '正常', degraded: '降级', unavailableStatus: '不可用',
       recoveries: '恢复次数', checkedDataTime: '检查时间 / 数据时间', unknownSources: '这些扫描没有可用的数据源健康信息。', recentTable: '近期扫描记录',
       attemptTime: '扫描时间', trigger: '触发方式', result: '结果', duration: '耗时', detail: '详情', unchangedEvidence: '证据无变化',
       newEvidence: '发现新证据', failed: '失败', seconds: '{{value}} 秒',

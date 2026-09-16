@@ -8,6 +8,7 @@ import type { MarketNarratorCoordinator } from '../market-monitor-narrator.js'
 
 function service(): MarketMonitorService {
   return {
+    replay: vi.fn(async (snapshotId) => ({ status: 'unavailable' as const, snapshotId })),
     settings: vi.fn(async () => DEFAULT_MARKET_MONITOR_SETTINGS),
     saveSettings: vi.fn(async () => undefined),
     scan: vi.fn(async () => ({ snapshot: {} as never, stored: true, alert: null, receipt: {} as never })),
@@ -24,6 +25,18 @@ function service(): MarketMonitorService {
 }
 
 describe('market monitor routes', () => {
+  it('replays only a validated identity without dispatching scans and reports corrupt archives', async () => {
+    const fake = service(), app = createMarketMonitorRoutes({} as EngineContext, fake)
+    const id = '00000000-0000-4000-8000-000000000001'
+    expect((await app.request('/snapshots/invalid/replay')).status).toBe(400)
+    expect(await (await app.request(`/snapshots/${id}/replay`)).json()).toEqual({ status: 'unavailable', snapshotId: id })
+    vi.mocked(fake.replay).mockRejectedValue(new Error('private filesystem path'))
+    const failed = await app.request(`/snapshots/${id}/replay`)
+    expect(failed.status).toBe(422)
+    expect(await failed.text()).not.toContain('private filesystem path')
+    expect(fake.scan).not.toHaveBeenCalled()
+  })
+
   it('returns the failed stage and both source checks with a failed scan', async () => {
     const fake = service()
     const sourceHealth = ['coinbase', 'yfinance'].map(provider => ({ id: 'daily-bars', label: 'Daily OHLCV', provider, status: 'unavailable' as const, asOf: null, detail: 'network unavailable' }))

@@ -140,6 +140,36 @@ no new interactive primitive, navigation or focus behavior is introduced.
   service conditionals. Multiple context modules may compose for one asset;
   histories, chart series and evaluation remain isolated by strategy ID.
 
+## September 16 input replay increment
+
+Autonomous design: retain the existing responsive history table and add a
+keyboard-accessible Replay check button per row. Results appear inline with a
+live status region and use the shared Button, typography and theme tokens.
+Narrow tables scroll; no modal, new route or animation is introduced. Input
+exports are explicit user actions. A domain hook owns requests and discards
+late results when selection changes. Alternatives (a new history route or a
+full chart viewer) add navigation and are deferred.
+
+Persist a new compressed, immutable sidecar only for newly stored observations,
+with closed bars, exact analysis time, threshold parameters, strategy version,
+full public context/source attribution and recorded output. Old observations
+are already in use: leave their bytes intact and explicitly report unavailable
+inputs. This additive store introduces no migration or speculative historical
+backfill. Duplicate scans reuse the persisted observation identity. Replay uses
+only archived inputs and checks complete deterministic output and fingerprint;
+it is reproducibility verification, not predictive validation.
+
+Codex publication requires the input snapshot identity and hash. The existing
+one-narration-per-day cost boundary remains; moving evidence labels that prose
+historical rather than silently invoking another model run. Older unbound prose
+is explicitly unverified. Existing user changes to the narrator's CLI prompt
+are preserved. Required fields are documented in the Workspace tool schema and
+returned by daily-input, so both native tool and CLI callers receive them.
+
+The observer uses the latest completed receipt to establish current source
+state. Historical provider aggregates remain historical. A provider switch can
+close an old fallback episode, while missing checks cannot prove recovery.
+
 ## Checklist
 
 - [x] Add typed analysis, source-health, fingerprint and evaluation modules.
@@ -177,8 +207,11 @@ no new interactive primitive, navigation or focus behavior is introduced.
 - [x] Recheck the hardened dashboard on the Mac and the deterministic demo.
 - [x] Verify hardened BTC/TSLA/MSTR scans, including consecutive BTC attribution and fingerprinting.
 - [ ] Observe the hardened Mac runtime for 24–72 hours; receipt history alone is not continuous uptime acceptance.
-- [ ] Complete fixed-horizon evaluation and historical input replay before claiming predictive validation.
-- [ ] Bind generated narrative to its input snapshot/version and resolve remaining source/operational acceptance findings.
+- [x] Add immutable historical analysis inputs and deterministic replay for new observations.
+- [ ] Complete fixed-horizon evaluation before claiming predictive validation.
+- [x] Bind generated narration to its exact input snapshot/version and label stale or unverified prose.
+- [x] Correct observer current-state incidents without erasing historical failures.
+- [ ] Resolve remaining source/operational acceptance findings, including SEC availability.
 
 ## September 16 Mac hardening acceptance
 
@@ -210,6 +243,29 @@ no new interactive primitive, navigation or focus behavior is introduced.
   No upstream or default branch is modified.
 - A new 24-hour read-only Mac observer is started after the final restart.
   Its result remains incomplete until the duration and cadence gates finish.
+
+## Replay increment acceptance on the Mac
+
+- Fifteen focused files pass 116 tests, including immutable file publication,
+  restart replay, corruption detection, unsupported strategy versions, changed
+  output, duplicate identities, stale/legacy narration and observer recovery.
+- Root and UI typechecks pass. The demo production build passes, and real and
+  demo browser routes pass; the real replay was checked at 390px width.
+- The complete suite passes 7,181 tests, with four skipped and the same two
+  pre-existing Codex command assertions failing in
+  `src/workspaces/adapters/ai-config.spec.ts`. No new failure is introduced.
+  Final small observer/layout changes passed the focused suite and typechecks.
+- Real BTC, TSLA and MSTR scans save archives and replay with zero differences.
+  BTC uses Coinbase (399 completed daily and 179 completed hourly bars at this
+  observation); equities use Alpaca (400 daily and 180 hourly bars). BTC context
+  is healthy; SEC EDGAR remains unavailable for both equities.
+- The corrected live observer has two actual SEC incidents, removing four
+  historical Yahoo fallback false positives. Earlier checkpoints are preserved;
+  a fresh 24-hour report uses the `replay-final` suffix after final verification.
+  Sustained acceptance is still incomplete, not converted into a passing claim.
+- The four pre-existing owner-modified files remain byte-for-byte unchanged and
+  excluded from this increment. No live Codex narration was dispatched merely
+  for testing; publication identity and authorization are verified in tests.
 
 ## Verification
 

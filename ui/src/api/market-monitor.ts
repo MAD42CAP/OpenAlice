@@ -103,7 +103,8 @@ export interface MarketAiNarration {
   asset: MonitorAsset
   strategyId: string
   periodKey: string
-  promptVersion: 'codex-daily-v1'
+  promptVersion: 'codex-daily-v1' | 'codex-daily-v2'
+  basis?: { snapshotId: string; inputHash: string; fingerprint: string; capturedAt: string; strategyVersion: number }
   generatedAt: string
   language: 'zh-CN'
   agent: 'codex'
@@ -122,6 +123,8 @@ export interface MarketAiNarration {
 
 export interface MonitorSnapshot {
   /** Absent on legacy observations; scores are rules, not calibrated probabilities. */
+  analysisInput?: { hash: string; strategyVersion: number }
+  narrationStatus?: 'current' | 'stale' | 'unverified'
   analysisBasis?: { version: 2; closedBarsOnly: true; dailyAt: string; hourlyAt: string | null }
   id: string
   asset: MonitorAsset
@@ -302,7 +305,19 @@ function query(asset?: MonitorAsset, limit = 100, strategyId?: string): string {
   return params.toString()
 }
 
+export interface MonitorReplay {
+  status: 'verified' | 'mismatch' | 'unavailable' | 'unsupported'
+  snapshotId: string
+  differences?: string[]
+  archive?: {
+    schemaVersion: 1
+    input: { asOf: string; strategyVersion: number; dailyBars: HistoricalBar[]; intradayBars: HistoricalBar[]; abnormalMovePercent: number; abnormalVolumeRatio: number }
+    snapshot: MonitorSnapshot
+  }
+}
+
 export const marketMonitorApi = {
+  replay: (snapshotId: string) => fetchJson<MonitorReplay>(`/api/market-monitor/snapshots/${encodeURIComponent(snapshotId)}/replay`),
   health: (asset: MonitorAsset, hours: 24 | 72 = 24) => fetchJson<MonitorHealthReport>(`/api/market-monitor/health?asset=${asset}&hours=${hours}`),
   status: () => fetchJson<MonitorSchedulerStatus>('/api/market-monitor/status'),
   narratorStatus: () => fetchJson<MarketNarratorStatus>('/api/market-monitor/narrator/status'),

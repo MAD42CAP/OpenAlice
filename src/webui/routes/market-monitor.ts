@@ -104,6 +104,13 @@ export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketM
     return c.json({ snapshots, count: snapshots.length })
   })
 
+  app.get('/snapshots/:id/replay', async (c) => {
+    const parsed = z.string().uuid().safeParse(c.req.param('id'))
+    if (!parsed.success) return c.json({ error: 'Invalid observation identity' }, 400)
+    try { return c.json(await service.replay(parsed.data)) }
+    catch { return c.json({ error: 'Analysis archive could not be verified or read' }, 422) }
+  })
+
   app.get('/alerts', async (c) => {
     const raw = c.req.query('asset')
     const asset = assetFrom(raw)

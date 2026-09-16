@@ -1,3 +1,4 @@
+import type { z } from 'zod'
 import type { Tool } from 'ai'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -20,9 +21,17 @@ function service(): MarketMonitorService {
   } as unknown as MarketMonitorService
 }
 
-const narration = { asset: 'BTC', strategyId: 'evidence-chain-v1', periodKey: '2026-03-31', headline: '标题', summary: '总结', shortTerm: '短期', mediumTerm: '中期', longTerm: '长期', evidence: [], risks: [], watchFor: [] }
+const narration = { snapshotId: '00000000-0000-4000-8000-000000000001', inputHash: 'a'.repeat(64), asset: 'BTC', strategyId: 'evidence-chain-v1', periodKey: '2026-03-31', headline: '标题', summary: '总结', shortTerm: '短期', mediumTerm: '中期', longTerm: '长期', evidence: [], risks: [], watchFor: [] }
 
 describe('market monitor Workspace tools', () => {
+  it('requires an explicit archived identity and input hash in the publication schema', () => {
+    const publish = createMarketMonitorToolFactories(service())[1].build(context())
+    const schema = publish.inputSchema as z.ZodType
+    expect(schema.safeParse(narration).success).toBe(true)
+    expect(schema.safeParse({ ...narration, snapshotId: undefined }).success).toBe(false)
+    expect(schema.safeParse({ ...narration, inputHash: 'invented' }).success).toBe(false)
+  })
+
   it('refreshes deterministic daily input without accepting write provenance from the agent', async () => {
     const svc = service()
     const input = createMarketMonitorToolFactories(svc).find((factory) => factory.name === 'market_monitor_daily_input')!

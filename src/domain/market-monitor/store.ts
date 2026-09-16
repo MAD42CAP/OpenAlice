@@ -1,6 +1,8 @@
-import { appendFile, mkdir, readFile, rename, writeFile } from 'node:fs/promises'
+import { appendFile, link, mkdir, readFile, rename, unlink, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
 import { randomUUID } from 'node:crypto'
+import { gzip, gunzip } from 'node:zlib'
+import { promisify } from 'node:util'
 import { readRecentJsonLines } from './journal.js'
 import { dataPath } from '../../core/paths.js'
 import type {
@@ -12,6 +14,10 @@ import type {
   MarketMonitorSnapshot,
 } from './types.js'
 import { DEFAULT_MARKET_MONITOR_SETTINGS, DEFAULT_MARKET_MONITOR_STRATEGY_ID } from './types.js'
+
+import { analysisInputHash, type MarketAnalysisArchive } from './replay.js'
+const compress = promisify(gzip)
+const decompress = promisify(gunzip)
 
 const ROOT = dataPath('market-monitor')
 
@@ -38,6 +44,8 @@ async function appendJsonLine(file: string, value: unknown): Promise<void> {
 }
 
 export interface MarketMonitorStore {
+  archive(id: string): Promise<MarketAnalysisArchive | null>
+  saveArchive(archive: MarketAnalysisArchive): Promise<void>
   settings(): Promise<MarketMonitorSettings>
   saveSettings(settings: MarketMonitorSettings): Promise<void>
   snapshots(asset?: MarketMonitorAsset, limit?: number): Promise<MarketMonitorSnapshot[]>
@@ -58,7 +66,30 @@ export function createMarketMonitorStore(root = ROOT): MarketMonitorStore {
   const ALERTS_FILE = `${root}/alerts.jsonl`
   const RECEIPTS_FILE = `${root}/receipts.jsonl`
   const NARRATIONS_FILE = `${root}/ai-narrations.jsonl`
+  const archiveFile = (id: string) => {
+    if (!/^[a-f0-9-]{36}$/.test(id)) throw new Error('Invalid observation identity')
+    return `${root}/inputs/${id}.json.gz`
+  }
   return {
+    async archive(id) {
+      let bytes: Buffer
+      try { bytes = await readFile(archiveFile(id)) }
+      catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null; throw error }
+      const archive = JSON.parse((await decompress(bytes, { maxOutputLength: 8 * 1024 * 1024 })).toString('utf8')) as MarketAnalysisArchive
+      if (archive.snapshot.id !== id || archive.snapshot.analysisInput?.hash !== analysisInputHash(archive.input)
+        || archive.snapshot.asset !== archive.input.asset || archive.snapshot.strategyId !== archive.input.strategyId
+        || archive.snapshot.capturedAt !== archive.input.asOf
+        || archive.snapshot.analysisInput.strategyVersion !== archive.input.strategyVersion) throw new Error('Analysis archive integrity check failed')
+      return archive
+    },
+    async saveArchive(archive) {
+      const file = archiveFile(archive.snapshot.id)
+      await ensureParent(file)
+      const temp = `${file}.${randomUUID()}.tmp`
+      await writeFile(temp, await compress(JSON.stringify(archive)), { flag: 'wx' })
+      // A hard link atomically publishes a complete immutable file; existing IDs fail closed.
+      try { await link(temp, file) } finally { await unlink(temp) }
+    },
     async settings() {
       try {
         const saved = JSON.parse(await readFile(SETTINGS_FILE, 'utf8')) as Partial<MarketMonitorSettings>

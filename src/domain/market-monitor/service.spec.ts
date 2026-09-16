@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { gzipSync } from 'node:zlib'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { BarService, OhlcvBar } from '../market-data/bars/index.js'
 import type { EquityClientLike } from '../market-data/client/types.js'
 import type { ReferenceDataService } from '../market-data/reference/types.js'
+import type { MarketAnalysisArchive } from './replay.js'
 import { MarketContextProviderRegistry } from './context.js'
 import { createMarketMonitorService } from './service.js'
 import { createMarketMonitorStore, type MarketMonitorStore } from './store.js'
@@ -19,9 +21,12 @@ function bars(count: number, step: number, end = '2026-04-01T00:00:00Z'): OhlcvB
 function memoryStore(): MarketMonitorStore & { data: { snapshots: MarketMonitorSnapshot[]; alerts: MarketMonitorAlert[]; receipts: MarketMonitorReceipt[]; narrations: MarketAiNarration[] } } {
   const data = { snapshots: [] as MarketMonitorSnapshot[], alerts: [] as MarketMonitorAlert[], receipts: [] as MarketMonitorReceipt[], narrations: [] as MarketAiNarration[] }
   let settings = { ...DEFAULT_MARKET_MONITOR_SETTINGS }
+  const archives = new Map<string, MarketAnalysisArchive>()
   const series = new Map<string, MarketMonitorSnapshot['chart']>()
   return {
     data,
+    archive: async (id) => archives.get(id) ?? null,
+    saveArchive: async (value) => { archives.set(value.snapshot.id, structuredClone(value)) },
     settings: async () => settings,
     saveSettings: async (next) => { settings = next },
     snapshots: async (asset, limit = 100) => data.snapshots.filter((row) => !asset || row.asset === asset).slice(-limit),
@@ -61,6 +66,62 @@ function dependencies(hourly = true, at = '2026-04-01T00:00:00Z') {
 }
 
 describe('market monitor service', () => {
+
+  it('replays immutable disk inputs after restart without accessing live sources or current settings', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'monitor-replay-'))
+    try {
+      const deps = dependencies(), store = createMarketMonitorStore(root)
+      const service = createMarketMonitorService({ ...deps, store })
+      const first = await service.scan('TSLA', 'manual')
+      const duplicate = await service.scan('TSLA', 'manual')
+      expect(duplicate.snapshot.id).toBe(first.snapshot.id)
+      expect(duplicate.receipt.snapshotId).toBe(first.snapshot.id)
+      const archive = await store.archive(first.snapshot.id)
+      expect(archive?.input.dailyBars).toHaveLength(90)
+      await expect(store.saveArchive(archive!)).rejects.toMatchObject({ code: 'EEXIST' })
+      await store.saveSettings({ ...DEFAULT_MARKET_MONITOR_SETTINGS, abnormalMovePercent: 99 })
+      vi.mocked(deps.barService.getBars).mockRejectedValue(new Error('must not fetch'))
+      const restarted = createMarketMonitorService({ ...deps, store: createMarketMonitorStore(root), now: () => new Date('2030-01-01') })
+      expect(await restarted.replay(first.snapshot.id)).toMatchObject({ status: 'verified', differences: [], archive: { input: { abnormalMovePercent: 1.5 } } })
+      expect((await restarted.replay('00000000-0000-4000-8000-000000000001')).status).toBe('unavailable')
+      await expect(store.archive('../settings.json')).rejects.toThrow('identity')
+      archive!.input.dailyBars[0].close += 10
+      await writeFile(join(root, 'inputs', `${first.snapshot.id}.json.gz`), gzipSync(JSON.stringify(archive)))
+      await expect(restarted.replay(first.snapshot.id)).rejects.toThrow('integrity')
+    } finally { await rm(root, { recursive: true, force: true }) }
+  })
+
+  it('detects changed output and refuses an unsupported strategy version', async () => {
+    const store = memoryStore(), service = createMarketMonitorService({ ...dependencies(), store })
+    const { snapshot } = await service.scan('BTC', 'manual')
+    const archive = (await store.archive(snapshot.id))!
+    archive.snapshot.hypothesis.confidence = 999
+    expect(await service.replay(snapshot.id)).toMatchObject({ status: 'mismatch', differences: ['hypothesis'] })
+    archive.input.strategyVersion = 999
+    expect((await service.replay(snapshot.id)).status).toBe('unsupported')
+  })
+
+  it('binds narration to a persisted duplicate and labels changed evidence and legacy narration honestly', async () => {
+    const store = memoryStore(), deps = dependencies(), service = createMarketMonitorService({ ...deps, store })
+    const first = await service.scan('TSLA', 'manual')
+    const daily = (await service.dailyNarrationInput(['TSLA'])).assets[0]
+    expect(daily.snapshotId).toBe(first.snapshot.id)
+    const input = { snapshotId: daily.snapshotId!, inputHash: daily.inputHash!, asset: 'TSLA' as const, strategyId: 'evidence-chain-v1', periodKey: daily.periodKey!, headline: 'x', summary: 'x', shortTerm: 'x', mediumTerm: 'x', longTerm: 'x', evidence: [], risks: [], watchFor: [] }
+    const provenance = { workspaceId: 'w', runId: 'r', issueId: 'mad42lab-market-daily-interpretation', agent: 'codex' }
+    await expect(service.publishNarration({ ...input, inputHash: 'wrong' }, provenance)).rejects.toThrow('archived observation')
+    // Evidence may move while Codex is composing; the original basis must survive.
+    vi.mocked(deps.equityClient.getKeyMetrics).mockResolvedValue([{ market_cap: 2e12, price_to_earnings: 90 }] as never)
+    const changed = await service.scan('TSLA', 'manual')
+    expect(changed.stored).toBe(true)
+    const published = await service.publishNarration(input, provenance)
+    expect(published.narration.basis).toMatchObject({ snapshotId: first.snapshot.id, inputHash: daily.inputHash })
+    const rows = await service.snapshots('TSLA')
+    expect(rows[0].narrationStatus).toBe('current')
+    expect(rows[1].narrationStatus).toBe('stale')
+    delete store.data.narrations[0].basis
+    expect((await service.snapshots('TSLA')).at(-1)?.narrationStatus).toBe('unverified')
+  })
+
   it.each([0, 19])('falls back when Coinbase returns %s usable daily bars without throwing', async (count) => {
     const deps = dependencies()
     const original = deps.barService.getBars
@@ -270,6 +331,7 @@ describe('market monitor service', () => {
     const daily = await service.dailyNarrationInput(['TSLA'])
     expect(daily.assets[0]).toMatchObject({ asset: 'TSLA', status: 'ready', periodKey: '2026-03-31' })
     const input = {
+      snapshotId: daily.assets[0].snapshotId!, inputHash: daily.assets[0].inputHash!,
       asset: 'TSLA' as const, strategyId: 'evidence-chain-v1', periodKey: '2026-03-31',
       headline: '区间等待确认', summary: '事实与解释保持分离。', shortTerm: '转换中', mediumTerm: '横盘', longTerm: '偏多',
       evidence: ['价格仍在区间内'], risks: ['向下跌破'], watchFor: ['等待测试'],
@@ -284,7 +346,7 @@ describe('market monitor service', () => {
 
   it('rejects narration without a matching deterministic brief or Codex provenance', async () => {
     const service = createMarketMonitorService({ ...dependencies(), store: memoryStore() })
-    const input = { asset: 'BTC' as const, strategyId: 'evidence-chain-v1', periodKey: '2099-01-01', headline: 'x', summary: 'x', shortTerm: 'x', mediumTerm: 'x', longTerm: 'x', evidence: [], risks: [], watchFor: [] }
+    const input = { snapshotId: '00000000-0000-4000-8000-000000000001', inputHash: '0'.repeat(64), asset: 'BTC' as const, strategyId: 'evidence-chain-v1', periodKey: '2099-01-01', headline: 'x', summary: 'x', shortTerm: 'x', mediumTerm: 'x', longTerm: 'x', evidence: [], risks: [], watchFor: [] }
     await expect(service.publishNarration(input, { workspaceId: 'w', runId: 'r', issueId: 'i', agent: 'claude' })).rejects.toThrow('Codex')
     await expect(service.publishNarration(input, { workspaceId: 'w', runId: 'r', issueId: 'mad42lab-market-daily-interpretation', agent: 'codex' })).rejects.toThrow('does not match')
   })
