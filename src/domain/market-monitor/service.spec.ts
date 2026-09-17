@@ -62,7 +62,7 @@ function dependencies(hourly = true, at = '2026-04-01T00:00:00Z') {
     }
     return new Response(JSON.stringify({ result: [] }), { status: 200 })
   }) as typeof fetch
-  return { barService, equityClient, reference, fetcher, now: () => new Date(at) }
+  return { barService, equityClient, reference, fetcher, secContactEmail: async () => 'monitor@example.test', now: () => new Date(at) }
 }
 
 describe('market monitor service', () => {
@@ -440,7 +440,7 @@ it('does not resurrect old news when only SEC fails and the news result is succe
   const service = createMarketMonitorService({ ...deps, store })
   await service.scan('TSLA', 'manual')
   store.data.snapshots[0]!.context.recentNews = [{ title: 'Old headline', time: '2026-03-01', source: 'fixture' }]
-  vi.mocked(deps.fetcher).mockRejectedValue(new Error('HTTP 403'))
+  vi.mocked(deps.fetcher).mockResolvedValue(new Response('blocked', { status: 403 }))
   const next = await service.scan('TSLA', 'manual')
   expect(next.snapshot.context.recentNews).toEqual([])
   expect(next.snapshot.sourceHealth.find(row => row.id === 'tsla-sec-filings')?.detail).toContain('HTTP 403')

@@ -40,6 +40,32 @@ submissions feed with an identifying User-Agent and retains the latest material
 10-K, 10-Q and 8-K family filings as linked evidence. A SEC outage does not
 discard Alpaca/Yahoo bars or other successful context modules.
 
+SEC automated requests use an operator-declared contact email, loaded only from
+`<OPENALICE_HOME>/data/market-monitor/sec-contact.json` (`contactEmail` string).
+The owner supplies a real monitored address and authorizes its transmission to
+SEC in the User-Agent. Keep this local file private (mode 0600); never commit
+it or place its contents in public settings, receipts, archives or diagnostics.
+No SEC account or API key is required. Missing or invalid configuration fails
+locally with an actionable source-health message instead of sending an
+undeclared request. Configuration is re-read on each source load, and a contact
+correction clears the previous declaration cooldown.
+
+`sec-edgar.ts` owns that request policy and filing validation. Both equity
+sources share a request-start queue capped at one request per second, and
+concurrent reads for the same company share one request. HTTP 403 pauses SEC
+access for at least 15 minutes; other HTTP failures pause it for at least one
+minute. A longer Retry-After is honored. Requests time out after ten seconds,
+and redirects are rejected so the contact is sent only to the configured SEC
+host. Error bodies and raw transport messages are not persisted. HTTP 200 is
+healthy only with valid filing columns and a matching company identity when
+provided. A valid empty filing list is distinct from malformed data.
+
+An undeclared-tool 403 identifies SEC's automated-access rejection; it does not
+prove that changing the declaration alone will remove a network-address block.
+If SEC still denies a correctly declared request, preserve the diagnostic and
+cooldown and follow SEC support guidance rather than spoofing a browser or
+rotating addresses. Official policy: [Accessing EDGAR Data](https://www.sec.gov/search-filings/edgar-search-assistance/accessing-edgar-data).
+
 ## Analysis timing, scores and context units
 
 Strategy manifest version 2 preserves the existing strategy ID and adds optional

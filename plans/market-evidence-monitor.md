@@ -211,7 +211,8 @@ close an old fallback episode, while missing checks cannot prove recovery.
 - [ ] Complete fixed-horizon evaluation before claiming predictive validation.
 - [x] Bind generated narration to its exact input snapshot/version and label stale or unverified prose.
 - [x] Correct observer current-state incidents without erasing historical failures.
-- [ ] Resolve remaining source/operational acceptance findings, including SEC availability.
+- [x] Resolve SEC declaration 403 and verify both monitored equities against the official feed.
+- [ ] Complete the remaining sustained operational acceptance.
 
 ## September 16 Mac hardening acceptance
 
@@ -266,6 +267,32 @@ close an old fallback episode, while missing checks cannot prove recovery.
 - The four pre-existing owner-modified files remain byte-for-byte unchanged and
   excluded from this increment. No live Codex narration was dispatched merely
   for testing; publication identity and authorization are verified in tests.
+
+## SEC automated-access follow-up
+
+- Reproduced both companies' HTTP 403 with the application client and reproduced
+  TSLA with system curl using the same declared project identity. SEC's body
+  identifies an undeclared automated tool, not a rate-threshold page. The
+  existing User-Agent includes only the GitHub project URL and no contact.
+- Implemented a private operator-contact configuration, explicit declaration,
+  shared pacing, 403/Retry-After cooldowns, sanitized diagnostics and stricter
+  submissions validation. Existing snapshot/settings shapes are unchanged;
+  this new optional local configuration needs no historical migration.
+- Domain regression tests and root typecheck validate the implementation.
+- The owner supplied and authorized a contact email. It is stored only in the
+  local contact file with mode 0600. No address is guessed from Git metadata
+  or unrelated local account data, and the actual contact never enters Git.
+- Direct read-only SEC requests now succeed for TSLA and MSTR and each returns
+  six material filings. After restarting the platform, real TSLA and MSTR
+  scans both report SEC healthy with six filings and verified input replay.
+  BTC remains healthy with Coinbase daily/hourly bars and verified replay.
+- Thirteen focused files pass 102 tests; root TypeScript and diff checks pass.
+  The real dashboard displays both companies' official filing links and the
+  healthy SEC status. Legacy AI prose and historical failed receipts remain
+  explicitly historical/unverified and are not silently rewritten.
+- The previous observation checkpoint is preserved. A fresh 24-hour read-only
+  observer uses the `sec` report suffix after this restart; sustained acceptance
+  still requires its full observation window. Owner modifications are preserved.
 
 ## Verification
 

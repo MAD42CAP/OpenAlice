@@ -1,3 +1,4 @@
+import { createSecEdgarContext } from './sec-edgar.js'
 import { safeMarketDataError } from '../market-data/bars/safe-error.js'
 import type { EquityClientLike } from '../market-data/client/types.js'
 import type { ReferenceDataService } from '../market-data/reference/types.js'
@@ -27,6 +28,7 @@ export interface MarketContextProviderDeps {
   reference: ReferenceDataService
   newsProvider?: INewsProvider
   fetcher?: MarketMonitorFetch
+  secContactEmail?: () => Promise<string | null>
 }
 
 export class MarketContextProviderRegistry {
@@ -82,71 +84,6 @@ async function fetchJson(fetcher: MarketMonitorFetch, url: string, headers?: Rec
     return await response.json()
   } finally {
     clearTimeout(timer)
-  }
-}
-
-const SEC_COMPANIES: Record<'TSLA' | 'MSTR', { cik: string; cikPath: string }> = {
-  TSLA: { cik: '0001318605', cikPath: '1318605' },
-  MSTR: { cik: '0001050446', cikPath: '1050446' },
-}
-
-const SEC_FORMS = new Set(['10-K', '10-K/A', '10-Q', '10-Q/A', '8-K', '8-K/A'])
-
-async function secEdgarContext(fetcher: MarketMonitorFetch, asset: 'TSLA' | 'MSTR', at: Date): Promise<MarketContextProviderResult> {
-  const company = SEC_COMPANIES[asset]
-  try {
-    const raw = await fetchJson(
-      fetcher,
-      `https://data.sec.gov/submissions/CIK${company.cik}.json`,
-      { 'User-Agent': 'MAD42Lab Evidence Monitor github.com/MAD42CAP/OpenAlice' },
-    ) as { filings?: { recent?: Record<string, unknown> } }
-    const recent = raw.filings?.recent ?? {}
-    const forms = Array.isArray(recent.form) ? recent.form : []
-    const accessionNumbers = Array.isArray(recent.accessionNumber) ? recent.accessionNumber : []
-    const filingDates = Array.isArray(recent.filingDate) ? recent.filingDate : []
-    const reportDates = Array.isArray(recent.reportDate) ? recent.reportDate : []
-    const primaryDocuments = Array.isArray(recent.primaryDocument) ? recent.primaryDocument : []
-    const descriptions = Array.isArray(recent.primaryDocDescription) ? recent.primaryDocDescription : []
-    const filings: NonNullable<MarketContext['recentFilings']> = []
-    for (let index = 0; index < forms.length && filings.length < 6; index++) {
-      const form = String(forms[index] ?? '')
-      const accession = String(accessionNumbers[index] ?? '')
-      const filingDate = String(filingDates[index] ?? '')
-      const document = String(primaryDocuments[index] ?? '')
-      if (!SEC_FORMS.has(form) || !/^\d{10}-\d{2}-\d{6}$/.test(accession) || !/^\d{4}-\d{2}-\d{2}$/.test(filingDate) || !document) continue
-      const reportDate = String(reportDates[index] ?? '')
-      const description = String(descriptions[index] ?? '').trim()
-      filings.push({
-        form,
-        filingDate,
-        reportDate: /^\d{4}-\d{2}-\d{2}$/.test(reportDate) ? reportDate : null,
-        description: description || null,
-        url: `https://www.sec.gov/Archives/edgar/data/${company.cikPath}/${accession.replaceAll('-', '')}/${encodeURIComponent(document)}`,
-      })
-    }
-    return {
-      context: { recentFilings: filings },
-      health: [{
-        id: `${asset.toLowerCase()}-sec-filings`,
-        label: `${asset} SEC filings`,
-        status: 'ok',
-        provider: 'SEC EDGAR',
-        asOf: at.toISOString(),
-        detail: `${filings.length} recent material filings loaded from the official submissions feed.`,
-      }],
-    }
-  } catch (error) {
-    return {
-      context: {},
-      health: [{
-        id: `${asset.toLowerCase()}-sec-filings`,
-        label: `${asset} SEC filings`,
-        status: 'unavailable',
-        provider: 'SEC EDGAR',
-        asOf: null,
-        detail: safeMarketDataError(error),
-      }],
-    }
   }
 }
 
@@ -255,6 +192,7 @@ async function equityContext(
 
 export function createDefaultMarketContextProviderRegistry(deps: MarketContextProviderDeps): MarketContextProviderRegistry {
   const fetcher = deps.fetcher ?? fetch
+  const secEdgarContext = createSecEdgarContext({ fetcher, contactEmail: deps.secContactEmail })
   return new MarketContextProviderRegistry([
     {
       manifest: { id: 'deribit-btc-v1', label: 'BTC derivatives', assets: ['BTC'], description: 'Deribit public futures, perpetual and options summaries.' },
@@ -271,7 +209,7 @@ export function createDefaultMarketContextProviderRegistry(deps: MarketContextPr
       manifest: { id: 'sec-edgar-equity-v1', label: 'SEC EDGAR filings', assets: ['TSLA', 'MSTR'], description: 'Official SEC submissions for recent 10-K, 10-Q and 8-K evidence.' },
       load: ({ asset, at }) => {
         if (asset !== 'TSLA' && asset !== 'MSTR') throw new Error(`Unsupported SEC filing asset: ${asset}`)
-        return secEdgarContext(fetcher, asset, at)
+        return secEdgarContext(asset, at)
       },
     },
   ])

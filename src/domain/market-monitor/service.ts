@@ -46,6 +46,7 @@ export interface MarketMonitorServiceDeps {
   newsProvider?: INewsProvider
   store?: MarketMonitorStore
   fetcher?: MarketMonitorFetch
+  secContactEmail?: () => Promise<string | null>
   strategyRegistry?: MarketMonitorStrategyRegistry
   contextProviderRegistry?: MarketContextProviderRegistry
   now?: () => Date
@@ -195,6 +196,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
     reference: deps.reference,
     ...(deps.newsProvider ? { newsProvider: deps.newsProvider } : {}),
     ...(deps.fetcher ? { fetcher: deps.fetcher } : {}),
+    ...(deps.secContactEmail ? { secContactEmail: deps.secContactEmail } : {}),
   })
   const loadSettings = async (): Promise<MarketMonitorSettings> => {
     const settings = await store.settings()

@@ -46,7 +46,7 @@ describe('market context provider registry', () => {
     const registry = createDefaultMarketContextProviderRegistry({
       equityClient: {} as EquityClientLike,
       reference: {} as ReferenceDataService,
-      fetcher,
+      fetcher, secContactEmail: async () => 'monitor@example.test',
     })
     const sec = registry.forAsset('TSLA').find((provider) => provider.manifest.id === 'sec-edgar-equity-v1')!
     const result = await sec.load({ asset: 'TSLA', at: new Date('2026-09-15T00:00:00Z') })
