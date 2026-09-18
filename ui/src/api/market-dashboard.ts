@@ -6,5 +6,5 @@ export type { DashboardEvent, DashboardMetric, DashboardModule, DashboardSeries,
 export type DashboardWindow = 30 | 90 | 365
 
 export const marketDashboardApi = {
-  report: (asset: MonitorAsset, days: DashboardWindow, signal?: AbortSignal) => fetchJson<MarketDashboardReport>(`/api/market-monitor/dashboard?${new URLSearchParams({ asset, days: String(days) })}`, { signal }),
+  report: (asset: MonitorAsset, days: DashboardWindow, signal?: AbortSignal) => fetchJson<MarketDashboardReport>(`/api/market-monitor/research?${new URLSearchParams({ asset, days: String(days) })}`, { signal, cache: 'no-store' }),
 }

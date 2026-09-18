@@ -28,6 +28,27 @@ function service(): MarketMonitorService {
 }
 
 describe('market monitor routes', () => {
+  it('serves research on the browser-compatible path and keeps the existing alias', async () => {
+    const fake = service(), app = createMarketMonitorRoutes({} as EngineContext, fake)
+    expect(await (await app.request('/research?asset=BTC&days=30')).json()).toMatchObject({ asset: 'BTC', windowDays: 30 })
+    expect((await app.request('/research?asset=BTC&days=999')).status).toBe(400)
+    expect((await app.request('/dashboard?asset=MSTR')).status).toBe(200)
+    expect(fake.scan).not.toHaveBeenCalled()
+  })
+  it('reads uncached latest quotes without scanning and rejects unsupported assets', async () => {
+    const fake = service(), quotes = { read: vi.fn().mockResolvedValue({ asset: 'BTC', price: 81234, status: 'fresh' }) }
+    const app = createMarketMonitorRoutes({} as EngineContext, fake, undefined, undefined, quotes)
+    const response = await app.request('/quote?asset=BTC')
+    expect(response.headers.get('cache-control')).toBe('no-store')
+    expect(await response.json()).toMatchObject({ asset: 'BTC', price: 81234 })
+    expect((await app.request('/quote?asset=STRC')).status).toBe(400)
+    expect(quotes.read).toHaveBeenCalledTimes(1)
+    expect(fake.scan).not.toHaveBeenCalled()
+    quotes.read.mockRejectedValue(new Error('private details'))
+    const failure = await app.request('/quote?asset=BTC')
+    expect(failure.status).toBe(503)
+    expect(await failure.text()).not.toContain('private details')
+  })
   it('validates research windows, leaves scans alone and sanitizes storage failures', async () => {
     const fake = service(), app = createMarketMonitorRoutes({} as EngineContext, fake)
     expect((await app.request('/dashboard?asset=MSTR&days=365')).status).toBe(200)

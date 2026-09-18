@@ -54,7 +54,7 @@ it('shows loading and a retryable error without substituting a report', () => {
   const view = render(<MarketResearchPanels {...input} report={null} loading />)
   expect(screen.getByRole('status').textContent).toContain('Loading')
   view.rerender(<MarketResearchPanels {...input} report={null} failed />)
-  expect(screen.getByRole('alert').textContent).toContain('unavailable')
+  expect(screen.getByRole('alert').textContent).toContain('refresh failed')
   fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
   expect(input.onRefresh).toHaveBeenCalledOnce()
 })

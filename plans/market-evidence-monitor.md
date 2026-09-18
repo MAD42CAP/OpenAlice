@@ -604,3 +604,35 @@ existing scoring strategy or retroactively become inputs to old judgments.
 Unlicensed/paid on-chain data is not fabricated; providers requiring a new
 subscription remain outside this increment. Rule calibration needs later
 forward observations and explicit versioned evaluation.
+
+## Research visibility and latest prices — 2026-09-18
+
+Reproduced in the owner's Chrome tab: the research section loaded but its
+request failed. Direct backend and Vite-proxied requests returned HTTP 200;
+Chrome navigation to the same research endpoint returned ERR_BLOCKED_BY_CLIENT.
+The exact blocking extension is not established. Browser protection settings
+remain unchanged; use a descriptive first-party `/research` read endpoint.
+
+Autonomous UI choice: retain the page layout and add a prominent latest-trade
+strip above the daily brief, with a refresh button, source and trade time.
+Visible pages poll every 30 seconds and refresh on return; closed daily analysis
+stays separate. Controls wrap on mobile, reuse Button, and expose status as text.
+Research refresh retains the previous chart on transient failure and retries
+with a bounded cadence. A top-page research link makes the section discoverable.
+
+- [x] Repair research loading and verify it in the owner's Chrome page.
+- [x] Add independent read-only BTC/TSLA/MSTR latest-trade requests, with
+      explicit source time, freshness, sanitized failures and fallback.
+- [x] Verify failure/recovery, selection races, demo and real APIs, types and
+      repository checks; preserve the four unrelated user modifications.
+
+Acceptance: the owner's original Chrome page displayed the research charts
+after the endpoint change, along with a Coinbase BTC last-trade price and source
+timestamp. Real BTC/TSLA/MSTR quote requests returned Coinbase/Alpaca data;
+equity trades after the close remained explicitly stale. Demo refresh and
+MSTR selection/research navigation were exercised, and the price strip was
+visually checked. Both type checks and 74 focused tests pass. The complete
+hermetic run reported 7,326 passing, four skipped and three failing tests: two
+pre-existing Codex command-expectation failures, plus a research warning-copy
+assertion. The latter was updated to the new failure wording and passed in the
+final focused run. The unrelated user changes remain excluded from delivery.

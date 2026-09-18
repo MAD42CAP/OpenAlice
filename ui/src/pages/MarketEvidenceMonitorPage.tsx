@@ -22,6 +22,7 @@ import { useMarketMonitorStatus } from '../hooks/useMarketMonitorStatus'
 import { useMarketMonitorHealth } from '../hooks/useMarketMonitorHealth'
 import { MonitorReview } from '../components/market/MonitorReview'
 import { MarketResearchDashboard } from './market/MarketResearchDashboard'
+import { MarketLatestPrice } from './market/MarketLatestPrice'
 import { MonitorOperations } from '../components/market/MonitorOperations'
 import { formatMonitorDate as formatDate, formatContextValue } from './market/market-monitor-format'
 import { getIntlLocale } from '../lib/intl'
@@ -326,6 +327,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-6">
         {loading && !snapshot ? <MonitorSkeleton /> : error && !snapshot ? <div><EmptyState title={t('marketMonitor.unavailable')} description={error} /><div className="-mt-9 flex justify-center pb-10"><Button onClick={() => void scan(asset, 'manual')}>{t('marketMonitor.retryScan')}</Button></div></div> : snapshot ? (
           <div className="mx-auto flex max-w-[1320px] flex-col gap-4 pb-8">
+            <MarketLatestPrice asset={asset} visible={visible} />
             <DailyBriefPanel snapshot={snapshot} narratorStatus={narratorStatus} />
             <Overview snapshot={snapshot} timeframe={timeframe} />
             <MarketResearchDashboard asset={asset} visible={visible} revisionKey={`${snapshot.id}:${runtime.status?.assets.find(item => item.asset === asset)?.lastReceipt?.id ?? ''}`} onSelectSnapshot={id => { void replay.select(id); document.getElementById('market-input-replay')?.scrollIntoView({ block: 'start' }) }} />

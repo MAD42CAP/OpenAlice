@@ -636,8 +636,14 @@ records across a 24–72 hour observation window.
 
 ## Research charts and issuer context
 
-`GET /api/market-monitor/dashboard?asset=BTC|TSLA|MSTR&days=30|90|365`
+`GET /api/market-monitor/research?asset=BTC|TSLA|MSTR&days=30|90|365`
 returns attributed chart modules without running a scan or changing a strategy.
+The original `/dashboard` route remains an alias. Chrome on the owner's Mac
+blocked that URL with `ERR_BLOCKED_BY_CLIENT` despite HTTP 200 from the backend
+and Vite proxy. The research client uses the descriptive `/research` route;
+no browser protection is disabled. Failed refreshes retain the prior chart with
+a warning, retry at 5/15/30 seconds, and stop when the view is hidden. Switching
+assets/windows clears the previous selection immediately.
 `dashboard.ts` joins closed stored bars, original judgment/event dates and public
 context observations. It separates the time an event occurred from the time its
 state was first recorded. Source data, publication, acquisition and assembly
@@ -692,6 +698,32 @@ sampling grid. Judgment actions open the existing original-input replay.
 All new research is descriptive; production scores and historical rule inputs
 are unchanged. A later rule change requires a new version and subsequent
 untouched evaluation samples.
+
+## Latest trade alongside closed-bar analysis
+
+The page starts with an independent latest-trade panel and a link to research
+charts. `GET /api/market-monitor/quote?asset=BTC|TSLA|MSTR` is a read-only request
+backed by `src/domain/market-data/quotes.ts`. It neither dispatches a scan nor
+writes quotes into historical analysis inputs. The response has `Cache-Control:
+no-store`; only concurrent requests for the same asset are coalesced. Reloading,
+manual refresh and returning to the visible page request a fresh quote. Visible
+pages poll every 30 seconds; hidden browser tabs and hidden app views pause.
+
+BTC uses the public [Coinbase Exchange last-trade endpoint](https://docs.cdp.coinbase.com/api-reference/exchange-api/rest-api/products/get-product-ticker),
+including its trade timestamp, without loading a private key. Stocks use the
+configured read-only [Alpaca latest trade](https://docs.alpaca.markets/us/v1.4.2/reference/stocklatesttradesingle-1)
+with `feed=iex`; IEX is not a consolidated US market quote. Both fall back to
+Yahoo chart metadata's regular-market price/time, explicitly labelled possibly
+delayed. Prices and timestamps must be finite, positive where applicable, and
+not implausibly in the future. Provider failures are fixed reason codes; HTTP
+bodies, credentials and raw network errors are never returned or logged.
+
+Trade time and acquisition time are displayed separately. Old trades remain
+marked stale even after successful refresh; a closed or quiet equity market
+does not gain a fresh trade timestamp. Failed refreshes can retain the previous
+price only with an explicit warning. This is a refreshed last-trade view, not a
+WebSocket tick stream. Daily change, trend and Wyckoff evidence retain their
+closed-bar basis and are not recomputed from the quote.
 
 ## Repository Scope
 

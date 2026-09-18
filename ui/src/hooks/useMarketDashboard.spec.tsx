@@ -9,7 +9,7 @@ import { useMarketDashboard } from './useMarketDashboard'
 const mocks = vi.hoisted(() => ({ report: vi.fn() }))
 vi.mock('../api/market-dashboard', () => ({ marketDashboardApi: mocks }))
 beforeEach(() => { mocks.report.mockImplementation(async (asset, days) => demoMarketDashboard(asset, days)) })
-afterEach(() => { cleanup(); vi.resetAllMocks() })
+afterEach(() => { cleanup(); vi.useRealTimers(); vi.resetAllMocks() })
 
 it('loads the selected asset/window only while visible and refreshes explicitly', async () => {
   const hook = renderHook(({ visible }) => useMarketDashboard('BTC', 90, visible), { initialProps: { visible: false } })
@@ -49,4 +49,31 @@ it('aborts pending requests on hide and refreshes when a new scan revision arriv
   expect(mocks.report).toHaveBeenCalledTimes(1)
   hook.rerender({ visible: true, revision: 'second' })
   await waitFor(() => expect(mocks.report).toHaveBeenCalledTimes(2))
+})
+
+it('keeps the previous chart during a failed refresh and automatically recovers', async () => {
+  vi.useFakeTimers()
+  const hook = renderHook(() => useMarketDashboard('BTC', 90, true))
+  await act(async () => {})
+  mocks.report.mockRejectedValueOnce(new Error('network unavailable'))
+  act(() => hook.result.current.refresh())
+  await act(async () => {})
+  expect(hook.result.current.report?.asset).toBe('BTC')
+  expect(hook.result.current.failed).toBe(true)
+  await act(async () => vi.advanceTimersByTimeAsync(5000))
+  expect(hook.result.current.failed).toBe(false)
+  expect(hook.result.current.report?.windowDays).toBe(90)
+})
+
+it('bounds automatic retries and cancels them when the page is hidden', async () => {
+  vi.useFakeTimers()
+  mocks.report.mockRejectedValue(new Error('offline'))
+  const hook = renderHook(({ visible }) => useMarketDashboard('BTC', 90, visible), { initialProps: { visible: true } })
+  await act(async () => {})
+  await act(async () => vi.advanceTimersByTimeAsync(120_000))
+  expect(mocks.report).toHaveBeenCalledTimes(4)
+  act(() => hook.result.current.refresh()); await act(async () => {})
+  hook.rerender({ visible: false })
+  await act(async () => vi.advanceTimersByTimeAsync(120_000))
+  expect(mocks.report).toHaveBeenCalledTimes(5)
 })

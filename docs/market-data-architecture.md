@@ -135,6 +135,15 @@ of `start`/`end`, repeating the same page. Each response is bounded to its windo
 sorted and deduplicated. Requests exceeding 50 pages fail explicitly. Provider
 HTTP bodies and network exceptions are never echoed into credential-test errors.
 
+## Latest trades
+
+The typed `src/domain/market-data/quotes.ts` reader supplies the Evidence Monitor's
+independent latest-trade strip. It uses public Coinbase Exchange last trades,
+read-only Alpaca IEX last trades and attributed Yahoo metadata fallback. Source
+timestamps, stale/delayed state and sanitized failure reasons are part of the
+contract; it owns no broker account or trading action. See the latest-price
+section in [[docs/market-evidence-monitor.md]] for refresh and closed-bar rules.
+
 ## Embedded Compatibility Package
 
 `packages/opentypebb/` is private to this monorepo. It still supplies useful

@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   review: vi.fn(), replay: vi.fn(), health: vi.fn(), status: vi.fn(), narratorStatus: vi.fn(), runNarratorNow: vi.fn(), reconcileNarrator: vi.fn(), settings: vi.fn(), strategies: vi.fn(), snapshots: vi.fn(), alerts: vi.fn(), evaluation: vi.fn(), scan: vi.fn(), saveSettings: vi.fn(),
 }))
 vi.mock('../api', () => ({ api: { marketMonitor: mocks } }))
+vi.mock('../api/market-quote', () => ({ marketQuoteApi: { read: vi.fn(async (asset: string) => ({ asset, price: 81234.56, currency: 'USD', asOf: '2026-09-18T19:00:00Z', fetchedAt: '2026-09-18T19:00:01Z', provider: 'coinbase', feed: 'Coinbase Exchange', status: 'fresh', attempts: [] })) } }))
 vi.mock('./market/MarketResearchDashboard', () => ({ MarketResearchDashboard: ({ onSelectSnapshot }: { onSelectSnapshot?: (id: string) => void }) => <button onClick={() => onSelectSnapshot?.('demo-btc-0')}>Open research judgment</button> }))
 
 beforeEach(async () => {

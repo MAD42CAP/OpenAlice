@@ -23,7 +23,7 @@ export function MarketResearchDashboard({ asset, visible, revisionKey, onSelectS
 
 export function MarketResearchPanels({ asset, days, onDaysChange, report, loading, failed, onRefresh, onSelectSnapshot }: { asset: MonitorAsset; days: DashboardWindow; onDaysChange: (days: DashboardWindow) => void; report: MarketDashboardReport | null; loading: boolean; failed: boolean; onRefresh: () => void; onSelectSnapshot?: (id: string) => void }) {
   const { t } = useTranslation()
-  return <section className="oa-data-surface min-w-0" aria-label={t('marketMonitor.research.title')}>
+  return <section id="market-research" className="oa-data-surface min-w-0 scroll-mt-4" aria-label={t('marketMonitor.research.title')}>
     <div className="oa-data-surface-header flex flex-wrap items-center justify-between gap-3">
       <div><h2 className="text-sm font-semibold">{t('marketMonitor.research.title')}</h2><p className="mt-1 max-w-3xl text-xs leading-5 text-muted-foreground">{t('marketMonitor.research.intro')}</p></div>
       <div className="flex flex-wrap items-center gap-2">

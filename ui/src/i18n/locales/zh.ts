@@ -1881,11 +1881,20 @@ export const zh: Resources = {
     title: '模拟器',
   },
   marketMonitor: {
+    quote: {
+      title: '{{asset}} 最新成交价', refresh: '刷新价格', loading: '更新价格中…', research: '查看研究图表',
+      fresh: '最新成交报价', delayed: '回退报价，可能存在延迟', stale: '最近成交时间较早，请核对行情时效；股票可能已休市或成交稀疏。',
+      unavailable: '本次报价更新失败。', retained: '当前保留上次报价，并非最新行情。',
+      tradeAt: '成交时间 {{time}}', fetchedAt: '获取时间 {{time}}',
+      basis: '页面可见时每 30 秒更新，支持手动刷新。趋势与威科夫分析继续使用已收盘行情。',
+      iex: 'IEX 单一交易场所报价，不代表美股全市场最新成交。',
+      failures: { credentials: '行情凭据未配置', unauthorized: '鉴权失败', forbidden: '行情访问被拒绝', 'rate-limit': '请求限流', upstream: '数据源服务异常', timeout: '请求超时', network: '连接失败', 'invalid-data': '报价或时间格式无效' },
+    },
     research: {
       title: '研究图表与判断时间线',
       intro: '对照价格结构、市场背景和当时发布的判断。研究背景独立留存，暂不改变策略评分。',
       window: '研究图表时间范围', days: '{{count}} 天', refresh: '刷新研究图表', loading: '正在读取研究图表…',
-      failed: '研究图表暂时无法读取，已有监测结果仍可查看。',
+      failed: '本次研究数据请求失败，页面会有限重试；如已显示图表，则保留的是上次结果。请检查网络或浏览器拦截提示，也可手动重试。',
       illustrative: '演示样例 · 不代表真实市场记录', empty: '暂时没有可展示的研究模块。',
       generated: '报告汇总于 {{time}} · 各来源的数据日期和公布时间分别标注。',
       months: '个月', priceStructure: '{{asset}} 价格与结构', events: '判断与证据时间线',

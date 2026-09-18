@@ -10,7 +10,14 @@ const snapshots: Record<MonitorAsset, ReturnType<typeof demoMonitorSnapshot>[]> 
 const alerts: MonitorAlert[] = []
 
 export const marketMonitorHandlers = [
-  http.get('/api/market-monitor/dashboard', ({ request }) => {
+  http.get('/api/market-monitor/quote', ({ request }) => {
+    const asset = new URL(request.url).searchParams.get('asset') as MonitorAsset
+    if (!ASSETS.includes(asset)) return HttpResponse.json({ error: 'Invalid asset' }, { status: 400 })
+    const at = new Date().toISOString()
+    return HttpResponse.json({ asset, price: { BTC: 81123.45, TSLA: 420.15, MSTR: 188.35 }[asset], currency: 'USD',
+      asOf: at, fetchedAt: at, provider: asset === 'BTC' ? 'coinbase' : 'alpaca', feed: asset === 'BTC' ? 'Coinbase Exchange' : 'IEX', status: 'fresh', attempts: [], illustrative: true })
+  }),
+  http.get('/api/market-monitor/research', ({ request }) => {
     const query = new URL(request.url).searchParams
     const asset = query.get('asset'), days = query.get('days') ?? '90'
     if (!ASSETS.includes(asset as MonitorAsset) || !['30', '90', '365'].includes(days)) return HttpResponse.json({ error: 'Invalid dashboard selection' }, { status: 400 })

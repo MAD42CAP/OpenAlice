@@ -1,4 +1,6 @@
 import { Hono } from 'hono'
+import { readMarketDataConfig } from '../../core/config.js'
+import { createMarketQuoteService } from '../../domain/market-data/quotes.js'
 import { z } from 'zod'
 import type { EngineContext } from '../../core/types.js'
 import { createMarketMonitorService, MarketMonitorScanError, type MarketMonitorService } from '../../domain/market-monitor/service.js'
@@ -29,8 +31,12 @@ function assetFrom(raw: string | undefined): MarketMonitorAsset | undefined {
   return parsed.success ? parsed.data : undefined
 }
 
-export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketMonitorService, scheduler?: MarketMonitorScheduler, narrator?: MarketNarratorCoordinator): Hono {
+export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketMonitorService, scheduler?: MarketMonitorScheduler, narrator?: MarketNarratorCoordinator, providedQuotes?: ReturnType<typeof createMarketQuoteService>): Hono {
   const app = new Hono()
+  const quotes = providedQuotes ?? createMarketQuoteService({ alpacaCredentials: async () => {
+    const config = await readMarketDataConfig()
+    return { keyId: config.providerKeys.alpacaKeyId, secretKey: config.providerKeys.alpacaSecretKey }
+  } })
   const service = provided ?? createMarketMonitorService({
     barService: ctx.barService,
     equityClient: ctx.equityClient,
@@ -39,6 +45,14 @@ export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketM
   })
 
   app.get('/settings', async (c) => c.json(await service.settings()))
+
+  app.get('/quote', async (c) => {
+    const asset = assetFrom(c.req.query('asset'))
+    if (!asset) return c.json({ error: 'Select BTC, TSLA or MSTR' }, 400)
+    c.header('Cache-Control', 'no-store')
+    try { return c.json(await quotes.read(asset)) }
+    catch { return c.json({ error: 'Latest price request failed' }, 503) }
+  })
 
   app.get('/status', async (c) => scheduler
     ? c.json(await scheduler.status())
@@ -141,7 +155,7 @@ export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketM
     catch { return c.json({ error: 'Historical review could not be read' }, 503) }
   })
 
-  app.get('/dashboard', async (c) => {
+  for (const path of ['/research', '/dashboard']) app.get(path, async (c) => {
     const asset = assetFrom(c.req.query('asset'))
     const days = c.req.query('days') ?? '90'
     if (!asset || !['30', '90', '365'].includes(days)) return c.json({ error: 'Select BTC, TSLA or MSTR and a 30, 90 or 365 day research window' }, 400)

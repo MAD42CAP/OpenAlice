@@ -1914,11 +1914,20 @@ export const en = {
     title: 'Simulator',
   },
   marketMonitor: {
+    quote: {
+      title: '{{asset}} latest trade', refresh: 'Refresh price', loading: 'Updating price…', research: 'View research charts',
+      fresh: 'Latest trade quote', delayed: 'Fallback quote; may be delayed', stale: 'The last trade is older. Check freshness; equities may be closed or trading sparsely.',
+      unavailable: 'This price refresh failed.', retained: 'The previous quote is retained and is not current.',
+      tradeAt: 'Trade time {{time}}', fetchedAt: 'Retrieved {{time}}',
+      basis: 'Updates every 30 seconds while visible, or on manual refresh. Trend and Wyckoff analysis still use closed bars.',
+      iex: 'IEX venue only; not the latest consolidated US market trade.',
+      failures: { credentials: 'Market-data credentials not configured', unauthorized: 'Authentication rejected', forbidden: 'Market-data access denied', 'rate-limit': 'Rate limited', upstream: 'Provider unavailable', timeout: 'Request timed out', network: 'Connection failed', 'invalid-data': 'Invalid quote or timestamp' },
+    },
     research: {
       title: 'Research charts & judgment timeline',
       intro: 'Compare price structure, market context and published judgments. Research context is tracked separately from strategy scores.',
       window: 'Research chart window', days: '{{count}} days', refresh: 'Refresh research charts', loading: 'Loading research charts…',
-      failed: 'Research charts are unavailable. Existing monitor results remain accessible.',
+      failed: 'Research refresh failed; retries are limited. Any visible charts retain the previous result. Check connectivity or browser blocking, or retry manually.',
       illustrative: 'Illustrative demo data · not live market observations', empty: 'No research modules are available yet.',
       generated: 'Report assembled {{time}} · Each source below has its own data and publication time.',
       months: 'months', priceStructure: '{{asset}} price & structure', events: 'Judgments and evidence timeline',
