@@ -1,3 +1,4 @@
+import type { MarketReviewReport, ReviewWindow } from './market-review'
 import { fetchJson, headers } from './client'
 import type { BarMeta, HistoricalBar } from './market'
 
@@ -320,6 +321,7 @@ export interface MonitorReplay {
 }
 
 export const marketMonitorApi = {
+  review: (asset: MonitorAsset, days: ReviewWindow = 30, signal?: AbortSignal) => fetchJson<MarketReviewReport>(`/api/market-monitor/review?asset=${asset}&days=${days}`, { signal }),
   replay: (snapshotId: string) => fetchJson<MonitorReplay>(`/api/market-monitor/snapshots/${encodeURIComponent(snapshotId)}/replay`),
   health: (asset: MonitorAsset, hours: 24 | 72 = 24) => fetchJson<MonitorHealthReport>(`/api/market-monitor/health?asset=${asset}&hours=${hours}`),
   status: () => fetchJson<MonitorSchedulerStatus>('/api/market-monitor/status'),

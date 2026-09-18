@@ -344,6 +344,73 @@ latest row with an explicit relationship label) receives that narration.
 The one-publication-per-asset/strategy/day budget and authorized Issue checks
 remain unchanged; stale prose does not automatically dispatch a new model run.
 
+## Historical outcome review and feedback
+
+`GET /api/market-monitor/review?asset=BTC&days=30` accepts BTC/TSLA/MSTR and
+7/30/90 calendar-day lookbacks. It is a bounded, read-only local projection:
+no provider request, scan, model run, settings mutation or order is dispatched.
+It uses archived original judgments and the latest saved daily series. The
+separate input-replay endpoint still checks reproducibility; review checks
+subsequent outcomes and never runs the current strategy on future inputs to
+rewrite historical predictions.
+
+Protocol `forward-sessions-v1` was fixed before inspecting live outcome scores:
+
+- One rule observation per publication session date **and strategy version**,
+  always the first recorded. BTC dates use UTC; equities use New York time.
+  AI interpretations form a separate cohort anchored to `generatedAt`, never
+  backdated to an earlier underlying snapshot. Their basis digest, version and
+  fingerprint must match the immutable archive.
+- Entry is the first daily open after the publication's session date. The
+  remainder of publication day is deliberately excluded. Windows are 1/7/30
+  completed BTC candles and 1/5/20 observed equity sessions, paired with
+  short/medium/long trends. These are descriptive review horizons, not an
+  assertion that earlier prose promised exactly these durations or a price
+  target. In particular a month is only a consistency check on the long-term
+  backdrop, not proof of a secular forecast.
+- Directional bullish/bearish cases receive supported/opposed/flat outcomes.
+  Absolute changes at or below 0.25% are flat, retained in the directional
+  denominator and never credited as supported. Sideways/transition/insufficient
+  judgments have no directional score. Summaries separate versions, pending
+  cases, excluded data and non-directional cases. The always-bullish comparison
+  uses the identical directional cohort. Rates describe overlapping samples,
+  not independent trials, calibrated probabilities or executable returns.
+- Outcomes retain opening/closing prices, exact dates, high/low excursions,
+  original/outcome providers and closes above/below/inside the original
+  Wyckoff range. Range observations do not automatically confirm or invalidate
+  an entire phase. Original event statuses, opposing evidence and free-form
+  confirmation/invalidation conditions remain visible for inspection.
+- Missing/unverifiable archives never enter scored outcomes. Forming bars are
+  excluded. Missing left coverage, duplicate dates, invalid OHLC, BTC day gaps,
+  equity gaps over four calendar days and ambiguous missing equity weekdays
+  are excluded. Without the full exchange calendar a holiday cannot be
+  distinguished reliably from a feed hole; exclusion is conservative.
+- Up to 20,000 asset observations and 1,000 narrations are read for review. The
+  public snapshot-history endpoint remains capped at 1,000. Reaching either
+  review cap is explicit, and a potentially partial earliest rule day is
+  omitted. Past forecasts are not backfilled. Provider revisions may change
+  the current outcome series; JSON export preserves this report's prices,
+  protocol, timestamp, original reasoning and identities.
+
+The dashboard offers lookback, original record type/date and horizon selectors,
+a price path with exact daily prices, versioned descriptive summaries and
+traceable findings. Demo outcomes are explicitly synthetic. Missing archives,
+uncompleted horizons and original prose receive distinct states. A prose
+interpretation has no automatic hit rate: it did not register a structured
+forecast contract at publication, so inferring one afterward would invite
+hindsight bias.
+
+Native `market_monitor_daily_input` now includes compact retrospective feedback:
+summary counts, identified cases, their original reasoning/conditions and
+observed outcomes. The tool description tells the daily Codex agent to consider
+previous misses, horizon disagreement and path risk while avoiding retrospective
+rule fitting. Feedback read failure is explicit and does not block a current
+brief. There is no extra model scheduler or automatic live threshold update.
+Judgment-rule changes require a separate version and untouched future
+validation observations; a small retrospective sample cannot establish an
+improvement. Structured prose forecasts and full exchange-calendar support
+remain distinct follow-up capabilities.
+
 ## Fork branding
 
 The web shell is branded `MAD42Lab` in the browser title, desktop activity rail,

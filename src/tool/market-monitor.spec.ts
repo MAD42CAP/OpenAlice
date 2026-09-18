@@ -16,6 +16,7 @@ function context(over: Partial<WorkspaceToolContext> = {}): WorkspaceToolContext
 
 function service(): MarketMonitorService {
   return {
+    review: vi.fn(),
     dailyNarrationInput: vi.fn(async () => ({ generatedAt: '2026-04-01T00:00:00Z', strategyId: 'evidence-chain-v1', assets: [] })),
     publishNarration: vi.fn(async (input, provenance) => ({ stored: true, narration: { ...input, id: 'n-1', promptVersion: 'codex-daily-v1', generatedAt: '2026-04-01T00:00:00Z', language: 'zh-CN', agent: 'codex', provenance } as never })),
   } as unknown as MarketMonitorService

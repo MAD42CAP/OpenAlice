@@ -19,6 +19,7 @@ function service(): MarketMonitorService {
     evaluation: vi.fn(async (asset) => ({ asset, samples: 0, resolved: 0, directionalAccuracy: null, averageForwardChangePercent: null, rows: [] })),
     strategies: vi.fn((): MarketMonitorStrategyManifest[] => [{ id: 'evidence-chain-v1', label: 'Evidence chain', version: 1, description: 'fixture', requiredData: ['daily-bars', 'hourly-bars', 'asset-context'] }]),
     contextProviders: vi.fn((): MarketContextProviderManifest[] => [{ id: 'fixture-context', label: 'Fixture', assets: ['BTC', 'TSLA', 'MSTR'], description: 'fixture' }]),
+    review: vi.fn(),
     dailyNarrationInput: vi.fn(async () => ({ generatedAt: new Date().toISOString(), strategyId: 'evidence-chain-v1', assets: [] })),
     publishNarration: vi.fn(),
     narrations: vi.fn(async () => []),
@@ -26,6 +27,20 @@ function service(): MarketMonitorService {
 }
 
 describe('market monitor routes', () => {
+  it('validates retrospective windows and does not dispatch scans or leak read errors', async () => {
+    const fake = service(), app = createMarketMonitorRoutes({} as EngineContext, fake)
+    vi.mocked(fake.review).mockResolvedValue({ policy: 'forward-sessions-v1' } as never)
+    expect((await app.request('/review?asset=BTC&days=7')).status).toBe(200)
+    expect(fake.review).toHaveBeenCalledWith('BTC', 7)
+    expect((await app.request('/review?asset=BTC&days=999')).status).toBe(400)
+    expect((await app.request('/review?asset=INVALID')).status).toBe(400)
+    vi.mocked(fake.review).mockRejectedValue(new Error('private local path'))
+    const failure = await app.request('/review?asset=TSLA')
+    expect(failure.status).toBe(503)
+    expect(await failure.text()).not.toContain('private local path')
+    expect(fake.scan).not.toHaveBeenCalled()
+  })
+
   it('replays only a validated identity without dispatching scans and reports corrupt archives', async () => {
     const fake = service(), app = createMarketMonitorRoutes({} as EngineContext, fake)
     const id = '00000000-0000-4000-8000-000000000001'

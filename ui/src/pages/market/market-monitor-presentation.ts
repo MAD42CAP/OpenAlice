@@ -163,7 +163,7 @@ export function monitorBriefRisk(t: Translate, id: string): string {
   return monitorWyckoffEvidence(t, id)
 }
 
-export function monitorIntradayNote(t: Translate, snapshot: MonitorSnapshot): string {
+export function monitorIntradayNote(t: Translate, snapshot: Pick<MonitorSnapshot, 'metrics'>): string {
   const pulse = snapshot.metrics.intraday
   if (!pulse.available) return t('marketMonitor.evidence.intradayUnavailable')
   return pulse.abnormal
@@ -173,7 +173,7 @@ export function monitorIntradayNote(t: Translate, snapshot: MonitorSnapshot): st
 
 export function monitorEvidenceCopy(
   t: Translate,
-  snapshot: MonitorSnapshot,
+  snapshot: Pick<MonitorSnapshot, 'metrics'>,
   item: EvidenceItem,
   formatNumber: FormatNumber,
 ): Pick<EvidenceItem, 'label' | 'observation' | 'interpretation'> {

@@ -7,6 +7,7 @@ import type { ReferenceDataService } from '../market-data/reference/types.js'
 import { assertFreshBars, closedBars } from './bar-policy.js'
 import { analysisInputHash, replayAnalysis, type MarketAnalysisArchive, type MarketReplayResult } from './replay.js'
 import { evaluateSnapshots } from './analysis.js'
+import { buildMarketReview, reviewFeedback, type MarketReviewReport, type ReviewWindow } from './review.js'
 import { createDailyMarketBrief } from './daily-brief.js'
 import { safeMarketDataError } from '../market-data/bars/safe-error.js'
 import { HEALTH_RECEIPT_LIMIT, summarizeMonitorHealth } from './health.js'
@@ -64,6 +65,7 @@ export interface MarketMonitorService {
   alerts(asset?: MarketMonitorAsset, limit?: number): Promise<MarketMonitorAlert[]>
   receipts(asset?: MarketMonitorAsset, limit?: number): Promise<MarketMonitorReceipt[]>
   evaluation(asset: MarketMonitorAsset): Promise<MarketMonitorEvaluation>
+  review(asset: MarketMonitorAsset, days?: ReviewWindow): Promise<MarketReviewReport>
   health(asset: MarketMonitorAsset, hours?: 24 | 72): Promise<MarketMonitorHealthReport>
   strategies(): MarketMonitorStrategyManifest[]
   contextProviders(): MarketContextProviderManifest[]
@@ -83,6 +85,8 @@ export interface MarketNarrationInput {
     periodKey?: string
     snapshot?: Omit<MarketMonitorSnapshot, 'chart' | 'aiNarration'>
     existingNarration?: MarketAiNarration
+    retrospective?: ReturnType<typeof reviewFeedback>
+    retrospectiveUnavailable?: boolean
     error?: string
   }>
 }
@@ -233,7 +237,9 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
           if (!periodKey) throw new Error('Daily deterministic brief is unavailable')
           const existingNarration = narrations.find((row) => row.asset === asset && row.strategyId === snapshot.strategyId && row.periodKey === periodKey)
           const { chart: _chart, aiNarration: _narration, ...compact } = snapshot
-          rows.push({ asset, snapshotId: snapshot.id, inputHash: snapshot.analysisInput?.hash, status: existingNarration ? 'already-published' : 'ready', periodKey, snapshot: compact, ...(existingNarration ? { existingNarration } : {}) })
+          let retrospective: ReturnType<typeof reviewFeedback> | undefined
+          try { retrospective = reviewFeedback(await this.review(asset, 30)) } catch { /* A read failure must not block the current daily brief. */ }
+          rows.push({ asset, snapshotId: snapshot.id, inputHash: snapshot.analysisInput?.hash, status: existingNarration ? 'already-published' : 'ready', periodKey, snapshot: compact, ...(retrospective ? { retrospective } : { retrospectiveUnavailable: true }), ...(existingNarration ? { existingNarration } : {}) })
         } catch (error) {
           rows.push({ asset, status: 'failed', error: error instanceof Error ? error.message : String(error) })
         }
@@ -285,6 +291,11 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
       const settings = await loadSettings()
       const rows = (await store.snapshots(asset, 1000)).filter((row) => row.strategyId === settings.strategyId)
       return evaluateSnapshots(asset, rows)
+    },
+    async review(asset, days = 30) {
+      if (![7, 30, 90].includes(days)) throw new Error('Review window must be 7, 30 or 90 days')
+      const settings = await loadSettings()
+      return buildMarketReview(store, asset, settings.strategyId, days, now())
     },
     scan(asset, trigger) {
       // One writer per asset. Manual, scheduled and multiple browser requests

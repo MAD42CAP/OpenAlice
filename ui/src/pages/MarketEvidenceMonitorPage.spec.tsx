@@ -4,16 +4,18 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { demoMonitorHealth, demoMonitorSnapshot } from '../demo/fixtures/market-monitor'
 import { i18n } from '../i18n'
+import { demoMonitorReview } from '../demo/fixtures/market-review'
 import { MarketEvidenceMonitorPage } from './MarketEvidenceMonitorPage'
 
 const mocks = vi.hoisted(() => ({
-  replay: vi.fn(), health: vi.fn(), status: vi.fn(), narratorStatus: vi.fn(), runNarratorNow: vi.fn(), reconcileNarrator: vi.fn(), settings: vi.fn(), strategies: vi.fn(), snapshots: vi.fn(), alerts: vi.fn(), evaluation: vi.fn(), scan: vi.fn(), saveSettings: vi.fn(),
+  review: vi.fn(), replay: vi.fn(), health: vi.fn(), status: vi.fn(), narratorStatus: vi.fn(), runNarratorNow: vi.fn(), reconcileNarrator: vi.fn(), settings: vi.fn(), strategies: vi.fn(), snapshots: vi.fn(), alerts: vi.fn(), evaluation: vi.fn(), scan: vi.fn(), saveSettings: vi.fn(),
 }))
 vi.mock('../api', () => ({ api: { marketMonitor: mocks } }))
 
 beforeEach(async () => {
   await i18n.changeLanguage('en')
   window.localStorage.clear()
+  mocks.review.mockImplementation(async (asset: 'BTC' | 'TSLA' | 'MSTR', days: 7 | 30 | 90) => demoMonitorReview(asset, days))
   mocks.health.mockImplementation(async (asset: 'BTC' | 'TSLA' | 'MSTR', hours: 24 | 72) => demoMonitorHealth(asset, hours))
   const settings = { backgroundEnabled: false, codexNarrationEnabled: true, enabledAssets: ['BTC', 'TSLA', 'MSTR'], strategyId: 'evidence-chain-v1', intervalMinutes: 15, notifications: false, alertConfidence: 68, abnormalVolumeRatio: 1.8, abnormalMovePercent: 1.5 }
   mocks.status.mockResolvedValue({ running: true, backgroundEnabled: false, intervalMinutes: 15, checkedAt: null, error: null, assets: ['BTC', 'TSLA', 'MSTR'].map((asset) => ({ asset, enabled: true, scanning: false, nextScanAt: null, lastReceipt: null })) })

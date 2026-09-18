@@ -499,3 +499,55 @@ A new detached, read-only 72-hour observer began at 2026-09-18T06:05:58Z
 Its checkpoint is `market-monitor-acceptance-2026-09-17-ops.json` in the local
 state directory. Initial probes are healthy; the observation remains incomplete.
 No notifications were enabled and no predictive-validation claim is made.
+
+## September 18 — historical outcome review (implemented)
+
+User request: compare earlier daily reasoning, trend and Wyckoff judgments with
+subsequent market movement and feed the findings into future analysis.
+
+Autonomous design choice: integrate a Historical review surface before the
+existing input-replay history. A separate route would add navigation and split
+original evidence from its outcome; the integrated surface keeps one asset
+context. Date/case, report-window and horizon selectors use labelled native
+controls and shared Buttons. Two columns stack on phones; the outcome table
+scrolls within its own container. A compact accessible price path complements
+exact daily prices. No new animation or visual vocabulary is introduced.
+
+Protocol chosen before inspecting outcome scores: forward-sessions-v1, first
+recorded observation per publication session date and strategy version; AI
+narrations remain a separate cohort with their actual publication timestamp.
+Entry is the next observed daily session open after publication date. Horizons
+are 1 / 7 / 30 daily bars for BTC and 1 / 5 / 20 observed stock sessions. Pair
+short / medium / long with those horizons as descriptive consistency checks,
+not retroactively claimed original price targets. Flat band is fixed at 0.25%;
+flat directional cases stay in the denominator without counting as successes.
+Keep version groups, overlapping-sample caveats, pending/excluded counts, and
+an always-bullish baseline on the identical scored cases. Preserve original
+Wyckoff conditions and record range-close facts without calling the entire
+phase confirmed. No free-form narrative receives an invented machine verdict.
+
+- [x] Implement bounded read-only outcome projection and archive binding.
+- [x] Feed compact prior outcomes and case identities into native daily inputs.
+- [x] Complete historical comparison UI, realistic demo and regression tests.
+- [x] Verify real local API/UI and document limits; deliver on the owned branch.
+- [ ] Accumulate untouched future observations before adopting judgment-rule
+      changes; a few days of retrospective history are not a validation sample.
+
+September 18 verification: 7 focused files / 83 tests passed; backend and UI
+type checks passed. Complete suite: 824 files passed, one existing failure
+file (`src/workspaces/adapters/ai-config.spec.ts`); 7,230 tests passed, two
+pre-existing adapter assertions failed, four skipped. The four pre-existing
+user-modified files remain byte-for-byte unchanged and excluded from delivery.
+The final feedback payload and duplicate-date hardening received a further
+focused run. No trading or account operation was used.
+
+Real BTC/TSLA/MSTR review endpoints returned archived originals, bounded
+outcomes and explicit missing/pending states. At verification BTC and MSTR each
+had only one completed directional case; TSLA's completed case was
+non-directional. No weekly case was mature. A live BTC scan succeeded using
+Coinbase daily/hourly data and Deribit context. Real and demo pages were
+exercised, including changing records/horizons, raw prose, pending windows,
+390px layout and a valid downloaded JSON report. Browser console errors: none.
+Source hot reload made a manual platform restart unnecessary. The existing
+72-hour operational observer continues with its original report and start time;
+it is still incomplete and is not relabelled as 72 hours of this new version.

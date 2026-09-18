@@ -20,6 +20,7 @@ import { cn } from '../lib/utils'
 import { useMarketMonitorReplay } from '../hooks/useMarketMonitorReplay'
 import { useMarketMonitorStatus } from '../hooks/useMarketMonitorStatus'
 import { useMarketMonitorHealth } from '../hooks/useMarketMonitorHealth'
+import { MonitorReview } from '../components/market/MonitorReview'
 import { MonitorOperations } from '../components/market/MonitorOperations'
 import { formatMonitorDate as formatDate, formatContextValue } from './market/market-monitor-format'
 import { getIntlLocale } from '../lib/intl'
@@ -335,6 +336,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
               <ContextPanel snapshot={snapshot} />
               <SourcePanel snapshot={snapshot} />
             </div>
+            <MonitorReview key={`${asset}:${settings.strategyId}`} asset={asset} strategyId={settings.strategyId} visible={visible} />
             <HistoryPanel replay={replay} snapshots={snapshots} evaluation={evaluation} alerts={alerts.filter((item) => item.asset === asset)} />
           </div>
         ) : <EmptyState title={t('marketMonitor.noObservations')} description={t('marketMonitor.noObservationsDescription')} />}

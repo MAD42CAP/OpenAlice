@@ -15,7 +15,7 @@ export function createMarketMonitorToolFactories(service: MarketMonitorService):
       name: 'market_monitor_daily_input',
       build() {
         return tool({
-          description: 'Refresh BTC, TSLA and MSTR read-only evidence, then return compact deterministic daily inputs. Copy snapshotId and inputHash into publish-narration. Skip assets marked already-published. This tool never places trades.',
+          description: 'Refresh BTC, TSLA and MSTR read-only evidence, then return compact deterministic daily inputs with retrospective feedback. Use completed retrospective cases to identify previous direction errors and path risk in the new analysis; keep unscored prose and pending horizons explicit. Never treat small-sample agreement as a probability or automatically retune rules. Copy snapshotId and inputHash into publish-narration. Skip assets marked already-published. This tool never places trades.',
           inputSchema: z.object({ assets: z.array(z.enum(MARKET_MONITOR_ASSETS)).min(1).max(MARKET_MONITOR_ASSETS.length).optional() }),
           execute: ({ assets }) => service.dailyNarrationInput(assets),
         })

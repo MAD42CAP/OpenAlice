@@ -1,3 +1,4 @@
+import { demoMonitorReview } from '../fixtures/market-review'
 import { http, HttpResponse } from 'msw'
 import type { MonitorAlert, MonitorAsset, MonitorSettings } from '../../api/market-monitor'
 import { demoMonitorHealth, demoMonitorSnapshot } from '../fixtures/market-monitor'
@@ -8,6 +9,12 @@ const snapshots: Record<MonitorAsset, ReturnType<typeof demoMonitorSnapshot>[]> 
 const alerts: MonitorAlert[] = []
 
 export const marketMonitorHandlers = [
+  http.get('/api/market-monitor/review', ({ request }) => {
+    const query = new URL(request.url).searchParams
+    const asset = query.get('asset'), days = query.get('days') ?? '30'
+    if (!ASSETS.includes(asset as MonitorAsset) || !['7', '30', '90'].includes(days)) return HttpResponse.json({ error: 'Invalid review selection' }, { status: 400 })
+    return HttpResponse.json(demoMonitorReview(asset as MonitorAsset, Number(days) as 7 | 30 | 90))
+  }),
   // Demo fixtures predate input archives; never manufacture a successful replay.
   http.get('/api/market-monitor/snapshots/:id/replay', ({ params }) => HttpResponse.json({ status: 'unavailable', snapshotId: params.id })),
   http.get('/api/market-monitor/health', ({ request }) => {

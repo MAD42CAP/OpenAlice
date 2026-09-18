@@ -70,6 +70,16 @@ function dependencies(hourly = true, at = '2026-04-01T00:00:00Z') {
 }
 
 describe('market monitor service', () => {
+  it('adds traceable retrospective feedback to daily inputs without making feedback failure block a brief', async () => {
+    const svc = createMarketMonitorService({ ...dependencies(), store: memoryStore() })
+    const input = await svc.dailyNarrationInput(['BTC'])
+    expect(input.assets[0]?.retrospective).toMatchObject({ policy: 'forward-sessions-v1', cases: [] })
+    vi.spyOn(svc, 'review').mockRejectedValue(new Error('local read failure'))
+    const degraded = await svc.dailyNarrationInput(['BTC'])
+    expect(degraded.assets[0]).toMatchObject({ status: 'ready', retrospectiveUnavailable: true })
+    expect(degraded.assets[0]?.error).toBeUndefined()
+  })
+
 
   it('persists fresh context on duplicate scans and retains it across restart without renewing failed observations', async () => {
     const root = await mkdtemp(join(tmpdir(), 'monitor-context-'))

@@ -123,7 +123,7 @@ export function createMarketMonitorStore(root = ROOT): MarketMonitorStore {
       await rename(temp, SETTINGS_FILE)
     },
     async snapshots(asset, limit = 100) {
-      return (await readRecentJsonLines<MarketMonitorSnapshot>(SNAPSHOTS_FILE, Math.max(1, Math.min(1000, limit)), (row) => !asset || row.asset === asset)).rows
+      return (await readRecentJsonLines<MarketMonitorSnapshot>(SNAPSHOTS_FILE, Math.max(1, Math.min(20_000, limit)), (row) => !asset || row.asset === asset)).rows
     },
     appendSnapshot: (snapshot) => appendJsonLine(SNAPSHOTS_FILE, snapshot),
     async alerts(asset, limit = 100) {
