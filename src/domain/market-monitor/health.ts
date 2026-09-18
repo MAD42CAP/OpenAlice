@@ -57,6 +57,7 @@ export function summarizeMonitorHealth(
       duplicates: rows.filter((row) => row.outcome === 'duplicate').length,
       scheduled: rows.filter((row) => row.trigger === 'scheduled').length,
       manual: rows.filter((row) => row.trigger === 'manual').length,
+      narration: rows.filter((row) => row.trigger === 'narration').length,
       successRatePercent: rows.length ? Math.round(successful.length / rows.length * 10000) / 100 : null,
       consecutiveFailures,
       recoveries: rows.filter((row, index) => index > 0 && rows[index - 1]!.outcome === 'failed' && row.outcome !== 'failed').length,

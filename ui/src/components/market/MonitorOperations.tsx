@@ -55,7 +55,7 @@ export function MonitorOperations({ asset, hours, onHoursChange, report, loading
             [t('marketMonitor.operations.completion'), summary.successRatePercent == null ? '—' : `${summary.successRatePercent}%`],
             [t('marketMonitor.operations.failedAttempts'), String(summary.failed)],
             [t('marketMonitor.operations.sourceIssues'), t('marketMonitor.operations.checked', { issues: summary.scansWithSourceIssues, checked: summary.scansWithSourceChecks })],
-            [t('marketMonitor.operations.scheduledManual'), `${summary.scheduled} / ${summary.manual}`],
+            [t('marketMonitor.operations.scheduledManual'), `${summary.scheduled} / ${summary.manual} / ${summary.narration ?? 0}`],
             [t('marketMonitor.operations.newUnchanged'), `${summary.stored} / ${summary.duplicates}`],
             [t('marketMonitor.operations.averageDuration'), duration(summary.averageDurationMs)],
             [t('marketMonitor.operations.p95Duration'), duration(summary.p95DurationMs)],

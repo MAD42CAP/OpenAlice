@@ -2000,6 +2000,7 @@ export const zh: Resources = {
       balancedAlternative1: '上涨延续前的再积累。', balancedAlternative2: '下跌延续前的派发。',
     },
     context: {
+      retainedData: '上次有效数据：{{fields}}。更新于 {{time}}，仅供参考至 {{expires}}。当前来源异常，这些旧值不能确认当前状态。',
       fundingRate: '资金费率（8小时）', openInterest: '永续合约未平仓量', annualizedBasisPercent: '年化基差', optionOpenInterest: '期权未平仓量',
       putCallOpenInterestRatio: '看跌/看涨期权持仓比', marketCap: '市值', trailingPe: '滚动市盈率', forwardPe: '预期市盈率',
       analystTargetMean: '分析师平均目标价', shortPercentFloat: '流通股做空比例', nextEarningsAt: '下次财报',
@@ -2019,6 +2020,7 @@ export const zh: Resources = {
       demoBars: '确定性演示日线数据，来源明确。', demoHourlyBars: '确定性演示小时数据，来源明确。', demoContext: '用于界面验收的静态背景数据，并非实时数据。',
     },
     history: {
+      narration: '每日解读',
       summary: '相邻观察方向吻合率 {{accuracy}} · {{resolved}} 条（非回测）', captured: '记录时间', price: '价格', hypothesis: '假设', confidence: '规则评分',
       trigger: '触发方式', manual: '手动', scheduled: '定时', noAlerts: '尚未触发提醒条件。', stateChanged: '{{asset}} 证据状态发生变化',
       abnormalConfirmation: '{{asset}} 出现异常日内确认', alertMessage: '{{hypothesis}} · 规则评分 {{confidence}}/100。{{note}}',
@@ -2036,7 +2038,7 @@ export const zh: Resources = {
       refresh: '刷新健康报告', export: '导出报告', unavailable: '健康报告不可用。', retained: '已保留上一次成功报告。', loading: '正在加载健康报告…',
       window: '时间范围：{{from}} – {{to}}。已记录样本：{{first}} – {{last}}。', truncated: '仅显示最近 {{count}} 次尝试；该时间范围内更早的尝试未包含。',
       noAttempts: '该时间范围内没有扫描记录。', recordedAttempts: '扫描尝试次数', completion: '扫描完成率', failedAttempts: '失败次数',
-      sourceIssues: '存在数据源问题的扫描', checked: '{{issues}} / {{checked}} 已检查', scheduledManual: '定时 / 手动', newUnchanged: '新证据 / 无变化',
+      sourceIssues: '存在数据源问题的扫描', checked: '{{issues}} / {{checked}} 已检查', scheduledManual: '定时 / 手动 / 解读', newUnchanged: '新证据 / 无变化',
       averageDuration: '平均耗时', p95Duration: '95分位耗时',
       qualification: '完成率只衡量已记录的扫描，不代表持续在线率或交易表现。{{missing}} 次没有数据源检查；{{durations}} 次记录了耗时。连续失败：{{failures}}。扫描恢复：{{recoveries}}。',
       sourceTable: '数据源可靠性', source: '数据源', lastCheck: '该来源最近一次检查', healthy: '正常', degraded: '降级', unavailableStatus: '不可用',

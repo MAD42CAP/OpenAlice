@@ -252,7 +252,13 @@ export function semanticFingerprint(input: {
     // Freshness/fetch timestamps and cache mechanics are deliberately absent:
     // the latest attributed candle already anchors market time. Only a real
     // source-state/provider change should create another observation.
-    source: input.sourceHealth.map(({ id, status, provider }) => ({ id, status, provider })),
+    source: input.sourceHealth.map(({ id, status, provider, failedFields, retained }) => ({
+      id, status, provider,
+      // Changing which fields failed or were borrowed changes the evidence.
+      // Omitted legacy metadata keeps archived fingerprints reproducible.
+      ...(failedFields?.length ? { failedFields: [...failedFields].sort() } : {}),
+      ...(retained?.fields.length ? { retainedFields: [...retained.fields].sort() } : {}),
+    })),
   }
   return createHash('sha256').update(JSON.stringify(semantic)).digest('hex').slice(0, 24)
 }

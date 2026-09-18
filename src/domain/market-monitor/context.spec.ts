@@ -80,3 +80,36 @@ it('retains a partial Deribit result and the exact failed side without substitut
   expect(result.health[0]!.detail).toMatch(/options unavailable.*10028.*too_many_requests/)
   expect(result.context).toMatchObject({ openInterest: 1000, fundingRate: null })
 })
+
+it('keeps partial equity failures explicit and separates failed news from a successful empty calendar', async () => {
+  const registry = createDefaultMarketContextProviderRegistry({
+    equityClient: {
+      getKeyMetrics: async () => [{ market_cap: 100 }],
+      getEstimateConsensus: async () => { throw new Error('HTTP 403 token=fixture-secret') },
+      getShareStatistics: async () => [],
+    } as unknown as EquityClientLike,
+    reference: { calendar: async () => ({ earnings: [] }) } as unknown as ReferenceDataService,
+    newsProvider: { getNewsV2: async () => { throw new Error('HTTP 429') } } as never,
+  })
+  const source = registry.forAsset('TSLA').find(row => row.manifest.id === 'openalice-equity-v1')!
+  const result = await source.load({ asset: 'TSLA', at: new Date('2026-09-17T00:00:00Z') })
+  expect(result.health[0]).toMatchObject({ status: 'degraded', failedFields: ['analystTargetMean'] })
+  expect(result.health[0]?.detail).toMatch(/metrics: loaded; estimates: HTTP 403; share statistics: no matching data/)
+  expect(result.health[1]).toMatchObject({ status: 'degraded', failedFields: ['recentNews'] })
+  expect(result.health[1]?.detail).toContain('news: HTTP 429')
+  expect(result.context.nextEarningsAt).toBeNull()
+  expect(result.context.recentNews).toBeUndefined()
+  expect(JSON.stringify(result)).not.toContain('fixture-secret')
+})
+
+it('keeps a successful empty news response empty', async () => {
+  const registry = createDefaultMarketContextProviderRegistry({
+    equityClient: { getKeyMetrics: async () => [], getEstimateConsensus: async () => [], getShareStatistics: async () => [] } as unknown as EquityClientLike,
+    reference: { calendar: async () => ({ earnings: [] }) } as unknown as ReferenceDataService,
+    newsProvider: { getNewsV2: async () => [] } as never,
+  })
+  const result = await registry.forAsset('MSTR').find(row => row.manifest.id === 'openalice-equity-v1')!.load({ asset: 'MSTR', at: new Date() })
+  expect(result.context.recentNews).toEqual([])
+  expect(result.health[1]).toMatchObject({ status: 'ok', failedFields: [] })
+  expect(result.health[1]?.detail).toContain('0 recent matching stories')
+})

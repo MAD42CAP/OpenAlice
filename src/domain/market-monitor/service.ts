@@ -1,3 +1,4 @@
+import { retainContext } from './context-cache.js'
 import { randomUUID } from 'node:crypto'
 import type { EquityClientLike } from '../market-data/client/types.js'
 import type { BarMeta, BarService, BarsResult, OhlcvBar } from '../market-data/bars/index.js'
@@ -58,6 +59,7 @@ export interface MarketMonitorService {
   scan(asset: MarketMonitorAsset, trigger: MarketMonitorTrigger): Promise<MarketMonitorScanResult>
   replay(snapshotId: string): Promise<MarketReplayResult>
   isScanning(asset: MarketMonitorAsset): boolean
+  scanStartedAt(asset: MarketMonitorAsset): string | null
   snapshots(asset?: MarketMonitorAsset, limit?: number, strategyId?: string): Promise<MarketMonitorSnapshot[]>
   alerts(asset?: MarketMonitorAsset, limit?: number): Promise<MarketMonitorAlert[]>
   receipts(asset?: MarketMonitorAsset, limit?: number): Promise<MarketMonitorReceipt[]>
@@ -114,31 +116,6 @@ function compactBars(bars: OhlcvBar[], max: number): OhlcvBar[] {
   return bars.slice(-max).map(({ date, open, high, low, close, volume }) => ({ date, open, high, low, close, volume }))
 }
 
-function retainPreviousContext(current: MarketContext, health: SourceHealth[], previous: MarketMonitorSnapshot | undefined, at: Date): { context: MarketContext; health: SourceHealth[] } {
-  const context = { ...current }
-  const sources = health.map(source => {
-    if (source.status === 'ok' || !previous) return source
-    const priorSource = previous.sourceHealth.find(item => item.id === source.id && item.status === 'ok')
-    const age = at.getTime() - Date.parse(priorSource?.asOf ?? '')
-    const ttl = source.id === 'btc-derivatives' ? 15 * 60_000 : 24 * 3_600_000
-    if (!Number.isFinite(age) || age < 0 || age > ttl) return source
-    const keys: Array<keyof MarketContext> = source.id === 'btc-derivatives'
-      ? ['fundingRate', 'openInterest', 'annualizedBasisPercent', 'optionOpenInterest', 'putCallOpenInterestRatio']
-      : source.id.endsWith('-reference') ? ['marketCap', 'trailingPe', 'forwardPe', 'analystTargetMean', 'shortPercentFloat']
-      : source.id.endsWith('-sec-filings') ? ['recentFilings']
-      : source.id.endsWith('-calendar-news') ? ['nextEarningsAt', 'recentNews'] : []
-    let retained = false
-    for (const key of keys) {
-      // An explicitly empty array is a successful empty result, not missing data.
-      if (context[key] == null && previous.context[key] != null) {
-        Object.assign(context, { [key]: previous.context[key] })
-        retained = true
-      }
-    }
-    return retained ? { ...source, asOf: priorSource!.asOf, detail: `${source.detail} Last valid fields retained from ${priorSource!.asOf}; retention expires after ${ttl / 60_000} minutes and is not renewed by failed scans.` } : source
-  })
-  return { context, health: sources }
-}
 
 interface BarFallback {
   from: string
@@ -189,6 +166,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
   const store = deps.store ?? createMarketMonitorStore()
   const now = deps.now ?? (() => new Date())
   const inFlight = new Map<MarketMonitorAsset, Promise<MarketMonitorScanResult>>()
+  const startedScans = new Map<MarketMonitorAsset, string>()
   const narrationWrites = new Map<string, Promise<{ stored: boolean; narration: MarketAiNarration }>>()
   const strategyRegistry = deps.strategyRegistry ?? createMarketMonitorStrategyRegistry()
   const contextProviderRegistry = deps.contextProviderRegistry ?? createDefaultMarketContextProviderRegistry({
@@ -205,6 +183,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
       : { ...settings, strategyId: strategyRegistry.list()[0]!.id }
   }
   return {
+    scanStartedAt: (asset) => startedScans.get(asset) ?? null,
     settings: loadSettings,
     async replay(snapshotId) {
       const archive = await store.archive(snapshotId)
@@ -248,7 +227,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
       const rows: MarketNarrationInput['assets'] = []
       for (const asset of assets) {
         try {
-          const result = await this.scan(asset, 'scheduled')
+          const result = await this.scan(asset, 'narration')
           const snapshot = result.snapshot
           const periodKey = snapshot.dailyBrief?.periodKey
           if (!periodKey) throw new Error('Daily deterministic brief is unavailable')
@@ -312,6 +291,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
       // share the active operation and its original trigger/receipt.
       const pending = inFlight.get(asset)
       if (pending) return pending
+      startedScans.set(asset, now().toISOString())
       const task = (async () => {
         const requestedAt = now().toISOString()
         const started = performance.now()
@@ -364,7 +344,8 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
             context: Object.assign({}, ...contextResults.map((result) => result.context)) as MarketContext,
             health: contextResults.flatMap((result) => result.health),
           }
-          const fallback = retainPreviousContext(contextResult.context, contextResult.health, previous, new Date(requestedAt))
+          const cached = await store.contextCache(asset, strategy.manifest.id)
+          const fallback = retainContext(contextResult.context, contextResult.health, cached, new Date(requestedAt))
           const context = fallback.context
           sourceHealth.push(...fallback.health)
           const enrichedAnalysis = {
@@ -389,6 +370,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
             },
           }
           failureStage = 'storage'
+          await store.saveContextCache(asset, strategy.manifest.id, fallback.cache)
           const stored = previous?.fingerprint !== fingerprint || !previous?.analysisInput || previous.analysisInput.strategyVersion !== strategy.manifest.version
           await store.saveLatestSeries(asset, snapshot.chart, snapshot.strategyId)
           if (stored) {
@@ -415,7 +397,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
           await store.appendReceipt(receipt)
           throw new MarketMonitorScanError(receipt)
         }
-      })().finally(() => { inFlight.delete(asset) })
+      })().finally(() => { inFlight.delete(asset); startedScans.delete(asset) })
       inFlight.set(asset, task)
       return task
     },

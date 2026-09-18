@@ -2,7 +2,7 @@ import type { BarMeta, OhlcvBar } from '../market-data/bars/index.js'
 
 export const MARKET_MONITOR_ASSETS = ['BTC', 'TSLA', 'MSTR'] as const
 export type MarketMonitorAsset = typeof MARKET_MONITOR_ASSETS[number]
-export type MarketMonitorTrigger = 'manual' | 'scheduled'
+export type MarketMonitorTrigger = 'manual' | 'scheduled' | 'narration'
 export type EvidenceTone = 'positive' | 'negative' | 'neutral'
 export type MarketMonitorStrategyId = string
 export type TrendHorizon = 'short' | 'medium' | 'long'
@@ -81,6 +81,9 @@ export interface SourceHealth {
   provider: string
   asOf: string | null
   detail: string
+  /** Only failed subrequests may borrow prior fields; successful empty results stay empty. */
+  failedFields?: Array<keyof MarketContext>
+  retained?: { asOf: string; expiresAt: string; fields: Array<keyof MarketContext> }
 }
 
 export interface EvidenceItem {
@@ -315,6 +318,7 @@ export interface MarketMonitorHealthReport {
     duplicates: number
     scheduled: number
     manual: number
+    narration?: number
     successRatePercent: number | null
     consecutiveFailures: number
     recoveries: number
@@ -352,6 +356,7 @@ export interface MarketMonitorSchedulerStatus {
     asset: MarketMonitorAsset
     enabled: boolean
     scanning: boolean
+    scanStartedAt?: string | null
     nextScanAt: string | null
     lastReceipt: MarketMonitorReceipt | null
     lastError: string | null

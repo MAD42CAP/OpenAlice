@@ -1,3 +1,4 @@
+import type { MarketContextCache } from './context-cache.js'
 import { describe, expect, it, vi } from 'vitest'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { gzipSync } from 'node:zlib'
@@ -22,9 +23,12 @@ function memoryStore(): MarketMonitorStore & { data: { snapshots: MarketMonitorS
   const data = { snapshots: [] as MarketMonitorSnapshot[], alerts: [] as MarketMonitorAlert[], receipts: [] as MarketMonitorReceipt[], narrations: [] as MarketAiNarration[] }
   let settings = { ...DEFAULT_MARKET_MONITOR_SETTINGS }
   const archives = new Map<string, MarketAnalysisArchive>()
+  const contexts = new Map<string, MarketContextCache>()
   const series = new Map<string, MarketMonitorSnapshot['chart']>()
   return {
     data,
+    contextCache: async (asset, strategy) => structuredClone(contexts.get(`${asset}:${strategy}`) ?? []),
+    saveContextCache: async (asset, strategy, cache) => { contexts.set(`${asset}:${strategy}`, structuredClone(cache)) },
     archive: async (id) => archives.get(id) ?? null,
     saveArchive: async (value) => { archives.set(value.snapshot.id, structuredClone(value)) },
     settings: async () => settings,
@@ -66,6 +70,33 @@ function dependencies(hourly = true, at = '2026-04-01T00:00:00Z') {
 }
 
 describe('market monitor service', () => {
+
+  it('persists fresh context on duplicate scans and retains it across restart without renewing failed observations', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'monitor-context-'))
+    let at = new Date('2026-04-01T00:00:00Z'), available = true
+    const registry = new MarketContextProviderRegistry([{
+      manifest: { id: 'fixture-btc', label: 'BTC', assets: ['BTC'], description: 'fixture' },
+      load: async () => ({ context: available ? { fundingRate: 0.001 } : {}, health: [{ id: 'btc-derivatives', label: 'BTC', provider: 'fixture', status: available ? 'ok' : 'unavailable', asOf: available ? at.toISOString() : null, detail: 'fixture' }] }),
+    }])
+    const make = () => createMarketMonitorService({ ...dependencies(), store: createMarketMonitorStore(root), contextProviderRegistry: registry, now: () => at })
+    try {
+      const service = make()
+      await service.scan('BTC', 'manual')
+      at = new Date('2026-04-01T00:15:15Z')
+      expect((await service.scan('BTC', 'scheduled')).stored).toBe(false)
+      available = false
+      const restarted = make()
+      at = new Date('2026-04-01T00:30:30Z')
+      const retained = await restarted.scan('BTC', 'scheduled')
+      expect(retained.snapshot.context.fundingRate).toBe(0.001)
+      expect(retained.snapshot.sourceHealth.find(row => row.id === 'btc-derivatives')?.retained?.asOf).toBe('2026-04-01T00:15:15.000Z')
+      expect((await restarted.replay(retained.snapshot.id)).status).toBe('verified')
+      at = new Date('2026-04-01T00:45:14Z')
+      expect((await restarted.scan('BTC', 'scheduled')).snapshot.context.fundingRate).toBe(0.001)
+      at = new Date('2026-04-01T00:45:16Z')
+      expect((await restarted.scan('BTC', 'scheduled')).snapshot.context.fundingRate).toBeUndefined()
+    } finally { await rm(root, { recursive: true, force: true }) }
+  })
 
   it('replays immutable disk inputs after restart without accessing live sources or current settings', async () => {
     const root = await mkdtemp(join(tmpdir(), 'monitor-replay-'))

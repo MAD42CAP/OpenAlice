@@ -1,4 +1,5 @@
 import { createSecEdgarContext } from './sec-edgar.js'
+import { contextReadFailure, createContextReader } from './context-read.js'
 import { safeMarketDataError } from '../market-data/bars/safe-error.js'
 import type { EquityClientLike } from '../market-data/client/types.js'
 import type { ReferenceDataService } from '../market-data/reference/types.js'
@@ -75,13 +76,16 @@ function stringFrom(row: unknown, keys: string[]): string | null {
   return null
 }
 
-async function fetchJson(fetcher: MarketMonitorFetch, url: string, headers?: Record<string, string>): Promise<unknown> {
+async function fetchJson(fetcher: MarketMonitorFetch, url: string): Promise<unknown> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), 6000)
   try {
-    const response = await fetcher(url, { signal: controller.signal, headers: { Accept: 'application/json', ...headers } })
+    const response = await fetcher(url, { signal: controller.signal, headers: { Accept: 'application/json' } })
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
     return await response.json()
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error('Deribit request timed out after 6000ms')
+    throw error
   } finally {
     clearTimeout(timer)
   }
@@ -96,12 +100,12 @@ async function deribitRows(fetcher: MarketMonitorFetch, kind: 'future' | 'option
   return rows
 }
 
-async function bitcoinContext(fetcher: MarketMonitorFetch, at: Date): Promise<MarketContextProviderResult> {
+async function bitcoinContext(fetcher: MarketMonitorFetch, at: Date, read: ReturnType<typeof createContextReader>): Promise<MarketContextProviderResult> {
   const capturedAt = at.toISOString()
   try {
     const [futureResult, optionResult] = await Promise.allSettled([
-      deribitRows(fetcher, 'future'),
-      deribitRows(fetcher, 'option'),
+      read('deribit:future', () => deribitRows(fetcher, 'future')),
+      read('deribit:option', () => deribitRows(fetcher, 'option')),
     ])
     if (futureResult.status === 'rejected' && optionResult.status === 'rejected') throw new Error(`futures: ${safeMarketDataError(futureResult.reason)}; options: ${safeMarketDataError(optionResult.reason)}`)
     const futures = futureResult.status === 'fulfilled' ? futureResult.value : []
@@ -133,7 +137,9 @@ async function bitcoinContext(fetcher: MarketMonitorFetch, at: Date): Promise<Ma
         optionOpenInterest: callOi + putOi || null,
         putCallOpenInterestRatio: callOi > 0 ? Number((putOi / callOi).toFixed(2)) : null,
       },
-      health: [{ id: 'btc-derivatives', label: 'BTC derivatives context', status: futureResult.status === 'fulfilled' && optionResult.status === 'fulfilled' ? 'ok' : 'degraded', provider: 'Deribit public API', asOf: capturedAt, detail: `Read-only derivatives context loaded${futureResult.status === 'rejected' ? `; futures unavailable (${safeMarketDataError(futureResult.reason)})` : ''}${optionResult.status === 'rejected' ? `; options unavailable (${safeMarketDataError(optionResult.reason)})` : ''}.` }],
+      health: [{ id: 'btc-derivatives', label: 'BTC derivatives context', status: futureResult.status === 'fulfilled' && optionResult.status === 'fulfilled' ? 'ok' : 'degraded', provider: 'Deribit public API', asOf: capturedAt,
+        failedFields: [...(futureResult.status === 'rejected' ? ['fundingRate', 'openInterest', 'annualizedBasisPercent'] as const : []), ...(optionResult.status === 'rejected' ? ['optionOpenInterest', 'putCallOpenInterestRatio'] as const : [])],
+        detail: `Read-only derivatives context loaded${futureResult.status === 'rejected' ? `; futures unavailable (${safeMarketDataError(futureResult.reason)})` : ''}${optionResult.status === 'rejected' ? `; options unavailable (${safeMarketDataError(optionResult.reason)})` : ''}.` }],
     }
   } catch (error) {
     return {
@@ -152,15 +158,16 @@ async function equityContext(
   deps: Pick<MarketContextProviderDeps, 'equityClient' | 'reference' | 'newsProvider'>,
   asset: 'TSLA' | 'MSTR',
   at: Date,
+  read: ReturnType<typeof createContextReader>,
 ): Promise<MarketContextProviderResult> {
   const symbol = MARKET_MONITOR_ASSET_CONFIG[asset].symbol
   const sourceId = asset.toLowerCase()
   const [metrics, estimates, shares, calendar, news] = await Promise.allSettled([
-    deps.equityClient.getKeyMetrics({ symbol }),
-    deps.equityClient.getEstimateConsensus({ symbol }),
-    deps.equityClient.getShareStatistics({ symbol }),
-    deps.reference.calendar({ days: 90 }),
-    deps.newsProvider?.getNewsV2({ endTime: at, lookback: '7d', limit: 100 }) ?? Promise.resolve([]),
+    read(`${asset}:metrics`, () => deps.equityClient.getKeyMetrics({ symbol })),
+    read(`${asset}:estimates`, () => deps.equityClient.getEstimateConsensus({ symbol })),
+    read(`${asset}:shares`, () => deps.equityClient.getShareStatistics({ symbol })),
+    read('equity:calendar', () => deps.reference.calendar({ days: 90 })),
+    deps.newsProvider ? read('equity:news', () => deps.newsProvider!.getNewsV2({ endTime: at, lookback: '7d', limit: 100 })) : Promise.resolve([]),
   ])
   const metric = metrics.status === 'fulfilled' ? metrics.value[0] : undefined
   const estimate = estimates.status === 'fulfilled' ? estimates.value[0] : undefined
@@ -179,30 +186,43 @@ async function equityContext(
     analystTargetMean: numberFrom(estimate, ['target_consensus', 'target_mean', 'target_price']),
     shortPercentFloat: numberFrom(share, ['short_percent_of_float']),
     nextEarningsAt: stringFrom(earnings, ['report_date', 'date']),
-    recentNews: newsRows.map((item) => ({ title: item.title, time: item.time.toISOString(), source: item.metadata.source ?? null })),
+    ...(news.status === 'fulfilled' ? { recentNews: newsRows.map((item) => ({ title: item.title, time: item.time.toISOString(), source: item.metadata.source ?? null })) } : {}),
   }
   const coreOk = [context.marketCap, context.trailingPe, context.forwardPe, context.analystTargetMean, context.shortPercentFloat].some((value) => value != null)
   const calendarOk = calendar.status === 'fulfilled'
   const newsOk = Boolean(deps.newsProvider && news.status === 'fulfilled')
+  const coreRequests = [metrics, estimates, shares]
+  const coreFailures = coreRequests.some(result => result.status === 'rejected')
+  const describe = (label: string, result: PromiseSettledResult<unknown>, empty: boolean) => result.status === 'rejected'
+    ? `${label}: ${contextReadFailure(result.reason)}` : `${label}: ${empty ? 'no matching data' : 'loaded'}`
+  const failedFields: Array<keyof MarketContext> = [
+    ...(metrics.status === 'rejected' ? ['marketCap', 'trailingPe', 'forwardPe'] as const : []),
+    ...(estimates.status === 'rejected' ? ['analystTargetMean'] as const : []),
+    ...(shares.status === 'rejected' ? ['shortPercentFloat'] as const : []),
+  ]
   return { context, health: [
-    { id: `${sourceId}-reference`, label: `${asset} fundamentals and positioning`, status: coreOk ? 'ok' : 'unavailable', provider: 'OpenAlice equity providers', asOf: coreOk ? at.toISOString() : null, detail: coreOk ? 'Valuation, analyst and short-interest fields loaded where supported.' : 'Configured equity providers returned no usable context.' },
-    { id: `${sourceId}-calendar-news`, label: `${asset} calendar and news`, status: calendarOk && newsOk ? 'ok' : calendarOk || newsOk ? 'degraded' : 'unavailable', provider: 'OpenAlice reference/news', asOf: calendarOk || newsOk ? at.toISOString() : null, detail: `${context.nextEarningsAt ? 'Earnings date available' : 'No earnings date'}; ${context.recentNews?.length ?? 0} recent matching stories${!deps.newsProvider ? '; news collector not configured' : ''}.` },
+    { id: `${sourceId}-reference`, label: `${asset} fundamentals and positioning`, status: coreOk ? coreFailures ? 'degraded' : 'ok' : 'unavailable', provider: 'OpenAlice equity providers', asOf: coreOk ? at.toISOString() : null, failedFields,
+      detail: [describe('metrics', metrics, !metric), describe('estimates', estimates, !estimate), describe('share statistics', shares, !share)].join('; ') },
+    { id: `${sourceId}-calendar-news`, label: `${asset} calendar and news`, status: calendarOk && newsOk ? 'ok' : calendarOk || newsOk ? 'degraded' : 'unavailable', provider: 'OpenAlice reference/news', asOf: calendarOk || newsOk ? at.toISOString() : null,
+      failedFields: [...(!calendarOk ? ['nextEarningsAt'] as const : []), ...(deps.newsProvider && !newsOk ? ['recentNews'] as const : [])],
+      detail: `${calendarOk ? context.nextEarningsAt ? 'Earnings date available' : 'No earnings date' : describe('earnings calendar', calendar, false)}; ${newsOk ? `${newsRows.length} recent matching stories` : deps.newsProvider ? describe('news', news, false) : 'news: collector not configured'}.` },
   ] }
 }
 
 export function createDefaultMarketContextProviderRegistry(deps: MarketContextProviderDeps): MarketContextProviderRegistry {
   const fetcher = deps.fetcher ?? fetch
+  const read = createContextReader()
   const secEdgarContext = createSecEdgarContext({ fetcher, contactEmail: deps.secContactEmail })
   return new MarketContextProviderRegistry([
     {
       manifest: { id: 'deribit-btc-v1', label: 'BTC derivatives', assets: ['BTC'], description: 'Deribit public futures, perpetual and options summaries.' },
-      load: ({ at }) => bitcoinContext(fetcher, at),
+      load: ({ at }) => bitcoinContext(fetcher, at, read),
     },
     {
       manifest: { id: 'openalice-equity-v1', label: 'Equity reference', assets: ['TSLA', 'MSTR'], description: 'Configured OpenAlice fundamentals, estimates, calendar and news providers.' },
       load: ({ asset, at }) => {
         if (asset !== 'TSLA' && asset !== 'MSTR') throw new Error(`Unsupported equity context asset: ${asset}`)
-        return equityContext(deps, asset, at)
+        return equityContext(deps, asset, at, read)
       },
     },
     {

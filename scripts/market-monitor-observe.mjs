@@ -96,18 +96,27 @@ function closeRecovered(active, seenNow, at) {
 
 function summarize(report, runtimeIntervalMinutes) {
   const successRatio = report.samples.total ? report.samples.succeeded / report.samples.total : 0
-  const criticalKinds = new Set(['scheduler-stopped', 'background-disabled', 'scheduler-error', 'scheduler-stale', 'asset-disabled', 'asset-missing'])
+  const criticalKinds = new Set(['scheduler-stopped', 'background-disabled', 'scheduler-error', 'scheduler-stale', 'asset-disabled', 'asset-missing', 'scan-overdue', 'scan-stalled', 'scan-gap'])
   const critical = report.incidents.some((row) => criticalKinds.has(row.kind)) || successRatio < 0.95
   const scheduled = Object.fromEntries(report.assets.map((asset) => [asset, report.observedReceipts.filter((row) => row.asset === asset && row.trigger === 'scheduled' && row.outcome !== 'failed').length]))
   const longEnough = report.elapsedMs >= Math.max(1, runtimeIntervalMinutes ?? 15) * 120_000
   const missingCadence = longEnough && report.assets.some((asset) => scheduled[asset] === 0)
+  const cadence = Object.fromEntries(report.assets.map(asset => {
+    const rows = report.observedReceipts.filter(row => row.asset === asset).sort((a, b) => receiptTime(a) - receiptTime(b))
+    const gaps = rows.slice(1).map((row, index) => Math.max(0, Date.parse(row.requestedAt) - receiptTime(rows[index])))
+    return [asset, { completedAttempts: rows.length, scheduledSuccesses: scheduled[asset],
+      narrationScans: rows.filter(row => row.trigger === 'narration').length,
+      maxIdleGapMs: gaps.length ? Math.max(...gaps) : null,
+      lastCompletedAt: rows.at(-1)?.completedAt ?? rows.at(-1)?.requestedAt ?? null }]
+  }))
   const attention = report.observedReceipts.some(row => row.outcome === 'failed') || report.incidents.some((row) => ['api-unavailable', 'scan-failed', 'source-degraded', 'source-unavailable', 'source-checks-unknown'].includes(row.kind))
   return {
     probeSuccessPercent: report.samples.total ? Math.round(successRatio * 10_000) / 100 : null,
     incidentEpisodes: report.incidents.length,
     openIncidents: report.incidents.filter((row) => row.recoveredAt == null).length,
     observedScheduledSuccesses: scheduled,
-    cadenceAssessment: longEnough ? (missingCadence ? 'missing' : 'observed') : 'insufficient-duration',
+    cadence,
+    cadenceAssessment: report.incidents.some(row => ['scan-overdue', 'scan-stalled', 'scan-gap'].includes(row.kind)) ? 'interrupted' : longEnough ? (missingCadence ? 'missing' : 'observed') : 'insufficient-duration',
     verdict: critical || missingCadence ? 'fail' : attention ? 'attention' : 'pass',
   }
 }
@@ -140,6 +149,8 @@ export async function runObservation(options, dependencies = {}) {
   }
   const active = new Map()
   const receiptIds = new Set()
+  const scanningSince = new Map()
+  const priorReceipt = new Map()
   let runtimeIntervalMinutes = null
   while (!shouldStop()) {
     const sampleAt = now()
@@ -183,6 +194,31 @@ export async function runObservation(options, dependencies = {}) {
         const latest = [...(assetHealth.recent ?? []), ...(item?.lastReceipt ? [item.lastReceipt] : [])]
           .filter(row => Number.isFinite(receiptTime(row)))
           .sort((a, b) => receiptTime(b) - receiptTime(a))[0]
+        const intervalMs = Math.max(1, runtimeIntervalMinutes ?? 15) * 60_000
+        const graceMs = 120_000
+        if (item?.scanning) {
+          if (!scanningSince.has(asset)) scanningSince.set(asset, completed)
+          const declaredStart = Date.parse(item.scanStartedAt ?? '')
+          const scanStart = Number.isFinite(declaredStart) && declaredStart <= completed ? declaredStart : scanningSince.get(asset)
+          if (completed - scanStart > graceMs) incident(report, active, seenNow, at, 'scan-stalled', 'Scan has not completed within two minutes.', asset)
+        } else scanningSince.delete(asset)
+        if (status.running && status.backgroundEnabled && item?.enabled) {
+          const last = receiptTime(latest)
+          const due = Number.isFinite(last) && last <= completed ? last + intervalMs : started + intervalMs
+          if (!item.scanning && completed > due + graceMs) incident(report, active, seenNow, at, 'scan-overdue', 'No completed scan by its expected cadence plus two-minute grace.', asset)
+          // Check every new receipt, including outages that recovered between probes.
+          const rows = [...(assetHealth.recent ?? []), ...(item.lastReceipt ? [item.lastReceipt] : [])]
+            .filter(row => Number.isFinite(receiptTime(row))).sort((a, b) => receiptTime(a) - receiptTime(b))
+          let previous = priorReceipt.get(asset)
+          for (const row of rows) {
+            if (previous && receiptTime(row) <= receiptTime(previous)) continue
+            if (previous && receiptTime(row) >= started && Date.parse(row.requestedAt) - receiptTime(previous) > intervalMs + graceMs) {
+              incident(report, active, seenNow, at, 'scan-gap', 'Completed receipts reveal a scan dispatched more than two minutes late.', asset)
+            }
+            previous = row
+          }
+          if (previous) priorReceipt.set(asset, previous)
+        }
         if (latest?.outcome === 'failed') incident(report, active, seenNow, at, 'scan-failed', latest.error ?? 'Scan failed.', asset)
         if (!latest?.sourceHealth?.length) incident(report, active, seenNow, at, 'source-checks-unknown', 'The latest attempt has no source checks; source health is unknown.', asset)
         const checked = new Set((latest?.sourceHealth ?? []).map(source => source.id))

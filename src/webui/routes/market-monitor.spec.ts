@@ -8,6 +8,7 @@ import type { MarketNarratorCoordinator } from '../market-monitor-narrator.js'
 
 function service(): MarketMonitorService {
   return {
+    scanStartedAt: vi.fn(() => null),
     replay: vi.fn(async (snapshotId) => ({ status: 'unavailable' as const, snapshotId })),
     settings: vi.fn(async () => DEFAULT_MARKET_MONITOR_SETTINGS),
     saveSettings: vi.fn(async () => undefined),

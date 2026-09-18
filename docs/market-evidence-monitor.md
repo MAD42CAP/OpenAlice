@@ -106,12 +106,30 @@ interest is USD; BTC option open interest is BTC. JSON-RPC errors, empty market
 responses and missing required instruments are unavailable even with HTTP 200;
 partial failures retain their individual causes.
 
-A failed context source can retain only its own missing fields, only from an
-immediately previous healthy source observation, within 15 minutes for BTC
-context or 24 hours for equity context. Its original source time remains
-visible. Failed scans cannot renew that freshness, and a successful empty
-news/filings array is never replaced with old entries. Raw failure details are
-redacted before persistence and remain visible in both interface languages.
+Successful context observations are saved atomically in a per-asset/strategy
+`context-*.json` cache on every completed scan, including semantic duplicates.
+This additive cache contains only public fields and survives restart; old
+observations and input archives are not rewritten or used to invent a newer
+source time. A failed source may borrow only its own failed fields from the
+same provider. BTC display grace is 30 minutes, allowing a normal 15-minute
+scan plus request/poll time; equities retain a 24-hour maximum. The original
+source time and fixed expiry remain visible next to the values, explicitly for
+reference only. The source remains unavailable/degraded and contributes the
+same data-quality warning to the brief. Repeated failures never renew the cache.
+Successful empty results do not resurrect old news, filings or calendar fields.
+
+Deribit and equity context reads retry transient timeout/network/HTTP 5xx
+failures at most once, after 250ms, with a 12.5-second total waiting budget.
+Deribit aborts each HTTP attempt after six seconds. Uncancellable equity reads
+remain tracked until settlement so later scans cannot launch overlapping copies
+or accept their late results as fresh. HTTP 401/403/429 and invalid responses
+are not retried. SEC keeps its separate declaration, pacing and cooldown policy.
+Equity diagnostics identify the failed subrequest (metrics, estimates, share
+statistics, calendar or news), classify HTTP/timeout/network errors, and never
+persist raw request messages. Partial failures are degraded even when another
+fundamental field exists; failed news/calendar reads are distinct from valid
+empty results. No source credentials or private configuration enter the cache,
+receipts or archives.
 
 Detached first-run startup never sends an admin token to redirected stdout or
 the background log. The existing one-time credential display remains available
@@ -526,8 +544,16 @@ probe frequency.
 
 The final report distinguishes local API reachability, scheduler heartbeat and
 configuration interruptions, newly observed scheduled receipts, scan failures,
-and each provider's degraded/unavailable episodes. It checks for missing
-cadence after at least two configured intervals.
+and each provider's degraded/unavailable episodes. It distinguishes periodic `scheduled` receipts from `narration` receipts created
+by the daily interpretation. After two configured intervals it checks for a
+missing periodic scan. Every probe also checks completion age and scan start
+time: a dispatch more than two minutes late or a scan pending longer than two
+minutes fails acceptance. New receipt sequences reveal dispatch gaps even when
+an outage recovered between probes. Summaries expose per-asset completed counts,
+narration counts, longest idle gap and last completion. The scheduler exposes
+`scanStartedAt` and an actionable warning on the dashboard without starting a
+second scan or cancelling a read. Historical pre-change `scheduled` receipts
+cannot retrospectively distinguish daily interpretation triggers.
 
 `pass` means the observer reached the backend, found no operational or source
 incidents and saw cadence when the duration was long enough. `attention` keeps

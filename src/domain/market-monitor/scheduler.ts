@@ -1,7 +1,7 @@
 import type { MarketMonitorService } from './service.js'
 import { MARKET_MONITOR_ASSETS, type MarketMonitorAsset, type MarketMonitorSchedulerStatus } from './types.js'
 
-type SchedulerService = Pick<MarketMonitorService, 'settings' | 'receipts' | 'scan' | 'isScanning'>
+type SchedulerService = Pick<MarketMonitorService, 'settings' | 'receipts' | 'scan' | 'isScanning'> & Partial<Pick<MarketMonitorService, 'scanStartedAt'>>
 
 export interface MarketMonitorScheduler {
   start(): void
@@ -24,6 +24,7 @@ export function createMarketMonitorScheduler(
   let timer: ReturnType<typeof setInterval> | undefined
   let activePoll: Promise<void> | undefined
   const activeScans = new Map<MarketMonitorAsset, Promise<void>>()
+  const activeStarted = new Map<MarketMonitorAsset, string>()
   let checkedAt: string | null = null
   let error: string | null = null
   // If receipt persistence itself fails, still avoid a hot retry loop.
@@ -46,8 +47,13 @@ export function createMarketMonitorScheduler(
         ? failure.message : lastReceipt?.error ?? null
       // Ignore future clock-skewed timestamps; never postpone indefinitely.
       const due = last ? last + interval : currentTime
+      const scanStartedAt = scanning ? service.scanStartedAt?.(asset) ?? activeStarted.get(asset) ?? null : null
+      const stalled = scanning && scanStartedAt && currentTime - Date.parse(scanStartedAt) > 120_000
+      const overdue = running && settings.backgroundEnabled && enabled && !scanning && last > 0 && currentTime - due > 120_000
       return {
-        asset, enabled, scanning, lastReceipt, lastError,
+        asset, enabled, scanning, lastReceipt,
+        lastError: lastError ?? (stalled ? 'Scan has not completed within two minutes.' : overdue ? 'Scan is more than two minutes overdue.' : null),
+        scanStartedAt,
         nextScanAt: running && settings.backgroundEnabled && enabled && !scanning
           ? new Date(due).toISOString() : null,
       }
@@ -66,6 +72,7 @@ export function createMarketMonitorScheduler(
         if (!running || !current.backgroundEnabled) return
         for (const item of current.assets) {
           if (!running || !item.nextScanAt || item.scanning || activeScans.has(item.asset) || Date.parse(item.nextScanAt) > now().getTime()) continue
+          activeStarted.set(item.asset, now().toISOString())
           const scan = Promise.resolve().then(async () => {
             try {
               await service.scan(item.asset, 'scheduled')
@@ -80,6 +87,7 @@ export function createMarketMonitorScheduler(
             } finally {
               lastAttempt.set(item.asset, now().getTime())
               activeScans.delete(item.asset)
+              activeStarted.delete(item.asset)
             }
           })
           activeScans.set(item.asset, scan)

@@ -157,3 +157,20 @@ describe('market monitor background scheduler', () => {
     await scheduler.stop()
   })
 })
+
+it('exposes start time and a stalled scan warning without overlapping or cancelling reads', async () => {
+  const { service, scheduler, configure } = fixture()
+  configure({ backgroundEnabled: true, enabledAssets: ['BTC'] })
+  let finish!: () => void
+  service.scan.mockImplementationOnce(async () => {
+    await new Promise<void>(resolve => { finish = resolve })
+    return { receipt: {} as never, snapshot: {} as never, stored: true, alert: null }
+  })
+  scheduler.start()
+  await vi.advanceTimersByTimeAsync(121_000)
+  try {
+    expect((await scheduler.status()).assets[0]).toMatchObject({ scanning: true, scanStartedAt: '2026-09-13T00:00:00.000Z', lastError: 'Scan has not completed within two minutes.' })
+    expect(service.scan).toHaveBeenCalledTimes(1)
+  } finally { finish(); await scheduler.stop() }
+  expect((await scheduler.status()).assets[0]?.scanStartedAt).toBeNull()
+})

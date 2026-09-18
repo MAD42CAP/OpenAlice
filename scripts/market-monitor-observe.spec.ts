@@ -55,7 +55,7 @@ describe('market monitor long-run observer', () => {
     let clock = Date.parse('2026-09-13T00:00:00Z')
     const fetcher = async (url: string, init?: RequestInit) => {
       expect(init?.method).toBeUndefined()
-      if (url.endsWith('/status')) return response({ running: true, backgroundEnabled: true, intervalMinutes: 15, checkedAt: new Date(clock).toISOString(), error: null, assets: [{ asset: 'BTC', enabled: true, scanning: false, lastError: null }] })
+      if (url.endsWith('/status')) return response({ running: true, backgroundEnabled: true, intervalMinutes: 30, checkedAt: new Date(clock).toISOString(), error: null, assets: [{ asset: 'BTC', enabled: true, scanning: false, lastError: null }] })
       const recovered = clock > Date.parse('2026-09-13T00:00:00Z')
       return response({ asset: 'BTC', sources: [{ id: 'context', label: 'Context', provider: 'fixture', latestStatus: recovered ? 'ok' : 'unavailable' }], recent: [{ id: `scan-${clock}`, asset: 'BTC', trigger: 'scheduled', outcome: 'duplicate', requestedAt: new Date(clock - (recovered ? 0 : 60_000)).toISOString(), durationMs: 20, sourceHealth: [{ id: 'context', label: 'Context', provider: 'fixture', status: recovered ? 'ok' : 'unavailable' }] }] })
     }
@@ -101,4 +101,47 @@ describe('market monitor long-run observer', () => {
     expect(await writeObservationReport(file, report)).toBe(file)
     expect(JSON.parse(await readFile(file, 'utf8'))).toEqual(report)
   })
+})
+
+it.each([false, true])('detects missing progress despite a live scheduler heartbeat (scanning=%s)', async scanning => {
+  let clock = Date.parse('2026-09-17T00:00:00Z')
+  const at = new Date(clock).toISOString()
+  const receipt = { id: 'once', asset: 'BTC', trigger: 'scheduled', outcome: 'stored', requestedAt: at, completedAt: at, sourceHealth: [{ id: 'daily-bars', provider: 'coinbase', status: 'ok' }] }
+  const report = await runObservation(parseObservationOptions(['--duration=1h', '--asset=BTC'], {}), {
+    now: () => clock, wait: async (ms: number) => { clock += ms },
+    fetcher: async (url: string) => url.endsWith('/status')
+      ? response({ running: true, backgroundEnabled: true, intervalMinutes: 15, checkedAt: new Date(clock).toISOString(), assets: [{ asset: 'BTC', enabled: true, scanning, scanStartedAt: scanning ? at : null, lastReceipt: receipt }] })
+      : response({ recent: [receipt] }),
+  })
+  expect(report.summary.verdict).toBe('fail')
+  expect(report.summary.cadenceAssessment).toBe('interrupted')
+  expect(report.incidents).toEqual(expect.arrayContaining([expect.objectContaining({ kind: scanning ? 'scan-stalled' : 'scan-overdue', recoveredAt: null })]))
+})
+
+it('detects a dispatch gap even when a healthy new scan arrives before the next probe', async () => {
+  const start = Date.parse('2026-09-17T00:00:00Z')
+  let clock = start
+  const receipt = (at: number) => ({ id: String(at), asset: 'BTC', trigger: 'scheduled', outcome: 'duplicate', requestedAt: new Date(at).toISOString(), completedAt: new Date(at).toISOString(), sourceHealth: [{ id: 'daily-bars', provider: 'coinbase', status: 'ok' }] })
+  const report = await runObservation(parseObservationOptions(['--duration=1h', '--asset=BTC'], {}), {
+    now: () => clock, wait: async () => { clock += 30 * 60_000 },
+    fetcher: async (url: string) => url.endsWith('/status')
+      ? response({ running: true, backgroundEnabled: true, intervalMinutes: 15, checkedAt: new Date(clock).toISOString(), assets: [{ asset: 'BTC', enabled: true, scanning: false }] })
+      : response({ recent: [receipt(clock)] }),
+  })
+  expect(report.summary.verdict).toBe('fail')
+  expect(report.summary.cadence.BTC.maxIdleGapMs).toBe(30 * 60_000)
+  expect(report.incidents.some(row => row.kind === 'scan-gap')).toBe(true)
+})
+
+it('does not count daily interpretation scans as periodic scheduler successes', async () => {
+  let clock = Date.parse('2026-09-17T00:00:00Z')
+  const report = await runObservation(parseObservationOptions(['--duration=1h', '--asset=BTC'], {}), {
+    now: () => clock, wait: async (ms: number) => { clock += ms },
+    fetcher: async (url: string) => url.endsWith('/status')
+      ? response({ running: true, backgroundEnabled: true, intervalMinutes: 15, checkedAt: new Date(clock).toISOString(), assets: [{ asset: 'BTC', enabled: true, scanning: false }] })
+      : response({ recent: [{ id: String(clock), asset: 'BTC', trigger: 'narration', outcome: 'stored', requestedAt: new Date(clock).toISOString(), sourceHealth: [{ id: 'daily-bars', provider: 'coinbase', status: 'ok' }] }] }),
+  })
+  expect(report.summary.observedScheduledSuccesses.BTC).toBe(0)
+  expect(report.summary.cadence.BTC.narrationScans).toBeGreaterThan(0)
+  expect(report.summary.cadenceAssessment).toBe('missing')
 })

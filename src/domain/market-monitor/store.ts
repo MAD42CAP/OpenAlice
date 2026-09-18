@@ -5,6 +5,7 @@ import { gzip, gunzip } from 'node:zlib'
 import { promisify } from 'node:util'
 import { readRecentJsonLines } from './journal.js'
 import { dataPath } from '../../core/paths.js'
+import type { MarketContextCache } from './context-cache.js'
 import type {
   MarketAiNarration,
   MarketMonitorAlert,
@@ -44,6 +45,8 @@ async function appendJsonLine(file: string, value: unknown): Promise<void> {
 }
 
 export interface MarketMonitorStore {
+  contextCache(asset: MarketMonitorAsset, strategyId: string): Promise<MarketContextCache>
+  saveContextCache(asset: MarketMonitorAsset, strategyId: string, cache: MarketContextCache): Promise<void>
   archive(id: string): Promise<MarketAnalysisArchive | null>
   saveArchive(archive: MarketAnalysisArchive): Promise<void>
   settings(): Promise<MarketMonitorSettings>
@@ -71,6 +74,18 @@ export function createMarketMonitorStore(root = ROOT): MarketMonitorStore {
     return `${root}/inputs/${id}.json.gz`
   }
   return {
+    async contextCache(asset, strategyId) {
+      const file = seriesFile(root, asset, strategyId).replace('/series-', '/context-')
+      try { return JSON.parse(await readFile(file, 'utf8')) as MarketContextCache }
+      catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT' || error instanceof SyntaxError) return []; throw error }
+    },
+    async saveContextCache(asset, strategyId, cache) {
+      const file = seriesFile(root, asset, strategyId).replace('/series-', '/context-')
+      await ensureParent(file)
+      const temp = `${file}.${randomUUID()}.tmp`
+      await writeFile(temp, `${JSON.stringify(cache)}\n`, 'utf8')
+      await rename(temp, file)
+    },
     async archive(id) {
       let bytes: Buffer
       try { bytes = await readFile(archiveFile(id)) }

@@ -20,7 +20,7 @@ export const marketMonitorHandlers = [
   http.get('/api/market-monitor/status', () => HttpResponse.json({
     running: false, backgroundEnabled: settings.backgroundEnabled, intervalMinutes: settings.intervalMinutes,
     checkedAt: null, error: null,
-    assets: ASSETS.map((asset) => ({ asset, enabled: settings.enabledAssets.includes(asset), scanning: false, nextScanAt: null, lastReceipt: null, lastError: null })),
+    assets: ASSETS.map((asset) => ({ asset, enabled: settings.enabledAssets.includes(asset), scanning: false, scanStartedAt: null, nextScanAt: null, lastReceipt: null, lastError: null })),
   })),
   http.get('/api/market-monitor/settings', () => HttpResponse.json(settings)),
   http.get('/api/market-monitor/narrator/status', () => HttpResponse.json({ enabled: settings.codexNarrationEnabled, state: settings.codexNarrationEnabled ? 'ready' : 'disabled', issueId: 'mad42lab-market-daily-interpretation', schedule: { cron: '30 17 * * *', timezone: 'America/Vancouver', localTime: '17:30' }, message: 'Demo schedule' })),

@@ -2097,6 +2097,7 @@ export const en = {
       balancedAlternative1: 'Re-accumulation before an upside continuation.', balancedAlternative2: 'Distribution before a downside continuation.',
     },
     context: {
+      retainedData: 'Last valid data: {{fields}}. Updated {{time}}; reference only until {{expires}}. The source is currently impaired; these values do not confirm current conditions.',
       fundingRate: 'Funding rate (8h)', openInterest: 'Perpetual OI', annualizedBasisPercent: 'Annualized basis',
       optionOpenInterest: 'Options OI', putCallOpenInterestRatio: 'Put/call OI', marketCap: 'Market cap',
       trailingPe: 'Trailing P/E', forwardPe: 'Forward P/E', analystTargetMean: 'Analyst target',
@@ -2122,6 +2123,7 @@ export const en = {
       demoHourlyBars: 'Deterministic attributed hourly demo bars.', demoContext: 'Static context for UI acceptance; not live.',
     },
     history: {
+      narration: 'daily interpretation',
       summary: 'Adjacent observation agreement {{accuracy}} · {{resolved}} samples (not a backtest)', captured: 'Captured', price: 'Price',
       hypothesis: 'Hypothesis', confidence: 'Rule score', trigger: 'Trigger', manual: 'manual', scheduled: 'scheduled',
       noAlerts: 'No alert conditions recorded.', stateChanged: '{{asset}} evidence state changed',
@@ -2145,7 +2147,7 @@ export const en = {
       truncated: 'Showing the latest {{count}} attempts; earlier attempts in this window are excluded.',
       noAttempts: 'No scan attempts recorded in this window.', recordedAttempts: 'Recorded attempts',
       completion: 'Scan completion', failedAttempts: 'Failed attempts', sourceIssues: 'Scans with source issues',
-      checked: '{{issues}} / {{checked}} checked', scheduledManual: 'Scheduled / manual',
+      checked: '{{issues}} / {{checked}} checked', scheduledManual: 'Scheduled / manual / interpretation',
       newUnchanged: 'New / unchanged evidence', averageDuration: 'Average duration', p95Duration: '95th percentile duration',
       qualification: 'Completion measures recorded scan attempts, not continuous uptime or trading performance. {{missing}} attempts have no source checks; {{durations}} have duration measurements. Consecutive failures: {{failures}}. Scan recoveries: {{recoveries}}.',
       sourceTable: 'Data source reliability', source: 'Source', lastCheck: 'Last check', healthy: 'Healthy',

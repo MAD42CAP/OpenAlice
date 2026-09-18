@@ -256,3 +256,30 @@ it.each(['stale', 'unverified', 'current'] as const)('labels the narration input
   const text = status === 'stale' ? /Evidence has changed since/ : status === 'current' ? 'Matches this observation' : /Older interpretation without/
   expect(await screen.findByText(text)).toBeTruthy()
 })
+
+it('labels retained context next to the values and distinguishes daily interpretation scans', async () => {
+  mocks.snapshots.mockImplementation(async (asset: 'BTC' | 'TSLA' | 'MSTR') => {
+    const snapshot = demoMonitorSnapshot(asset)
+    snapshot.sourceHealth.push({ id: 'btc-derivatives', label: 'BTC derivatives', status: 'unavailable', provider: 'Deribit', asOf: '2026-09-12T12:00:00Z', detail: 'request timed out', retained: { asOf: '2026-09-12T12:00:00Z', expiresAt: '2026-09-12T12:30:00Z', fields: ['fundingRate'] } })
+    return { snapshots: [snapshot], count: 1 }
+  })
+  mocks.health.mockImplementation(async (asset: 'BTC' | 'TSLA' | 'MSTR', hours: 24 | 72) => {
+    const report = demoMonitorHealth(asset, hours)
+    report.recent[0]!.trigger = 'narration'
+    report.summary.narration = 1
+    report.summary.scheduled = 1
+    return report
+  })
+  render(<MarketEvidenceMonitorPage />)
+  expect(await screen.findByText(/Last valid data: Funding rate \(8h\).*reference only until/)).toBeTruthy()
+  expect(screen.getByText('request timed out')).toBeTruthy()
+  expect(await screen.findByText('daily interpretation')).toBeTruthy()
+  expect(screen.getByText('1 / 1 / 1')).toBeTruthy()
+})
+
+it('shows attention when an individual asset scan stalls despite a healthy scheduler', async () => {
+  mocks.status.mockResolvedValue({ running: true, backgroundEnabled: true, intervalMinutes: 15, checkedAt: new Date().toISOString(), error: null, assets: [{ asset: 'BTC', enabled: true, scanning: true, scanStartedAt: '2026-09-12T12:00:00Z', nextScanAt: null, lastReceipt: null, lastError: 'Scan has not completed within two minutes.' }] })
+  render(<MarketEvidenceMonitorPage />)
+  expect(await screen.findByText('Scan has not completed within two minutes.')).toBeTruthy()
+  expect(screen.queryByText('Scanning BTC…')).toBeNull()
+})

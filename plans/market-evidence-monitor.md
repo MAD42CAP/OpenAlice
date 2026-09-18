@@ -438,3 +438,64 @@ The branch is complete when BTC and TSLA can be scanned read-only, duplicate
 snapshots are suppressed, source failure is visible without erasing the last
 good view, the 1D/1H dashboard and histories work in demo and production paths,
 all proportional tests pass, and the verified branch is pushed for Mac review.
+
+
+## September 17 operational hardening
+
+The completed September 16 18:10–September 17 18:10 Vancouver observation
+recorded 1,441/1,441 successful probes and 282 successful automatic scans (94
+per asset, including daily interpretation refreshes). Six source incidents
+clustered in two scan rounds and all recovered. One Coinbase daily timeout
+fell back successfully to Yahoo; hourly Coinbase and equity Alpaca continued.
+SEC was healthy in all 188 checks. The verdict remains `attention`, not an
+all-green or predictive acceptance claim.
+
+This increment addresses the observed failures and audit gaps:
+
+- [x] Preserve successful context independently of semantic de-duplication and
+  restart; allow bounded BTC display grace with original time/expiry and an
+  explicit stale-data notice. Never renew failed data or replace successful
+  empty results.
+- [x] Classify equity subrequest failures without leaking request material;
+  add one bounded transient retry and retain ownership of stuck upstream reads.
+  Keep SEC cooldown and declaration rules unchanged.
+- [x] Detect overdue and stalled scans and gaps hidden between probes; expose
+  active start time and distinguish daily interpretation from periodic scans.
+- [x] Complete cross-owner regression review, live scans/replay and real/demo UI acceptance; retain the two known Codex adapter baseline failures.
+- [x] Begin a fresh 72-hour observation of this increment after verification;
+  finishing this code increment does not claim that future observation passed.
+
+Autonomous UI decision: retain the current dashboard and responsive grids.
+Place plain-language old-data notices beside the context values, including
+field names, original time and expiry. Use existing warning text and status
+semantics; no new controls, navigation, modal or focus behavior. Show periodic,
+manual and interpretation scan counts separately in the existing operations
+panel. A per-asset runtime error promotes its status strip to attention.
+
+The four pre-existing user edits in CLI commands, narrator prompting and the
+Codex adapter are outside this increment and must remain uncommitted.
+
+Verification: 20 focused files / 220 tests pass, including monitor domain,
+Coinbase/BarService, HTTP configuration/monitor routes and both market pages.
+Root and UI typechecks pass. Full hermetic suite with permission to bind local
+test servers: 822 files pass, one has the two previously known Codex command
+expectation failures; 7,212 tests pass, two fail, four skip. The failing adapter
+expectations differ only in the two environment arguments introduced by the
+pre-existing user edit; none of those files were changed by this increment.
+The first sandboxed full run could not bind even a loopback ephemeral port
+(EPERM) and was interrupted; it is not used as regression evidence.
+
+The restarted Mac runtime scanned BTC with Coinbase (400 daily / 180 hourly),
+TSLA/MSTR with Alpaca, and all context sources including Deribit/SEC were healthy.
+All three returned observation IDs replay as verified, including legacy equity
+observations reused by duplicate scans. The new context files exist separately
+for each asset and record the actual successful scan time. Real and demo routes
+render the three trigger counts; demo narrow layout was checked at 390px, with
+no browser console errors on the real route. Retained-data warnings and stalled
+runtime status are covered in component tests without inducing a real outage.
+
+A new detached, read-only 72-hour observer began at 2026-09-18T06:05:58Z
+(September 17 23:05 Vancouver), planned to finish September 20 23:05 Vancouver.
+Its checkpoint is `market-monitor-acceptance-2026-09-17-ops.json` in the local
+state directory. Initial probes are healthy; the observation remains incomplete.
+No notifications were enabled and no predictive-validation claim is made.

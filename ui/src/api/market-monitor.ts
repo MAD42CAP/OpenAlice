@@ -2,7 +2,7 @@ import { fetchJson, headers } from './client'
 import type { BarMeta, HistoricalBar } from './market'
 
 export type MonitorAsset = 'BTC' | 'TSLA' | 'MSTR'
-export type MonitorTrigger = 'manual' | 'scheduled'
+export type MonitorTrigger = 'manual' | 'scheduled' | 'narration'
 
 export interface MonitorSettings {
   backgroundEnabled: boolean
@@ -38,6 +38,7 @@ export interface SourceHealth {
   provider: string
   asOf: string | null
   detail: string
+  retained?: { asOf: string; expiresAt: string; fields: string[] }
 }
 
 export interface EvidenceItem {
@@ -220,6 +221,7 @@ export interface MonitorHealthReport {
     duplicates: number
     scheduled: number
     manual: number
+    narration?: number
     successRatePercent: number | null
     consecutiveFailures: number
     recoveries: number
@@ -257,6 +259,7 @@ export interface MonitorSchedulerStatus {
     asset: MonitorAsset
     enabled: boolean
     scanning: boolean
+    scanStartedAt?: string | null
     nextScanAt: string | null
     lastReceipt: MonitorReceipt | null
     lastError: string | null

@@ -16,7 +16,7 @@ export function demoMonitorHealth(asset: MonitorAsset, hours: 24 | 72 = 24): Mon
   return {
     schemaVersion: 1, asset, generatedAt,
     window: { hours, from: new Date(Date.parse(generatedAt) - hours * 3_600_000).toISOString(), to: generatedAt, firstSampleAt: receipts[0].completedAt!, lastSampleAt: receipts[2].completedAt!, sampleLimit: 5000, truncated: false },
-    summary: { attempts: 3, successful: 3, failed: 0, stored: 1, duplicates: 2, scheduled: 2, manual: 1, successRatePercent: 100, consecutiveFailures: 0, recoveries: 0, lastSuccessAt: receipts[2].completedAt!, lastFailureAt: null, durationSamples: 3, averageDurationMs: 1200, p95DurationMs: 1800, scansWithSourceChecks: 3, scansWithSourceIssues: 1 },
+    summary: { attempts: 3, successful: 3, failed: 0, stored: 1, duplicates: 2, scheduled: 2, manual: 1, narration: 0, successRatePercent: 100, consecutiveFailures: 0, recoveries: 0, lastSuccessAt: receipts[2].completedAt!, lastFailureAt: null, durationSamples: 3, averageDurationMs: 1200, p95DurationMs: 1800, scansWithSourceChecks: 3, scansWithSourceIssues: 1 },
     sources: snapshot.sourceHealth.map((source) => ({
       id: source.id, label: source.label, provider: source.provider, samples: 3,
       ok: source.id === 'context' ? 2 : 3, degraded: source.id === 'context' ? 1 : 0,
