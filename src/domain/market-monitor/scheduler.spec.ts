@@ -6,6 +6,7 @@ function fixture() {
   let settings = { ...DEFAULT_MARKET_MONITOR_SETTINGS, enabledAssets: [...DEFAULT_MARKET_MONITOR_SETTINGS.enabledAssets] }
   const receipts: MarketMonitorReceipt[] = []
   const service = {
+    dashboard: vi.fn(async () => ({}) as never),
     settings: vi.fn(async () => settings),
     isScanning: vi.fn(() => false),
     receipts: vi.fn(async (asset?: MarketMonitorAsset) => receipts.filter((row) => row.asset === asset).slice(-1)),
@@ -24,6 +25,30 @@ beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date('2026-09-13T00:
 afterEach(() => { vi.clearAllTimers(); vi.useRealTimers() })
 
 describe('market monitor background scheduler', () => {
+  it('keeps a slow research request out of scan state, cadence and stop', async () => {
+    const { scheduler, service, configure } = fixture()
+    let finish!: () => void
+    service.dashboard.mockReturnValue(new Promise<void>(resolve => { finish = resolve }) as never)
+    configure({ backgroundEnabled: true, enabledAssets: ['BTC'], intervalMinutes: 1 })
+    scheduler.start()
+    await scheduler.tick()
+    expect((await scheduler.status()).assets.find(row => row.asset === 'BTC')?.scanning).toBe(false)
+    await vi.advanceTimersByTimeAsync(60_000)
+    expect(service.scan).toHaveBeenCalledTimes(2)
+    expect(service.dashboard).toHaveBeenCalledOnce()
+    await scheduler.stop()
+    finish()
+  })
+  it('collects research after a scan and isolates its outage from successful scan status', async () => {
+    const { scheduler, service, configure } = fixture()
+    configure({ backgroundEnabled: true, enabledAssets: ['BTC'] })
+    service.dashboard.mockRejectedValue(new Error('research unavailable'))
+    scheduler.start()
+    await scheduler.tick()
+    expect(service.dashboard).toHaveBeenCalledExactlyOnceWith('BTC', 90)
+    expect((await scheduler.status()).assets.find(row => row.asset === 'BTC')?.lastError).toBeNull()
+    await scheduler.stop()
+  })
   it('starts paused by default and does not require a browser after opt-in', async () => {
     const { scheduler, service, configure } = fixture()
     scheduler.start()

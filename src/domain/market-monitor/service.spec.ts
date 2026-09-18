@@ -25,7 +25,10 @@ function memoryStore(): MarketMonitorStore & { data: { snapshots: MarketMonitorS
   const archives = new Map<string, MarketAnalysisArchive>()
   const contexts = new Map<string, MarketContextCache>()
   const series = new Map<string, MarketMonitorSnapshot['chart']>()
+  const research: import('./dashboard-types.js').DashboardObservation[] = []
   return {
+    dashboardObservations: async (asset, limit = 100) => research.filter(row => row.asset === asset).slice(-limit),
+    appendDashboardObservation: async (row) => { research.push(row) },
     data,
     contextCache: async (asset, strategy) => structuredClone(contexts.get(`${asset}:${strategy}`) ?? []),
     saveContextCache: async (asset, strategy, cache) => { contexts.set(`${asset}:${strategy}`, structuredClone(cache)) },
@@ -66,7 +69,7 @@ function dependencies(hourly = true, at = '2026-04-01T00:00:00Z') {
     }
     return new Response(JSON.stringify({ result: [] }), { status: 200 })
   }) as typeof fetch
-  return { barService, equityClient, reference, fetcher, secContactEmail: async () => 'monitor@example.test', now: () => new Date(at) }
+  return { barService, equityClient, reference, fetcher, dashboardReaders: {}, secContactEmail: async () => 'monitor@example.test', now: () => new Date(at) }
 }
 
 describe('market monitor service', () => {

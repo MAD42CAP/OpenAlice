@@ -1,4 +1,5 @@
 import { demoMonitorReview } from '../fixtures/market-review'
+import { demoMarketDashboard } from '../fixtures/market-dashboard'
 import { http, HttpResponse } from 'msw'
 import type { MonitorAlert, MonitorAsset, MonitorSettings } from '../../api/market-monitor'
 import { demoMonitorHealth, demoMonitorSnapshot } from '../fixtures/market-monitor'
@@ -9,6 +10,12 @@ const snapshots: Record<MonitorAsset, ReturnType<typeof demoMonitorSnapshot>[]> 
 const alerts: MonitorAlert[] = []
 
 export const marketMonitorHandlers = [
+  http.get('/api/market-monitor/dashboard', ({ request }) => {
+    const query = new URL(request.url).searchParams
+    const asset = query.get('asset'), days = query.get('days') ?? '90'
+    if (!ASSETS.includes(asset as MonitorAsset) || !['30', '90', '365'].includes(days)) return HttpResponse.json({ error: 'Invalid dashboard selection' }, { status: 400 })
+    return HttpResponse.json(demoMarketDashboard(asset as MonitorAsset, Number(days) as 30 | 90 | 365))
+  }),
   http.get('/api/market-monitor/review', ({ request }) => {
     const query = new URL(request.url).searchParams
     const asset = query.get('asset'), days = query.get('days') ?? '30'

@@ -96,8 +96,8 @@ a quieter retest and a subsequent completed close beyond the test extreme;
 missing volume cannot count as quieter. A later boundary violation invalidates
 the original event. Historical evaluation is labelled adjacent-observation
 agreement, not a backtest; unchanged daily identities, flat prices and analysis-version transitions do not
-count as resolved directional trials. Fixed forward horizons are not yet
-implemented.
+count as resolved directional trials. The separate historical review described
+below uses explicit forward daily/session windows and archived original inputs.
 
 Deribit `funding_8h` and equity short-float ratios are fractions and become
 percentages at display time. Instantaneous funding is not substituted for an
@@ -633,6 +633,65 @@ incident recovered.
 Mac/Electron acceptance must confirm desktop and narrow-window layout, live
 timestamps, the 1D/1H switch, persistence after restart and no duplicate scan
 records across a 24–72 hour observation window.
+
+## Research charts and issuer context
+
+`GET /api/market-monitor/dashboard?asset=BTC|TSLA|MSTR&days=30|90|365`
+returns attributed chart modules without running a scan or changing a strategy.
+`dashboard.ts` joins closed stored bars, original judgment/event dates and public
+context observations. It separates the time an event occurred from the time its
+state was first recorded. Source data, publication, acquisition and assembly
+timestamps are distinct; absent publication dates stay unknown. The UI hooks
+keep old asset/window responses from replacing a newer selection.
+
+New `research-<asset>.jsonl` journals are additive public-data records. Every BTC
+scan records derivatives, including semantic duplicates. Retained failed-source
+values remain labelled stale and are excluded from fresh historical points.
+Older observations can contribute only their originally recorded data. Research
+metrics are captured at acquisition time; a newly retrieved issuer report never
+becomes an input to an old prediction. Reads are bounded to 2,000 judgments and
+20,000 scalar observations and disclose a reached bound. Different providers
+and formula versions remain separate series. Per-asset writes serialize cached
+research deduplication. Existing immutable inputs are never rewritten.
+
+The existing opt-in backend scheduler collects supplementary research after a
+successful scan. Public-source failures remain visible inside the research
+report and never turn a successful price scan into a failed price receipt.
+No second scheduler, account access or trading writes are introduced.
+
+`btc-dashboard.ts` uses existing Coinbase/Yahoo BarService fallback for a long
+closed daily history. Its 200-week simple average requires 200 consecutive,
+complete UTC Monday–Sunday weeks. The 2024-04-20 anchored average uses daily
+typical price and a single provider's volume; missing days/volume make it
+unavailable. It is not transaction VWAP or a global holder cost basis.
+Alternative.me provides attributed historical Fear & Greed daily values.
+Coin Metrics Community supplies `CapMVRVCur`; attribution and its CC BY-NC 4.0
+terms are displayed. Commercial reuse requires appropriate data rights.
+Hashrate, mining difficulty and mining cost models are explicitly out of scope.
+
+`strategy-dashboard.ts` reads the issuer's public `bitcoinKpis`, `mstrKpiData`
+and `strcKpiData` endpoints. mNAV retains the issuer's net-BPS definition effective
+2026-07-23 and is not spliced with the old enterprise-value ratio. Rounded gross
+BPS can imply only an explicitly labelled estimated assumed diluted sharecount.
+Independent reporting dates absent from issuer fields remain unknown. USD Reserve
+is unavailable when not provided; it is never added to potentially overlapping
+cash. Annual interest/dividend coverage is the issuer's stated USD-assets model,
+not a cash runway that includes all operations and maturing debt.
+
+STRC has its own metrics, price and dividend-calendar charts within MSTR; it does
+not enter the ordinary-stock Wyckoff scanner. The $100 line is a stated-amount
+reference, not a redemption guarantee. No dividend-inclusive total return is
+synthesized without complete ex-date/adjustment records. MSTR/BTC normalized
+price curves use common calendar dates but explicitly disclose UTC versus New
+York closes; they are not synchronous return correlations. Corporate funding
+flows are not inferred from changes in price or total holdings.
+
+Charts preserve gaps, draw irregular issuer observations as points and keep
+different units on separate axes/charts. The weekly reference uses its own
+sampling grid. Judgment actions open the existing original-input replay.
+All new research is descriptive; production scores and historical rule inputs
+are unchanged. A later rule change requires a new version and subsequent
+untouched evaluation samples.
 
 ## Repository Scope
 

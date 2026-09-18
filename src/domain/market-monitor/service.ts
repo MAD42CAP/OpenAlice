@@ -1,4 +1,6 @@
 import { retainContext } from './context-cache.js'
+import { createMarketDashboard, dashboardContextMetrics } from './dashboard.js'
+import type { DashboardModule, MarketDashboardReport } from './dashboard-types.js'
 import { randomUUID } from 'node:crypto'
 import type { EquityClientLike } from '../market-data/client/types.js'
 import type { BarMeta, BarService, BarsResult, OhlcvBar } from '../market-data/bars/index.js'
@@ -42,6 +44,7 @@ import {
 } from './types.js'
 
 export interface MarketMonitorServiceDeps {
+  dashboardReaders?: Partial<Record<'BTC' | 'MSTR', { read(days: 30 | 90 | 365): Promise<DashboardModule> }>>
   barService: BarService
   equityClient: EquityClientLike
   reference: ReferenceDataService
@@ -55,6 +58,7 @@ export interface MarketMonitorServiceDeps {
 }
 
 export interface MarketMonitorService {
+  dashboard(asset: MarketMonitorAsset, days?: 30 | 90 | 365): Promise<MarketDashboardReport>
   settings(): Promise<MarketMonitorSettings>
   saveSettings(settings: MarketMonitorSettings): Promise<void>
   scan(asset: MarketMonitorAsset, trigger: MarketMonitorTrigger): Promise<MarketMonitorScanResult>
@@ -168,6 +172,7 @@ async function loadBars(barService: BarService, asset: MarketMonitorAsset, inter
 
 export function createMarketMonitorService(deps: MarketMonitorServiceDeps): MarketMonitorService {
   const store = deps.store ?? createMarketMonitorStore()
+  const dashboard = createMarketDashboard({ store, barService: deps.barService, fetcher: deps.fetcher, now: deps.now, readers: deps.dashboardReaders })
   const now = deps.now ?? (() => new Date())
   const inFlight = new Map<MarketMonitorAsset, Promise<MarketMonitorScanResult>>()
   const startedScans = new Map<MarketMonitorAsset, string>()
@@ -187,6 +192,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
       : { ...settings, strategyId: strategyRegistry.list()[0]!.id }
   }
   return {
+    dashboard: (asset, days) => dashboard.read(asset, days),
     scanStartedAt: (asset) => startedScans.get(asset) ?? null,
     settings: loadSettings,
     async replay(snapshotId) {
@@ -388,6 +394,9 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
             await store.saveArchive({ schemaVersion: 1, input, snapshot: { ...snapshot, chart: { ...snapshot.chart, daily: input.dailyBars, intraday: input.intradayBars } } })
             await store.appendSnapshot({ ...snapshot, chart: { ...snapshot.chart, daily: [], intraday: [] } })
           }
+          const researchMetrics = dashboardContextMetrics(snapshot)
+          if (researchMetrics.length) await store.appendDashboardObservation({ kind: 'scan-context', asset, strategyId: snapshot.strategyId,
+            capturedAt: requestedAt, snapshotId: stored ? snapshot.id : previous?.id ?? null, metrics: researchMetrics })
           const alert = stored ? await maybeAlert(store, snapshot, previous, settings) : null
           const receipt: MarketMonitorReceipt = {
             ...receiptBase, completedAt: now().toISOString(), strategyId,

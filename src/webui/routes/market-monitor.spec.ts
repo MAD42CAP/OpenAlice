@@ -8,6 +8,7 @@ import type { MarketNarratorCoordinator } from '../market-monitor-narrator.js'
 
 function service(): MarketMonitorService {
   return {
+    dashboard: vi.fn(async (asset, days = 90) => ({ schemaVersion: 1 as const, asset, generatedAt: '2026-09-18T00:00:00Z', windowDays: days, modules: [] })),
     scanStartedAt: vi.fn(() => null),
     replay: vi.fn(async (snapshotId) => ({ status: 'unavailable' as const, snapshotId })),
     settings: vi.fn(async () => DEFAULT_MARKET_MONITOR_SETTINGS),
@@ -27,6 +28,17 @@ function service(): MarketMonitorService {
 }
 
 describe('market monitor routes', () => {
+  it('validates research windows, leaves scans alone and sanitizes storage failures', async () => {
+    const fake = service(), app = createMarketMonitorRoutes({} as EngineContext, fake)
+    expect((await app.request('/dashboard?asset=MSTR&days=365')).status).toBe(200)
+    expect(fake.dashboard).toHaveBeenCalledWith('MSTR', 365)
+    for (const query of ['asset=STRC&days=90', 'asset=BTC&days=7', 'days=30']) expect((await app.request(`/dashboard?${query}`)).status).toBe(400)
+    vi.mocked(fake.dashboard).mockRejectedValue(new Error('private path must not escape'))
+    const result = await app.request('/dashboard?asset=BTC')
+    expect(result.status).toBe(503)
+    expect(await result.text()).not.toContain('private path')
+    expect(fake.scan).not.toHaveBeenCalled()
+  })
   it('validates retrospective windows and does not dispatch scans or leak read errors', async () => {
     const fake = service(), app = createMarketMonitorRoutes({} as EngineContext, fake)
     vi.mocked(fake.review).mockResolvedValue({ policy: 'forward-sessions-v1' } as never)

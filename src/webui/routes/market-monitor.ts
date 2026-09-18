@@ -141,6 +141,14 @@ export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketM
     catch { return c.json({ error: 'Historical review could not be read' }, 503) }
   })
 
+  app.get('/dashboard', async (c) => {
+    const asset = assetFrom(c.req.query('asset'))
+    const days = c.req.query('days') ?? '90'
+    if (!asset || !['30', '90', '365'].includes(days)) return c.json({ error: 'Select BTC, TSLA or MSTR and a 30, 90 or 365 day research window' }, 400)
+    try { return c.json(await service.dashboard(asset, Number(days) as 30 | 90 | 365)) }
+    catch { return c.json({ error: 'Research history could not be read; existing scans remain available' }, 503) }
+  })
+
   app.get('/health', async (c) => {
     const asset = assetFrom(c.req.query('asset'))
     const hours = c.req.query('hours') ?? '24'

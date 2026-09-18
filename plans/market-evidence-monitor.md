@@ -551,3 +551,56 @@ exercised, including changing records/horizons, raw prose, pending windows,
 Source hot reload made a manual platform restart unnecessary. The existing
 72-hour operational observer continues with its original report and start time;
 it is still incomplete and is not relabelled as 72 hours of this new version.
+
+## Research dashboard increment — 2026-09-18
+
+User approved immediate implementation after comparing the BTC and Strategy
+reference dashboards. Hashrate, mining difficulty and mining cost models are
+explicitly excluded. Work remains on the owner's feature branch only.
+
+Autonomous design choice: extend the existing evidence page with an inline
+research section rather than a competing route. Native 30/90/365-day controls,
+two-column panels collapsing to one column, unit-separated charts, keyboard
+accessible event selection and existing theme/shared primitives. Source dates,
+acquisition times and formula versions remain expandable beside each metric.
+STRC is a distinct issuer-research subgroup, not an ordinary-stock Wyckoff asset.
+
+- [x] Preserve original judgments while linking chart events to input replay.
+- [x] Persist fresh derivatives from every scan, including semantic duplicates;
+      gaps and retained/stale values must not become invented observations.
+- [x] Add attributed Alternative.me and Coin Metrics Community MVRV history,
+      complete 200-week average and
+      source-specific anchored VWAP using existing read-only bar providers.
+- [x] Add original-source Strategy/STRC metrics, quotes/dividend calendar and
+      comparable price histories; date/definition gaps remain visible.
+- [x] Expose a bounded research API and keep browser-independent collection
+      attached to the existing opt-in scan scheduler.
+- [x] Verify relevant hermetic tests, root/UI types, real local and demo browser
+      routes, live read-only APIs and calendar-date rendering across timezones.
+
+Acceptance: 141 focused tests pass; root and UI type checks pass. The full
+hermetic suite has 7,299 passing tests, four skipped and two failures in the
+existing Codex AI-config command expectations. Those failures correspond to
+pre-existing user changes outside this increment; the four initially modified
+user files remain untouched and excluded from delivery. Desktop live views,
+390px demo layout, asset/window switching and original-input replay were checked.
+Real BTC and MSTR scans succeeded with Coinbase and Alpaca respectively. Source
+hot reload served the new dashboard without stopping the running monitor.
+
+Research collection is independent of scan completion, cadence and shutdown.
+Concurrent chart windows serialize per-asset journal writes, and bounded history
+processing uses timestamp sets. UTC calendar series preserve their dates while
+intraday observations retain local-time display.
+
+Source limitations remain explicit: issuer disclosure dates and USD reserve are
+unknown where the official payload does not supply them; collection dates are
+not retroactive disclosure dates. Financing-flow histories and dividend-adjusted
+total returns are deferred until reliable underlying records are available.
+Coin Metrics Community attribution and noncommercial terms are shown alongside
+MVRV. This increment excludes hashrate, difficulty and mining-cost models.
+
+New research metrics are descriptive context. They do not silently alter the
+existing scoring strategy or retroactively become inputs to old judgments.
+Unlicensed/paid on-chain data is not fabricated; providers requiring a new
+subscription remain outside this increment. Rule calibration needs later
+forward observations and explicit versioned evaluation.

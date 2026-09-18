@@ -6,6 +6,7 @@ import { promisify } from 'node:util'
 import { readRecentJsonLines } from './journal.js'
 import { dataPath } from '../../core/paths.js'
 import type { MarketContextCache } from './context-cache.js'
+import type { DashboardObservation } from './dashboard-types.js'
 import type {
   MarketAiNarration,
   MarketMonitorAlert,
@@ -45,6 +46,8 @@ async function appendJsonLine(file: string, value: unknown): Promise<void> {
 }
 
 export interface MarketMonitorStore {
+  dashboardObservations(asset: MarketMonitorAsset, limit?: number): Promise<DashboardObservation[]>
+  appendDashboardObservation(observation: DashboardObservation): Promise<void>
   contextCache(asset: MarketMonitorAsset, strategyId: string): Promise<MarketContextCache>
   saveContextCache(asset: MarketMonitorAsset, strategyId: string, cache: MarketContextCache): Promise<void>
   archive(id: string): Promise<MarketAnalysisArchive | null>
@@ -74,6 +77,10 @@ export function createMarketMonitorStore(root = ROOT): MarketMonitorStore {
     return `${root}/inputs/${id}.json.gz`
   }
   return {
+    async dashboardObservations(asset, limit = 10_000) {
+      return (await readRecentJsonLines<DashboardObservation>(`${root}/research-${asset.toLowerCase()}.jsonl`, Math.max(1, Math.min(20_000, limit)), row => row.asset === asset)).rows
+    },
+    appendDashboardObservation: (observation) => appendJsonLine(`${root}/research-${observation.asset.toLowerCase()}.jsonl`, observation),
     async contextCache(asset, strategyId) {
       const file = seriesFile(root, asset, strategyId).replace('/series-', '/context-')
       try { return JSON.parse(await readFile(file, 'utf8')) as MarketContextCache }

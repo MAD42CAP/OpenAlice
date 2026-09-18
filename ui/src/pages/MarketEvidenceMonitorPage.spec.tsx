@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   review: vi.fn(), replay: vi.fn(), health: vi.fn(), status: vi.fn(), narratorStatus: vi.fn(), runNarratorNow: vi.fn(), reconcileNarrator: vi.fn(), settings: vi.fn(), strategies: vi.fn(), snapshots: vi.fn(), alerts: vi.fn(), evaluation: vi.fn(), scan: vi.fn(), saveSettings: vi.fn(),
 }))
 vi.mock('../api', () => ({ api: { marketMonitor: mocks } }))
+vi.mock('./market/MarketResearchDashboard', () => ({ MarketResearchDashboard: ({ onSelectSnapshot }: { onSelectSnapshot?: (id: string) => void }) => <button onClick={() => onSelectSnapshot?.('demo-btc-0')}>Open research judgment</button> }))
 
 beforeEach(async () => {
   await i18n.changeLanguage('en')
@@ -284,4 +285,20 @@ it('shows attention when an individual asset scan stalls despite a healthy sched
   render(<MarketEvidenceMonitorPage />)
   expect(await screen.findByText('Scan has not completed within two minutes.')).toBeTruthy()
   expect(screen.queryByText('Scanning BTC…')).toBeNull()
+})
+
+
+it('opens the archived input replay from a research chart judgment', async () => {
+  const original = Element.prototype.scrollIntoView
+  const scroll = vi.fn()
+  Element.prototype.scrollIntoView = scroll
+  mocks.replay.mockResolvedValue({ status: 'unavailable', snapshotId: 'demo-btc-0' })
+  try {
+    render(<MarketEvidenceMonitorPage />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Open research judgment' }))
+    await waitFor(() => expect(mocks.replay).toHaveBeenCalledWith('demo-btc-0'))
+    expect(scroll).toHaveBeenCalledWith({ block: 'start' })
+  } finally {
+    Element.prototype.scrollIntoView = original
+  }
 })

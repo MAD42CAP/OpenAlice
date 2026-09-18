@@ -1,7 +1,7 @@
 import type { MarketMonitorService } from './service.js'
 import { MARKET_MONITOR_ASSETS, type MarketMonitorAsset, type MarketMonitorSchedulerStatus } from './types.js'
 
-type SchedulerService = Pick<MarketMonitorService, 'settings' | 'receipts' | 'scan' | 'isScanning'> & Partial<Pick<MarketMonitorService, 'scanStartedAt'>>
+type SchedulerService = Pick<MarketMonitorService, 'settings' | 'receipts' | 'scan' | 'isScanning'> & Partial<Pick<MarketMonitorService, 'scanStartedAt' | 'dashboard'>>
 
 export interface MarketMonitorScheduler {
   start(): void
@@ -24,6 +24,7 @@ export function createMarketMonitorScheduler(
   let timer: ReturnType<typeof setInterval> | undefined
   let activePoll: Promise<void> | undefined
   const activeScans = new Map<MarketMonitorAsset, Promise<void>>()
+  const activeResearch = new Map<MarketMonitorAsset, Promise<void>>()
   const activeStarted = new Map<MarketMonitorAsset, string>()
   let checkedAt: string | null = null
   let error: string | null = null
@@ -77,6 +78,13 @@ export function createMarketMonitorScheduler(
             try {
               await service.scan(item.asset, 'scheduled')
               lastFailure.delete(item.asset)
+              // Supplemental research has its own missing-data states; a public
+              // context request must not extend scan flags, cadence, or shutdown.
+              if (running && service.dashboard && !activeResearch.has(item.asset)) {
+                const research = Promise.resolve().then(() => service.dashboard!(item.asset, 90))
+                  .then(() => undefined, () => undefined).finally(() => activeResearch.delete(item.asset))
+                activeResearch.set(item.asset, research)
+              }
             } catch (cause) {
               // Keep an in-memory error even if the failure receipt cannot
               // be written; never let it hide behind an older successful scan.
