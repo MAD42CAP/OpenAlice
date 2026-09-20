@@ -636,3 +636,45 @@ hermetic run reported 7,326 passing, four skipped and three failing tests: two
 pre-existing Codex command-expectation failures, plus a research warning-copy
 assertion. The latter was updated to the new failure wording and passed in the
 final focused run. The unrelated user changes remain excluded from delivery.
+
+## TypeSafe prospective research — 2026-09-20
+
+The owner requested TypeSafe/Jev integration and short/medium/long trend
+assessment, and explicitly placed the API key entry in Settings → AI Provider.
+Chosen UI: an independent research-provider card on that existing page, with
+an encrypted local credential, connection test and opt-in daily collection.
+The monitor gets a responsive three-column forecast card (one column on mobile),
+explicit horizons, probability bars, evidence timestamps and retrospective
+comparison. Shared buttons/forms and labelled inputs retain keyboard access.
+This does not add a chat runtime or change the deterministic market strategy.
+
+Pin Jev's version; persist questions, numerical public evidence, issue time
+and responses before evaluation. Begin outcomes at the next session open,
+count 1/7/30 BTC days or 1/5/20 equity sessions, and retain a fixed ±0.25%
+flat band. Compare matched samples with the original rules and always-up
+baseline. Show abstentions, missing data and sample counts. Raw model output
+is uncalibrated; precision is not evidence of improved predictive accuracy.
+No automatic live-rule changes or trading actions are in scope.
+
+Each horizon asks return direction and evidence adequacy independently. The
+up/flat/down probabilities sum to one; abstention is not a fourth market
+outcome. Three-outcome Brier includes all matured distributions, even when the
+separate evidence check abstains. Directional hit rates expose that exclusion.
+
+Implemented and accepted locally: sealed provider settings, real classification
+probe, prospective forecast ledger, independent evidence checks, opt-in daily
+collection, matched retrospective evaluation and manual public-source claim
+audit. Both typechecks and 113 focused tests pass. The full hermetic run had
+7,362 passing, four skipped and three failing tests. The new semantic-color
+violation was repaired and its owner gate passes in the final focused run.
+Two existing Codex command-expectation failures reflect the four pre-existing
+user-modified files; those files remain untouched and excluded from delivery.
+
+Real browser acceptance covered the live settings and dashboard empty states,
+plus demo forecasts, abstention, retrospective expansion and proposition
+audit. Real BTC scanning succeeded with Coinbase daily/hourly data. Its
+verified archive produced 399 closed daily and 179 closed hourly observations
+for Jev, excluding the current partial candles. Live Jev acceptance still
+requires the owner to enter their key through the delivered form; the public
+settings endpoint currently reports unconfigured. No secret was read into this
+task and no claim of a successful real Jev evaluation is made.

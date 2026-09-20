@@ -1,9 +1,11 @@
 /**
  * AI Provider — Alice's credential vault.
  *
- * Post-Workspace-pivot the in-process model loop is gone; the only thing this
- * page manages is the central set of api-key credentials that can be selected
- * for per-process Workspace Session bindings. The native-project config editor
+ * Post-Workspace-pivot the in-process model loop is gone. The main vault
+ * manages api-key credentials that can be selected
+ * for per-process Workspace Session bindings. A separate TypeSafe research
+ * card uses a sealed domain-owned credential and cannot be selected for Chat.
+ * The native-project config editor
  * is retained separately as a deprecated compatibility export. This page is
  * NOT a profile editor anymore — no backend/loginMethod, no active profile, no
  * SDK adapters, and Test runs the lightweight HTTP probe, not the old provider
@@ -49,6 +51,7 @@ import { AgentRuntimeIcon } from '../lib/agentRuntimeIcon'
 import { AIProviderIcon } from '../lib/aiProviderIcon'
 import { useWorkspace } from '../tabs/store'
 import { Button } from '../components/ui/button'
+import { TypeSafeSettingsPanel } from './market/TypeSafeSettingsPanel'
 
 function credentialLabel(cred: Pick<CredentialSummary, 'slug' | 'vendor' | 'label'>): string {
   return cred.label?.trim() || cred.slug
@@ -258,6 +261,8 @@ export function AIProviderPage() {
           {/* ============== Default workspace credentials ============== */}
           <WorkspaceDefaultsSection credentials={credentials} presets={presets} agents={agents} />
         </div>
+
+        <TypeSafeSettingsPanel />
 
         <div className="mx-auto mt-6 flex min-h-12 max-w-[1100px] items-center justify-between gap-4 border-t border-border/60 py-3">
           <p className="min-w-0 text-[12px] leading-5 text-muted-foreground">{t('aiProvider.openAgentRuntimesDescription')}</p>

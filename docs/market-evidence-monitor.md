@@ -739,3 +739,67 @@ healthy replacement provider closes an earlier fallback incident. A new failed
 scan remains current across repeated probes; missing source telemetry or a
 partial scan cannot establish recovery for sources it never reached. Historical
 failed attempts remain in the acceptance report even after recovery.
+
+## TypeSafe/Jev research provider
+
+Settings → AI Provider contains a separate TypeSafe market-research card. Its
+API key is sealed with the existing machine-key envelope in
+`data/market-monitor/typesafe/settings.json` under `OPENALICE_HOME`, written
+atomically with mode 0600. Reads return presence, collection preference and
+model only. Blank means preserve; removal is explicit. This provider is not a
+chat runtime or a Workspace credential binding. The connection probe performs
+a small real classification request. HTTP errors and transport exceptions are
+sanitized, including provider authentication failures (HTTP 502 locally, never
+Alice's session-logout 401). Requests go only to the fixed official HTTPS
+endpoint, reject redirects and have bounded duration/response size.
+
+Jev trend research pins `jev-1.13.0` and protocol
+`jev-forward-sessions-v1`. Each request batches six independent choice
+questions over public numeric market observations: return direction and evidence
+adequacy separately for each of three horizons. Rolling returns, averages
+and volume ratios are calculated in code; the previous rules' final labels,
+free-form narration, provider error bodies and account information are not
+sent. The saved rules directions provide a later comparator. Closed daily
+bars must be fresh and valid, with at least 60 observations; stale/missing
+hourly bars become explicitly missing. Public context includes source times,
+status and retained-data provenance. It is not order-book or live-price input.
+
+The first forecast for each asset/session date is append-only and reused by
+subsequent requests. The journal saves the exact state/questions, model,
+response, token usage, publication time, verified source-archive reference and
+integrity digests. Requests are single-flight per asset. Publication is dated
+when the response arrives, never at the last candle. A request spanning the
+asset's date boundary is rejected. Optional automatic collection runs after
+successful background scans, independently of scan success/cadence; failures
+back off for an hour in the current runtime. Default is off. Reading the page
+or refreshing results never calls the model.
+
+Forward evaluation reuses the existing conservative session policy: the next
+session open after publication through the 1st/7th/30th BTC close or the
+1st/5th/20th equity close; flat is ±0.25%, inclusive. “Long” is explicitly an
+approximately monthly window, not a multi-year assessment. Unknown equity
+holiday gaps are excluded rather than inferred as valid sessions. Missing or
+invalid archives cannot earn a score. The 90-day report exposes exclusions,
+abstentions, pending cases, changed outcome providers and bounded history.
+Jev versus rules accuracy uses their shared non-abstaining cohort. Always-up
+uses all Jev-scored cases. Three-outcome Brier scores the exhaustive up/flat/down distribution on all
+matured outcomes (sum of squared errors, range 0–2), even when the independent
+evidence-adequacy question abstains. It is not renormalized. Evidence adequacy
+is not a fourth possible market return.
+Calibration bins display actual hit frequency for the selected directional
+option, along with counts. Overlapping daily windows are descriptive samples,
+not independent trades, profit estimates or proof of calibrated probability.
+Old forecasts and live strategy thresholds are never rewritten by feedback.
+
+The manual proposition audit accepts a public excerpt plus a claim and an
+optional source URL. It classifies textual support and event completion status
+in separate questions and archives the request/result. URLs are attribution
+only: the route does not fetch them or claim to read full SEC filings. A
+supported proposition does not establish a future market return.
+
+API surface beneath `/api/market-monitor/typesafe`: GET/PUT `settings`, POST
+`test`, GET `report?asset=BTC|TSLA|MSTR`, POST `forecast` with `{asset}`, POST
+`audit` with `{source,claim,sourceUrl?}`. The demo implements every route with
+explicit illustrative responses and never retains a submitted key. API keys
+must be entered by the owner in the live settings form; never put them in a
+command line, screenshot, fixture, log, journal or Git.

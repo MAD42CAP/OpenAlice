@@ -15,7 +15,7 @@ export interface MarketMonitorScheduler {
  * cadence across restarts, including failures and manually requested scans. */
 export function createMarketMonitorScheduler(
   service: SchedulerService,
-  options: { now?: () => Date; pollIntervalMs?: number } = {},
+  options: { now?: () => Date; pollIntervalMs?: number; afterScan?: (asset: MarketMonitorAsset) => Promise<void> } = {},
 ): MarketMonitorScheduler {
   const now = options.now ?? (() => new Date())
   const pollIntervalMs = options.pollIntervalMs ?? 15_000
@@ -80,8 +80,10 @@ export function createMarketMonitorScheduler(
               lastFailure.delete(item.asset)
               // Supplemental research has its own missing-data states; a public
               // context request must not extend scan flags, cadence, or shutdown.
-              if (running && service.dashboard && !activeResearch.has(item.asset)) {
-                const research = Promise.resolve().then(() => service.dashboard!(item.asset, 90))
+              if (running && (service.dashboard || options.afterScan) && !activeResearch.has(item.asset)) {
+                const research = Promise.resolve().then(() => Promise.allSettled([
+                  service.dashboard?.(item.asset, 90), options.afterScan?.(item.asset),
+                ]))
                   .then(() => undefined, () => undefined).finally(() => activeResearch.delete(item.asset))
                 activeResearch.set(item.asset, research)
               }

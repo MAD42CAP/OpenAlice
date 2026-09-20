@@ -1,3 +1,4 @@
+import { typeSafeEn } from './typesafe'
 /**
  * English catalog — the SOURCE OF TRUTH for message keys. `zh`/`ja` are typed
  * against `Resources` (this shape with widened string leaves), so a missing or
@@ -13,6 +14,7 @@
  */
 
 export const en = {
+  typesafe: typeSafeEn,
   stickers: {
     "meaning": "Meaning (optional)",
     "title": "Stickers",

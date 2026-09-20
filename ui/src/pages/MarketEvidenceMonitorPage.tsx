@@ -23,6 +23,7 @@ import { useMarketMonitorHealth } from '../hooks/useMarketMonitorHealth'
 import { MonitorReview } from '../components/market/MonitorReview'
 import { MarketResearchDashboard } from './market/MarketResearchDashboard'
 import { MarketLatestPrice } from './market/MarketLatestPrice'
+import { MarketTypeSafePanel } from './market/MarketTypeSafePanel'
 import { MonitorOperations } from '../components/market/MonitorOperations'
 import { formatMonitorDate as formatDate, formatContextValue } from './market/market-monitor-format'
 import { getIntlLocale } from '../lib/intl'
@@ -330,6 +331,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
             <MarketLatestPrice asset={asset} visible={visible} />
             <DailyBriefPanel snapshot={snapshot} narratorStatus={narratorStatus} />
             <Overview snapshot={snapshot} timeframe={timeframe} />
+            <MarketTypeSafePanel asset={asset} visible={visible} revisionKey={`${snapshot.id}:${runtime.status?.assets.find(item => item.asset === asset)?.lastReceipt?.id ?? ''}`} />
             <MarketResearchDashboard asset={asset} visible={visible} revisionKey={`${snapshot.id}:${runtime.status?.assets.find(item => item.asset === asset)?.lastReceipt?.id ?? ''}`} onSelectSnapshot={id => { void replay.select(id); document.getElementById('market-input-replay')?.scrollIntoView({ block: 'start' }) }} />
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(300px,0.7fr)]">
               <EvidenceTable snapshot={snapshot} />
