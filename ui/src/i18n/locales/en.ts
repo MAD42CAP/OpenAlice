@@ -1,3 +1,4 @@
+import { judgmentEn } from './judgment'
 import { typeSafeEn } from './typesafe'
 /**
  * English catalog — the SOURCE OF TRUTH for message keys. `zh`/`ja` are typed
@@ -14,6 +15,7 @@ import { typeSafeEn } from './typesafe'
  */
 
 export const en = {
+  judgment: judgmentEn,
   typesafe: typeSafeEn,
   stickers: {
     "meaning": "Meaning (optional)",

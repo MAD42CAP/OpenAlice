@@ -2,6 +2,7 @@ import { prepareProjectWorkspaces } from '../workspaces/project-workspace-setup.
 import { Hono, type Context } from 'hono'
 import { createTypeSafeService } from '../domain/market-monitor/typesafe-service.js'
 import { createTypeSafeRoutes } from './routes/typesafe.js'
+import { createMarketJudgmentRoutes } from './routes/market-judgment.js'
 import { cors } from 'hono/cors'
 import { createAdaptorServer, serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
@@ -288,6 +289,7 @@ export class WebPlugin implements Plugin {
       ...(ctx.newsProvider ? { newsProvider: ctx.newsProvider } : {}),
     })
     const typeSafe = createTypeSafeService({ monitor: marketMonitor })
+    app.route('/api/market-monitor/judgment', createMarketJudgmentRoutes(marketMonitor, typeSafe))
     app.route('/api/market-monitor/typesafe', createTypeSafeRoutes(typeSafe))
     this.marketMonitorScheduler = createMarketMonitorScheduler(marketMonitor, { afterScan: asset => typeSafe.automatic(asset) })
     app.route('/api/bars', createBarsRoutes(ctx))

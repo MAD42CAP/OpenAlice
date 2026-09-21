@@ -1,8 +1,10 @@
+import { judgmentZh } from './judgment'
 import { typeSafeZh } from './typesafe'
 import type { Resources } from './en'
 
 /** 简体中文. Typed as `Resources` → must match en's key structure exactly. */
 export const zh: Resources = {
+  judgment: judgmentZh,
   typesafe: typeSafeZh,
   stickers: {
     "meaning": "含义（可选）",

@@ -740,6 +740,56 @@ scan remains current across repeated probes; missing source telemetry or a
 partial scan cannot establish recovery for sources it never reached. Historical
 failed attempts remain in the acceptance report even after recovery.
 
+## Combined judgment and independent analyses
+
+The dashboard leads with a current-evidence summary, followed by the existing
+daily rule brief, independent Wyckoff analysis and Jev experiment. The summary
+defaults to the weekly view; its buttons name 1/7/30 BTC days or 1/5/20 equity
+sessions instead of relying on ambiguous short/medium/long labels. These are
+interpretation horizons, not newly calibrated return predictions. The annual
+rule trend supplies background to the monthly interpretation.
+
+`judgment.ts` owns the language-neutral `evidence-summary-v1` composition.
+Price/volume rules supply the initial bias. A matching confirmed Wyckoff event
+can support it; an opposing confirmed structure withholds the direction as
+unclear. Candidate or invalidated events cannot act as confirmed votes. Range
+requires both a sideways rule assessment and a valid observed range containing
+the analysis close. Price-derived methods are one evidence family: there is no
+averaged confidence or additional independent vote for every indicator.
+
+The summary verifies freshness against the snapshot's closed-bar basis, never
+against a newer live chart candle. Missing/stale daily evidence blocks all
+views; missing hourly evidence blocks the one-session view. Provider fallback,
+partial/reference-only background data and a newer failed scan remain visible.
+The conservative existing equity session/freshness policy still applies.
+Upcoming calendar earnings near a view add an event-risk note, with
+weekend/holiday slack and the actual scheduled date; no exact future exchange
+calendar is inferred. Other
+numeric context is labelled current or reference-only, conservatively requiring
+all relevant context sources to be current (30 minutes BTC, 24 hours equity).
+News headlines, SEC filing metadata, positioning levels and stale context are
+not automatically interpreted as directional votes or as reviewed document text.
+
+Jev remains independent and never overrides the headline. Its reference is
+scoped to the same asset/strategy, rejects future/unverified records, and states
+whether the observation is the same, different from today, or an older forecast.
+No new model question, provider request, key read or paid generation is caused
+by viewing this summary. The existing TypeSafe request contract is unchanged.
+
+GET `/api/market-monitor/judgment?asset=BTC|TSLA|MSTR` reads the active strategy's
+latest observation, receipts and verified local Jev report. Jev/report failure
+does not remove a usable rule summary. This endpoint is no-store and sanitizes
+read failures. `useMarketJudgment` owns selection, cancellation and visible-page
+polling; a failed read replaces the headline with unavailable current evidence
+while retaining prior details for reference. The presentation reuses Button and
+Collapsible, wraps controls on narrow screens, and never conveys state by color
+alone. The demo has an explicit illustrative endpoint and fixture.
+
+These summaries are read-time projections with basis identity and check time.
+They are not appended to the historical forecast journal and must not be counted
+as original forward predictions. Existing rule/Jev archives and retrospective
+records are unchanged; no historical forecasts are reconstructed or overwritten.
+
 ## TypeSafe/Jev research provider
 
 Settings → AI Provider contains a separate TypeSafe market-research card. Its

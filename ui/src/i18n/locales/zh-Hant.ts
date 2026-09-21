@@ -1,3 +1,4 @@
+import { judgmentZh } from './judgment'
 import { typeSafeZh } from './typesafe'
 import type { Resources } from './en'
 import { zh } from './zh'
@@ -12,6 +13,7 @@ import { zh } from './zh'
  * Content is UI chrome only — no geographic or other non-technical terms.
  */
 export const zhHant: Resources = {
+  judgment: judgmentZh,
   typesafe: typeSafeZh,
   stickers: {
     "meaning": "含义（可选）",

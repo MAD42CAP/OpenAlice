@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { demoMarketJudgment } from '../demo/fixtures/market-judgment'
 
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
@@ -10,6 +11,7 @@ import { MarketEvidenceMonitorPage } from './MarketEvidenceMonitorPage'
 const mocks = vi.hoisted(() => ({
   review: vi.fn(), replay: vi.fn(), health: vi.fn(), status: vi.fn(), narratorStatus: vi.fn(), runNarratorNow: vi.fn(), reconcileNarrator: vi.fn(), settings: vi.fn(), strategies: vi.fn(), snapshots: vi.fn(), alerts: vi.fn(), evaluation: vi.fn(), scan: vi.fn(), saveSettings: vi.fn(),
 }))
+vi.mock('../api/market-judgment', () => ({ marketJudgmentApi: { read: vi.fn(async (asset: 'BTC' | 'TSLA' | 'MSTR') => demoMarketJudgment(asset)) } }))
 vi.mock('../api', () => ({ api: { marketMonitor: mocks } }))
 vi.mock('./market/MarketTypeSafePanel', () => ({ MarketTypeSafePanel: () => <div>Jev trend experiment</div> }))
 vi.mock('../api/market-quote', () => ({ marketQuoteApi: { read: vi.fn(async (asset: string) => ({ asset, price: 81234.56, currency: 'USD', asOf: '2026-09-18T19:00:00Z', fetchedAt: '2026-09-18T19:00:01Z', provider: 'coinbase', feed: 'Coinbase Exchange', status: 'fresh', attempts: [] })) } }))
@@ -36,6 +38,16 @@ beforeEach(async () => {
   mocks.saveSettings.mockImplementation(async (value) => value)
 })
 afterEach(() => { cleanup(); vi.clearAllMocks() })
+
+it('places one combined assessment above independently retained rule, Wyckoff and Jev analyses', async () => {
+  render(<MarketEvidenceMonitorPage />)
+  const combined = await screen.findByRole('region', { name: 'Combined market assessment' })
+  const independent = screen.getByRole('heading', { name: 'Independent analyses' })
+  expect(combined.compareDocumentPosition(independent) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(screen.getByText('Jev trend experiment')).toBeTruthy()
+  expect(screen.getByText('Wyckoff structure')).toBeTruthy()
+  expect(screen.getByText('Daily market brief')).toBeTruthy()
+})
 
 it('shows actual fallback attribution, original errors and failed stage in Chinese too', async () => {
   await i18n.changeLanguage('zh-CN')

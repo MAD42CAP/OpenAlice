@@ -9,6 +9,38 @@ Related issues: none.
 Owner guides: [[docs/market-data-architecture.md]],
 [[docs/ui-interaction-and-motion.md]], [[docs/development-workflow.md]].
 
+## September 20 unified judgment increment
+
+The owner accepted a single prominent assessment with independent platform,
+Wyckoff and Jev analyses retained below. Selected interaction: weekly default,
+explicit day/session horizon buttons, one direction plus its main reason,
+confirmation/invalidation conditions and a disclosure for each input's role.
+Use existing Button/Collapsible and theme tokens, wrap controls and stack
+conditions on narrow screens, retain keyboard/ARIA semantics. No new settings,
+navigation hierarchy, provider calls, trading or model cost is introduced.
+
+Composition is a versioned read-time evidence summary rather than an averaged
+probability. Candidate structure is not a vote; confirmed opposition withholds
+direction. Missing/stale core data blocks the relevant horizon. Context and
+independent Jev differences remain attributed. Archived predictions are not
+changed or reconstructed by this presentation increment.
+
+- [x] Implement the domain composition and read-only endpoint with isolated Jev failures.
+- [x] Add the responsive headline, explicit horizon selection and independent analyses.
+- [x] Add demo, selected-asset/stale-response tests, conflict/freshness tests and typechecks.
+- [x] Verify the live Mac and narrow deterministic demo surfaces.
+- [x] Complete final full-suite audit and live three-asset acceptance.
+- [x] Prepare verified delivery restricted to the owned feature branch.
+
+Acceptance: 42 focused tests and both root/UI typechecks pass. The complete
+hermetic suite recorded 7,378 passes, four skips and two failures in the existing
+Codex adapter AI-config command expectations. Those failures match the owner's
+pre-existing, uncommitted environment-forwarding edits; those edits are preserved
+and excluded from this increment. The final earnings-date regression was added
+after the full run and passed in the focused suite. Live read-only BTC, TSLA and
+MSTR scans all succeeded, with matching snapshot identities in the new endpoint.
+The live route and deterministic demo were checked, including a 390px viewport.
+
 ## Scope
 
 Build a read-only evidence monitor for BTC, TSLA and MSTR inside the existing Market

@@ -1,8 +1,10 @@
+import { judgmentEn } from './judgment'
 import { typeSafeEn } from './typesafe'
 import { en, type Resources } from './en'
 
 /** 日本語. Typed as `Resources` → must match en's key structure exactly. */
 export const ja: Resources = {
+  judgment: judgmentEn,
   typesafe: typeSafeEn,
   stickers: {
     "meaning": "Meaning (optional)",
