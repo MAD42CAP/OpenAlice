@@ -101,8 +101,24 @@ describe('prospective Jev research', () => {
   it('keeps comparison samples paired when rules abstain', async () => {
     const f = fixture(); await f.service.generate('BTC')
     const row = (await f.service.report('BTC')).rows[0]
-    row.forecast.horizons.short.baseline = 'insufficient'
     row.outcomes[0] = { ...row.outcomes[0], actual: 'up', correct: true, brier: 0.26, outcome: { ...row.outcomes[0].outcome, status: 'complete' } }
-    expect(summarizeJev([row])[0]).toMatchObject({ scored: 1, accuracy: 1, pairedAccuracy: null, baselineAccuracy: null, baselineCompared: 0, alwaysUpAccuracy: 1 })
+    for (const baseline of ['sideways', 'transition', 'insufficient'] as const) {
+      row.forecast.horizons.short.baseline = baseline
+      expect(summarizeJev([row])[0]).toMatchObject({ scored: 1, accuracy: 1, pairedAccuracy: null, baselineAccuracy: null, baselineCompared: 0, alwaysUpAccuracy: 1 })
+    }
+  })
+  it('does not multiply a realised window or replace the first abstention with a later correct forecast', async () => {
+    const f = fixture(); await f.service.generate('BTC')
+    const first = (await f.service.report('BTC')).rows[0]
+    first.forecast.horizons.short.adequacy.choice = 'insufficient'
+    first.outcomes[0] = { ...first.outcomes[0], actual: 'flat', correct: null, brier: 0.86, outcome: { ...first.outcomes[0].outcome, status: 'complete', start: '2026-09-21', end: '2026-09-21' } }
+    const later = structuredClone(first)
+    later.forecast.issuedAt = '2026-09-20T15:00:00Z'
+    later.forecast.horizons.short.answer.choice = 'flat'
+    later.forecast.horizons.short.adequacy.choice = 'adequate'
+    later.outcomes[0].correct = true; later.outcomes[0].brier = 0.02
+    const original = structuredClone([later, first])
+    expect(summarizeJev([later, first])[0]).toMatchObject({ total: 2, complete: 2, uniqueWindows: 1, duplicateWindows: 1, abstained: 1, scored: 0, correct: 0, accuracy: null, baselineCompared: 0, brier: 0.86, flatCalls: 1, flatOutcomes: 1 })
+    expect([later, first]).toEqual(original)
   })
 })

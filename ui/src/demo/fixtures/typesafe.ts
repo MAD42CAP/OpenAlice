@@ -17,7 +17,7 @@ export function demoJevReport(asset: MonitorAsset): JevReport {
     rows: [{ forecast, providerChanged: false, outcomes: horizons.map((h, i) => ({ horizon: h, actual: null, correct: null, brier: null, outcome: {
       horizon: (['day', 'week', 'month'] as const)[i], trendHorizon: h, targetBars: forecast.horizons[h].bars, observedBars: 0, status: 'pending', direction: forecast.horizons[h].baseline, verdict: 'not-scored', start: null, end: null, entry: null, close: null, changePercent: null, highPercent: null, lowPercent: null, range: null,
     } })) }],
-    summaries: horizons.map(h => ({ horizon: h, total: 1, complete: 0, pending: 1, excluded: 0, abstained: 0, scored: 0, accuracy: null, baselineAccuracy: null, baselineCompared: 0, pairedAccuracy: null, alwaysUpAccuracy: null, brier: null,
+    summaries: horizons.map(h => ({ horizon: h, total: 1, complete: 0, uniqueWindows: 0, duplicateWindows: 0, correct: 0, flatCalls: 0, flatOutcomes: 0, pending: 1, excluded: 0, abstained: 0, scored: 0, accuracy: null, baselineAccuracy: null, baselineCompared: 0, pairedAccuracy: null, alwaysUpAccuracy: null, brier: null,
       calibration: Array.from({ length: 5 }, (_, i) => ({ from: i / 5, to: (i + 1) / 5, count: 0, meanProbability: null, observedAccuracy: null })) })),
   }
 }

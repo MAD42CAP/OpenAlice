@@ -33,6 +33,11 @@ export function TypeSafeForecastView({ asset, report, error, loading, generating
     <p className="mt-3 text-sm text-muted-foreground">{t('typesafe.disclaimer')}</p>
     <p className="mt-2 text-xs text-muted-foreground">{t('typesafe.timing')}</p>
     {report && <p className="mt-2 text-xs text-muted-foreground">{t('typesafe.cadence', { state: t(report.automatic ? 'typesafe.on' : 'typesafe.off') })}</p>}
+    {report && <div aria-label={t('typesafe.scoreboard')} className="mt-3 space-y-1 border-l-2 border-border pl-3 text-xs">
+      <p className="font-medium">{t('typesafe.scoreboard')}</p>
+      {report.summaries.map(s => <p key={s.horizon}>{t(`typesafe.${s.horizon}`)} · {t(s.scored ? 'typesafe.scoreline' : 'typesafe.unscoredLine', s)}</p>)}
+      <p className="text-muted-foreground">{t('typesafe.scoreCaution')}</p>
+    </div>}
     {error && <p role="alert" className="mt-3 text-sm text-destructive">{error === 'load' ? t('typesafe.loadError') : error}</p>}
     {report?.lastError && !error && <p role="alert" className="mt-3 text-sm text-destructive">{report.lastError}</p>}
     {!latest && <p role="status" className="py-5 text-sm text-muted-foreground">{t(loading ? 'typesafe.busy' : 'typesafe.empty')}</p>}
@@ -58,11 +63,14 @@ function TypeSafeReview({ report }: { report: JevReport }) {
   return <details className="mt-5 border-t border-border pt-4">
     <summary className="cursor-pointer text-sm font-medium">{t('typesafe.retrospective')}</summary>
     <p className="mt-3 text-xs text-muted-foreground">{t('typesafe.sampleWarning')}</p>
+    <p className="mt-2 text-xs text-muted-foreground">{t('typesafe.cohortMethod')} {t('typesafe.pairedHint')}</p>
     {report.invalidRecords > 0 && <p className="mt-2 text-xs text-destructive">{t('typesafe.invalid', { count: report.invalidRecords })}</p>}
     {report.historyTruncated && <p className="mt-2 text-xs text-muted-foreground">{t('typesafe.truncated')}</p>}
     <div className="mt-3 grid gap-3 md:grid-cols-3">{report.summaries.map(s => <div key={s.horizon} className="rounded-lg bg-muted/30 p-3 text-xs">
       <h3 className="font-semibold">{t(`typesafe.${s.horizon}`)}</h3>
       <p className="mt-2 text-muted-foreground">{t('typesafe.coverage', s)}</p>
+      <p className="mt-2 text-muted-foreground">{t('typesafe.cohort', s)}</p>
+      <p className="mt-2 text-muted-foreground">{t('typesafe.flatPattern', s)}</p>
       {!s.scored && <p className="mt-2">{t('typesafe.noScore')}</p>}
       <dl className="mt-3 space-y-2">
         <div><dt>{t('typesafe.accuracy', { count: s.scored })}</dt><dd className="mt-1 font-medium">{percent(s.accuracy)}</dd></div>

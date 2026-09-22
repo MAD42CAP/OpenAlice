@@ -24,6 +24,8 @@ it('compares archived reasoning to a completed window and discloses the observat
   expect(screen.getByText(/Absolute moves of at most 0.25%/)).toBeTruthy()
   expect(screen.getByText(/Illustrative demo data/)).toBeTruthy()
   expect(mocks.review).toHaveBeenCalledWith('BTC', 30, expect.any(AbortSignal))
+  expect(screen.getByText(/1 distinct realised windows · 0 repeated windows/)).toBeTruthy()
+  expect(screen.getByText(/scores use the earliest publication before filtering abstentions/)).toBeTruthy()
 })
 
 it('changes windows without claiming pending observations failed and retains original prose separately', async () => {

@@ -46,6 +46,8 @@ export interface ReviewSummary {
   horizon: ReviewHorizon
   total: number
   complete: number
+  uniqueWindows: number
+  duplicateWindows: number
   pending: number
   excluded: number
   supported: number

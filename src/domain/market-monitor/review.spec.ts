@@ -28,6 +28,23 @@ function store(rows = [snapshot()], narrations: MarketAiNarration[] = []): Marke
 }
 
 describe('fixed-window historical review', () => {
+  it('scores an identical weekend outcome once, retaining the earliest call even when later calls improve', () => {
+    const first = sample()
+    first.outcomes = reviewOutcomes(first, 'BTC', bars(), new Date('2026-09-18'))
+    first.outcomes[0] = { ...first.outcomes[0], direction: 'bearish', verdict: 'opposed' }
+    const later = structuredClone(first)
+    later.id = 'later'; later.issuedAt = '2026-09-11T12:00:00Z'
+    later.outcomes[0] = { ...later.outcomes[0], direction: 'bullish', verdict: 'supported' }
+    const before = structuredClone([later, first])
+    const summary = summarizeReview([later, first]).summaries[0]
+    expect(summary).toMatchObject({ complete: 2, uniqueWindows: 1, duplicateWindows: 1, scored: 1, supported: 0, opposed: 1, agreementPercent: 0, alwaysBullishPercent: 100, cases: ['first'] })
+    expect([later, first]).toEqual(before)
+    first.outcomes[0] = { ...first.outcomes[0], direction: 'sideways', verdict: 'not-scored' }
+    expect(summarizeReview([later, first]).summaries[0]).toMatchObject({ scored: 0, nonDirectional: 1, agreementPercent: null })
+    later.outcomes[0].end = '2026-09-12'
+    expect(summarizeReview([later, first]).summaries[0]).toMatchObject({ uniqueWindows: 2, duplicateWindows: 0, scored: 1 })
+  })
+
   it('uses only post-publication sessions, keeps forming bars out, and matches each trend to its horizon', () => {
     const row = sample()
     const result = reviewOutcomes(row, 'BTC', bars(), new Date('2026-09-18T12:00:00Z'))

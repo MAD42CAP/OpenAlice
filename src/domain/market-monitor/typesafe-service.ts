@@ -6,25 +6,31 @@ import { createMarketMonitorStore, type MarketMonitorStore } from './store.js'
 import { buildJevInput, hashJevInput } from './typesafe-input.js'
 import { JEV_HORIZONS, JEV_PROTOCOL, type JevForecast, type JevReport, type JevReviewRow, type JevAudit } from './typesafe-types.js'
 import { reviewOutcomes, reviewSessionDate, type ReviewCase } from './review.js'
+import { firstPerOutcomeWindow } from './review-cohort.js'
 import type { MarketMonitorService } from './service.js'
 import type { MarketMonitorAsset, TrendDirection } from './types.js'
 
 const safeMessage = (error: unknown) => error instanceof TypeSafeError ? error.message : 'TypeSafe 研究暂不可用，请稍后重试；原有行情分析继续运行。'
-const baselineChoice = (direction: TrendDirection) => ({ bullish: 'up', bearish: 'down', sideways: 'flat', transition: null, insufficient: null })[direction]
+// A descriptive trading range is not a registered ±0.25% return forecast.
+const baselineChoice = (direction: TrendDirection) => ({ bullish: 'up', bearish: 'down', sideways: null, transition: null, insufficient: null })[direction]
 const accuracy = (values: boolean[]) => values.length ? values.filter(Boolean).length / values.length : null
 export function summarizeJev(rows: JevReviewRow[]): JevReport['summaries'] {
   return JEV_HORIZONS.map(horizon => {
     const values = rows.map(row => ({ forecast: row.forecast, result: row.outcomes.find(o => o.horizon === horizon)! }))
     const complete = values.filter(v => v.result.outcome.status === 'complete')
-    const scored = complete.filter(v => v.result.correct !== null)
+    const unique = firstPerOutcomeWindow(complete, v => ({ issuedAt: v.forecast.issuedAt, ...v.result.outcome }))
+    const scored = unique.filter(v => v.result.correct !== null)
     const paired = scored.filter(v => baselineChoice(v.forecast.horizons[horizon].baseline) !== null)
     return { horizon, total: values.length, complete: complete.length, pending: values.filter(v => v.result.outcome.status === 'pending').length,
+      uniqueWindows: unique.length, duplicateWindows: complete.length - unique.length,
       excluded: values.length - complete.length - values.filter(v => v.result.outcome.status === 'pending').length,
-      abstained: complete.length - scored.length, scored: scored.length, accuracy: accuracy(scored.map(v => v.result.correct!)),
+      abstained: unique.length - scored.length, scored: scored.length, correct: scored.filter(v => v.result.correct).length, accuracy: accuracy(scored.map(v => v.result.correct!)),
+      flatCalls: values.filter(v => v.forecast.horizons[horizon].adequacy.choice === 'adequate' && v.forecast.horizons[horizon].answer.choice === 'flat').length,
+      flatOutcomes: unique.filter(v => v.result.actual === 'flat').length,
       baselineAccuracy: accuracy(paired.map(v => baselineChoice(v.forecast.horizons[horizon].baseline) === v.result.actual)),
       baselineCompared: paired.length, pairedAccuracy: accuracy(paired.map(v => v.result.correct!)),
       alwaysUpAccuracy: accuracy(scored.map(v => v.result.actual === 'up')),
-      brier: complete.length ? complete.reduce((sum, v) => sum + v.result.brier!, 0) / complete.length : null,
+      brier: unique.length ? unique.reduce((sum, v) => sum + v.result.brier!, 0) / unique.length : null,
       calibration: Array.from({ length: 5 }, (_, i) => {
         const from = i / 5, to = (i + 1) / 5
         const sample = scored.filter(v => { const answer = v.forecast.horizons[horizon].answer; const p = answer.probabilities[answer.choice]!; return p >= from && (p < to || i === 4) })

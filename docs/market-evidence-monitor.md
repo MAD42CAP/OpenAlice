@@ -375,6 +375,13 @@ Protocol `forward-sessions-v1` was fixed before inspecting live outcome scores:
   cases, excluded data and non-directional cases. The always-bullish comparison
   uses the identical directional cohort. Rates describe overlapping samples,
   not independent trials, calibrated probabilities or executable returns.
+- Summary scores collapse identical realised start/end dates within each
+  asset, rule version and horizon to the earliest publication, selected before
+  filtering non-directional calls. Thus Friday/weekend publications cannot
+  multiply the same Monday result or replace an earlier miss with a later hit.
+  `complete` still counts all matured records; `uniqueWindows` and
+  `duplicateWindows` explain the scored cohort. All original rows remain
+  inspectable. Distinct but overlapping windows are still dependent samples.
 - Outcomes retain opening/closing prices, exact dates, high/low excursions,
   original/outcome providers and closes above/below/inside the original
   Wyckoff range. Range observations do not automatically confirm or invalidate
@@ -831,15 +838,28 @@ approximately monthly window, not a multi-year assessment. Unknown equity
 holiday gaps are excluded rather than inferred as valid sessions. Missing or
 invalid archives cannot earn a score. The 90-day report exposes exclusions,
 abstentions, pending cases, changed outcome providers and bounded history.
-Jev versus rules accuracy uses their shared non-abstaining cohort. Always-up
-uses all Jev-scored cases. Three-outcome Brier scores the exhaustive up/flat/down distribution on all
-matured outcomes (sum of squared errors, range 0–2), even when the independent
+Jev versus rules accuracy uses their shared non-abstaining cohort and only
+explicit bullish/bearish rule directions. A descriptive sideways structure does
+not register a narrow ±0.25% return forecast, so it is not mapped to Jev's flat
+class. Identical realised start/end dates use the earliest forecast before
+filtering abstentions; original records remain intact. Always-up uses the same
+deduplicated Jev-scored cases. Three-outcome Brier scores the exhaustive
+up/flat/down distribution on those distinct matured windows (sum of squared
+errors, range 0–2), even when the independent
 evidence-adequacy question abstains. It is not renormalized. Evidence adequacy
 is not a fourth possible market return.
 Calibration bins display actual hit frequency for the selected directional
 option, along with counts. Overlapping daily windows are descriptive samples,
 not independent trades, profit estimates or proof of calibrated probability.
 Old forecasts and live strategy thresholds are never rewritten by feedback.
+The Jev panel keeps resolved correct/scored counts and pending counts visible.
+Its review disclosure additionally shows distinct/repeated windows, flat-choice
+counts across saved forecasts and actual flat outcomes across matured windows.
+Those different denominators are explicit; a concentration of flat calls is a
+diagnostic observation, not proof of calibration failure by itself. The original
+input contract and raw probability distributions are unchanged by the September
+22 evaluation correction. No historical combined assessment is invented: that
+view remains a read-time projection without archived forward forecasts.
 
 The manual proposition audit accepts a public excerpt plus a claim and an
 optional source URL. It classifies textual support and event completion status

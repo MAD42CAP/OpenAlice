@@ -41,6 +41,7 @@ export interface JevReport {
   rows: JevReviewRow[]
   summaries: Array<{
     horizon: JevHorizon; total: number; complete: number; pending: number; excluded: number; abstained: number; scored: number
+    uniqueWindows: number; duplicateWindows: number; correct: number; flatCalls: number; flatOutcomes: number
     accuracy: number | null; baselineAccuracy: number | null; baselineCompared: number; pairedAccuracy: number | null
     alwaysUpAccuracy: number | null; brier: number | null
     calibration: Array<{ from: number; to: number; count: number; meanProbability: number | null; observedAccuracy: number | null }>

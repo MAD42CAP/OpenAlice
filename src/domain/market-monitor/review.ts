@@ -1,5 +1,6 @@
 import type { OhlcvBar } from '../market-data/bars/index.js'
 import { closedBars } from './bar-policy.js'
+import { firstPerOutcomeWindow } from './review-cohort.js'
 import type { MarketAnalysisArchive } from './replay.js'
 import type { MarketMonitorStore } from './store.js'
 import type { MarketAiNarration, MarketMonitorAsset, MarketMonitorSnapshot, TrendDirection, TrendHorizon } from './types.js'
@@ -48,6 +49,8 @@ export interface ReviewSummary {
   horizon: ReviewHorizon
   total: number
   complete: number
+  uniqueWindows: number
+  duplicateWindows: number
   pending: number
   excluded: number
   supported: number
@@ -163,11 +166,13 @@ export function summarizeReview(rows: ReviewCase[]): { summaries: ReviewSummary[
     groups.set(key, [...(groups.get(key) ?? []), { row, outcome }])
   }
   const summaries = [...groups.values()].map(items => {
-    const count = (verdict: ReviewVerdict) => items.filter(item => item.outcome.status === 'complete' && item.outcome.verdict === verdict).length
-    const scored = count('supported') + count('opposed') + count('flat')
     const complete = items.filter(item => item.outcome.status === 'complete')
-    const directional = complete.filter(item => item.outcome.verdict !== 'not-scored')
+    const unique = firstPerOutcomeWindow(complete, item => ({ issuedAt: item.row.issuedAt, ...item.outcome }))
+    const count = (verdict: ReviewVerdict) => unique.filter(item => item.outcome.verdict === verdict).length
+    const scored = count('supported') + count('opposed') + count('flat')
+    const directional = unique.filter(item => item.outcome.verdict !== 'not-scored')
     return { strategyVersion: items[0]!.row.strategyVersion, horizon: items[0]!.outcome.horizon, total: items.length, complete: complete.length,
+      uniqueWindows: unique.length, duplicateWindows: complete.length - unique.length,
       pending: items.filter(item => item.outcome.status === 'pending').length,
       excluded: items.filter(item => item.outcome.status === 'missing-data' || item.outcome.status === 'unverified').length,
       supported: count('supported'), opposed: count('opposed'), flat: count('flat'), nonDirectional: count('not-scored'), scored,

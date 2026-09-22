@@ -41,6 +41,42 @@ after the full run and passed in the focused suite. Live read-only BTC, TSLA and
 MSTR scans all succeeded, with matching snapshot identities in the new endpoint.
 The live route and deterministic demo were checked, including a 390px viewport.
 
+## September 22 prospective performance audit
+
+Audit the original Jev/rules publications against only matured forward windows.
+The live sample is too small to tune prediction thresholds: each asset has just
+one matured Jev short call, all published September 20 and evaluated September
+21. All selected flat and all outcomes rose beyond the fixed 0.25% boundary.
+The current 27 horizon calls contain 22 flat choices. Weekly/monthly Jev windows
+have not matured. Rules summaries also overweight identical Monday windows from
+separate weekend publications, and the Jev comparator incorrectly equates the
+rules' descriptive sideways label with a ±0.25% return prediction.
+
+Selected UI treatment: retain existing review disclosure/tables and add a
+compact visible maturity/result line to the Jev panel; disclose duplicate
+windows and flat-choice counts inside review. Existing theme tokens and wrapping
+text suffice; no new navigation or interactive primitive. Do not rewrite any
+forecast, widen flat thresholds after observing misses, tune rule weights or
+give the uncalibrated model control over the combined headline.
+
+- [x] Correct paired baselines and score only the earliest publication per identical outcome window.
+- [x] Expose maturity, duplicate counts and flat-call concentration, with matched demo/UI tests.
+- [x] Verify regression/type/full-suite gates and real reports; prepare delivery to the owned branch.
+- [x] Prepare an audit distinguishing realised accuracy, directional coverage, descriptive structure and still-pending horizons.
+
+Acceptance: 44 focused tests and both root/UI typechecks pass; the final UI copy
+also passed the 10-test UI subset. Live read-only BTC, TSLA and MSTR scans passed,
+and actual reports show the corrected cohorts (BTC rules 1/3, MSTR rules 1/3,
+TSLA no directional score; one matured Jev short miss per asset). Checked the
+live route and deterministic demo including 390px wrapping. The full suite
+recorded 7,380 passes, four skips and four failures: two existing Codex adapter
+AI-config expectations against preserved user changes, and two Supervisor TUI
+PTY failures (pointer timeout and inbox-count text mismatch). The latter two
+also failed in a focused rerun with a temporary supervisor state directory;
+no terminal UI source is changed by this increment. Full-suite green is not
+claimed. Prediction prompts, probabilities, thresholds and archives remain
+unchanged; this increment corrects evaluation, not predictive performance.
+
 ## Scope
 
 Build a read-only evidence monitor for BTC, TSLA and MSTR inside the existing Market
