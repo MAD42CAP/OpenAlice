@@ -6,6 +6,7 @@ import { useTypeSafeAudit, useTypeSafeReport } from '../../hooks/useTypeSafe'
 import { Button } from '../../components/ui/button'
 import { inputClass } from '../../components/form'
 import { useWorkspace } from '../../tabs/store'
+import { MarketForecastExperiment } from './MarketForecastExperiment'
 
 const horizons = ['short', 'medium', 'long'] as const
 const directions = ['up', 'flat', 'down'] as const
@@ -13,7 +14,7 @@ const percent = (value: number | null) => value === null ? '—' : `${(value * 1
 const colors = { up: 'bg-success', flat: 'bg-muted-foreground', down: 'bg-destructive' }
 export function MarketTypeSafePanel({ asset, visible, revisionKey }: { asset: MonitorAsset; visible: boolean; revisionKey: string }) {
   const model = useTypeSafeReport(asset, visible, revisionKey)
-  return <TypeSafeForecastView {...model} asset={asset} />
+  return <><TypeSafeForecastView {...model} asset={asset} /><MarketForecastExperiment asset={asset} visible={visible} revisionKey={revisionKey} /></>
 }
 export function TypeSafeForecastView({ asset, report, error, loading, generating, refresh, generate }: {
   asset: MonitorAsset; report: JevReport | null; error: string | null; loading: boolean; generating: boolean; refresh: () => void; generate: () => void

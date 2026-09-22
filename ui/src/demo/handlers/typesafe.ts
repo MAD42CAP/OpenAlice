@@ -1,8 +1,15 @@
 import { http, HttpResponse } from 'msw'
 import { demoJevReport } from '../fixtures/typesafe'
+import { demoForecastExperiment } from '../fixtures/forecast-experiment'
 import type { MonitorAsset } from '../../api/market-monitor'
 let settings = { configured: true, automatic: false, model: 'jev-1.13.0' }
 export const typeSafeHandlers = [
+  http.get('/api/market-monitor/forecast-experiment', ({ request }) => {
+    const asset = new URL(request.url).searchParams.get('asset') as MonitorAsset
+    if (!['BTC', 'TSLA', 'MSTR'].includes(asset)) return HttpResponse.json({ error: 'Invalid asset' }, { status: 400 })
+    return HttpResponse.json({ ...demoForecastExperiment(asset), ...settings })
+  }),
+  http.post('/api/market-monitor/forecast-experiment', () => HttpResponse.json({ id: 'demo-comparison', issuedAt: new Date().toISOString() })),
   http.get('/api/market-monitor/typesafe/settings', () => HttpResponse.json({ ...settings, illustrative: true })),
   http.put('/api/market-monitor/typesafe/settings', async ({ request }) => {
     const input = await request.json() as { clearKey?: boolean; automatic?: boolean; apiKey?: string }

@@ -859,7 +859,9 @@ Those different denominators are explicit; a concentration of flat calls is a
 diagnostic observation, not proof of calibration failure by itself. The original
 input contract and raw probability distributions are unchanged by the September
 22 evaluation correction. No historical combined assessment is invented: that
-view remains a read-time projection without archived forward forecasts.
+view remains a read-time projection. The separate experiment described below
+begins saving one same-evidence combined assessment prospectively; it does not
+backfill past headlines or archive every live dashboard refresh.
 
 The manual proposition audit accepts a public excerpt plus a claim and an
 optional source URL. It classifies textual support and event completion status
@@ -873,3 +875,82 @@ API surface beneath `/api/market-monitor/typesafe`: GET/PUT `settings`, POST
 explicit illustrative responses and never retains a submitted key. API keys
 must be entered by the owner in the live settings form; never put them in a
 command line, screenshot, fixture, log, journal or Git.
+
+### Same-evidence forward comparison
+
+`forecast-experiment.ts` adds an independent shadow experiment with protocol
+`same-evidence-history-v1`. It preserves the existing Jev forecast and its
+original six questions. The challenger receives the same market archive plus
+historical return context and three atomic evidence questions. It does not
+vote in the combined headline, and more extreme model probabilities are not
+evidence of improved prediction.
+
+`forecast-history.ts` uses only daily windows fully closed by the original
+evidence capture time. It applies the existing forward-session gap policy to
+the latest 253 historical publication origins (up to 252 one-session returns).
+Targets are the same first-session open to last-session close used by future
+evaluation; close-to-close changes are not substituted. It computes raw
+up/flat/down frequencies, mean return, median absolute return and population
+standard deviation in percentage points, not annualized volatility. Equity
+holiday/weekday gaps are conservatively excluded, which can sharply reduce
+long-window coverage. Counts and date bounds remain in the saved input.
+Windows overlap and are not independent samples. A missing frequency is null.
+
+Atomic checks concern last close versus the preceding 20-session range,
+whether a previous close breakout remains beyond that same original boundary,
+and volume versus the preceding 20-session mean. They classify already observed
+facts; a retained closing boundary is not proof of an intraday retest or future
+continuation. The nine questions run in one bounded provider call, independently;
+the returned evidence-check answers are not secretly fed back into the other
+answers or counted as extra votes.
+
+The collector reuses the day's immutable original forecast, verifies its
+archive and constructs a combined judgment using that archive at the actual
+collection time. It freezes both before requesting the challenger. If today's
+original forecast was published earlier, its market archive can be older than
+the current dashboard snapshot; source ages are reassessed and stale hourly
+features are omitted. This difference is disclosed, not represented as an
+exactly simultaneous A/B test. The shared observation and same publication
+session still define the same forward outcome window. No old model call is
+recreated, no snapshot is backdated and no future prices enter the input.
+
+State lives in the new `market-monitor/forecast-experiment-v1/` directory:
+`ASSET-YYYY-MM-DD.json` stores the publication and its exact original forecast,
+combined directions, structure boundaries and confirmation/invalidation
+conditions; `.candidate.json` separately stores the challenger input, questions,
+model, probabilities, timing, historical reference and result. Complete files
+are published using atomic no-replace hard links with owner-only permissions
+and content hashes. Candidate failure cannot erase the first publication.
+This additive journal neither changes nor migrates existing persisted shapes.
+A future change to the experiment, model or scoring contract must use a new
+protocol/journal rather than mixing versions or rewriting stored results.
+
+The existing automatic Jev opt-in now collects the original plus one challenger
+per asset/session after background scans. Each collection has a per-asset
+single-flight; successful repeated requests, including after restart, reuse
+both records. Failed automatic collection backs off for an hour in the current
+runtime. Thus there is one additional successful provider request per asset/day;
+failed attempts and explicit manual retries may also use provider credits.
+Disabled automatic collection makes no calls. Reads are read-only, and the
+original manual forecast route keeps its existing contract.
+
+GET `/api/market-monitor/forecast-experiment?asset=BTC|TSLA|MSTR` returns a
+bounded 90-record report. POST on that path with `{asset}` collects/reuses the
+current session. Corruption is visible and never repaired by overwriting.
+Reports verify the archive, match the original/candidate session and identity,
+exclude unverified or missing forward windows, retain original-source versus
+outcome-source changes, and collapse identical realised windows before scoring.
+They compare original Jev, challenger, archived rules, archived combined
+direction, largest historical frequency (ties abstain) and always-up. Rules and
+combined range/unclear labels abstain; they are not narrow flat-return forecasts.
+Each method reports its own scored coverage. Direct old/new hit counts and
+three-class Brier comparison use only windows where both Jev versions made a
+call, with the historical-frequency distribution on those same paired windows.
+No score exists before outcomes mature. Missing candidates remain inspectable
+without replacing the original publication or inventing a paired outcome.
+
+The dashboard keeps a compact current comparison below the independent Jev
+panel. A disclosure shows matched scores, all-method coverage, historical
+reference, atomic checks, saved conditions and the publication history. The
+demo provides illustrative records only. This is a forward evidence experiment,
+not a cost-adjusted trading backtest, and no current accuracy gain is claimed.

@@ -1,6 +1,8 @@
 import { prepareProjectWorkspaces } from '../workspaces/project-workspace-setup.js'
 import { Hono, type Context } from 'hono'
 import { createTypeSafeService } from '../domain/market-monitor/typesafe-service.js'
+import { createForecastExperiment } from '../domain/market-monitor/forecast-experiment.js'
+import { createForecastExperimentRoutes } from './routes/forecast-experiment.js'
 import { createTypeSafeRoutes } from './routes/typesafe.js'
 import { createMarketJudgmentRoutes } from './routes/market-judgment.js'
 import { cors } from 'hono/cors'
@@ -289,9 +291,11 @@ export class WebPlugin implements Plugin {
       ...(ctx.newsProvider ? { newsProvider: ctx.newsProvider } : {}),
     })
     const typeSafe = createTypeSafeService({ monitor: marketMonitor })
+    const forecastExperiment = createForecastExperiment({ baseline: typeSafe })
+    app.route('/api/market-monitor/forecast-experiment', createForecastExperimentRoutes(forecastExperiment))
     app.route('/api/market-monitor/judgment', createMarketJudgmentRoutes(marketMonitor, typeSafe))
     app.route('/api/market-monitor/typesafe', createTypeSafeRoutes(typeSafe))
-    this.marketMonitorScheduler = createMarketMonitorScheduler(marketMonitor, { afterScan: asset => typeSafe.automatic(asset) })
+    this.marketMonitorScheduler = createMarketMonitorScheduler(marketMonitor, { afterScan: asset => forecastExperiment.automatic(asset) })
     app.route('/api/bars', createBarsRoutes(ctx))
     app.route('/api/reference', createReferenceRoutes(ctx))
     app.route('/api/inbox', createInboxRoutes({ inboxStore: ctx.inboxStore, resolveWorkspace: id => this.workspaceService?.registry.get(id) }))

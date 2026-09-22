@@ -24,6 +24,12 @@ vi.mock('../api', () => ({
   },
 }))
 
+// This page also mounts TypeSafe settings. Keep that independent request
+// deterministic so its load error cannot race the vault retry assertion.
+vi.mock('../api/typesafe', () => ({
+  typeSafeApi: { settings: vi.fn(async () => ({ configured: false, automatic: false, model: 'jev-1.13.0' })) },
+}))
+
 vi.mock('../components/workspace/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../components/workspace/api')>()
   return { ...actual, listAgents: mocks.listAgents }

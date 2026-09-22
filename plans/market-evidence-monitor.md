@@ -79,6 +79,52 @@ unchanged; this increment corrects evaluation, not predictive performance.
 
 ## Scope
 
+### September 22 forward comparison increment
+
+Keep the original Jev input/output contract unchanged. Add one daily shadow
+challenger per asset using the same archived price evidence, fixed return
+targets, completed historical return frequencies and volatility, plus three
+atomic price/volume evidence checks. Do not promote it into the headline.
+Save the original Jev forecast and the current combined judgment before the
+challenger request in a separate immutable experiment journal. Candidate
+failures cannot remove that publication; retries cannot rewrite either record.
+This is new opt-in research state under the already enabled automatic Jev
+setting, not a conversion or backfill of shipped historical records. Automatic
+collection adds at most one successful challenger call per asset/session, with
+single-flight and bounded failure cooldown. Same-session/same-evidence pairing
+and identical forward windows are required; current prices are not outcomes.
+
+Selected UI: a compact comparison panel below independent Jev, one daily
+collection button and a disclosure for the original/challenger/rules/combined
+scores, historical distributions and atomic checks. Reuse existing Button,
+theme tokens and semantic tables with wrapping/scrolling on 390px screens.
+Keep the accepted headline unchanged. No new trade permissions or settings.
+
+- [x] Implement historical context and immutable paired publications.
+- [x] Add read-only future evaluation, paired scores and UI/demo surfaces.
+- [x] Validate leakage, missing sessions, reuse, errors and real collection.
+- [x] Complete type/full-suite gates and prepare owned-branch delivery.
+
+Acceptance: 41 focused tests and root/UI typechecks pass. The full suite ran
+7,391 passes, four skips and five failures. One was an AI-provider loading
+test's unmocked independent TypeSafe settings request; that nondeterministic
+test boundary is now isolated and passes in the final focused run. Four remain
+the previously documented Codex adapter/terminal UI failures outside this
+increment. The full suite was not rerun after the test-only isolation fix.
+
+The live scheduler collected one original/challenger/combined group per asset
+on September 22, all with valid hashes. Repeated collection reused IDs/hashes;
+all nine old Jev records remain byte-equivalent at the forecast-hash boundary.
+Three further real scans succeeded (Coinbase BTC, Alpaca equities, healthy SEC),
+without changing the archived experiment. All new forward outcomes are pending.
+The nine price/volume evidence classifications matched independently computed
+facts, which does not validate the nine future trend choices. Some challenger
+probabilities exceeded 90%; no calibration or accuracy improvement is claimed.
+Live desktop and 390px deterministic demo acceptance passed. The first combined
+short labels are insufficient because original hourly evidence is older than
+collection; the UI explicitly distinguishes this same-evidence archived
+assessment from the newer live headline.
+
 Build a read-only evidence monitor for BTC, TSLA and MSTR inside the existing Market
 web shell. Reuse BarService for attributed daily and hourly candles, compute
 observable price/volume evidence without claiming to know a market actor's
