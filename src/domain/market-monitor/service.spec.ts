@@ -73,6 +73,15 @@ function dependencies(hourly = true, at = '2026-04-01T00:00:00Z') {
 }
 
 describe('market monitor service', () => {
+  it('runs supplemental checks on manual and duplicate scans without corrupting price receipts on failure', async () => {
+    const store = memoryStore(), afterSnapshot = vi.fn(async (_snapshot: MarketMonitorSnapshot) => { throw new Error('supplementary failure') })
+    const service = createMarketMonitorService({ ...dependencies(), store, afterSnapshot })
+    expect((await service.scan('BTC', 'manual')).receipt.outcome).toBe('stored')
+    expect((await service.scan('BTC', 'scheduled')).receipt.outcome).toBe('duplicate')
+    expect(afterSnapshot).toHaveBeenCalledTimes(2)
+    expect(afterSnapshot.mock.calls[1]![0]).toMatchObject({ asset: 'BTC' })
+    expect(store.data.receipts.every(r => r.outcome !== 'failed')).toBe(true)
+  })
   it('adds traceable retrospective feedback to daily inputs without making feedback failure block a brief', async () => {
     const svc = createMarketMonitorService({ ...dependencies(), store: memoryStore() })
     const input = await svc.dailyNarrationInput(['BTC'])

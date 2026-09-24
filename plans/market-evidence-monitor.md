@@ -6,6 +6,47 @@ No integration, merge or release is authorized.
 
 Related issues: none.
 
+## September 23 thesis tracking increment
+
+Implement the accepted first phase of the investment-assistant comparison:
+user-authored per-asset thesis, versioned supporting/invalidation conditions,
+deterministic checks and an attributed historical check journal. No automatic
+research, preference learning, trading, forecast tuning or news inference.
+New additive state under `market-monitor/thesis-v1` does not migrate or rewrite
+existing observations. Manual text conditions remain unknown. Numeric conditions
+test a single latest completed observation; persistence/duration rules are not
+implied. Revisions use optimistic concurrency and immutable publication.
+
+Autonomous UI choice: one compact card beneath the unified judgment, with a
+status summary and existing Collapsible/Button/Textarea primitives and styled native fields for
+evidence, edit and history. A separate page would hide context and add navigation;
+an always-open editor would overload the dashboard. Stack fields on narrow
+screens, label every control, retain text status and keyboard access. Backend
+reads/writes belong to a domain hook and the presenter receives props. No sample
+thesis is activated on the user's behalf. Demo data is explicitly illustrative.
+
+- [x] Add bounded metric catalog, freshness-aware evaluation and immutable revisions/checks.
+- [x] Wire isolated post-scan checks, validated API, domain hook and responsive UI/demo.
+- [x] Test concurrency, history, units, stale/missing data, failures and asset changes.
+- [x] Complete type/full-suite, real API/browser acceptance and prepare owned-branch delivery.
+
+Acceptance: 87 focused tests and root/UI typechecks pass. The final full run
+reported 7,418 passing, four skipped and four failing tests: two existing Codex
+adapter command expectations affected by the owner's uncommitted environment
+forwarding, and two existing supervisor TUI PTY assertions. An earlier issue
+session timing failure passed in isolation and in the final full run. The last
+missing-input regression was added during that run and verified by the final
+focused suite and root typecheck. GitHub issue filing returned HTTP 410 because
+Issues are disabled; no repository settings were changed.
+
+Live BTC, TSLA and MSTR read-only scans succeeded using Coinbase/Alpaca. Isolated
+thesis archives checked their actual snapshots, revisions, conflicts, immutable
+history and restart reads; MSTR's official net-BPS mNAV evidence was verified.
+The real thesis archives remain empty until the owner records a thesis. Browser
+acceptance covered the live empty state/editor, demo invalidation and original
+version history, and the 390px layout. Four unrelated user edits are preserved
+and excluded; only the owned feature branch is selected for delivery.
+
 Owner guides: [[docs/market-data-architecture.md]],
 [[docs/ui-interaction-and-motion.md]], [[docs/development-workflow.md]].
 

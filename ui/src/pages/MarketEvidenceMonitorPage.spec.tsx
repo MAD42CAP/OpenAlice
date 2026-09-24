@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { demoMarketJudgment } from '../demo/fixtures/market-judgment'
+import { demoThesisReport } from '../demo/fixtures/market-thesis'
 
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
@@ -12,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   review: vi.fn(), replay: vi.fn(), health: vi.fn(), status: vi.fn(), narratorStatus: vi.fn(), runNarratorNow: vi.fn(), reconcileNarrator: vi.fn(), settings: vi.fn(), strategies: vi.fn(), snapshots: vi.fn(), alerts: vi.fn(), evaluation: vi.fn(), scan: vi.fn(), saveSettings: vi.fn(),
 }))
 vi.mock('../api/market-judgment', () => ({ marketJudgmentApi: { read: vi.fn(async (asset: 'BTC' | 'TSLA' | 'MSTR') => demoMarketJudgment(asset)) } }))
+vi.mock('../api/market-thesis', () => ({ marketThesisApi: { read: vi.fn(async (asset: 'BTC' | 'TSLA' | 'MSTR') => demoThesisReport(asset)) } }))
 vi.mock('../api', () => ({ api: { marketMonitor: mocks } }))
 vi.mock('./market/MarketTypeSafePanel', () => ({ MarketTypeSafePanel: () => <div>Jev trend experiment</div> }))
 vi.mock('../api/market-quote', () => ({ marketQuoteApi: { read: vi.fn(async (asset: string) => ({ asset, price: 81234.56, currency: 'USD', asOf: '2026-09-18T19:00:00Z', fetchedAt: '2026-09-18T19:00:01Z', provider: 'coinbase', feed: 'Coinbase Exchange', status: 'fresh', attempts: [] })) } }))

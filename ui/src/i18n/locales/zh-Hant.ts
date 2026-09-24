@@ -1,3 +1,4 @@
+import { thesisZh } from './thesis'
 import { judgmentZh } from './judgment'
 import { typeSafeZh } from './typesafe'
 import type { Resources } from './en'
@@ -13,6 +14,7 @@ import { zh } from './zh'
  * Content is UI chrome only — no geographic or other non-technical terms.
  */
 export const zhHant: Resources = {
+  thesis: thesisZh,
   judgment: judgmentZh,
   typesafe: typeSafeZh,
   stickers: {

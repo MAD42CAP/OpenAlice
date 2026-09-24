@@ -137,6 +137,74 @@ only on an interactive terminal; this change does not rotate existing tokens.
 
 ## Modules
 
+### Investment thesis tracking
+
+`thesis-types.ts`, `thesis.ts`, `thesis-store.ts` and `thesis-service.ts` own a
+separate user-authored thesis per BTC/TSLA/MSTR. This is a deterministic check
+of declared conditions, not a prediction, portfolio recommendation, Jev prompt
+change or additional vote in the combined headline. Initial state is empty;
+the application never activates sample investment beliefs on the user's behalf.
+
+Each revision retains reasoning, a free-text observation horizon, change reason,
+enabled state and up to twelve supporting/invalidation conditions. Conditions
+select a single latest completed daily close/change/volume-ratio observation,
+BTC Deribit eight-hour funding/basis/put-call ratio, MSTR official net-BPS mNAV,
+or manual text. Numeric comparisons support strict/inclusive above/below levels.
+Funding fractions become percentage points once. A horizon describes the user's
+intent; it does not implement repeated-session confirmation or expiry scheduling.
+News, SEC filing text, ETF flow and company-segment financial claims require
+manual verification until attributed evidence adapters are implemented.
+
+Every numerical row retains value, unit, provider, data time, observation time,
+expiry, formula version and availability reason. Completed daily values reuse
+the existing closed-bar/freshness policy (BTC two days, equities four calendar
+days); latest quotes never substitute for closes. BTC context expires after
+thirty minutes and failed/retained fields cannot pass. Deribit time is a scan
+observation marker, not an exchange publication timestamp. mNAV requires a
+known issuer data time, ratio units and `strategy-net-bps-2026-07-23`; its maximum
+age is four calendar days. Changed/unknown formula or source time remains unknown.
+Research acquisitions now retain a null/unavailable mNAV marker on failure;
+charts skip it, while thesis checks cannot resurrect an earlier healthy value.
+No old research observations are rewritten or backfilled with failure markers.
+
+Per-condition results are met, not-met or unknown. The summary prioritizes any
+triggered invalidation, then missing evidence, then satisfaction of all configured
+support conditions, otherwise watch. Triggered and unknown counts coexist.
+No-trigger does not confirm the thesis. Paused state overrides the summary.
+Unknown manual conditions never infer a result from their wording.
+
+New additive local state lives under `data/market-monitor/thesis-v1/<ASSET>/`.
+Numbered revision files are immutable, hash-verified and published atomically
+with exclusive hard links. An expected revision prevents silent overwrites,
+including competing writers. Checks append to a mode-0600 journal and retain
+the complete original revision, evidence and calculated outcome. Identical consecutive evidence
+reuses the previous check (capture time alone does not create another event).
+Later duplicate-scan evidence is preferred over an older semantic market
+snapshot, including after restart. Reads return the latest 50 revisions and
+100 checks, disclose truncation and verify hashes. Read-time freshness may change
+the current presentation; historical results are the immutable saved outcome,
+not a rerun using a future evaluator version.
+No migration of existing market, narration or forecast records is necessary.
+
+Saving or manually checking uses only already acquired market/research evidence,
+with no model or provider call. Successful manual, scheduled and narration scans
+run the same supplementary local hook after the price receipt is saved. Failure
+is isolated and exposed by the thesis service; it cannot turn a successful price
+scan into a failure. The checker owns no second scheduler or notifications.
+The first phase does not automatically request research or learn preferences.
+
+`/api/market-monitor/thesis` supports GET with `asset` and PUT with
+`{asset, expectedRevision, draft}`; POST `/check` accepts `{asset}`. Reads have
+no write side effects. Invalid fields return 400, revision conflicts 409 and
+sanitized storage failures 503. The independent domain hook
+`useMarketThesis.ts` handles selection, refresh, mutation and stale responses.
+`MarketThesisPanel.tsx` presents the compact summary below the unified judgment,
+with an inline editor and disclosures for evidence, revision history and checks.
+Failed saves retain the draft and its original expected revision. Demo handlers
+use clearly illustrative in-memory state and never save it to the user's archive.
+
+### Existing monitor modules
+
 - `src/domain/market-monitor/analysis.ts` owns the first strategy
   (`evidence-chain-v1`), semantic fingerprints and observation evaluation.
 - `src/domain/market-monitor/trend.ts` owns deterministic short-, medium- and

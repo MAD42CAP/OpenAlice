@@ -172,7 +172,13 @@ export function createMarketDashboard(options: {
           catch { research = { id: `${asset.toLowerCase()}-research`, label: `${asset} 研究数据`, metrics: [], series: [], events: [], notes: ['研究数据读取失败；价格扫描和已存档判断仍然保留。'] } }
           // The finished acquisition time is distinct from every underlying source time.
           const capturedAt = now().toISOString()
-          const metrics = research.metrics.filter(metric => metric.value != null && Number.isFinite(metric.value) && metric.source.status !== 'unavailable')
+          const metrics = research.metrics.filter(metric => metric.id === 'strategy-mnav' || metric.value != null && Number.isFinite(metric.value) && metric.source.status !== 'unavailable')
+          // Preserve a latest failure marker for thesis checks. Historical
+          // chart builders already exclude unavailable/null observations.
+          if (asset === 'MSTR' && !metrics.some(metric => metric.id === 'strategy-mnav')) metrics.push({
+            id: 'strategy-mnav', label: '官方 mNAV', value: null, unit: 'ratio', description: '当前研究结果未提供可核验的 mNAV。',
+            source: { provider: 'Strategy public API', dataAt: null, fetchedAt: capturedAt, status: 'unavailable' },
+          })
           if (metrics.length) await recordResearch(asset, strategyId, capturedAt, metrics)
           if (asset === 'MSTR') {
             const observations = (await options.store.dashboardObservations(asset, OBSERVATION_LIMIT)).filter(row => row.strategyId === strategyId)

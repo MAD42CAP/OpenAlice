@@ -31,6 +31,9 @@ import { createNewsRoutes } from './routes/news.js'
 import { createMarketRoutes } from './routes/market.js'
 import { createMarketMonitorRoutes } from './routes/market-monitor.js'
 import { createMarketMonitorService } from '../domain/market-monitor/service.js'
+import { createMarketMonitorStore } from '../domain/market-monitor/store.js'
+import { createThesisService } from '../domain/market-monitor/thesis-service.js'
+import { createMarketThesisRoutes } from './routes/market-thesis.js'
 import { createMarketMonitorScheduler, type MarketMonitorScheduler } from '../domain/market-monitor/scheduler.js'
 import { createMarketMonitorToolFactories } from '../tool/market-monitor.js'
 import { createMarketNarratorCoordinator } from './market-monitor-narrator.js'
@@ -285,11 +288,17 @@ export class WebPlugin implements Plugin {
     app.route('/api/news', createNewsRoutes(ctx))
     app.route('/api/market', createMarketRoutes(ctx))
     const marketMonitor = createMarketMonitorService({
+      afterSnapshot: snapshot => thesis.afterScan(snapshot),
       barService: ctx.barService,
       equityClient: ctx.equityClient,
       reference: ctx.reference,
       ...(ctx.newsProvider ? { newsProvider: ctx.newsProvider } : {}),
     })
+    const thesis = createThesisService({
+      snapshot: async asset => (await marketMonitor.snapshots(asset, 1, (await marketMonitor.settings()).strategyId)).at(-1) ?? null,
+      research: asset => createMarketMonitorStore().dashboardObservations(asset, 100),
+    })
+    app.route('/api/market-monitor/thesis', createMarketThesisRoutes(thesis))
     const typeSafe = createTypeSafeService({ monitor: marketMonitor })
     const forecastExperiment = createForecastExperiment({ baseline: typeSafe })
     app.route('/api/market-monitor/forecast-experiment', createForecastExperimentRoutes(forecastExperiment))

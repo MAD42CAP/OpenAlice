@@ -44,6 +44,8 @@ import {
 } from './types.js'
 
 export interface MarketMonitorServiceDeps {
+  /** Local supplementary checks must not change the successful price receipt. */
+  afterSnapshot?: (snapshot: MarketMonitorSnapshot) => Promise<void>
   dashboardReaders?: Partial<Record<'BTC' | 'MSTR', { read(days: 30 | 90 | 365): Promise<DashboardModule> }>>
   barService: BarService
   equityClient: EquityClientLike
@@ -405,6 +407,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
             outcome: stored ? 'stored' : 'duplicate', snapshotId: stored ? snapshot.id : previous?.id,
           }
           await store.appendReceipt(receipt)
+          try { await deps.afterSnapshot?.(snapshot) } catch { /* Supplementary checks expose their own failure state. */ }
           return { snapshot: stored ? snapshot : { ...previous!, chart: snapshot.chart }, stored, alert, receipt }
         } catch (error) {
           if (error instanceof BarSourcesError) sourceHealth.push(...error.sources)

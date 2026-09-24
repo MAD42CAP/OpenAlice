@@ -25,6 +25,7 @@ import { MarketResearchDashboard } from './market/MarketResearchDashboard'
 import { MarketLatestPrice } from './market/MarketLatestPrice'
 import { MarketTypeSafePanel } from './market/MarketTypeSafePanel'
 import { MarketJudgmentPanel } from './market/MarketJudgmentPanel'
+import { MarketThesisPanel } from './market/MarketThesisPanel'
 import { MonitorOperations } from '../components/market/MonitorOperations'
 import { formatMonitorDate as formatDate, formatContextValue } from './market/market-monitor-format'
 import { getIntlLocale } from '../lib/intl'
@@ -331,6 +332,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
           <div className="mx-auto flex max-w-[1320px] flex-col gap-4 pb-8">
             <MarketLatestPrice asset={asset} visible={visible} />
             <MarketJudgmentPanel asset={asset} strategyId={settings.strategyId} visible={visible} revisionKey={`${snapshot.id}:${runtime.status?.assets.find(item => item.asset === asset)?.lastReceipt?.id ?? ''}`} />
+            <MarketThesisPanel asset={asset} visible={visible} revisionKey={`${snapshot.id}:${runtime.status?.assets.find(item => item.asset === asset)?.lastReceipt?.id ?? ''}`} />
             <div className="border-t border-border pt-4"><h2 className="text-base font-semibold">{t('judgment.independent')}</h2><p className="mt-1 text-xs text-muted-foreground">{t('judgment.independentHint')}</p></div>
             <DailyBriefPanel snapshot={snapshot} narratorStatus={narratorStatus} />
             <WyckoffPanel snapshot={snapshot} />

@@ -1,9 +1,11 @@
+import { thesisZh } from './thesis'
 import { judgmentZh } from './judgment'
 import { typeSafeZh } from './typesafe'
 import type { Resources } from './en'
 
 /** 简体中文. Typed as `Resources` → must match en's key structure exactly. */
 export const zh: Resources = {
+  thesis: thesisZh,
   judgment: judgmentZh,
   typesafe: typeSafeZh,
   stickers: {

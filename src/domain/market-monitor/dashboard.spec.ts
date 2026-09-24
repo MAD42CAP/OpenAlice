@@ -27,6 +27,18 @@ async function withStore(run: (store: ReturnType<typeof createMarketMonitorStore
 }
 
 describe('research dashboard', () => {
+  it('records an unavailable mNAV marker after a provider failure without inventing a chart point', async () => withStore(async store => {
+    const read = vi.fn().mockResolvedValueOnce({ id: 'strategy', label: 'Strategy', notes: [], events: [], series: [], metrics: [{
+      id: 'strategy-mnav', label: 'mNAV', value: 2, unit: 'ratio', description: 'Synthetic', source: { provider: 'Strategy', dataAt: NOW.toISOString(), fetchedAt: NOW.toISOString(), status: 'ok', formulaVersion: 'strategy-net-bps-2026-07-23' },
+    }] }).mockRejectedValueOnce(new Error('unavailable'))
+    const service = createMarketDashboard({ store, barService: {} as BarService, now: () => NOW, readers: { MSTR: { read } } })
+    await service.read('MSTR', 90)
+    const failed = await service.read('MSTR', 90)
+    const observations = await store.dashboardObservations('MSTR')
+    expect(observations).toHaveLength(2)
+    expect(observations.at(-1)!.metrics[0]).toMatchObject({ id: 'strategy-mnav', value: null, source: { status: 'unavailable' } })
+    expect(failed.modules[1]!.series.flatMap(s => s.points)).toEqual([{ at: NOW.toISOString(), value: 2 }])
+  }))
   it('preserves zero funding and converts fractional funding exactly once', () => {
     expect(dashboardContextMetrics(snapshot()).find(m => m.id === 'funding-8h')?.value).toBe(0)
     expect(dashboardContextMetrics(snapshot({ context: { fundingRate: 0.0001 } })).find(m => m.id === 'funding-8h')?.value).toBe(0.01)

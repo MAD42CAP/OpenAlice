@@ -1,3 +1,4 @@
+import { thesisEn } from './thesis'
 import { judgmentEn } from './judgment'
 import { typeSafeEn } from './typesafe'
 /**
@@ -15,6 +16,7 @@ import { typeSafeEn } from './typesafe'
  */
 
 export const en = {
+  thesis: thesisEn,
   judgment: judgmentEn,
   typesafe: typeSafeEn,
   stickers: {

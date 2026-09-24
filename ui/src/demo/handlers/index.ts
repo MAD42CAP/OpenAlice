@@ -9,6 +9,7 @@ import { wikilinkHandlers } from './wikilink'
 import { toolsSimulatorHandlers } from './toolsSimulator'
 import { marketHandlers } from './market'
 import { marketMonitorHandlers } from './market-monitor'
+import { marketThesisHandlers } from './market-thesis'
 import { typeSafeHandlers } from './typesafe'
 import { configKeysHandlers } from './configKeys'
 import { agentStatusHandlers } from './agentStatus'
@@ -40,6 +41,7 @@ export const handlers = [
   ...toolsSimulatorHandlers,
   ...marketHandlers,
   ...marketMonitorHandlers,
+  ...marketThesisHandlers,
   ...typeSafeHandlers,
   ...configKeysHandlers,
   ...agentStatusHandlers,
