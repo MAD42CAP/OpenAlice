@@ -89,7 +89,10 @@ export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketM
     const settings = await service.settings()
     if (!settings.codexNarrationEnabled) return c.json({ error: 'Codex daily narration is disabled' }, 409)
     const ready = await narrator.reconcile(true)
-    if (ready.state === 'blocked' || ready.state === 'failed') return c.json(ready, 409)
+    // A previous execution failure must not prevent retry after its cause is fixed.
+    const previousRunFailed = ready.state === 'failed' && ready.workspaceId
+      && (ready.lastRun?.status === 'failed' || ready.lastRun?.status === 'interrupted')
+    if (ready.state === 'blocked' || (ready.state === 'failed' && !previousRunFailed)) return c.json(ready, 409)
     try { return c.json(await narrator.runNow()) }
     catch (error) { return c.json({ error: error instanceof Error ? error.message : String(error) }, 409) }
   })

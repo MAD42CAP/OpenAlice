@@ -348,6 +348,11 @@ Issue handles BTC, TSLA and MSTR: BTC can advance every day, while equities are
 skipped until a new attributed trading-day candle exists. The dashboard also exposes an
 explicit **Run Codex** action for immediate verification.
 
+The immediate-run route permits retry after a failed or interrupted execution
+when reconciliation still resolves the configured Workspace and previous run.
+Missing runtimes and setup failures remain blocked; a historical execution error
+does not itself prevent dispatch after the underlying problem is repaired.
+
 The scheduled Issue uses the existing native Codex login and inherits its model
 unless the Issue is edited later. It refreshes read-only evidence through a
 Workspace tool, publishes at most one narration per

@@ -108,6 +108,25 @@ describe('market monitor routes', () => {
     expect(narrator.reconcile).toHaveBeenCalledWith(true)
   })
 
+  it.each(['failed', 'interrupted'])('allows a configured narrator to run again after a %s execution', async (status) => {
+    const failed = { enabled: true, state: 'failed' as const, workspaceId: 'chat-1', issueId: 'daily', schedule: { cron: '30 17 * * *', timezone: 'America/Vancouver', localTime: '17:30' }, message: 'Previous model request failed', lastRun: { taskId: 'old-run', status, startedAt: '2026-10-03T00:30:00Z' } }
+    const running = { ...failed, state: 'ready' as const, lastRun: { ...failed.lastRun, taskId: 'new-run', status: 'running' } }
+    const narrator = { status: vi.fn(async () => failed), reconcile: vi.fn(async () => failed), runNow: vi.fn(async () => running) } satisfies MarketNarratorCoordinator
+    const app = createMarketMonitorRoutes({} as EngineContext, service(), undefined, narrator)
+    const response = await app.request('/narrator/run', { method: 'POST' })
+    expect(response.status).toBe(200)
+    expect(await response.json()).toMatchObject({ lastRun: { taskId: 'new-run', status: 'running' } })
+    expect(narrator.runNow).toHaveBeenCalledOnce()
+  })
+
+  it.each(['blocked', 'failed'] as const)('rejects narrator %s setup without dispatching another run', async (state) => {
+    const unavailable = { enabled: true, state, issueId: 'daily', schedule: { cron: '30 17 * * *', timezone: 'America/Vancouver', localTime: '17:30' }, message: 'Runtime or configuration unavailable' }
+    const narrator = { status: vi.fn(async () => unavailable), reconcile: vi.fn(async () => unavailable), runNow: vi.fn(async () => unavailable) } satisfies MarketNarratorCoordinator
+    const app = createMarketMonitorRoutes({} as EngineContext, service(), undefined, narrator)
+    expect((await app.request('/narrator/run', { method: 'POST' })).status).toBe(409)
+    expect(narrator.runNow).not.toHaveBeenCalled()
+  })
+
   it('validates scan identity and preserves trigger provenance', async () => {
     const fake = service()
     const app = createMarketMonitorRoutes({} as EngineContext, fake)
