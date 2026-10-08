@@ -33,3 +33,12 @@ it('does not show an earlier selected asset after its delayed request resolves',
   await waitFor(() => expect(screen.getByRole('region', { name: 'MSTR · Forward comparison' })).toBeTruthy())
   expect(screen.queryByRole('region', { name: 'BTC · Forward comparison' })).toBeNull()
 })
+
+it('does not claim improvement when the challenger has the same hits but worse probability error than frequency', () => {
+  const report = demoForecastExperiment('MSTR')
+  Object.assign(report.summaries[0]!.paired, { count: 11, originalCorrect: 0, challengerCorrect: 8, frequencyCorrect: 8, originalBrier: 1.124, challengerBrier: 0.511, frequencyBrier: 0.472 })
+  render(<ForecastExperimentView asset="MSTR" report={report} error={false} busy={false} collect={vi.fn()} refresh={vi.fn()} />)
+  expect(screen.getByText('Short term · Probability error has not beaten the baseline')).toBeTruthy()
+  expect(screen.getByText('11 identical paired windows · hits: original 0, challenger 8, historical frequency 8.')).toBeTruthy()
+  expect(screen.queryAllByText(/Lower error so far/)).toHaveLength(0)
+})

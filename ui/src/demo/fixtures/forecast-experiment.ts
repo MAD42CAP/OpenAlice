@@ -18,5 +18,5 @@ export function demoForecastExperiment(asset: MonitorAsset): ExperimentReport {
         result: { model: original.model, inputTokens: 0, durationMs: 0, answers: { breakout: { type: 'choice', choice: 'inside', confidence: 1, probabilities: { up: 0, down: 0, inside: 1 } }, hold: { type: 'choice', choice: 'not_applicable', confidence: 1, probabilities: { held: 0, failed: 0, not_applicable: 1 } }, participation: { type: 'choice', choice: 'above', confidence: 1, probabilities: { above: 1, not_above: 0, unavailable: 0 } } } } } },
     rows: [row], summaries: horizons.map(horizon => ({ horizon, total: 1, complete: 0, pending: 1, excluded: 0, uniqueWindows: 0, duplicateWindows: 0,
       methods: Object.fromEntries(methods.map(m => [m, { scored: 0, correct: 0 }])) as ExperimentReport['summaries'][number]['methods'],
-      paired: { count: 0, originalCorrect: 0, challengerCorrect: 0, originalBrier: null, challengerBrier: null, frequencyBrier: null } })) }
+      paired: { count: 0, originalCorrect: 0, challengerCorrect: 0, frequencyCorrect: null, originalBrier: null, challengerBrier: null, frequencyBrier: null } })) }
 }

@@ -33,6 +33,7 @@ export function summarizeExperiment(rows: ExperimentRow[]): ExperimentReport['su
       pending: all.filter(v => v.outcome.status === 'pending').length, excluded: all.filter(v => v.outcome.status === 'unverified' || v.outcome.status === 'missing-data').length,
       methods: Object.fromEntries(methods.map(method => [method, { scored: unique.filter(v => v.correct[method] !== null).length, correct: unique.filter(v => v.correct[method] === true).length }])) as ExperimentReport['summaries'][number]['methods'],
       paired: { count: paired.length, originalCorrect: paired.filter(v => v.correct.original).length, challengerCorrect: paired.filter(v => v.correct.challenger).length,
+        frequencyCorrect: paired.length && paired.every(v => v.correct.frequency !== null) ? paired.filter(v => v.correct.frequency).length : null,
         originalBrier: mean('original'), challengerBrier: mean('challenger'), frequencyBrier: mean('frequency') } }
   })
 }

@@ -48,3 +48,19 @@ describe('operational health reports', () => {
     expect(report.window.truncated).toBe(true)
   })
 })
+
+it('detects an observed scheduled gap despite successful manual scans and includes a current overdue tail', () => {
+  const make = (time: string, trigger: MarketMonitorReceipt['trigger'] = 'scheduled') => ({ ...receipt(1, 'stored'), id: time, requestedAt: time, completedAt: new Date(Date.parse(time) + 1200).toISOString(), trigger })
+  const rows = [make('2026-09-13T09:00:00Z'), make('2026-09-13T09:15:00Z'), make('2026-09-13T10:00:00Z', 'manual'), make('2026-09-13T11:00:00Z'), make('2026-09-13T11:55:00Z', 'manual')]
+  const report = summarizeMonitorHealth('BTC', rows, 168, now, { enabled: true, intervalMinutes: 15 })
+  expect(report.summary.successRatePercent).toBe(100)
+  expect(report.continuity).toMatchObject({ status: 'overdue', scheduledSamples: 3, gapCount: 2, longestGapMs: 105 * 60_000, lastScheduledAt: '2026-09-13T11:00:00.000Z' })
+  expect(report.continuity!.recentGaps[0]).toMatchObject({ durationMs: 60 * 60_000, ongoing: true })
+  expect(summarizeMonitorHealth('BTC', rows, 168, now, { enabled: false, intervalMinutes: 15 }).continuity).toMatchObject({ status: 'paused', gapCount: 1 })
+})
+it('does not invent prehistory or count duplicate starts, future requests or a cadence-boundary delay as gaps', () => {
+  const row = { ...receipt(1, 'stored'), requestedAt: '2026-09-13T11:30:00Z' }
+  const rows = [row, { ...row, id: 'duplicate' }, { ...row, id: 'future', requestedAt: '2026-09-13T13:00:00Z' }]
+  expect(summarizeMonitorHealth('BTC', rows, 72, now, { enabled: true, intervalMinutes: 15 }).continuity).toMatchObject({ status: 'current', scheduledSamples: 1, gapCount: 0 })
+  expect(summarizeMonitorHealth('BTC', [], 72, now, { enabled: true, intervalMinutes: 15 }).continuity).toMatchObject({ status: 'unknown', gapCount: 0, lastScheduledAt: null })
+})

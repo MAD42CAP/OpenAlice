@@ -72,7 +72,7 @@ export interface MarketMonitorService {
   receipts(asset?: MarketMonitorAsset, limit?: number): Promise<MarketMonitorReceipt[]>
   evaluation(asset: MarketMonitorAsset): Promise<MarketMonitorEvaluation>
   review(asset: MarketMonitorAsset, days?: ReviewWindow): Promise<MarketReviewReport>
-  health(asset: MarketMonitorAsset, hours?: 24 | 72): Promise<MarketMonitorHealthReport>
+  health(asset: MarketMonitorAsset, hours?: 24 | 72 | 168): Promise<MarketMonitorHealthReport>
   strategies(): MarketMonitorStrategyManifest[]
   contextProviders(): MarketContextProviderManifest[]
   dailyNarrationInput(assets?: MarketMonitorAsset[]): Promise<MarketNarrationInput>
@@ -292,8 +292,9 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
     alerts: (asset, limit) => store.alerts(asset, limit),
     receipts: (asset, limit) => store.receipts(asset, limit),
     async health(asset, hours = 24) {
-      if (hours !== 24 && hours !== 72) throw new Error('Health window must be 24 or 72 hours')
-      return summarizeMonitorHealth(asset, await store.receipts(asset, HEALTH_RECEIPT_LIMIT + 1), hours, now())
+      if (hours !== 24 && hours !== 72 && hours !== 168) throw new Error('Health window must be 24, 72 or 168 hours')
+      const [settings, receipts] = await Promise.all([loadSettings(), store.receipts(asset, HEALTH_RECEIPT_LIMIT + 1)])
+      return summarizeMonitorHealth(asset, receipts, hours, now(), { enabled: settings.backgroundEnabled && settings.enabledAssets.includes(asset), intervalMinutes: settings.intervalMinutes })
     },
     async evaluation(asset) {
       const settings = await loadSettings()

@@ -21,6 +21,13 @@ export function summarizeJev(rows: JevReviewRow[]): JevReport['summaries'] {
     const unique = firstPerOutcomeWindow(complete, v => ({ issuedAt: v.forecast.issuedAt, ...v.result.outcome }))
     const scored = unique.filter(v => v.result.correct !== null)
     const paired = scored.filter(v => baselineChoice(v.forecast.horizons[horizon].baseline) !== null)
+    // Same deduplicated, non-abstaining cohort for estimates and realised hits.
+    // This descriptive gap is not a fitted probability or an independence test.
+    const meanSelectedProbability = scored.length ? scored.reduce((sum, v) => {
+      const answer = v.forecast.horizons[horizon].answer
+      return sum + answer.probabilities[answer.choice]!
+    }, 0) / scored.length : null
+    const realisedAccuracy = accuracy(scored.map(v => v.result.correct!))
     return { horizon, total: values.length, complete: complete.length, pending: values.filter(v => v.result.outcome.status === 'pending').length,
       uniqueWindows: unique.length, duplicateWindows: complete.length - unique.length,
       excluded: values.length - complete.length - values.filter(v => v.result.outcome.status === 'pending').length,
@@ -30,6 +37,7 @@ export function summarizeJev(rows: JevReviewRow[]): JevReport['summaries'] {
       baselineAccuracy: accuracy(paired.map(v => baselineChoice(v.forecast.horizons[horizon].baseline) === v.result.actual)),
       baselineCompared: paired.length, pairedAccuracy: accuracy(paired.map(v => v.result.correct!)),
       alwaysUpAccuracy: accuracy(scored.map(v => v.result.actual === 'up')),
+      meanSelectedProbability, probabilityGap: meanSelectedProbability === null || realisedAccuracy === null ? null : meanSelectedProbability - realisedAccuracy,
       brier: unique.length ? unique.reduce((sum, v) => sum + v.result.brier!, 0) / unique.length : null,
       calibration: Array.from({ length: 5 }, (_, i) => {
         const from = i / 5, to = (i + 1) / 5

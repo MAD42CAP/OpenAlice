@@ -58,9 +58,23 @@ export function ForecastExperimentView({ asset, report, error, busy, collect, re
           <p className="mt-1">{t('typesafe.methodChallenger')} · {outcome?.choices.challenger ? t(`typesafe.${outcome.choices.challenger}`) : t('typesafe.insufficient')}</p>
           <p className="mt-1">{t('typesafe.methodCombined')} · {t(`judgment.${latest.publication.combined.horizons[h].direction}`)}</p>
           <p className="mt-2 text-xs text-muted-foreground">{t('typesafe.outcome')} · {outcome?.actual ? `${outcome.outcome.changePercent?.toFixed(2)}%` : t(`typesafe.${outcome?.outcome.status ?? 'pending'}`)}</p>
+          {outcome?.outcome.status === 'complete' && <p className="mt-1 text-xs text-muted-foreground">{t('typesafe.pathRisk', { low: outcome.outcome.lowPercent?.toFixed(2) ?? '—', high: outcome.outcome.highPercent?.toFixed(2) ?? '—' })}</p>}
         </div>
       })}</div>
     </>}
+    {report && <div className="mt-4 grid gap-3 sm:grid-cols-3" role="group" aria-label={t('typesafe.baselineCheck')}>
+      {report.summaries.map(s => {
+        const paired = s.paired
+        const compared = paired.count > 0 && paired.frequencyBrier != null && paired.challengerBrier != null
+        const status = !compared ? 'comparisonPending' : paired.challengerBrier! >= paired.frequencyBrier! - 1e-9 ? 'comparisonNoEdge' : 'comparisonLowerError'
+        return <div key={s.horizon} className="min-w-0 border-t border-border pt-3 text-xs">
+          <h3 className="font-semibold">{t(`typesafe.${s.horizon}`)} · {t(`typesafe.${status}`)}</h3>
+          <p className="mt-2 leading-5">{t('typesafe.pairedBaseline', { count: paired.count, original: paired.originalCorrect, challenger: paired.challengerCorrect, frequency: paired.frequencyCorrect ?? '—' })}</p>
+          <p className="mt-1 leading-5 text-muted-foreground">{t('typesafe.experimentBrier', { original: paired.originalBrier?.toFixed(3) ?? '—', challenger: paired.challengerBrier?.toFixed(3) ?? '—', frequency: paired.frequencyBrier?.toFixed(3) ?? '—' })}</p>
+        </div>
+      })}
+      <p className="text-xs text-muted-foreground sm:col-span-3">{t('typesafe.comparisonHint')}</p>
+    </div>}
     {report && <details className="mt-4 border-t border-border pt-3"><summary className="cursor-pointer text-sm font-medium">{t('typesafe.experimentDetails')}</summary>
       <p className="mt-3 text-xs text-muted-foreground">{t('typesafe.experimentScoring')}</p>
       {report.invalidRecords > 0 && <p className="mt-2 text-xs text-warning">{t('typesafe.invalid', { count: report.invalidRecords })}</p>}

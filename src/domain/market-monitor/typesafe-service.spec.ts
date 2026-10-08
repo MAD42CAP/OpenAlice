@@ -80,7 +80,7 @@ describe('prospective Jev research', () => {
     const report = await f.service.report('BTC')
     expect(report.rows[0].outcomes[0]).toMatchObject({ actual: 'up', correct: true, outcome: { entry: 200, close: 202, start: '2026-09-21' } })
     expect(report.rows[0].outcomes[0].brier).toBeCloseTo(0.26)
-    expect(report.summaries[0]).toMatchObject({ complete: 1, scored: 1, accuracy: 1, baselineAccuracy: 0, pairedAccuracy: 1, baselineCompared: 1, alwaysUpAccuracy: 1 })
+    expect(report.summaries[0]).toMatchObject({ complete: 1, scored: 1, accuracy: 1, meanSelectedProbability: 0.6, probabilityGap: -0.4, baselineAccuracy: 0, pairedAccuracy: 1, baselineCompared: 1, alwaysUpAccuracy: 1 })
     expect(report.summaries[1]).toMatchObject({ pending: 1 })
     expect(f.evaluate).toHaveBeenCalledOnce()
   })
@@ -91,7 +91,7 @@ describe('prospective Jev research', () => {
     f.records[0].horizons.short.adequacy = { type: 'choice', choice: 'insufficient', confidence: 0.7, probabilities: { adequate: 0.3, insufficient: 0.7 } }
     f.records[0].recordHash = hashJevInput({ ...f.records[0], recordHash: '' })
     const report = await f.service.report('BTC')
-    expect(report.summaries[0]).toMatchObject({ complete: 1, abstained: 1, scored: 0, accuracy: null, baselineCompared: 0 })
+    expect(report.summaries[0]).toMatchObject({ complete: 1, abstained: 1, scored: 0, accuracy: null, meanSelectedProbability: null, probabilityGap: null, baselineCompared: 0 })
     expect(report.summaries[0].brier).toBeCloseTo(0.26)
     vi.mocked(f.market.archive).mockResolvedValueOnce(null)
     expect((await f.service.report('BTC')).summaries[0]).toMatchObject({ excluded: 1, complete: 0 })
@@ -121,4 +121,16 @@ describe('prospective Jev research', () => {
     expect(summarizeJev([later, first])[0]).toMatchObject({ total: 2, complete: 2, uniqueWindows: 1, duplicateWindows: 1, abstained: 1, scored: 0, correct: 0, accuracy: null, baselineCompared: 0, brier: 0.86, flatCalls: 1, flatOutcomes: 1 })
     expect([later, first]).toEqual(original)
   })
+})
+
+it('computes estimate/hit discrepancy on the earliest scored cohort without rewriting original answers', async () => {
+  const f = fixture(); await f.service.generate('BTC')
+  const first = (await f.service.report('BTC')).rows[0]!
+  first.forecast.horizons.short.answer = { type: 'choice', choice: 'flat', confidence: 0.8, probabilities: { up: 0.1, flat: 0.8, down: 0.1 } }
+  first.outcomes[0] = { ...first.outcomes[0]!, correct: false, actual: 'up', brier: 1.46, outcome: { ...first.outcomes[0]!.outcome, status: 'complete', start: '2026-09-21', end: '2026-09-21' } }
+  const later = structuredClone(first); later.forecast.issuedAt = '2026-09-20T15:00:00Z'; later.outcomes[0]!.correct = true
+  const before = structuredClone([later, first])
+  const s = summarizeJev([later, first])[0]!
+  expect(s).toMatchObject({ scored: 1, correct: 0, accuracy: 0, meanSelectedProbability: 0.8, probabilityGap: 0.8 })
+  expect([later, first]).toEqual(before)
 })

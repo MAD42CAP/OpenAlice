@@ -4,7 +4,7 @@ type TrendHorizon = 'short' | 'medium' | 'long'
 
 // Browser DTO for the read-only current-evidence summary.
 export type JudgmentDirection = 'bullish' | 'bearish' | 'range' | 'unclear' | 'insufficient'
-export type JudgmentReason = 'rules-bullish' | 'rules-bearish' | 'range-observed' | 'rules-mixed' | 'daily-missing' | 'hourly-missing' | 'structure-conflict' | 'structure-pending' | 'structure-agrees' | 'structure-unknown' | 'context-partial' | 'earnings-near' | 'latest-scan-failed'
+export type JudgmentReason = 'rules-bullish' | 'rules-bearish' | 'range-observed' | 'rules-mixed' | 'daily-missing' | 'hourly-missing' | 'structure-conflict' | 'structure-pending' | 'structure-agrees' | 'structure-unknown' | 'context-partial' | 'calendar-unknown' | 'earnings-near' | 'latest-scan-failed'
 export interface MarketJudgmentReport {
   protocol: 'evidence-summary-v1'
   asset: MonitorAsset

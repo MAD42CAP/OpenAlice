@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../api'
 import type { MonitorAsset, MonitorHealthReport } from '../api/market-monitor'
 
-export function useMarketMonitorHealth(asset: MonitorAsset, hours: 24 | 72, visible: boolean, receiptId?: string) {
+export function useMarketMonitorHealth(asset: MonitorAsset, hours: 24 | 72 | 168, visible: boolean, receiptId?: string) {
   const key = `${asset}:${hours}`
   const [state, setState] = useState<{ key: string; report: MonitorHealthReport | null; error: string | null; loading: boolean }>({ key, report: null, error: null, loading: true })
   const generation = useRef(0)

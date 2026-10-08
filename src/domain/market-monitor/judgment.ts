@@ -4,7 +4,7 @@ import type { JevReport } from './typesafe-types.js'
 import type { MarketMonitorReceipt, MarketMonitorSnapshot, TrendDirection, TrendHorizon } from './types.js'
 
 export type JudgmentDirection = 'bullish' | 'bearish' | 'range' | 'unclear' | 'insufficient'
-export type JudgmentReason = 'rules-bullish' | 'rules-bearish' | 'range-observed' | 'rules-mixed' | 'daily-missing' | 'hourly-missing' | 'structure-conflict' | 'structure-pending' | 'structure-agrees' | 'structure-unknown' | 'context-partial' | 'earnings-near' | 'latest-scan-failed'
+export type JudgmentReason = 'rules-bullish' | 'rules-bearish' | 'range-observed' | 'rules-mixed' | 'daily-missing' | 'hourly-missing' | 'structure-conflict' | 'structure-pending' | 'structure-agrees' | 'structure-unknown' | 'context-partial' | 'calendar-unknown' | 'earnings-near' | 'latest-scan-failed'
 export interface MarketJudgmentReport {
   protocol: 'evidence-summary-v1'
   asset: MarketMonitorSnapshot['asset']
@@ -54,6 +54,7 @@ export function buildMarketJudgment(snapshot: MarketMonitorSnapshot, at: Date, j
   const contextCurrent = contextSources.length > 0 && contextSources.every(s => s.status === 'ok' && !s.retained && s.asOf && Date.parse(s.asOf) <= at.getTime() && at.getTime() - Date.parse(s.asOf) <= contextTtl)
   const numericFields = Object.entries(snapshot.context).filter(([, v]) => typeof v === 'number' && Number.isFinite(v)).map(([key]) => key)
   const earningsAt = contextCurrent && snapshot.context.nextEarningsAt && Number.isFinite(Date.parse(snapshot.context.nextEarningsAt)) ? snapshot.context.nextEarningsAt : null
+  const calendarUnknown = snapshot.asset !== 'BTC' && (!earningsAt || earningsAt.slice(0, 10) < reviewSessionDate(snapshot.asset, at.toISOString()))
   const context = { currentFields: contextCurrent ? numericFields : [], referenceFields: contextCurrent ? [] : numericFields,
     newsCount: snapshot.context.recentNews?.length ?? 0, filingsCount: snapshot.context.recentFilings?.length ?? 0, earningsAt }
   const horizons = Object.fromEntries((['short', 'medium', 'long'] as const).map(h => {
@@ -78,6 +79,7 @@ export function buildMarketJudgment(snapshot: MarketMonitorSnapshot, at: Date, j
         direction = 'unclear'; agreement = 'mixed'; reasons.unshift('structure-conflict')
       }
     }
+    if (calendarUnknown) risks.push('calendar-unknown')
     if (!contextCurrent) risks.push('context-partial')
     if (failedScan) risks.push('latest-scan-failed')
     // A calendar date is not a midnight event timestamp. Include today and
@@ -93,7 +95,7 @@ export function buildMarketJudgment(snapshot: MarketMonitorSnapshot, at: Date, j
   const jevStatus = !jev ? 'unavailable' : !forecast ? 'missing' : reviewSessionDate(snapshot.asset, forecast.issuedAt) !== reviewSessionDate(snapshot.asset, at.toISOString()) ? 'stale' : forecast.basis.snapshotId !== snapshot.id ? 'different-basis' : 'current'
   return { protocol: 'evidence-summary-v1', asset: snapshot.asset, strategyId: snapshot.strategyId, snapshotId: snapshot.id, generatedAt: at.toISOString(),
     basis: { capturedAt: snapshot.capturedAt, dailyAt: basis?.dailyAt ?? null, hourlyAt: basis?.hourlyAt ?? null },
-    quality: !daily ? 'insufficient' : !hourly || !contextCurrent || failedScan || snapshot.sourceHealth.some(s => s.status !== 'ok') ? 'partial' : 'complete',
+    quality: !daily ? 'insufficient' : !hourly || !contextCurrent || calendarUnknown || failedScan || snapshot.sourceHealth.some(s => s.status !== 'ok') ? 'partial' : 'complete',
     horizons, structure: { phase, direction: structureDirection, confirmed: Boolean(confirmed), lower: range?.lower ?? null, upper: range?.upper ?? null, confirmation: w?.confirmation ?? [], invalidation: w?.invalidation ?? [] }, context,
     jev: { status: jevStatus, issuedAt: forecast?.issuedAt ?? null, directions: forecast ? Object.fromEntries((['short', 'medium', 'long'] as const).map(h => [h, forecast.horizons[h].adequacy.choice === 'adequate' && ['up', 'flat', 'down'].includes(forecast.horizons[h].answer.choice) ? forecast.horizons[h].answer.choice : 'insufficient'])) as NonNullable<MarketJudgmentReport['jev']['directions']> : null },
   }

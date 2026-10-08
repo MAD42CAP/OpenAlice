@@ -1,3 +1,4 @@
+import { reviewSessionDate } from './review.js'
 import { createSecEdgarContext } from './sec-edgar.js'
 import { contextReadFailure, createContextReader } from './context-read.js'
 import { safeMarketDataError } from '../market-data/bars/safe-error.js'
@@ -172,9 +173,12 @@ async function equityContext(
   const metric = metrics.status === 'fulfilled' ? metrics.value[0] : undefined
   const estimate = estimates.status === 'fulfilled' ? estimates.value[0] : undefined
   const share = shares.status === 'fulfilled' ? shares.value[0] : undefined
-  const earnings = calendar.status === 'fulfilled'
-    ? calendar.value.earnings.find((row) => String((row as { symbol?: unknown }).symbol ?? '').toUpperCase() === symbol)
-    : undefined
+  const today = reviewSessionDate(asset, at.toISOString())
+  const earningsDates = calendar.status === 'fulfilled' ? calendar.value.earnings
+    .filter(row => String((row as { symbol?: unknown }).symbol ?? '').toUpperCase() === symbol)
+    .map(row => stringFrom(row, ['report_date', 'date']))
+    .filter((date): date is string => Boolean(date && /^\d{4}-\d{2}-\d{2}(?:$|[T ])/.test(date) && Number.isFinite(Date.parse(date)) && new Date(`${date.slice(0, 10)}T00:00:00Z`).toISOString().slice(0, 10) === date.slice(0, 10) && date.slice(0, 10) >= today))
+    .sort() : []
   const newsRows = news.status === 'fulfilled' ? news.value.filter((item) => {
     const text = `${item.title}\n${item.content}`.toLowerCase()
     return EQUITY_NEWS_ALIASES[asset].some((alias) => text.includes(alias.toLowerCase()))
@@ -185,7 +189,7 @@ async function equityContext(
     forwardPe: numberFrom(metric, ['forward_pe', 'pe_forward']),
     analystTargetMean: numberFrom(estimate, ['target_consensus', 'target_mean', 'target_price']),
     shortPercentFloat: numberFrom(share, ['short_percent_of_float']),
-    nextEarningsAt: stringFrom(earnings, ['report_date', 'date']),
+    nextEarningsAt: earningsDates[0] ?? null,
     ...(news.status === 'fulfilled' ? { recentNews: newsRows.map((item) => ({ title: item.title, time: item.time.toISOString(), source: item.metadata.source ?? null })) } : {}),
   }
   const coreOk = [context.marketCap, context.trailingPe, context.forwardPe, context.analystTargetMean, context.shortPercentFloat].some((value) => value != null)
@@ -204,6 +208,7 @@ async function equityContext(
     { id: `${sourceId}-reference`, label: `${asset} fundamentals and positioning`, status: coreOk ? coreFailures ? 'degraded' : 'ok' : 'unavailable', provider: 'OpenAlice equity providers', asOf: coreOk ? at.toISOString() : null, failedFields,
       detail: [describe('metrics', metrics, !metric), describe('estimates', estimates, !estimate), describe('share statistics', shares, !share)].join('; ') },
     { id: `${sourceId}-calendar-news`, label: `${asset} calendar and news`, status: calendarOk && newsOk ? 'ok' : calendarOk || newsOk ? 'degraded' : 'unavailable', provider: 'OpenAlice reference/news', asOf: calendarOk || newsOk ? at.toISOString() : null,
+      coverage: { earnings: calendarOk ? context.nextEarningsAt ? 'available' : 'unknown' : 'unavailable', news: !deps.newsProvider ? 'not-configured' : !newsOk ? 'unavailable' : newsRows.length ? 'matched' : 'empty' },
       failedFields: [...(!calendarOk ? ['nextEarningsAt'] as const : []), ...(deps.newsProvider && !newsOk ? ['recentNews'] as const : [])],
       detail: `${calendarOk ? context.nextEarningsAt ? 'Earnings date available' : 'No earnings date' : describe('earnings calendar', calendar, false)}; ${newsOk ? `${newsRows.length} recent matching stories` : deps.newsProvider ? describe('news', news, false) : 'news: collector not configured'}.` },
   ] }

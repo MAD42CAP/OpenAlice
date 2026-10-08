@@ -41,8 +41,8 @@ export const marketMonitorHandlers = [
     const params = new URL(request.url).searchParams
     const asset = params.get('asset')
     const hours = params.get('hours') ?? '24'
-    if (!ASSETS.includes(asset as MonitorAsset) || !['24', '72'].includes(hours)) return HttpResponse.json({ error: 'Invalid report selection' }, { status: 400 })
-    return HttpResponse.json(demoMonitorHealth(asset as MonitorAsset, Number(hours) as 24 | 72))
+    if (!ASSETS.includes(asset as MonitorAsset) || !['24', '72', '168'].includes(hours)) return HttpResponse.json({ error: 'Invalid report selection' }, { status: 400 })
+    return HttpResponse.json(demoMonitorHealth(asset as MonitorAsset, Number(hours) as 24 | 72 | 168))
   }),
   http.get('/api/market-monitor/status', () => HttpResponse.json({
     running: false, backgroundEnabled: settings.backgroundEnabled, intervalMinutes: settings.intervalMinutes,

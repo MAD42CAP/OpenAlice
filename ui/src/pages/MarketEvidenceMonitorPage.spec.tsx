@@ -207,7 +207,7 @@ it('follows the global Chinese locale for current and previously stored evidence
   render(<MarketEvidenceMonitorPage />)
   expect(await screen.findByText('市场证据监测')).toBeTruthy()
   expect(screen.getByText('每日市场简报')).toBeTruthy()
-  expect(screen.getByText('短期、中期和长期证据一致偏多。')).toBeTruthy()
+  expect(screen.getByText('至少两个周期偏多，暂无偏空周期；其他周期仍需逐项查看。')).toBeTruthy()
   expect(screen.getByText('威科夫结构')).toBeTruthy()
   expect(screen.getAllByText('上涨阶段候选').length).toBeGreaterThan(0)
   expect(screen.getByText('强势信号（SOS）')).toBeTruthy()

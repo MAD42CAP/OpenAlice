@@ -1,5 +1,6 @@
 export const judgmentEn = {
-  title: 'Combined market assessment', horizon: 'Assessment horizon', days_one: 'Next {{count}} day', sessions_one: 'Next {{count}} session', days: 'Next {{count}} days', sessions: 'Next {{count}} sessions',
+  title: 'Combined market assessment', horizon: 'Assessment horizon', days_one: '{{count}}-day view', sessions_one: '{{count}}-session view', days: '{{count}}-day view', sessions: '{{count}}-session view',
+  interpretation: 'Current evidence across three horizons. These biases are conditional interpretations, not validated return forecasts.',
   bullish: 'Bullish bias', bearish: 'Bearish bias', range: 'Trading range', unclear: 'Direction is not clear', insufficient: 'Insufficient current evidence',
   loading: 'Combining available evidence…', empty: 'Run a scan to build the assessment.', retry: 'Retry',
   loadError: 'The current assessment could not be refreshed.', stale: 'The previous assessment is shown below for reference; its current validity is unknown.',
@@ -27,13 +28,15 @@ export const judgmentEn = {
     'structure-pending': 'The structural interpretation still needs a matching event test.',
     'structure-agrees': 'A confirmed structural event supports the price-rule direction.',
     'structure-unknown': 'The Wyckoff structure is not sufficiently defined.',
+    'calendar-unknown': 'The next earnings date has not been verified; event risk remains unknown.',
     'context-partial': 'Some background data is missing or too old for current confirmation.',
     'earnings-near': 'An upcoming earnings event is close to this horizon; check its scheduled date.',
     'latest-scan-failed': 'The latest scan failed; the last usable observation is retained.',
   },
 }
 export const judgmentZh: typeof judgmentEn = {
-  title: '统一市场判断', horizon: '判断期限', days_one: '未来 {{count}} 天', sessions_one: '未来 {{count}} 个交易日', days: '未来 {{count}} 天', sessions: '未来 {{count}} 个交易日',
+  title: '统一市场判断', horizon: '判断期限', days_one: '{{count}} 天视角', sessions_one: '{{count}} 个交易日视角', days: '{{count}} 天视角', sessions: '{{count}} 个交易日视角',
+  interpretation: '同时查看三个期限的当前证据。偏多、偏空均有成立条件，尚非已验证的收益预测。',
   bullish: '偏多', bearish: '偏空', range: '区间震荡', unclear: '方向暂不明确', insufficient: '当前证据不足',
   loading: '正在整理各项判断…', empty: '完成扫描后生成综合判断。', retry: '重试',
   loadError: '暂时无法刷新当前判断。', stale: '下方保留上次分析供参考，当前是否仍成立尚无法核验。',
@@ -61,6 +64,7 @@ export const judgmentZh: typeof judgmentEn = {
     'structure-pending': '结构解读仍需对应事件的后续测试。',
     'structure-agrees': '已确认的结构事件支持量价规则方向。',
     'structure-unknown': '威科夫结构尚不清晰。',
+    'calendar-unknown': '下一次财报日期尚未核实，事件风险仍未知。',
     'context-partial': '部分背景数据缺失或过期，不能作为当前确认依据。',
     'earnings-near': '该期限附近有财报事件，请留意计划公布日期。',
     'latest-scan-failed': '最近一次扫描失败，目前沿用最后一份可用行情。',

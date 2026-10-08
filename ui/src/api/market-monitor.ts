@@ -39,6 +39,8 @@ export interface SourceHealth {
   provider: string
   asOf: string | null
   detail: string
+  failedFields?: string[]
+  coverage?: { earnings: 'available' | 'unknown' | 'unavailable'; news: 'matched' | 'empty' | 'unavailable' | 'not-configured' }
   retained?: { asOf: string; expiresAt: string; fields: string[] }
 }
 
@@ -206,7 +208,7 @@ export interface MonitorHealthReport {
   asset: MonitorAsset
   generatedAt: string
   window: {
-    hours: 24 | 72
+    hours: 24 | 72 | 168
     from: string
     to: string
     firstSampleAt: string | null
@@ -247,6 +249,14 @@ export interface MonitorHealthReport {
     lastCheckedAt: string
     lastDataAt: string | null
   }>
+  /** Relative to the current cadence; gaps may include an intentional pause. */
+  continuity?: {
+    enabled: boolean; intervalMinutes: number; scheduledSamples: number
+    status: 'unknown' | 'paused' | 'current' | 'overdue'
+    lastScheduledAt: string | null; elapsedSinceLastMs: number | null
+    gapCount: number; longestGapMs: number | null
+    recentGaps: Array<{ from: string; to: string; durationMs: number; ongoing: boolean }>
+  }
   recent: MonitorReceipt[]
 }
 
@@ -323,7 +333,7 @@ export interface MonitorReplay {
 export const marketMonitorApi = {
   review: (asset: MonitorAsset, days: ReviewWindow = 30, signal?: AbortSignal) => fetchJson<MarketReviewReport>(`/api/market-monitor/review?asset=${asset}&days=${days}`, { signal }),
   replay: (snapshotId: string) => fetchJson<MonitorReplay>(`/api/market-monitor/snapshots/${encodeURIComponent(snapshotId)}/replay`),
-  health: (asset: MonitorAsset, hours: 24 | 72 = 24) => fetchJson<MonitorHealthReport>(`/api/market-monitor/health?asset=${asset}&hours=${hours}`),
+  health: (asset: MonitorAsset, hours: 24 | 72 | 168 = 24) => fetchJson<MonitorHealthReport>(`/api/market-monitor/health?asset=${asset}&hours=${hours}`),
   status: () => fetchJson<MonitorSchedulerStatus>('/api/market-monitor/status'),
   narratorStatus: () => fetchJson<MarketNarratorStatus>('/api/market-monitor/narrator/status'),
   reconcileNarrator: () => fetchJson<MarketNarratorStatus>('/api/market-monitor/narrator/reconcile', { method: 'POST', headers }),

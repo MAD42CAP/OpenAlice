@@ -10,7 +10,7 @@ import { MarketForecastExperiment } from './MarketForecastExperiment'
 
 const horizons = ['short', 'medium', 'long'] as const
 const directions = ['up', 'flat', 'down'] as const
-const percent = (value: number | null) => value === null ? '—' : `${(value * 100).toFixed(1)}%`
+const percent = (value: number | null | undefined) => value == null ? '—' : `${(value * 100).toFixed(1)}%`
 const colors = { up: 'bg-success', flat: 'bg-muted-foreground', down: 'bg-destructive' }
 export function MarketTypeSafePanel({ asset, visible, revisionKey }: { asset: MonitorAsset; visible: boolean; revisionKey: string }) {
   const model = useTypeSafeReport(asset, visible, revisionKey)
@@ -34,10 +34,16 @@ export function TypeSafeForecastView({ asset, report, error, loading, generating
     <p className="mt-3 text-sm text-muted-foreground">{t('typesafe.disclaimer')}</p>
     <p className="mt-2 text-xs text-muted-foreground">{t('typesafe.timing')}</p>
     {report && <p className="mt-2 text-xs text-muted-foreground">{t('typesafe.cadence', { state: t(report.automatic ? 'typesafe.on' : 'typesafe.off') })}</p>}
-    {report && <div aria-label={t('typesafe.scoreboard')} className="mt-3 space-y-1 border-l-2 border-border pl-3 text-xs">
+    {report && <div role="group" aria-label={t('typesafe.scoreboard')} className="mt-3 space-y-1 border-l-2 border-border pl-3 text-xs">
       <p className="font-medium">{t('typesafe.scoreboard')}</p>
       {report.summaries.map(s => <p key={s.horizon}>{t(`typesafe.${s.horizon}`)} · {t(s.scored ? 'typesafe.scoreline' : 'typesafe.unscoredLine', s)}</p>)}
       <p className="text-muted-foreground">{t('typesafe.scoreCaution')}</p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-3">{report.summaries.map(s => <div key={s.horizon} className="border-t border-border pt-2">
+        <p className="font-medium">{t(`typesafe.${s.horizon}`)} · {t('typesafe.estimateObserved')}</p>
+        <p className="mt-1 tabular-nums">{t('typesafe.estimatePair', { estimated: percent(s.meanSelectedProbability), observed: percent(s.accuracy), count: s.scored })}</p>
+        {s.probabilityGap != null && <p className="mt-1 text-muted-foreground">{t('typesafe.estimateGap', { value: (s.probabilityGap * 100).toFixed(1) })}</p>}
+      </div>)}</div>
+      <p className="mt-2 text-muted-foreground">{t('typesafe.estimateHint')}</p>
     </div>}
     {error && <p role="alert" className="mt-3 text-sm text-destructive">{error === 'load' ? t('typesafe.loadError') : error}</p>}
     {report?.lastError && !error && <p role="alert" className="mt-3 text-sm text-destructive">{report.lastError}</p>}
@@ -49,10 +55,13 @@ export function TypeSafeForecastView({ asset, report, error, loading, generating
           <h3 className="text-sm font-semibold">{t(`typesafe.${h}`)} <span className="font-normal text-muted-foreground">· {t('typesafe.sessions', { count: forecast.bars })}</span></h3>
           <p className="mt-2 text-sm font-medium">{t('typesafe.selected', { choice: t(`typesafe.${choice}`) })}</p>
           {choice === 'insufficient' && <p className="mt-2 text-xs text-warning">{t('typesafe.abstentionHint')}</p>}
-          <div className="mt-4 space-y-3">{directions.map(d => <div key={d}><div className="mb-1 flex justify-between text-xs"><span>{t(`typesafe.${d}`)}</span><span className="tabular-nums">{percent(forecast.answer.probabilities[d]!)}</span></div><div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden><div className={`h-full rounded-full ${colors[d]}`} style={{ width: `${forecast.answer.probabilities[d]! * 100}%` }} /></div></div>)}</div>
+          <p className="mt-3 text-xs text-muted-foreground">{t('typesafe.rawProbabilities')}</p>
+          {choice === 'flat' && <p className="mt-2 text-xs text-warning">{t('typesafe.flatMeaning')}</p>}
+          <div className="mt-3 space-y-3">{directions.map(d => <div key={d}><div className="mb-1 flex justify-between text-xs"><span>{t(`typesafe.${d}`)}</span><span className="tabular-nums">{percent(forecast.answer.probabilities[d]!)}</span></div><div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden><div className={`h-full rounded-full ${colors[d]}`} style={{ width: `${forecast.answer.probabilities[d]! * 100}%` }} /></div></div>)}</div>
           <p className="mt-4 text-xs text-muted-foreground">{t('typesafe.baseline', { value: t(`typesafe.${forecast.baseline}`) })}</p>
         </div> })}
       </div>
+      <p className="mt-3 text-xs leading-5 text-muted-foreground">{t('typesafe.inputScope')}</p>
       <TypeSafeEvidence state={latest.forecast.state} />
     </>}
     {report && <TypeSafeReview report={report} />}

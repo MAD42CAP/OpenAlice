@@ -110,6 +110,20 @@ it('keeps a successful empty news response empty', async () => {
   })
   const result = await registry.forAsset('MSTR').find(row => row.manifest.id === 'openalice-equity-v1')!.load({ asset: 'MSTR', at: new Date() })
   expect(result.context.recentNews).toEqual([])
-  expect(result.health[1]).toMatchObject({ status: 'ok', failedFields: [] })
+  expect(result.health[1]).toMatchObject({ status: 'ok', failedFields: [], coverage: { earnings: 'unknown', news: 'empty' } })
   expect(result.health[1]?.detail).toContain('0 recent matching stories')
+})
+
+it('selects the earliest valid upcoming earnings date, ignoring stale dates and other symbols', async () => {
+  const registry = createDefaultMarketContextProviderRegistry({
+    equityClient: { getKeyMetrics: async () => [], getEstimateConsensus: async () => [], getShareStatistics: async () => [] } as unknown as EquityClientLike,
+    reference: { calendar: async () => ({ earnings: [
+      { symbol: 'TSLA', report_date: '2026-09-01' }, { symbol: 'TSLA', report_date: 'unknown' }, { symbol: 'TSLA', report_date: '2027-02-30' },
+      { symbol: 'MSTR', report_date: '2026-10-01' }, { symbol: 'TSLA', report_date: '2026-11-01' }, { symbol: 'TSLA', report_date: '2026-10-20' },
+    ] }) } as unknown as ReferenceDataService,
+    newsProvider: { getNewsV2: async () => [] } as never,
+  })
+  const result = await registry.forAsset('TSLA').find(p => p.manifest.id === 'openalice-equity-v1')!.load({ asset: 'TSLA', at: new Date('2026-10-07T12:00:00Z') })
+  expect(result.context.nextEarningsAt).toBe('2026-10-20')
+  expect(result.health[1]).toMatchObject({ status: 'ok', coverage: { earnings: 'available', news: 'empty' } })
 })

@@ -50,3 +50,13 @@ it('renders operational history in Chinese when the global locale changes', asyn
   expect(screen.getByText('1 / 3 已检查')).toBeTruthy()
   expect(screen.getByText(/不代表持续在线率或交易表现/)).toBeTruthy()
 })
+
+it('shows a seven-day window and overdue scheduled gaps even when recorded scans all succeed', () => {
+  const report = demoMonitorHealth('BTC', 168), select = vi.fn()
+  report.continuity = { enabled: true, intervalMinutes: 15, scheduledSamples: 2, status: 'overdue', lastScheduledAt: '2026-09-12T10:00:00Z', elapsedSinceLastMs: 9_360_000, gapCount: 1, longestGapMs: 9_360_000, recentGaps: [{ from: '2026-09-12T10:00:00Z', to: report.generatedAt, durationMs: 9_360_000, ongoing: true }] }
+  render(<MonitorOperations asset="BTC" hours={168} onHoursChange={select} report={report} error={null} loading={false} onRefresh={vi.fn()} />)
+  expect(screen.getByText('Scheduled scan continuity · Scheduled scan overdue')).toBeTruthy()
+  expect(screen.getByText('1 observed gaps · longest 156 min.')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '7 days' })); expect(select).toHaveBeenCalledWith(168)
+  expect(screen.getByText('100%')).toBeTruthy()
+})

@@ -169,8 +169,8 @@ export function createMarketMonitorRoutes(ctx: EngineContext, provided?: MarketM
   app.get('/health', async (c) => {
     const asset = assetFrom(c.req.query('asset'))
     const hours = c.req.query('hours') ?? '24'
-    if (!asset || !['24', '72'].includes(hours)) return c.json({ error: `asset must be one of: ${MARKET_MONITOR_ASSETS.join(', ')}; hours must be 24 or 72` }, 400)
-    return c.json(await service.health(asset, Number(hours) as 24 | 72))
+    if (!asset || !['24', '72', '168'].includes(hours)) return c.json({ error: `asset must be one of: ${MARKET_MONITOR_ASSETS.join(', ')}; hours must be 24, 72 or 168` }, 400)
+    return c.json(await service.health(asset, Number(hours) as 24 | 72 | 168))
   })
 
   app.get('/defaults', (c) => c.json(DEFAULT_MARKET_MONITOR_SETTINGS))

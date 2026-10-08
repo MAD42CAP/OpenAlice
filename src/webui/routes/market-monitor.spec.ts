@@ -168,6 +168,8 @@ describe('market monitor routes', () => {
     const app = createMarketMonitorRoutes({} as EngineContext, fake)
     expect((await app.request('/health?asset=BTC&hours=72')).status).toBe(200)
     expect(fake.health).toHaveBeenCalledWith('BTC', 72)
+    expect((await app.request('/health?asset=BTC&hours=168')).status).toBe(200)
+    expect(fake.health).toHaveBeenCalledWith('BTC', 168)
     expect((await app.request('/health?asset=ETH&hours=72')).status).toBe(400)
     expect((await app.request('/health?asset=BTC&hours=999')).status).toBe(400)
     expect(fake.scan).not.toHaveBeenCalled()

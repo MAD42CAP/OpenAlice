@@ -34,6 +34,6 @@ export interface ExperimentReport {
   rows: ExperimentRow[]
   summaries: Array<{ horizon: JevHorizon; total: number; complete: number; pending: number; excluded: number; uniqueWindows: number; duplicateWindows: number
     methods: Record<ExperimentMethod, { scored: number; correct: number }>
-    paired: { count: number; originalCorrect: number; challengerCorrect: number; originalBrier: number | null; challengerBrier: number | null; frequencyBrier: number | null } }>
+    paired: { count: number; originalCorrect: number; challengerCorrect: number; frequencyCorrect: number | null; originalBrier: number | null; challengerBrier: number | null; frequencyBrier: number | null } }>
 }
 export type AtomicAnswers = Record<'breakout' | 'hold' | 'participation', JevAnswer>

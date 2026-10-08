@@ -67,11 +67,14 @@ describe('same-evidence forward experiment', () => {
     f.setAt('2026-09-22T01:00:00Z')
     const report = await f.service.report('BTC')
     expect(report.rows[0]!.outcomes[0]).toMatchObject({ actual: 'up', outcome: { entry: 100, close: 101 }, correct: { original: false, challenger: true, combined: true, rules: true } })
-    expect(report.summaries[0]).toMatchObject({ paired: { count: 1, originalCorrect: 0, challengerCorrect: 1 }, methods: { combined: { scored: 1, correct: 1 } } })
+    expect(report.summaries[0]).toMatchObject({ paired: { count: 1, originalCorrect: 0, challengerCorrect: 1, frequencyCorrect: 1 }, methods: { combined: { scored: 1, correct: 1 } } })
     expect(f.evaluate).toHaveBeenCalledOnce()
     const duplicate = structuredClone(report.rows[0]!); duplicate.id = 'later'; duplicate.issuedAt = '2026-09-20T13:00:00Z'
     duplicate.outcomes[0]!.correct.original = true
     expect(summarizeExperiment([duplicate, report.rows[0]!])[0]).toMatchObject({ duplicateWindows: 1, paired: { originalCorrect: 0, count: 1 } })
+    const noFrequency = structuredClone(report.rows[0]!)
+    noFrequency.outcomes[0]!.correct.frequency = null; noFrequency.outcomes[0]!.brier.frequency = null
+    expect(summarizeExperiment([noFrequency])[0]!.paired).toMatchObject({ count: 1, frequencyCorrect: null, frequencyBrier: null })
     vi.mocked(f.market.archive).mockResolvedValueOnce(null)
     expect((await f.service.report('BTC')).summaries[0]).toMatchObject({ excluded: 1, paired: { count: 0 } })
   })

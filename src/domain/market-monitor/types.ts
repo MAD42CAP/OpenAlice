@@ -81,6 +81,7 @@ export interface SourceHealth {
   provider: string
   asOf: string | null
   detail: string
+  coverage?: { earnings: 'available' | 'unknown' | 'unavailable'; news: 'matched' | 'empty' | 'unavailable' | 'not-configured' }
   /** Only failed subrequests may borrow prior fields; successful empty results stay empty. */
   failedFields?: Array<keyof MarketContext>
   retained?: { asOf: string; expiresAt: string; fields: Array<keyof MarketContext> }
@@ -302,7 +303,7 @@ export interface MarketMonitorHealthReport {
   asset: MarketMonitorAsset
   generatedAt: string
   window: {
-    hours: 24 | 72
+    hours: 24 | 72 | 168
     from: string
     to: string
     firstSampleAt: string | null
@@ -343,6 +344,14 @@ export interface MarketMonitorHealthReport {
     lastCheckedAt: string
     lastDataAt: string | null
   }>
+  /** Relative to the current cadence; gaps may include an intentional pause. */
+  continuity?: {
+    enabled: boolean; intervalMinutes: number; scheduledSamples: number
+    status: 'unknown' | 'paused' | 'current' | 'overdue'
+    lastScheduledAt: string | null; elapsedSinceLastMs: number | null
+    gapCount: number; longestGapMs: number | null
+    recentGaps: Array<{ from: string; to: string; durationMs: number; ongoing: boolean }>
+  }
   recent: MarketMonitorReceipt[]
 }
 

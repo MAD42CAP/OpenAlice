@@ -28,3 +28,13 @@ describe('last successful context', () => {
     expect(next.health[0]?.retained).toBeUndefined()
   })
 })
+
+it('clears successfully empty calendar coverage so a later outage cannot resurrect old events', () => {
+  const calendar: SourceHealth = { ...source, id: 'tsla-calendar-news' }
+  const prior = retainContext({ nextEarningsAt: '2026-10-01', recentNews: [{ title: 'old headline', time: source.asOf!, source: 'fixture' }] }, [calendar], [], new Date(source.asOf!))
+  const empty = retainContext({ nextEarningsAt: null, recentNews: [] }, [{ ...calendar, asOf: '2026-09-17T00:10:00Z', failedFields: [], coverage: { earnings: 'unknown', news: 'empty' } }], prior.cache, new Date('2026-09-17T00:10:00Z'))
+  const outage = retainContext({}, [{ ...calendar, status: 'unavailable', asOf: null, failedFields: ['nextEarningsAt', 'recentNews'] }], empty.cache, new Date('2026-09-17T00:20:00Z'))
+  expect(outage.context.nextEarningsAt).toBeUndefined()
+  expect(outage.context.recentNews).toEqual([])
+  expect(JSON.stringify(outage)).not.toContain('old headline')
+})

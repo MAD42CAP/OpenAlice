@@ -9,8 +9,8 @@ import { monitorSourceLabel } from '../../pages/market/market-monitor-presentati
 
 type Props = {
   asset: MonitorAsset
-  hours: 24 | 72
-  onHoursChange: (hours: 24 | 72) => void
+  hours: 24 | 72 | 168
+  onHoursChange: (hours: 24 | 72 | 168) => void
   report: MonitorHealthReport | null
   loading: boolean
   error: string | null
@@ -37,7 +37,7 @@ export function MonitorOperations({ asset, hours, onHoursChange, report, loading
       <h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">{t('marketMonitor.operations.title', { asset })}</h3>
       <div className="flex flex-wrap items-center gap-1">
         <div role="group" aria-label={t('marketMonitor.operations.reportWindow')} className="flex gap-1">
-          {([24, 72] as const).map((value) => <Button key={value} size="sm" variant={hours === value ? 'secondary' : 'ghost'} aria-pressed={hours === value} onClick={() => onHoursChange(value)}>{t('marketMonitor.operations.hours', { count: value })}</Button>)}
+          {([24, 72, 168] as const).map((value) => <Button key={value} size="sm" variant={hours === value ? 'secondary' : 'ghost'} aria-pressed={hours === value} onClick={() => onHoursChange(value)}>{t(value === 168 ? 'marketMonitor.operations.sevenDays' : 'marketMonitor.operations.hours', { count: value })}</Button>)}
         </div>
         <Button variant="ghost" size="sm" disabled={loading} onClick={() => void onRefresh()} aria-label={t('marketMonitor.operations.refresh')}><RefreshCw className="size-3.5" /></Button>
         <Button variant="ghost" size="sm" disabled={!report} onClick={() => report && exportReport(report)}><Download className="size-3.5" />{t('marketMonitor.operations.export')}</Button>
@@ -48,6 +48,13 @@ export function MonitorOperations({ asset, hours, onHoursChange, report, loading
     {report && summary && <>
       <p className="text-[11px] leading-5 text-muted-foreground">{t('marketMonitor.operations.window', { from: date(report.window.from), to: date(report.window.to), first: date(report.window.firstSampleAt), last: date(report.window.lastSampleAt) })}</p>
       {report.window.truncated && <p role="status" className="mt-1 text-xs text-warning">{t('marketMonitor.operations.truncated', { count: report.window.sampleLimit })}</p>}
+      {report.continuity && <div className="mt-3 border-l-2 border-border pl-3 text-xs" role="status">
+        <p className="font-semibold">{t('marketMonitor.operations.continuity')} · {t(`marketMonitor.operations.cadence_${report.continuity.status}`)}</p>
+        <p className="mt-1 text-muted-foreground">{t('marketMonitor.operations.cadenceSummary', { interval: report.continuity.intervalMinutes, count: report.continuity.scheduledSamples, time: date(report.continuity.lastScheduledAt) })}</p>
+        <p className={cn('mt-1', report.continuity.gapCount > 0 && 'text-warning')}>{t('marketMonitor.operations.gapSummary', { count: report.continuity.gapCount, longest: report.continuity.longestGapMs == null ? '—' : Math.round(report.continuity.longestGapMs / 60_000) })}</p>
+        <p className="mt-1 leading-5 text-muted-foreground">{t('marketMonitor.operations.gapHint')}</p>
+        {report.continuity.recentGaps.length > 0 && <details className="mt-2"><summary className="cursor-pointer">{t('marketMonitor.operations.gapDetails')}</summary><ul className="mt-2 space-y-1 text-muted-foreground">{report.continuity.recentGaps.map(gap => <li key={gap.from}>{date(gap.from)} – {date(gap.to)} · {Math.round(gap.durationMs / 60_000)} {t('marketMonitor.operations.minutes')}{gap.ongoing ? ` · ${t('marketMonitor.operations.ongoingGap')}` : ''}</li>)}</ul></details>}
+      </div>}
       {summary.attempts === 0 ? <p className="mt-4 text-xs text-muted-foreground">{t('marketMonitor.operations.noAttempts')}</p> : <>
         <dl className="my-4 grid grid-cols-2 gap-x-5 gap-y-4 md:grid-cols-4">
           {[

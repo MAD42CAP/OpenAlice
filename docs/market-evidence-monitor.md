@@ -502,13 +502,13 @@ base platform's compatibility or making future upstream merges needlessly hard.
 ## Operational Reports
 
 The dashboard's **Monitor operations** section follows the selected asset and
-offers **24 hours**, **72 hours**, refresh and **Export report** (JSON). It is
+offers **24 hours**, **72 hours**, **7 days**, refresh and **Export report** (JSON). It is
 available even when no valid market snapshot exists, so failed attempts remain
 inspectable. Reports refresh every 30 seconds while visible, after a manual
 scan, and when the observed latest receipt changes. Selection changes clear
 the prior report; a refresh failure explicitly labels retained facts.
 
-`GET /api/market-monitor/health?asset=BTC&hours=24` returns schema version 1:
+`GET /api/market-monitor/health?asset=BTC&hours=24` accepts 24, 72 or 168 hours and returns schema version 1:
 
 - Requested window and actual first/last recorded sample, with a 5,000-attempt
   cap and a `truncated` flag if earlier samples in the window were excluded.
@@ -529,6 +529,15 @@ receipts remain readable but missing telemetry is unknown, not healthy. Source
 recoveries require adjacent observed checks for the
 same provider; an unknown gap does not establish recovery. Operational reports
 include all strategies; strategy performance evaluation remains separate.
+
+The optional read-time `continuity` projection uses scheduled request-start times,
+not completion times or manual scans. It reports distinct scheduled samples,
+last start, current/paused/unknown/overdue state and observed gaps exceeding twice
+the **current** configured cadence. An enabled overdue tail is a gap; paused
+collection does not produce an overdue alarm. Up to five recent gaps are shown.
+Cadence changes and intentional pauses may explain gaps. No uptime before the
+first sample or exact missed-dispatch count is inferred. This is a report/UI
+warning, not a new notification subscription or system launch daemon.
 
 Completion rate is the fraction of recorded attempts that finished successfully.
 It does not measure continuous uptime, identify missed dispatches while the
@@ -824,8 +833,9 @@ failed attempts remain in the acceptance report even after recovery.
 
 The dashboard leads with a current-evidence summary, followed by the existing
 daily rule brief, independent Wyckoff analysis and Jev experiment. The summary
-defaults to the weekly view; its buttons name 1/7/30 BTC days or 1/5/20 equity
-sessions instead of relying on ambiguous short/medium/long labels. These are
+shows all three direction labels together and defaults to weekly details; its
+buttons name 1/7/30 BTC day views or 1/5/20 equity session views instead of
+relying on ambiguous short/medium/long labels. These are
 interpretation horizons, not newly calibrated return predictions. The annual
 rule trend supplies background to the monthly interpretation.
 
@@ -844,8 +854,20 @@ partial/reference-only background data and a newer failed scan remain visible.
 The conservative existing equity session/freshness policy still applies.
 Upcoming calendar earnings near a view add an event-risk note, with
 weekend/holiday slack and the actual scheduled date; no exact future exchange
-calendar is inferred. Other
-numeric context is labelled current or reference-only, conservatively requiring
+calendar is inferred.
+
+Missing, invalid or past earnings dates add `calendar-unknown` to every equity
+view and mark data quality partial without inventing a directional vote.
+Calendar/news source `coverage` separates an available date, unknown empty
+calendar, and unavailable request, plus matched/empty/unavailable/unconfigured
+news. Source status describes request availability; successful empty coverage
+can remain `ok` while the unified assessment is partial. Successful empty responses keep `failedFields` empty so cached dates or
+headlines cannot resurrect missing coverage. Calendar selection uses the earliest
+valid upcoming matching-symbol date, including today. A limited news feed with
+no matching headlines is not proof of no relevant event.
+
+Other numeric context is labelled current or reference-only, conservatively
+requiring
 all relevant context sources to be current (30 minutes BTC, 24 hours equity).
 News headlines, SEC filing metadata, positioning levels and stale context are
 not automatically interpreted as directional votes or as reviewed document text.
@@ -921,6 +943,14 @@ up/flat/down distribution on those distinct matured windows (sum of squared
 errors, range 0–2), even when the independent
 evidence-adequacy question abstains. It is not renormalized. Evidence adequacy
 is not a fourth possible market return.
+Read-only summaries also expose `meanSelectedProbability` and `probabilityGap`
+(model mean selected probability minus realised accuracy), both using exactly
+the same deduplicated, matured, non-abstaining cohort. A negative gap means hits
+exceeded estimates; an empty cohort has null values, never a zero success rate.
+This descriptive gap is not an automatic calibration or statistical significance
+test. The UI calls live distributions model proposals, explicitly distinguishes
+flat returns from uncertainty, and names the actual numeric input scope.
+
 Calibration bins display actual hit frequency for the selected directional
 option, along with counts. Overlapping daily windows are descriptive samples,
 not independent trades, profit estimates or proof of calibrated probability.
@@ -1019,7 +1049,12 @@ combined range/unclear labels abstain; they are not narrow flat-return forecasts
 Each method reports its own scored coverage. Direct old/new hit counts and
 three-class Brier comparison use only windows where both Jev versions made a
 call, with the historical-frequency distribution on those same paired windows.
-No score exists before outcomes mature. Missing candidates remain inspectable
+Paired reports include historical-frequency hits on that exact same cohort;
+if frequency abstains in any paired case, its paired hit count is null rather
+than a misleading zero. The visible comparison reports whether the challenger
+has lower probability error than historical frequency, with no implication of
+statistical significance or automatic promotion. Outcome path extrema remain
+separate from direction hits. No score exists before outcomes mature. Missing candidates remain inspectable
 without replacing the original publication or inventing a paired outcome.
 
 The dashboard keeps a compact current comparison below the independent Jev
@@ -1027,3 +1062,9 @@ panel. A disclosure shows matched scores, all-method coverage, historical
 reference, atomic checks, saved conditions and the publication history. The
 demo provides illustrative records only. This is a forward evidence experiment,
 not a cost-adjusted trading backtest, and no current accuracy gain is claimed.
+
+The existing `aligned-bullish` / `aligned-bearish` brief labels mean at least two
+horizons point that way with none opposite; the third can be transitional,
+sideways or insufficient. Localized wording states this two-of-three meaning
+rather than claiming every horizon agrees. Analysis scores and stored history
+are unchanged by this wording correction.

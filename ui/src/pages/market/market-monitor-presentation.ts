@@ -286,6 +286,10 @@ export function monitorSourceLabel(t: Translate, source: Pick<SourceHealth, 'id'
 }
 
 export function monitorSourceDetail(t: Translate, source: SourceHealth): string {
+  if (source.coverage) {
+    const coverage = source.coverage
+    return `${t(`marketMonitor.source.coverageEarnings_${coverage.earnings}`)}; ${t(`marketMonitor.source.coverageNews_${coverage.news}`)}.${source.failedFields?.length ? ` ${source.detail}` : ''}`
+  }
   // Error details are already redacted by the backend. Keep the actual cause.
   if (source.status !== 'ok') return source.detail
   if (source.id === 'daily-bars' || source.id === 'intraday-bars') {

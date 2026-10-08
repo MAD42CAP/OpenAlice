@@ -2,7 +2,7 @@ import type { HistoricalBar } from '../../api/market'
 import type { MonitorAsset, MonitorHealthReport, MonitorReceipt, MonitorSnapshot } from '../../api/market-monitor'
 
 /** Illustrative attempts only; the demo never runs a background scheduler. */
-export function demoMonitorHealth(asset: MonitorAsset, hours: 24 | 72 = 24): MonitorHealthReport {
+export function demoMonitorHealth(asset: MonitorAsset, hours: 24 | 72 | 168 = 24): MonitorHealthReport {
   const snapshot = demoMonitorSnapshot(asset)
   const generatedAt = '2026-09-12T12:36:00.000Z'
   const receipts: MonitorReceipt[] = [0, 1, 2].map((index) => ({
@@ -16,6 +16,7 @@ export function demoMonitorHealth(asset: MonitorAsset, hours: 24 | 72 = 24): Mon
   return {
     schemaVersion: 1, asset, generatedAt,
     window: { hours, from: new Date(Date.parse(generatedAt) - hours * 3_600_000).toISOString(), to: generatedAt, firstSampleAt: receipts[0].completedAt!, lastSampleAt: receipts[2].completedAt!, sampleLimit: 5000, truncated: false },
+    continuity: { enabled: false, intervalMinutes: 15, scheduledSamples: 2, status: 'paused', lastScheduledAt: receipts[2].requestedAt, elapsedSinceLastMs: Date.parse(generatedAt) - Date.parse(receipts[2].requestedAt), gapCount: 0, longestGapMs: null, recentGaps: [] },
     summary: { attempts: 3, successful: 3, failed: 0, stored: 1, duplicates: 2, scheduled: 2, manual: 1, narration: 0, successRatePercent: 100, consecutiveFailures: 0, recoveries: 0, lastSuccessAt: receipts[2].completedAt!, lastFailureAt: null, durationSamples: 3, averageDurationMs: 1200, p95DurationMs: 1800, scansWithSourceChecks: 3, scansWithSourceIssues: 1 },
     sources: snapshot.sourceHealth.map((source) => ({
       id: source.id, label: source.label, provider: source.provider, samples: 3,

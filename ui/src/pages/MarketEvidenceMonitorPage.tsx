@@ -121,7 +121,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
   const [scanFeedback, setScanFeedback] = useState<ActionFeedback | null>(null)
   const [narratorFeedback, setNarratorFeedback] = useState<ActionFeedback | null>(null)
   const runtime = useMarketMonitorStatus(visible)
-  const [reportHours, setReportHours] = useState<24 | 72>(24)
+  const [reportHours, setReportHours] = useState<24 | 72 | 168>(24)
   const [healthRevision, setHealthRevision] = useState(0)
   const health = useMarketMonitorHealth(asset, reportHours, visible, `${runtime.status?.assets.find((item) => item.asset === asset)?.lastReceipt?.id ?? ''}:${healthRevision}`)
   const seenAlerts = useRef<Set<string> | null>(null)

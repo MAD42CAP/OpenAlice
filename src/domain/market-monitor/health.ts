@@ -7,8 +7,9 @@ export const HEALTH_RECEIPT_LIMIT = 5000
 export function summarizeMonitorHealth(
   asset: MarketMonitorAsset,
   receipts: MarketMonitorReceipt[],
-  hours: 24 | 72,
+  hours: 24 | 72 | 168,
   now: Date,
+  cadence?: { enabled: boolean; intervalMinutes: number },
 ): MarketMonitorHealthReport {
   const to = now.getTime()
   const from = to - hours * 3_600_000
@@ -70,6 +71,27 @@ export function summarizeMonitorHealth(
       scansWithSourceIssues: rows.filter((row) => row.sourceHealth?.some((source) => source.status !== 'ok')).length,
     },
     sources: [...sources.values()].map(({ lastIndex: _lastIndex, ...source }) => source),
+    ...(cadence ? { continuity: summarizeContinuity(rows, from, to, cadence) } : {}),
     recent: rows.slice(-12).reverse(),
   }
+}
+
+function summarizeContinuity(rows: MarketMonitorReceipt[], from: number, to: number, cadence: { enabled: boolean; intervalMinutes: number }): NonNullable<MarketMonitorHealthReport['continuity']> {
+  // Dispatch starts, not completions: duration and manual scans cannot hide a gap.
+  const starts = [...new Set(rows.filter(row => row.trigger === 'scheduled').map(row => Date.parse(row.requestedAt)))]
+    .filter(time => Number.isFinite(time) && time >= from && time <= to).sort((a, b) => a - b)
+  const tolerance = cadence.intervalMinutes * 60_000 * 2
+  const gaps: NonNullable<MarketMonitorHealthReport['continuity']>['recentGaps'] = []
+  for (let i = 1; i < starts.length; i++) {
+    const durationMs = starts[i]! - starts[i - 1]!
+    if (durationMs > tolerance) gaps.push({ from: new Date(starts[i - 1]!).toISOString(), to: new Date(starts[i]!).toISOString(), durationMs, ongoing: false })
+  }
+  const last = starts.at(-1), elapsedSinceLastMs = last === undefined ? null : to - last
+  const overdue = cadence.enabled && elapsedSinceLastMs !== null && elapsedSinceLastMs > tolerance
+  if (overdue) gaps.push({ from: new Date(last!).toISOString(), to: new Date(to).toISOString(), durationMs: elapsedSinceLastMs!, ongoing: true })
+  return { ...cadence, scheduledSamples: starts.length,
+    status: !cadence.enabled ? 'paused' : last === undefined ? 'unknown' : overdue ? 'overdue' : 'current',
+    lastScheduledAt: last === undefined ? null : new Date(last).toISOString(), elapsedSinceLastMs,
+    gapCount: gaps.length, longestGapMs: gaps.length ? Math.max(...gaps.map(gap => gap.durationMs)) : null,
+    recentGaps: gaps.slice(-5).reverse() }
 }

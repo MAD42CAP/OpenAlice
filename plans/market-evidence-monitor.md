@@ -6,6 +6,58 @@ No integration, merge or release is authorized.
 
 Related issues: none.
 
+## October 7 judgment-quality and continuity increment
+
+The owner accepted the live audit and requested implementation. Preserve the
+original Jev/challenger protocols, archived predictions and return boundaries;
+small overlapping samples do not justify fitting weights or probabilities.
+This increment makes discrepancies measurable and fixes misleading completeness
+and consensus semantics. No additional model request, automatic promotion or
+trade capability is introduced.
+
+Selected UI: show all three current evidence directions together as accessible
+horizon buttons, with a weekly detail view by default. Put same-cohort model
+estimates/observed hits and paired historical-frequency comparisons ahead of
+their existing disclosures. Retain independent Wyckoff and model panels. Use
+shared Button and existing theme tokens, stack on narrow screens, preserve
+keyboard selection and label states in text. This compact change is preferred
+to replacing the dashboard or hiding the independent analyses.
+
+- [x] Add same-cohort estimate/hit gaps and matched frequency hit counts to read-only reports.
+- [x] Distinguish earnings coverage unknown from failed requests; select the earliest valid upcoming date; warn in unified judgments without adding a directional vote.
+- [x] Detect observed scheduled gaps and overdue tails; manual scans cannot hide them; support a seven-day report.
+- [x] Correct two-of-three alignment wording and expose all three current horizon directions together.
+- [x] Complete regression, root/UI types, full-suite, live API, desktop and narrow demo acceptance.
+- [x] Record acceptance and prepare delivery of only this increment on the owned feature branch, preserving the four unrelated user edits.
+
+Acceptance: the final focused suite passes 141 tests across 16 files; root and
+UI typechecks pass. The full suite with local networking available reports
+7,430 passing, four skipped and five failing tests. Two Codex AI-config command
+expectations remain affected by the owner's preserved environment-forwarding
+edits; two Supervisor TUI PTY failures are previously documented. The additional
+connector navigation scroll assertion passes both in isolation and in the
+complete connector test file. No connector/terminal/adapter source is changed
+by this increment; full-suite green is not claimed. A successful-empty calendar
+cache regression was added after the full run and passes in the final focused
+suite. GitHub Issues remain disabled as documented in the preceding acceptance.
+
+Final live read-only BTC, TSLA and MSTR scans succeed using Coinbase/Alpaca, with
+healthy derivatives/SEC feeds and matching judgment snapshot identities. Equity
+calendar/news requests are successful while earnings coverage is explicitly
+unknown and judgments remain partial. Successfully empty results clear cached
+calendar/news rather than reviving them after a later failure. All 57 original
+Jev forecasts compare equal to the audit copies, and actual scan input replays
+verify. Seven-day reports reveal both the roughly 18h50m and 32m observed
+scheduled gaps without claiming uptime or exact missed dispatches. Desktop and
+390px demo acceptance passes with no page overflow; keyboard horizon selection
+includes direction descriptions. The temporary demo server is stopped and the
+detached production platform remains running. Secret-pattern and whitespace
+checks pass; delivery excludes all four pre-existing user edits and targets only
+`MAD42CAP/OpenAlice:feature/market-evidence-monitor`.
+
+Owner guides: [[docs/market-evidence-monitor.md]],
+[[docs/ui-interaction-and-motion.md]], [[docs/testing.md]].
+
 ## September 23 thesis tracking increment
 
 Implement the accepted first phase of the investment-assistant comparison:

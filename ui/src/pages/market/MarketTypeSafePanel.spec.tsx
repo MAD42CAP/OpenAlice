@@ -11,7 +11,7 @@ it('labels the experiment, abstention, exact horizons and empty retrospective de
   render(<TypeSafeForecastView asset="BTC" report={demoJevReport('BTC')} loading={false} generating={false} error={null} {...actions} />)
   expect(screen.getByText(/Uncalibrated model probabilities/)).toBeTruthy()
   expect(screen.getByText(/1 session/)).toBeTruthy(); expect(screen.getByText(/7 sessions/)).toBeTruthy(); expect(screen.getByText(/30 sessions/)).toBeTruthy()
-  expect(screen.getByText('Assessment: Abstain')).toBeTruthy()
+  expect(screen.getByText('Model proposal: Abstain')).toBeTruthy()
   expect(screen.getAllByText('Not enough resolved data')).toHaveLength(3)
   expect(screen.getByText('Medium term · No scored outcome yet · 1 pending')).toBeTruthy()
   expect(screen.queryByText(/0 \/ 0 correct/)).toBeNull()
@@ -33,4 +33,16 @@ it('makes small realised counts visible and distinguishes flat-return calls from
   expect(screen.getByText(/1 distinct realised windows · 1 repeated windows/)).toBeTruthy()
   expect(screen.getByText(/3 of 3 saved forecasts explicitly chose flat/)).toBeTruthy()
   expect(screen.getByText(/A sideways structure is not a ±0.25% flat-return forecast/)).toBeTruthy()
+})
+
+it('separates a narrow flat proposal from uncertainty and shows model estimates beside realised hits', () => {
+  const report = demoJevReport('BTC')
+  report.rows[0]!.forecast.horizons.short.answer = { type: 'choice', choice: 'flat', confidence: 0.8, probabilities: { up: 0.1, flat: 0.8, down: 0.1 } }
+  Object.assign(report.summaries[0]!, { scored: 10, correct: 3, accuracy: 0.3, meanSelectedProbability: 0.8, probabilityGap: 0.5 })
+  render(<TypeSafeForecastView asset="BTC" report={report} loading={false} generating={false} error={null} {...actions} />)
+  expect(screen.getByText('Estimated 80.0% · observed 30.0% · 10 scored windows')).toBeTruthy()
+  expect(screen.getByText('Estimate minus observed: 50.0 percentage points.')).toBeTruthy()
+  expect(screen.getByText(/It does not mean uncertain direction/)).toBeTruthy()
+  expect(screen.getByText(/No live quote, Wyckoff conclusions/)).toBeTruthy()
+  expect(screen.getAllByText('Original model estimates · not a verified win rate')).toHaveLength(3)
 })

@@ -92,3 +92,16 @@ describe('current market evidence synthesis', () => {
     expect(buildMarketJudgment(s, at).context.earningsAt).toBeNull()
   })
 })
+
+it('marks unverified earnings coverage as partial without inventing a bearish vote', () => {
+  const s = judgmentSnapshot(); s.asset = 'TSLA'
+  for (const date of [null, 'invalid', '2026-08-01']) {
+    s.context.nextEarningsAt = date
+    const report = buildMarketJudgment(s, at)
+    expect(report.quality).toBe('partial')
+    expect(report.horizons.medium.risks).toContain('calendar-unknown')
+    expect(report.horizons.medium.direction).toBe('bullish')
+  }
+  s.context.nextEarningsAt = '2026-10-01'
+  expect(buildMarketJudgment(s, at).horizons.medium.risks).not.toContain('calendar-unknown')
+})
