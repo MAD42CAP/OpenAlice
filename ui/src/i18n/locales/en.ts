@@ -1,3 +1,4 @@
+import { forwardEn } from './forecast-validation'
 import { intelligenceEn } from './intelligence'
 import { accuracyEn } from './accuracy'
 import { thesisEn } from './thesis'
@@ -18,6 +19,7 @@ import { typeSafeEn } from './typesafe'
  */
 
 export const en = {
+  forward: forwardEn,
   intelligence: intelligenceEn,
   accuracy: accuracyEn,
   thesis: thesisEn,

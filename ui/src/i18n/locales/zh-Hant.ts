@@ -1,3 +1,4 @@
+import { forwardZh } from './forecast-validation'
 import { intelligenceZh } from './intelligence'
 import { accuracyZh } from './accuracy'
 import { thesisZh } from './thesis'
@@ -16,6 +17,7 @@ import { zh } from './zh'
  * Content is UI chrome only — no geographic or other non-technical terms.
  */
 export const zhHant: Resources = {
+  forward: forwardZh,
   intelligence: intelligenceZh,
   accuracy: accuracyZh,
   thesis: thesisZh,

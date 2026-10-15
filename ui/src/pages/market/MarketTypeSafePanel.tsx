@@ -1,3 +1,6 @@
+import { useForecastValidation } from '../../hooks/useForecastValidation'
+import { MarketForwardJevView } from './MarketForwardValidation'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../components/ui/collapsible'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { MonitorAsset } from '../../api/market-monitor'
@@ -13,11 +16,23 @@ const directions = ['up', 'flat', 'down'] as const
 const percent = (value: number | null | undefined) => value == null ? '—' : `${(value * 100).toFixed(1)}%`
 const colors = { up: 'bg-success', flat: 'bg-muted-foreground', down: 'bg-destructive' }
 export function MarketTypeSafePanel({ asset, visible, revisionKey }: { asset: MonitorAsset; visible: boolean; revisionKey: string }) {
-  const model = useTypeSafeReport(asset, visible, revisionKey)
-  return <><TypeSafeForecastView {...model} asset={asset} /><MarketForecastExperiment asset={asset} visible={visible} revisionKey={revisionKey} /></>
+  return <CurrentTypeSafePanel key={asset} asset={asset} visible={visible} revisionKey={revisionKey} />
 }
-export function TypeSafeForecastView({ asset, report, error, loading, generating, refresh, generate }: {
-  asset: MonitorAsset; report: JevReport | null; error: string | null; loading: boolean; generating: boolean; refresh: () => void; generate: () => void
+function CurrentTypeSafePanel({ asset, visible, revisionKey }: { asset: MonitorAsset; visible: boolean; revisionKey: string }) {
+  const { t } = useTranslation()
+  const model = useForecastValidation(asset, visible, revisionKey)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  return <><MarketForwardJevView {...model} /><Collapsible open={historyOpen} onOpenChange={setHistoryOpen} className="mt-3">
+    <CollapsibleTrigger className="cursor-pointer py-2 text-xs font-medium text-muted-foreground">{t('forward.history')}</CollapsibleTrigger>
+    <CollapsibleContent>{historyOpen && <div className="space-y-3"><p className="text-xs text-muted-foreground">{t('forward.legacy')}</p><LegacyTypeSafePanel asset={asset} visible={visible} revisionKey={revisionKey} /><MarketForecastExperiment asset={asset} visible={visible} revisionKey={revisionKey} readOnly /></div>}</CollapsibleContent>
+  </Collapsible></>
+}
+function LegacyTypeSafePanel({ asset, visible, revisionKey }: { asset: MonitorAsset; visible: boolean; revisionKey: string }) {
+  const model = useTypeSafeReport(asset, visible, revisionKey)
+  return <TypeSafeForecastView {...model} asset={asset} readOnly />
+}
+export function TypeSafeForecastView({ asset, report, error, loading, generating, refresh, generate, readOnly = false }: {
+  asset: MonitorAsset; report: JevReport | null; error: string | null; loading: boolean; generating: boolean; refresh: () => void; generate: () => void; readOnly?: boolean
 }) {
   const { t } = useTranslation()
   const openOrFocus = useWorkspace(s => s.openOrFocus)
@@ -27,8 +42,8 @@ export function TypeSafeForecastView({ asset, report, error, loading, generating
       <div><h2 id="jev-forecast-title" className="font-semibold">{asset} · {t('typesafe.forecastTitle')}</h2><p className="mt-1 text-xs text-muted-foreground">{report?.model ?? 'Jev'}{report?.illustrative ? ` · ${t('typesafe.demo')}` : ''}</p></div>
       <div className="flex flex-wrap gap-2">
         <Button size="sm" variant="outline" disabled={loading} onClick={refresh}>{t('typesafe.refresh')}</Button>
-        {report?.configured ? <Button size="sm" disabled={generating} onClick={generate}>{t(generating ? 'typesafe.busy' : 'typesafe.generate')}</Button>
-          : <Button size="sm" variant="outline" onClick={() => openOrFocus({ kind: 'settings', params: { category: 'ai-provider' } })}>{t('typesafe.settingsLink')}</Button>}
+        {!readOnly && (report?.configured ? <Button size="sm" disabled={generating} onClick={generate}>{t(generating ? 'typesafe.busy' : 'typesafe.generate')}</Button>
+          : <Button size="sm" variant="outline" onClick={() => openOrFocus({ kind: 'settings', params: { category: 'ai-provider' } })}>{t('typesafe.settingsLink')}</Button>)}
       </div>
     </div>
     <p className="mt-3 text-sm text-muted-foreground">{t('typesafe.disclaimer')}</p>

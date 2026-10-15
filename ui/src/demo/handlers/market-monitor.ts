@@ -14,7 +14,7 @@ export const marketMonitorHandlers = [
   http.get('/api/market-monitor/judgment', ({ request }) => {
     const asset = new URL(request.url).searchParams.get('asset') as MonitorAsset
     if (!ASSETS.includes(asset)) return HttpResponse.json({ error: 'Invalid asset' }, { status: 400 })
-    return HttpResponse.json(demoMarketJudgment(asset))
+    return HttpResponse.json(demoMarketJudgment(asset, 'v2'))
   }),
   http.get('/api/market-monitor/quote', ({ request }) => {
     const asset = new URL(request.url).searchParams.get('asset') as MonitorAsset

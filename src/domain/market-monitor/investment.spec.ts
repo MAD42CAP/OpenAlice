@@ -3,7 +3,9 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { buildMarketIntelligence } from './intelligence-market.js'
-import { guardInvestmentDraft } from './investment.js'
+import { guardInvestmentDraft, intelligenceRecordHash, investmentInputHash } from './investment.js'
+import { createHash } from 'node:crypto'
+import { INVESTMENT_ANALYSIS_VERSION } from './investment-types.js'
 import { createInvestmentService } from './investment-service.js'
 import { createInvestmentStore } from './investment-store.js'
 import { evidenceChainV1Strategy } from './strategy.js'
@@ -41,6 +43,22 @@ function draft(i: InvestmentInput): InvestmentDraft {
 }
 
 describe('investment intelligence evidence guards', () => {
+  it('keeps an evidenced sideways range distinct from uncertain transition', () => {
+    const i = input(), d = draft(i)
+    const trend = i.market.evidence.find(e => e.metric === 'trend.medium')!
+    const view = i.market.horizons.find(h => h.horizon === 'medium')!
+    trend.value = 'sideways'; view.direction = 'sideways'
+    view.supportLevels = [90]; view.resistanceLevels = [130]
+    i.research.bullishEvidence = []; i.research.bearishEvidence = []
+    const range = guardInvestmentDraft(i, d, at).draft
+    expect(range.crossValidation[0]!.status).toBe('PARTIALLY_CONFIRMED')
+    expect(range.outlooks[1]!.direction).toBe('neutral')
+    expect(range.summary.text).toContain('中期区间判断')
+    trend.value = 'transition'; view.direction = 'transition'
+    expect(guardInvestmentDraft(i, d, at).draft.outlooks[1]!.direction).toBe('uncertain')
+    trend.value = 'sideways'; view.direction = 'sideways'; view.supportLevels = []
+    expect(guardInvestmentDraft(i, d, at).draft.outlooks[1]!.direction).toBe('uncertain')
+  })
   it('projects actual closed bars, separate source times, hypothesis-only Wyckoff and missing data', () => {
     const s = snapshot(), market = buildMarketIntelligence(s, at)
     expect(market.snapshotId).toBe(s.id)
@@ -77,10 +95,10 @@ describe('investment intelligence evidence guards', () => {
     const i = input(), d = draft(i)
     i.research.dataAsOf = null
     i.market.evidence.find(e => e.metric === 'trend.medium')!.value = 'bullish'
-    expect(guardInvestmentDraft(i, d, at).draft.crossValidation[0]!.status).toBe('CONFIRMED')
+    expect(guardInvestmentDraft(i, d, at).draft.crossValidation[0]!.status).toBe('PARTIALLY_CONFIRMED')
     i.research.dataAsOf = '2026-09-01T00:00:00Z'
     const result = guardInvestmentDraft(i, d, at)
-    expect(result.draft.crossValidation[0]!.status).toBe('CONFIRMED')
+    expect(result.draft.crossValidation[0]!.status).toBe('PARTIALLY_CONFIRMED')
     expect(result.warnings).toContain('报告整体数据时间较旧；各指标仍按各自明确的截止时间独立检查。')
   })
   it('checks extra claim references for freshness before confirming otherwise aligned evidence', () => {
@@ -91,15 +109,84 @@ describe('investment intelligence evidence guards', () => {
     d.crossValidation[0]!.claim.evidenceIds.push(hourly.id)
     expect(guardInvestmentDraft(i, d, at).draft.crossValidation[0]!.status).toBe('OUTDATED')
   })
-  it('retains a fresh opposing direction cited only by the claim as a conflict', () => {
+  it('does not mistake another horizon cited by the claim for same-horizon conflict', () => {
     const i = input(), d = draft(i)
     i.market.evidence.find(e => e.metric === 'trend.medium')!.value = 'bullish'
     const opposing = i.market.evidence.find(e => e.metric === 'trend.short')!
     opposing.value = 'bearish'
     d.crossValidation[0]!.claim.evidenceIds.push(opposing.id)
     const result = guardInvestmentDraft(i, d, at)
-    expect(result.draft.crossValidation[0]!.status).toBe('CONFLICTING')
+    expect(result.draft.crossValidation[0]!.status).toBe('PARTIALLY_CONFIRMED')
     expect(d.crossValidation[0]!.status).toBe('CONFIRMED')
+  })
+  it('requires an explicit same-horizon anchor and never combines short and long votes', () => {
+    const i = input(), d = draft(i)
+    const row = d.crossValidation[0]!
+    row.horizon = 'short'
+    i.market.evidence.find(e => e.metric === 'trend.medium')!.value = 'bullish'
+    const guarded = guardInvestmentDraft(i, d, at).draft
+    expect(guarded.crossValidation[0]!.status).toBe('UNVERIFIED')
+    expect(guarded.outlooks.every(o => o.direction === 'uncertain')).toBe(true)
+    const ambiguous = draft(i)
+    ambiguous.crossValidation[0]!.marketEvidenceIds.push(i.market.evidence.find(e => e.metric === 'trend.long')!.id)
+    expect(guardInvestmentDraft(i, ambiguous, at).draft.crossValidation[0]!.status).toBe('UNVERIFIED')
+  })
+  it('caps repeated price-volume interpretations and unknown report families, updating the visible conclusion', () => {
+    const i = input(), d = draft(i)
+    i.market.evidence.find(e => e.metric === 'trend.medium')!.value = 'bullish'
+    d.outlooks[1]!.direction = 'bullish'
+    d.summary.text = 'BTC 必将上涨'
+    d.outlooks[1]!.conclusion = { ...d.outlooks[1]!.conclusion, text: '已经确认持续上涨' }
+    const result = guardInvestmentDraft(i, d, at)
+    expect(result.draft.crossValidation[0]!.status).toBe('PARTIALLY_CONFIRMED')
+    expect(result.draft.outlooks[1]!.direction).toBe('conditional-bullish')
+    expect(result.draft.outlooks[0]!.direction).toBe('uncertain')
+    expect(result.draft.summary.text).toContain('中期有条件偏多')
+    expect(result.draft.summary.text).not.toContain('必将')
+    expect(result.draft.outlooks[1]!.conclusion.text).not.toContain('已经确认')
+    expect(d.summary.text).toBe('BTC 必将上涨')
+  })
+  it('does not trust a model metric name or the Glassnode brand as independent evidence', () => {
+    const i = input(), d = draft(i), e = i.research.evidence[0]!
+    i.market.evidence.find(e => e.metric === 'trend.medium')!.value = 'bullish'
+    const claim = i.research.mainThesis
+    i.research.metrics = [{ name: 'SOPR', value: 100, unit: 'ratio', kind: 'observation', dataAsOf: e.dataAsOf, evidenceIds: [e.id], meaning: claim, change: null }]
+    expect(guardInvestmentDraft(i, d, at).draft.crossValidation[0]!.status).toBe('PARTIALLY_CONFIRMED')
+    e.excerpt = 'SOPR is mentioned, but its value is unavailable.'
+    expect(guardInvestmentDraft(i, d, at).draft.crossValidation[0]!.status).toBe('PARTIALLY_CONFIRMED')
+    e.excerpt = 'On 2026-10-12 SOPR is unavailable. BTC price was $100.'
+    i.research.metrics[0]!.value = 2026
+    expect(guardInvestmentDraft(i, d, at).draft.crossValidation[0]!.status).toBe('PARTIALLY_CONFIRMED')
+    e.excerpt = 'MVRV was 100.'
+    i.research.metrics[0]!.value = 100
+    expect(guardInvestmentDraft(i, d, at).draft.crossValidation[0]!.status).toBe('PARTIALLY_CONFIRMED')
+  })
+  it('keeps numeric MVRV, SOPR and ETF report paragraphs unknown until trusted structured observations exist', () => {
+    const i = input(), d = draft(i), e = i.research.evidence[0]!
+    i.market.evidence.find(e => e.metric === 'trend.medium')!.value = 'bullish'
+    e.excerpt = 'On 2026-10-12 SOPR was 1.02, MVRV was 2.1 and ETF net flows were $100 million.'
+    i.research.metrics = [{ name: 'SOPR', value: 1.02, unit: 'ratio', kind: 'observation', dataAsOf: e.dataAsOf, evidenceIds: [e.id], meaning: i.research.mainThesis, change: null }]
+    d.outlooks[1]!.direction = 'bullish'
+    const result = guardInvestmentDraft(i, d, at)
+    expect(result.draft.crossValidation[0]!.status).toBe('PARTIALLY_CONFIRMED')
+    expect(result.draft.outlooks[1]!.direction).toBe('conditional-bullish')
+    expect(result.draft.summary.text).toContain('中期有条件偏多')
+    // Even a model relabeling the source paragraph cannot manufacture trusted metadata.
+    e.metric = 'funding-8h'; e.value = 0.01
+    expect(guardInvestmentDraft(i, d, at).draft.crossValidation[0]!.status).toBe('PARTIALLY_CONFIRMED')
+  })
+  it.each(['conflict', 'outdated', 'missing'] as const)('downgrades a leading bullish outlook and summary for %s evidence', kind => {
+    const i = input(), d = draft(i)
+    i.market.evidence.find(e => e.metric === 'trend.medium')!.value = kind === 'conflict' ? 'bearish' : 'bullish'
+    if (kind === 'outdated') i.research.evidence[0]!.dataAsOf = '2026-09-01T00:00:00Z'
+    if (kind === 'missing') i.research.evidence[0]!.dataAsOf = null
+    d.summary.text = '全面上涨已确认'; d.outlooks[1]!.direction = 'bullish'
+    d.outlooks[1]!.conclusion.text = '中期无条件上涨'
+    const result = guardInvestmentDraft(i, d, at).draft
+    expect(result.outlooks[1]!.direction).toBe('uncertain')
+    expect(result.summary.text).toContain('中期暂不判断')
+    expect(result.summary.text).not.toContain('上涨')
+    expect(result.outlooks[1]!.conclusion.text).not.toContain('上涨')
   })
   it.each(['missing', 'future', 'outdated'] as const)('guards %s research without inventing confirmation', kind => {
     const i = input(), d = draft(i), e = i.research.evidence[0]!
@@ -201,11 +288,14 @@ describe('investment immutable history and objective theses', () => {
     let clock = new Date(at)
     const service = createInvestmentService({ root, now: () => clock }), initial = input()
     initial.research.evidence[0]!.value = null
+    initial.market.evidence.find(e => e.metric === 'trend.medium')!.value = 'bullish'
     try {
       const first = await service.publish(initial, draft(initial), provenance)
       const oldId = initial.research.evidence[0]!.id
       clock = new Date('2026-10-15T12:00:00Z')
       const current = JSON.parse(JSON.stringify(initial).replaceAll(oldId, 'report:cost-basis-2')) as InvestmentInput
+      current.market = buildMarketIntelligence(snapshot(clock), clock)
+      current.market.evidence.find(e => e.metric === 'trend.medium')!.value = 'bullish'
       current.research.id = 'research-2'; current.research.reportId = 'report-2'
       current.research.recordHash = 'research-hash-2'; current.research.evidence[0]!.reportId = 'report-2'
       current.research.evidence[0]!.value = null
@@ -221,10 +311,30 @@ describe('investment immutable history and objective theses', () => {
       clock = new Date('2026-10-16T12:00:00Z')
       const newParagraph = JSON.parse(JSON.stringify(current).replaceAll('report:cost-basis-2', 'report:cost-basis-3')) as InvestmentInput
       newParagraph.research.id = 'research-3'; newParagraph.research.recordHash = 'research-hash-3'
-      const revised = draft(newParagraph); revised.outlooks[1]!.direction = 'bullish'
+      const revised = draft(newParagraph); revised.outlooks[1]!.direction = 'bearish'
       const third = await service.publish(newParagraph, revised, provenance)
       expect(third.snapshot.changes[0]!.explanation).toContain('同一报告新增引用段落 Glassnode/report-2')
       expect(third.snapshot.changes[0]!.evidenceIds).toEqual(expect.arrayContaining(['report:cost-basis-2', 'report:cost-basis-3']))
+    } finally { await rm(root, { recursive: true, force: true }) }
+  })
+  it('keeps v1 archive bytes and hashes readable while publishing a separate v2 experiment', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'investment-version-'))
+    const service = createInvestmentService({ root, now: () => at }), i = input(), d = draft(i)
+    try {
+      const first = await service.publish(i, d, provenance)
+      const oldHash = createHash('sha256').update(JSON.stringify({ version: 1, marketSnapshotId: i.market.snapshotId, researchSnapshotId: i.research.id, researchHash: i.research.recordHash })).digest('hex')
+      expect(investmentInputHash(i)).not.toBe(oldHash)
+      const legacy = { ...first.snapshot, id: `investment-${oldHash}`, inputHash: oldHash, analysisVersion: 'investment-intelligence-v1' as const, summary: d.summary }
+      legacy.recordHash = intelligenceRecordHash(legacy)
+      const legacyFile = join(root, 'publications', `${legacy.id}.json`), bytes = JSON.stringify(legacy)
+      await writeFile(legacyFile, bytes)
+      await rm(join(root, 'publications', `${first.snapshot.id}.json`))
+      const upgraded = await service.publish(i, d, provenance)
+      expect(upgraded.stored).toBe(true)
+      expect(upgraded.snapshot.analysisVersion).toBe(INVESTMENT_ANALYSIS_VERSION)
+      expect(upgraded.snapshot.rawDraft).toEqual(d)
+      expect((await service.report()).history.map(r => r.analysisVersion)).toEqual(expect.arrayContaining(['investment-intelligence-v1', 'investment-intelligence-v2']))
+      expect(await readFile(legacyFile, 'utf8')).toBe(bytes)
     } finally { await rm(root, { recursive: true, force: true }) }
   })
   it('atomically preserves a competing initial record and verifies hashes', async () => {

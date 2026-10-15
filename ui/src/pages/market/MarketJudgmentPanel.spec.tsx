@@ -49,3 +49,13 @@ it('leads with the conditional result and leaves important data risks visible be
   expect(screen.getByText('下一次财报日期尚未核实，事件风险仍未知。')).toBeTruthy()
   expect(screen.getByText(/并非已验证的收益预测/)).toBeTruthy()
 })
+
+it('renders v2 conditional and abstention decisions without presenting an unconditional directional claim', () => {
+  const report = demoMarketJudgment('BTC', 'v2')
+  report.horizons.short.direction = 'bullish'; report.horizons.short.decision = 'abstain'
+  render(<MarketJudgmentView report={report} loading={false} error={false} refresh={vi.fn()} />)
+  expect(screen.getAllByText('偏多 · 待确认').length).toBeGreaterThan(0)
+  expect(screen.getByText('暂不判断')).toBeTruthy()
+  expect(screen.queryByText('偏多')).toBeNull()
+  expect(screen.getByText('新版综合研判实验中 · 条件性证据，预测效果待验证。')).toBeTruthy()
+})

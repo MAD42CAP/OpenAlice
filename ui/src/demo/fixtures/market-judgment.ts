@@ -3,9 +3,9 @@ import type { MonitorAsset } from '../../api/market-monitor'
 import { demoMonitorSnapshot } from './market-monitor'
 
 /** Illustrative display contract; never a live synthesis or predictive record. */
-export function demoMarketJudgment(asset: MonitorAsset): MarketJudgmentReport {
+export function demoMarketJudgment(asset: MonitorAsset, version: 'v1' | 'v2' = 'v1'): MarketJudgmentReport {
   const snapshot = demoMonitorSnapshot(asset)
-  return {
+  const report: MarketJudgmentReport = {
     protocol: 'evidence-summary-v1', asset, strategyId: snapshot.strategyId, snapshotId: snapshot.id, generatedAt: snapshot.capturedAt,
     basis: { capturedAt: snapshot.capturedAt, dailyAt: snapshot.analysisBasis!.dailyAt, hourlyAt: snapshot.analysisBasis!.hourlyAt }, quality: 'partial',
     horizons: {
@@ -17,4 +17,12 @@ export function demoMarketJudgment(asset: MonitorAsset): MarketJudgmentReport {
     context: { currentFields: Object.keys(snapshot.context).filter(k => typeof snapshot.context[k] === 'number'), referenceFields: [], newsCount: snapshot.context.recentNews?.length ?? 0, filingsCount: snapshot.context.recentFilings?.length ?? 0, earningsAt: null },
     jev: { status: 'different-basis', issuedAt: snapshot.capturedAt, directions: { short: 'down', medium: 'insufficient', long: 'up' } },
   }
+  if (version === 'v2') {
+    report.protocol = 'evidence-summary-v2'
+    report.validation = { status: 'experimental', policy: 'evidence-summary-v2' }
+    report.jev.policy = 'jev-base-rate-v2'
+    report.jev.directions = { short: 'insufficient', medium: 'insufficient', long: 'up' }
+    for (const horizon of Object.values(report.horizons)) horizon.decision = horizon.direction === 'bullish' || horizon.direction === 'bearish' ? 'conditional' : 'abstain'
+  }
+  return report
 }

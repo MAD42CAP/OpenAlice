@@ -1,9 +1,41 @@
 import { describe, expect, it } from 'vitest'
-import { buildMarketJudgment } from './judgment.js'
+import { buildGuardedMarketJudgment, buildMarketJudgment } from './judgment.js'
 import { judgmentSnapshot } from './judgment.fixture.js'
 import type { JevReport } from './typesafe-types.js'
 
 const at = new Date('2026-09-20T12:00:00Z')
+describe('versioned guarded judgment', () => {
+  it('keeps v1 unchanged and makes conditional evidence an abstention from return prediction', () => {
+    const s = judgmentSnapshot()
+    s.wyckoff!.testState = 'pending'
+    const original = structuredClone(s)
+    const legacy = buildMarketJudgment(s, at)
+    const guarded = buildGuardedMarketJudgment(s, at)
+    expect(legacy.protocol).toBe('evidence-summary-v1')
+    expect(legacy.horizons.medium.decision).toBeUndefined()
+    expect(guarded).toMatchObject({ protocol: 'evidence-summary-v2', validation: { status: 'experimental' }, horizons: { medium: { direction: 'bullish', decision: 'conditional' } } })
+    expect(s).toEqual(original)
+  })
+  it('only releases a direction for fresh aligned confirmed price evidence and preserves its experimental status', () => {
+    const s = judgmentSnapshot()
+    const result = buildGuardedMarketJudgment(s, at)
+    expect(result.horizons.medium.decision).toBe('directional')
+    expect(result.validation?.status).toBe('experimental')
+    expect(buildGuardedMarketJudgment(s, new Date('2026-09-24')).horizons.medium.decision).toBe('abstain')
+    s.wyckoff!.phaseCandidate = 'markdown'
+    s.wyckoff!.events = [{ kind: 'sign-of-weakness', status: 'confirmed', at: '2026-09-18', level: 100 }]
+    expect(buildGuardedMarketJudgment(s, at).horizons.medium).toMatchObject({ direction: 'unclear', decision: 'abstain' })
+  })
+  it('does not turn a range or an unavailable current scan into a confident future direction', () => {
+    const s = judgmentSnapshot()
+    s.trend!.medium.direction = 'sideways'
+    s.wyckoff!.testState = 'pending'
+    expect(buildGuardedMarketJudgment(s, at).horizons.medium).toMatchObject({ direction: 'range', decision: 'abstain' })
+    s.trend!.medium.direction = 'bullish'
+    const failed = { id: 'failed', asset: s.asset, strategyId: s.strategyId, requestedAt: at.toISOString(), outcome: 'failed' as const, trigger: 'manual' as const }
+    expect(buildGuardedMarketJudgment(s, at, null, failed).horizons.medium).toMatchObject({ direction: 'insufficient', decision: 'abstain' })
+  })
+})
 describe('current market evidence synthesis', () => {
   it('preserves independent outputs and never converts rule scores into probabilities', () => {
     const snapshot = judgmentSnapshot(), original = structuredClone(snapshot)

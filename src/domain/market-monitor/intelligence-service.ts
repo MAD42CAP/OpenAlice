@@ -6,6 +6,7 @@ import { buildMarketIntelligence } from './intelligence-market.js'
 import type { IntelligenceProvenance } from './intelligence-types.js'
 import { createResearchService, type ResearchService } from './research-service.js'
 import { createInvestmentService } from './investment-service.js'
+import { INVESTMENT_ANALYSIS_VERSION } from './investment-types.js'
 import type { InvestmentDraft, MarketIntelligence, InvestmentReport } from './investment-types.js'
 import type { ResearchDraft, ResearchReport, ResearchSnapshot, ResearchSource } from './research-types.js'
 import type { MarketMonitorService } from './service.js'
@@ -17,6 +18,7 @@ export interface IntelligenceJob {
 }
 export interface IntelligenceRunner { run(): Promise<IntelligenceJob>; status(): Promise<IntelligenceJob> }
 interface FrozenInput {
+  analysisVersion?: typeof INVESTMENT_ANALYSIS_VERSION
   id: string; hash: string; capturedAt: string; materialKey: string; provenance: IntelligenceProvenance
   needsAnalysis: string[]; market: MarketIntelligence; reports: ResearchReport[]; sources: ResearchSource[]
   research: ResearchSnapshot[]; priorInvestment: ReturnType<typeof compactInvestment>
@@ -46,6 +48,7 @@ export function createIntelligenceService(options: {
     return row ? buildMarketIntelligence(row, now()) : null
   }
   const materialKey = async (market: MarketIntelligence) => hash({
+    analysisVersion: INVESTMENT_ANALYSIS_VERSION,
     daily: market.marketDataAsOf, price: market.price,
     horizons: market.horizons.map(h => ({ horizon: h.horizon, direction: h.direction, structure: h.structure, supportLevels: h.supportLevels, resistanceLevels: h.resistanceLevels })), quality: market.dataQuality,
     reports: (await research.reports()).map(r => r.contentHash),
@@ -139,7 +142,7 @@ export function createIntelligenceService(options: {
       const priorInvestment = compactInvestment(investmentReport)
       const needsAnalysis = targets.filter(r => !existing.some(s => s.reportId === r.id) || forceNext && r.id === targets.at(-1)?.id).map(r => r.id)
       forceNext = false
-      const input: FrozenInput = { needsAnalysis, id, hash: '', capturedAt: now().toISOString(), materialKey: await materialKey(market), provenance: { ...provenance }, market, reports: targets, sources, research: existing, priorInvestment }
+      const input: FrozenInput = { analysisVersion: INVESTMENT_ANALYSIS_VERSION, needsAnalysis, id, hash: '', capturedAt: now().toISOString(), materialKey: await materialKey(market), provenance: { ...provenance }, market, reports: targets, sources, research: existing, priorInvestment }
       input.hash = digest(input)
       await mkdir(root, { recursive: true, mode: 0o700 })
       try { await writeFile(join(root, `${id}.json`), JSON.stringify(input), { flag: 'wx', mode: 0o600 }) }

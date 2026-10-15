@@ -2,6 +2,8 @@ import { prepareProjectWorkspaces } from '../workspaces/project-workspace-setup.
 import { Hono, type Context } from 'hono'
 import { createTypeSafeService } from '../domain/market-monitor/typesafe-service.js'
 import { createForecastExperiment } from '../domain/market-monitor/forecast-experiment.js'
+import { createForecastValidation } from '../domain/market-monitor/forecast-validation.js'
+import { createForecastValidationRoutes } from './routes/forecast-validation.js'
 import { createForecastExperimentRoutes } from './routes/forecast-experiment.js'
 import { createTypeSafeRoutes } from './routes/typesafe.js'
 import { createMarketJudgmentRoutes } from './routes/market-judgment.js'
@@ -308,10 +310,12 @@ export class WebPlugin implements Plugin {
     const intelligence = createIntelligenceService({ monitor: marketMonitor })
     const typeSafe = createTypeSafeService({ monitor: marketMonitor })
     const forecastExperiment = createForecastExperiment({ baseline: typeSafe })
+    const forwardValidation = createForecastValidation({ monitor: marketMonitor })
     app.route('/api/market-monitor/forecast-experiment', createForecastExperimentRoutes(forecastExperiment))
-    app.route('/api/market-monitor/judgment', createMarketJudgmentRoutes(marketMonitor, typeSafe))
+    app.route('/api/market-monitor/forecast-validation', createForecastValidationRoutes(forwardValidation))
+    app.route('/api/market-monitor/judgment', createMarketJudgmentRoutes(marketMonitor, typeSafe, undefined, forwardValidation))
     app.route('/api/market-monitor/typesafe', createTypeSafeRoutes(typeSafe))
-    this.marketMonitorScheduler = createMarketMonitorScheduler(marketMonitor, { afterScan: asset => forecastExperiment.automatic(asset) })
+    this.marketMonitorScheduler = createMarketMonitorScheduler(marketMonitor, { afterScan: asset => forwardValidation.automatic(asset) })
     app.route('/api/bars', createBarsRoutes(ctx))
     app.route('/api/reference', createReferenceRoutes(ctx))
     app.route('/api/inbox', createInboxRoutes({ inboxStore: ctx.inboxStore, resolveWorkspace: id => this.workspaceService?.registry.get(id) }))

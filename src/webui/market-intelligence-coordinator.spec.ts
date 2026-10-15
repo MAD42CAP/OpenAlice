@@ -6,7 +6,7 @@ import { readWorkspaceIssues } from '../workspaces/issues/declaration.js'
 import { updateIssueFields } from '../workspaces/issues/mutate.js'
 import type { WorkspaceService } from '../workspaces/service.js'
 import { INTELLIGENCE_ISSUE_ID } from '../domain/market-monitor/intelligence-types.js'
-import { createMarketIntelligenceCoordinator } from './market-intelligence-coordinator.js'
+import { createMarketIntelligenceCoordinator, INTELLIGENCE_PROMPT } from './market-intelligence-coordinator.js'
 vi.mock('../core/preferences.js', () => ({ readQuickChatPreferences: vi.fn(async () => ({ recentChatWorkspaceId: 'chat' })) }))
 const roots: string[] = []
 afterEach(async () => { await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))) })
@@ -32,6 +32,14 @@ describe('single native investment Issue', () => {
     const after = await readWorkspaceIssues(dir)
     expect(after.ok && after.issues[0]).toMatchObject({ agent: 'claude', model: 'owner-model', effort: 'high', status: 'canceled' })
     expect((await c.run()).state).toBe('blocked')
+  })
+  it('preregisters the v2 uncertainty, independent evidence and horizon discipline in the native prompt', () => {
+    expect(INTELLIGENCE_PROMPT).toContain('investment-intelligence-v2')
+    expect(INTELLIGENCE_PROMPT).toContain('uncertain（暂不判断）')
+    expect(INTELLIGENCE_PROMPT).toContain('不重复计票')
+    expect(INTELLIGENCE_PROMPT).toContain('trend.<horizon>')
+    expect(INTELLIGENCE_PROMPT).toContain('不得以多个 AI 同意来代替验证')
+    expect(INTELLIGENCE_PROMPT).toContain('不修改旧预测')
   })
   it('dispatches through the existing native scheduler, without a new model client', async () => {
     const { service, run } = await fixture(), c = createMarketIntelligenceCoordinator(service)

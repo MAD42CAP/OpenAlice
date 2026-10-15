@@ -6,7 +6,8 @@ import type { MarketMonitorReceipt, MarketMonitorSnapshot, TrendDirection, Trend
 export type JudgmentDirection = 'bullish' | 'bearish' | 'range' | 'unclear' | 'insufficient'
 export type JudgmentReason = 'rules-bullish' | 'rules-bearish' | 'range-observed' | 'rules-mixed' | 'daily-missing' | 'hourly-missing' | 'structure-conflict' | 'structure-pending' | 'structure-agrees' | 'structure-unknown' | 'context-partial' | 'calendar-unknown' | 'earnings-near' | 'latest-scan-failed'
 export interface MarketJudgmentReport {
-  protocol: 'evidence-summary-v1'
+  protocol: 'evidence-summary-v1' | 'evidence-summary-v2'
+  validation?: { status: 'experimental'; policy: 'evidence-summary-v2' }
   asset: MarketMonitorSnapshot['asset']
   strategyId: string
   snapshotId: string
@@ -20,10 +21,39 @@ export interface MarketJudgmentReport {
     agreement: 'aligned' | 'mixed' | 'limited'
     reasons: JudgmentReason[]
     risks: JudgmentReason[]
+    decision?: 'directional' | 'conditional' | 'abstain'
   }>
   structure: { phase: string; direction: 'bullish' | 'bearish' | 'unclear'; confirmed: boolean; lower: number | null; upper: number | null; confirmation: string[]; invalidation: string[] }
   context: { currentFields: string[]; referenceFields: string[]; newsCount: number; filingsCount: number; earningsAt: string | null }
-  jev: { status: 'current' | 'different-basis' | 'stale' | 'missing' | 'unavailable'; issuedAt: string | null; directions: Record<TrendHorizon, 'up' | 'flat' | 'down' | 'insufficient'> | null }
+  jev: { status: 'current' | 'different-basis' | 'stale' | 'missing' | 'unavailable'; issuedAt: string | null; directions: Record<TrendHorizon, 'up' | 'flat' | 'down' | 'insufficient'> | null; policy?: 'jev-base-rate-v2' | 'legacy' }
+}
+
+/** Versioned decision projection. The v1 builder remains the exact legacy
+ * experiment's interpretation. Conditions and uncertainty are abstentions from
+ * a fixed return forecast, never forecasts of the narrow flat return class. */
+export function buildGuardedMarketJudgment(snapshot: MarketMonitorSnapshot, at: Date, jev?: JevReport | null, receipt?: MarketMonitorReceipt | null): MarketJudgmentReport {
+  const report = buildMarketJudgment(snapshot, at, jev, receipt)
+  report.protocol = 'evidence-summary-v2'
+  report.validation = { status: 'experimental', policy: 'evidence-summary-v2' }
+  report.jev.policy = 'legacy'
+  for (const h of ['short', 'medium', 'long'] as const) {
+    const view = report.horizons[h]
+    if (view.direction !== 'bullish' && view.direction !== 'bearish') {
+      view.decision = 'abstain'
+    } else if (view.risks.includes('latest-scan-failed')) {
+      view.decision = 'abstain'
+      view.direction = 'insufficient'
+      view.reasons = ['latest-scan-failed', ...view.reasons]
+    } else if (view.agreement !== 'aligned' || !report.structure.confirmed
+      || view.risks.some(r => r === 'calendar-unknown' || r === 'earnings-near')) {
+      // A candidate structure or an unbounded event risk supplies a conditional
+      // bias, not an unconditional return call. All price methods are one family.
+      view.decision = 'conditional'
+    } else {
+      view.decision = 'directional'
+    }
+  }
+  return report
 }
 
 /** A current-evidence synthesis, not a calibrated forecast or a new historical

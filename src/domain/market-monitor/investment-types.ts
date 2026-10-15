@@ -3,7 +3,9 @@ import type { ResearchSnapshot } from './research-types.js'
 import type { TrendDirection, TrendHorizon } from './types.js'
 import type { OhlcvBar } from '../market-data/bars/types.js'
 
-export const INVESTMENT_ANALYSIS_VERSION = 'investment-intelligence-v1' as const
+export const INVESTMENT_ANALYSIS_VERSION = 'investment-intelligence-v2' as const
+/** Archived v1 records retain their original bytes, hashes and evaluation protocol. */
+export type InvestmentAnalysisVersion = 'investment-intelligence-v1' | typeof INVESTMENT_ANALYSIS_VERSION
 export type ValidationStatus = 'CONFIRMED' | 'PARTIALLY_CONFIRMED' | 'CONFLICTING' | 'UNVERIFIED' | 'OUTDATED'
 export type InvestmentDirection = 'bullish' | 'neutral' | 'bearish' | 'conditional-bullish' | 'conditional-bearish' | 'uncertain'
 export interface MarketIntelligence {
@@ -18,6 +20,8 @@ export interface MarketIntelligence {
 }
 export interface InvestmentInput { market: MarketIntelligence; research: ResearchSnapshot }
 export interface InvestmentCrossValidation {
+  /** The research question's horizon; a matching server-projected trend reference is still required. */
+  horizon?: TrendHorizon
   claim: IntelligenceClaim; marketEvidenceIds: string[]; researchEvidenceIds: string[]
   status: ValidationStatus; explanation: string
 }
@@ -42,7 +46,7 @@ export interface InvestmentDraft {
   priceMap: InvestmentPriceLevel[]; theses: InvestmentThesisDraft[]; limitations: IntelligenceClaim[]
 }
 export interface InvestmentSnapshot extends InvestmentDraft {
-  schemaVersion: 1; id: string; asset: 'BTC'; analysisVersion: typeof INVESTMENT_ANALYSIS_VERSION; analysisTime: string
+  schemaVersion: 1; id: string; asset: 'BTC'; analysisVersion: InvestmentAnalysisVersion; analysisTime: string
   marketSnapshotId: string; researchSnapshotId: string; inputHash: string; previousSnapshotId: string | null
   provenance: IntelligenceProvenance; analysisModel: string | null; evidence: EvidenceReference[]
   rawDraft: InvestmentDraft; guardWarnings: string[]; changes: Array<{ horizon: TrendHorizon; previous: InvestmentDirection; current: InvestmentDirection; evidenceIds: string[]; explanation: string }>; recordHash: string

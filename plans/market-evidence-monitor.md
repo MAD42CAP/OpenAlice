@@ -1062,3 +1062,83 @@ repaired (Chinese title mismatches and the old drag-coordinate fixture); the
 final complete UI run has no failures. The four previously documented PTY and
 Codex configuration failures remain outside this increment; no full-suite
 green is claimed. The original four owner modifications remain excluded.
+
+## October 15 forward judgment revision
+
+The owner authorized implementing the BTC audit's findings. The retained
+original Jev overpredicts the narrow +/-0.25% return class; the old combined
+record adds no matched directional hits, and the new qualitative AI thesis
+cohort has no completed forward observation. Those are descriptive findings,
+not authority to fit a successful strategy to this month.
+
+Selected implementation: keep all v1 archives and evaluators unchanged. Add
+`market-forward-v2` in its own immutable directory, with a frozen publication
+and separately appended Jev candidate. Supply same-target, past-only base
+rates, keep raw probabilities, ask signal uncertainty separately from data
+quality, and apply an explicitly experimental abstention guard to unsupported
+flat inflation. Never force an uncertain result into up/down or alter an old
+target. Track raw Brier even for abstained decisions; report coverage and exact
+common-window comparisons separately. Existing scheduled scans collect the
+new version once per session; manual retry may fill an absent candidate on
+its original basis without replacing the publication.
+
+The current deterministic summary gets a versioned conditional/abstaining
+decision gate. The separate native AI synthesis binds evidence to its horizon
+and family, degrades unknown/stale/conflicting support and its effective
+headline together, retains raw proposals, and advances its analysis version.
+Price-derived methods and a report repeating price do not become independent
+confirmation. Existing qualitative theses retain their original conditions.
+
+UI choice: preserve the current compact layout and shared Button/Collapsible
+primitives. One short new-version validation status and effective Jev stance
+remain visible; raw percentages, old-version results and detailed coverage
+stay collapsed. Conditional bias is labelled pending confirmation. Keep the
+390px layout readable and keyboard access to disclosures intact. No new chart
+or trading workflow is introduced.
+
+- [x] Implement immutable v2 input, decisions, collection and forward scoring.
+- [x] Guard current and native AI synthesis with explicit version boundaries.
+- [x] Add the compact UI, API/demo support and meaningful regression tests.
+- [x] Run types and full hermetic gates; verify real read-only BTC collection,
+  preserved v1 hashes, initial pending outcomes and desktop/mobile behavior.
+- [x] Document operating limits, preserve owner modifications, and sync only
+  `MAD42CAP/OpenAlice` on the existing feature branch.
+
+Live acceptance on October 15: scheduled collection produced the first
+`market-forward-v2` BTC publication at 20:31 UTC and a separate `jev-1.13.0`
+candidate. All three effective decisions abstain for uncertain signal; their
+original down/up/up choices and complete probability distributions are retained.
+Manual collection returned the same immutable publication and candidate. All
+three outcome windows remain pending. TSLA and MSTR also have their first valid
+v2 publication; all three assets report zero invalid records.
+
+The final read-only BTC scan completed normally with a duplicate receipt because
+the completed evidence had not changed. Both Coinbase bar sources and Deribit
+context were available. The current deterministic summary abstains at 1/7 days
+and retains a conditional bullish bias at 30 days. Native AI run `run-0CNeK4Nq`
+successfully published `investment-intelligence-v2` at 20:42:57 UTC: short-term
+range, medium-term uncertain, long-term conditional bullish. These qualitative
+windows remain distinct from the fixed-return evaluation.
+
+The actual desktop and 390px pages show concise effective labels, closed details
+and separate history. The demo clearly identifies illustrative results. A
+review found and repaired stale-session UI presentation; boundary tests cover
+UTC BTC dates and New York summer/winter equity dates. Temporary demo resources
+and viewport overrides were removed. SHA-256 comparisons confirmed all 157
+pre-existing forecast/publication/thesis/evaluation files and the four original
+owner-modified source files retained their bytes after the live run. New model
+and report data remain outside Git. No predictive improvement is claimed before
+subsequent completed outcome windows exist.
+
+Validation: both TypeScript checks pass. The complete hermetic run recorded
+7,604 passing, eight failing and four skipped tests across 871 files. Four are
+the pre-existing Codex argument/PTY failures documented above. Four new history
+UI assertions encountered old translation-module caches because the UI fix was
+written during this run (the failure DOM contained untranslated new keys).
+A fresh complete UI owner run removed those failures: 2,060 passed and one
+unrelated NewsPage test failed because its observer callback had not initialized.
+That untouched file passed all 12 tests on independent rerun and had passed in
+the complete suite. All changed UI files pass; the new forward UI separately
+passes 12 tests, and the investment guard passes all 24. This is not a claim of
+a fully green repository suite. Difference/secret-marker checks pass, with all
+four original owner source modifications excluded from the feature commit.

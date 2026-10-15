@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
+import { createHash } from 'node:crypto'
 import { createIntelligenceService, type IntelligenceRunner } from './intelligence-service.js'
 import type { ResearchService } from './research-service.js'
 import type { MarketMonitorService } from './service.js'
@@ -55,6 +56,25 @@ describe('three-layer native evidence orchestration', () => {
     await next.run(true); expect(r.run).toHaveBeenCalledTimes(2)
     const input = await next.nativeInput(provenance)
     expect(input.needsAnalysis).toContain(f.report.id)
+  })
+  it('invalidates a persisted v1 material cache on the first v2 analysis without rewriting old input archives', async () => {
+    const f = await fixture(), r = runner()
+    const frozen = await f.service.nativeInput(provenance)
+    expect(frozen.analysisVersion).toBe('investment-intelligence-v2')
+    const legacy = { ...frozen }
+    delete legacy.analysisVersion
+    legacy.hash = createHash('sha256').update(JSON.stringify({ ...legacy, hash: '' })).digest('hex')
+    const file = join(f.root, `${legacy.id}.json`), bytes = JSON.stringify(legacy)
+    await writeFile(file, bytes)
+    expect((await f.service.nativeInput(provenance)).hash).toBe(legacy.hash)
+    expect(await readFile(file, 'utf8')).toBe(bytes)
+    const market = frozen.market
+    const oldKey = createHash('sha256').update(JSON.stringify({ daily: market.marketDataAsOf, price: market.price, horizons: market.horizons.map(h => ({ horizon: h.horizon, direction: h.direction, structure: h.structure, supportLevels: h.supportLevels, resistanceLevels: h.resistanceLevels })), quality: market.dataQuality, reports: [f.report.contentHash], thesisStates: [] })).digest('hex')
+    await writeFile(join(f.root, 'request-state.json'), JSON.stringify({ materialKey: oldKey, requestedAt: '2026-10-14T11:59:00Z' }))
+    const restarted = createIntelligenceService(f.opts); restarted.setRunner(r)
+    await restarted.run(false)
+    expect(r.run).toHaveBeenCalledTimes(1)
+    expect(await readFile(file, 'utf8')).toBe(bytes)
   })
   it('rechecks objective conditions on successful manual scans and ignores other assets', async () => {
     const f = await fixture()

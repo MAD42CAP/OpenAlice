@@ -1195,3 +1195,88 @@ missing the entry place it first in primary; an explicitly saved position or
 hidden setting is respected. Other groups and the default `/` Quick Start
 landing remain unchanged. Expanded and compact rails and the mobile drawer
 use the same entry; Nano hides it consistently with other market-data views.
+
+## Forward validation after the BTC archive audit
+
+The active research path is `market-forward-v2`, stored separately under
+`data/market-monitor/forecast-validation-v2`. Original Jev, the
+`same-evidence-history-v1` experiment, its evaluator and its records stay
+unchanged and readable as historical experiments. New scheduled scans collect
+v2 instead of continuing the old experiment. The old read/API contracts remain
+available, but the normal UI no longer launches their model/collection actions.
+
+`forecast-validation-input.ts` reuses the same next-session-open to 1/7/30 BTC
+day (1/5/20 equity session) close target and past-only historical reference.
+The new Choice criteria describe mutually exclusive realised outcomes directly,
+instead of statements about which event is “more likely.” Separate Evidence
+and Signal questions distinguish adequate data from an explainable directional
+basis. Every question evaluates the shared state independently, in keeping
+with the [TypeSafe Choice contract](https://docs.typesafe.ai/primitives/choice).
+Uncertainty, transition and a broad trading range never mean the narrow
+inclusive +/-0.25% return outcome.
+
+The `jev-base-rate-v2` policy preserves the raw model output and declares a
+separate effective choice or abstention. It requires at least 60 past completed
+same-target windows. A selected flat outcome is withheld when the historical
+flat frequency is below one third, its raw probability is at least twice that
+frequency, and its excess is strictly greater than 20 percentage points.
+Missing/invalid answers, inadequate data and an uncertain Signal also abstain.
+These fixed gates are conservative, unvalidated research policy, not fitted
+probability calibration. They never force a flat call into up/down or change
+the raw probabilities. Changing this policy or its algorithm requires another
+explicit protocol/cohort rather than editing already issued v2 decisions.
+
+Each session first atomically publishes its original input, input/record
+hashes, source identity, policy, rules and guarded combined projection. A
+separate immutable candidate retains actual request/completion times, raw Jev
+answers and effective decisions. A missing/failed candidate can be retried on
+that same original basis within its session; a saved one cannot be replaced.
+Cross-session results are rejected. Missing keys or disabled model automation
+still permit rules/combined collection. Background model failures have a
+one-hour retry delay; explicit manual retry remains available. Collection does
+not access broker state or introduce a separate automation engine.
+
+Report reads evaluate only subsequently completed bars. The earliest matching
+window is selected before abstention filtering; coverage, pending, exclusions
+and exact common-call hits stay separate. Raw-distribution Brier includes
+abstentions and compares the same complete probability cohort to its frozen
+past-frequency reference. Provider changes remain explicitly attributed.
+The report inspects at most the most recent 90 session publications and marks
+truncation; stored publications are retained, not deleted by this read limit.
+Missing or corrupted original archives invalidate scoring and suppress the
+latest effective direction; the UI does not silently substitute older advice.
+First collection has pending outcomes, never a retrospective accuracy claim.
+
+`buildGuardedMarketJudgment` adds `evidence-summary-v2` without changing the v1
+builder used by the old experiment. Candidate structures, event uncertainty
+and limited agreement supply a conditional bias; unavailable evidence,
+conflict and a newer failed scan abstain. Only fresh, confirmed aligned price
+evidence can supply an experimental directional projection. All these price
+methods remain one evidence family; this is not independent-source validation
+or a calibrated forecast. The new main route references effective Jev v2
+choices, never silently falling back to raw v1 percentages.
+
+The native qualitative synthesis separately advances to
+`investment-intelligence-v2`. Its input/cache hashes include the version, and
+old snapshots remain immutable and inspectable. Cross-validation binds a
+specific `trend.<horizon>` and does not combine different horizon votes.
+Report paragraphs and model-labelled metrics have no trusted independent
+family merely because they mention Glassnode, MVRV, SOPR or ETF flows. Unknown
+or repeated price evidence allows at most partial, conditional support.
+Missing, stale or conflicting evidence also degrades the effective outlook
+and its leading summary to uncertainty, retaining the complete `rawDraft`.
+An evidenced sideways range can remain neutral; a transition cannot. Existing
+thesis conditions and terminal states are not reset. Its qualitative windows
+and condition tracking remain separate from fixed-return v2 validation.
+
+GET `/api/market-monitor/forecast-validation?asset=BTC|TSLA|MSTR` reads v2
+results; POST `/api/market-monitor/forecast-validation` with `{asset}` performs
+explicit collection/retry. Both are uncached; raw private credentials and
+provider error bodies never enter responses or archives. The compact dashboard
+shows the new experimental status and effective Jev stance. Original model
+percentages, probability errors, coverage and v1 history stay in labelled,
+initially closed disclosures. Older-session Jev directions are hidden from the
+current card and labelled historical, awaiting today's collection; BTC uses
+UTC dates and equities use New York dates, relative to server report time.
+Historical raw output and scores remain inspectable. No sample-size or lower-error result automatically
+promotes this revision to a validated strategy.

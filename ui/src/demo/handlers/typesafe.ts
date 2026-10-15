@@ -1,9 +1,22 @@
+import { demoForecastValidation } from '../fixtures/forecast-validation'
 import { http, HttpResponse } from 'msw'
 import { demoJevReport } from '../fixtures/typesafe'
 import { demoForecastExperiment } from '../fixtures/forecast-experiment'
 import type { MonitorAsset } from '../../api/market-monitor'
 let settings = { configured: true, automatic: false, model: 'jev-1.13.0' }
 export const typeSafeHandlers = [
+  http.get('/api/market-monitor/forecast-validation', ({ request }) => {
+    const asset = new URL(request.url).searchParams.get('asset') as MonitorAsset
+    if (!['BTC', 'TSLA', 'MSTR'].includes(asset)) return HttpResponse.json({ error: 'Invalid asset' }, { status: 400 })
+    const report = { ...demoForecastValidation(asset), ...settings }
+    if (!settings.configured && report.latest) { report.latest.candidate = null; report.rows.forEach(row => { row.candidateAvailable = false; row.outcomes.forEach(outcome => { outcome.choices.jev = null; outcome.correct.jev = null }) }) }
+    return HttpResponse.json(report)
+  }),
+  http.post('/api/market-monitor/forecast-validation', async ({ request }) => {
+    const input = await request.json() as { asset?: string }
+    if (!input || !['BTC', 'TSLA', 'MSTR'].includes(input.asset ?? '')) return HttpResponse.json({ error: 'Invalid asset' }, { status: 400 })
+    return HttpResponse.json({ id: 'demo-forward-v2', issuedAt: new Date().toISOString(), illustrative: true })
+  }),
   http.get('/api/market-monitor/forecast-experiment', ({ request }) => {
     const asset = new URL(request.url).searchParams.get('asset') as MonitorAsset
     if (!['BTC', 'TSLA', 'MSTR'].includes(asset)) return HttpResponse.json({ error: 'Invalid asset' }, { status: 400 })

@@ -1,3 +1,6 @@
+import { useState } from 'react'
+import { useForecastValidation } from '../../hooks/useForecastValidation'
+import { MarketForwardValidationSummary } from './MarketForwardValidation'
 import { useTranslation } from 'react-i18next'
 import type { MonitorAsset } from '../../api/market-monitor'
 import type { ExperimentReport } from '../../api/forecast-experiment'
@@ -13,8 +16,20 @@ const comparable = (paired: Paired) => Number.isInteger(paired.count) && paired.
 const score = (value: number | null) => validBrier(value) ? value!.toFixed(3) : '—'
 
 export function MarketAccuracySummary(props: { asset: MonitorAsset; visible: boolean; revisionKey: string }) {
+  return <MarketAccuracyCurrent key={props.asset} {...props} />
+}
+function MarketAccuracyCurrent(props: { asset: MonitorAsset; visible: boolean; revisionKey: string }) {
+  const { t } = useTranslation()
+  const model = useForecastValidation(props.asset, props.visible, props.revisionKey)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  return <><MarketForwardValidationSummary {...model} /><Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
+    <CollapsibleTrigger className="cursor-pointer py-2 text-xs font-medium text-muted-foreground">{t('forward.history')}</CollapsibleTrigger>
+    <CollapsibleContent>{historyOpen && <><p className="text-xs text-muted-foreground">{t('forward.legacy')}</p><MarketLegacyAccuracy {...props} /></>}</CollapsibleContent>
+  </Collapsible></>
+}
+function MarketLegacyAccuracy(props: { asset: MonitorAsset; visible: boolean; revisionKey: string }) {
   const model = useMarketAccuracySummary(props.asset, props.visible, props.revisionKey)
-  return <MarketAccuracySummaryView key={props.asset} asset={props.asset} {...model} />
+  return <MarketAccuracySummaryView asset={props.asset} {...model} />
 }
 
 export function MarketAccuracySummaryView({ asset, jevReport, experimentReport, loading, error, refresh }: {

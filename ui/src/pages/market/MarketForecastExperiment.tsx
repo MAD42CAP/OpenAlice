@@ -5,7 +5,7 @@ import type { MonitorAsset } from '../../api/market-monitor'
 import { Button } from '../../components/ui/button'
 import { monitorWyckoffCondition } from './market-monitor-presentation'
 
-export function MarketForecastExperiment({ asset, visible, revisionKey }: { asset: MonitorAsset; visible: boolean; revisionKey: string }) {
+export function MarketForecastExperiment({ asset, visible, revisionKey, readOnly = false }: { asset: MonitorAsset; visible: boolean; revisionKey: string; readOnly?: boolean }) {
   const [revision, setRevision] = useState(0), [busy, setBusy] = useState(false)
   const [state, setState] = useState<{ asset: MonitorAsset; report: ExperimentReport | null; error: boolean }>({ asset, report: null, error: false })
   const current = useRef(asset); current.current = asset
@@ -28,19 +28,19 @@ export function MarketForecastExperiment({ asset, visible, revisionKey }: { asse
     catch { if (mounted.current && current.current === selected) setState(s => ({ ...s, error: true })) }
     finally { if (mounted.current) { setBusy(false); if (current.current === selected) setRevision(n => n + 1) } }
   }
-  return <ForecastExperimentView asset={asset} report={state.asset === asset ? state.report : null} error={state.asset === asset && state.error} busy={busy} collect={collect} refresh={() => setRevision(n => n + 1)} />
+  return <ForecastExperimentView readOnly={readOnly} asset={asset} report={state.asset === asset ? state.report : null} error={state.asset === asset && state.error} busy={busy} collect={collect} refresh={() => setRevision(n => n + 1)} />
 }
 const horizons = ['short', 'medium', 'long'] as const
 const methods = ['original', 'challenger', 'rules', 'combined', 'frequency', 'alwaysUp'] as const
 const percent = (value: number | null | undefined) => value == null ? '—' : `${(value * 100).toFixed(1)}%`
 
-export function ForecastExperimentView({ asset, report, error, busy, collect, refresh }: { asset: MonitorAsset; report: ExperimentReport | null; error: boolean; busy: boolean; collect: () => void; refresh: () => void }) {
+export function ForecastExperimentView({ asset, report, error, busy, collect, refresh, readOnly = false }: { asset: MonitorAsset; report: ExperimentReport | null; error: boolean; busy: boolean; collect: () => void; refresh: () => void; readOnly?: boolean }) {
   const { t } = useTranslation()
   const latest = report?.latest, lastRow = report?.rows.at(-1)
   return <section aria-label={`${asset} · ${t('typesafe.experimentTitle')}`} className="rounded-xl border border-border bg-card p-4 md:p-5">
     <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="font-semibold">{t('typesafe.experimentTitle')}</h2><div className="flex flex-wrap gap-2">
       <Button size="sm" variant="outline" onClick={refresh}>{t('typesafe.refresh')}</Button>
-      {report?.configured && <Button size="sm" disabled={busy} onClick={collect}>{t(busy ? 'typesafe.busy' : 'typesafe.experimentCollect')}</Button>}
+      {!readOnly && report?.configured && <Button size="sm" disabled={busy} onClick={collect}>{t(busy ? 'typesafe.busy' : 'typesafe.experimentCollect')}</Button>}
     </div></div>
     <p className="mt-2 text-xs text-muted-foreground">{t('typesafe.experimentHint')}</p>
     {report?.illustrative && <p className="mt-2 text-xs text-warning">{t('typesafe.demo')}</p>}
