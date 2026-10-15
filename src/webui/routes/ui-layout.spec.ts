@@ -1,9 +1,29 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { defaultUiLayout, UiLayoutError } from '../../core/ui-layout.js'
+import { defaultUiLayout, parseUiLayoutWrite, UiLayoutError } from '../../core/ui-layout.js'
 import { createUiLayoutRoutes } from './ui-layout.js'
 
 describe('ui-layout routes', () => {
+  it('accepts and returns a customized Research entry through the layout contract', async () => {
+    const layout = defaultUiLayout()
+    layout.groups[0].items = layout.groups[0].items.filter((page) => page !== 'research')
+    layout.groups.push({ id: 'custom:desk', label: 'Desk', items: ['research'] })
+    layout.hidden.push('research')
+    const app = createUiLayoutRoutes({
+      readUiLayout: vi.fn(),
+      writeUiLayout: async (input) => parseUiLayoutWrite(input),
+    })
+
+    const response = await app.request('/', {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(layout),
+    })
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual(layout)
+  })
+
   it('reads the current Activity Bar layout', async () => {
     const layout = defaultUiLayout()
     const read = vi.fn(async () => layout)

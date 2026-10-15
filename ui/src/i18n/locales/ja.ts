@@ -214,6 +214,7 @@ export const ja: Resources = {
     generalChat: 'Chat',
     harnessLabel: '{{name}} Harness',
     item: {
+      research: '投資リサーチ',
       inbox: '受信トレイ',
       tracked: 'トラッキング',
       chat: 'Alice に質問',
@@ -1894,7 +1895,7 @@ export const ja: Resources = {
   },
   // English is the intentional fallback for this newly added surface until a
   // reviewed Japanese financial copy catalog is available.
-  marketMonitor: en.marketMonitor,
+  marketMonitor: { ...en.marketMonitor, title: '投資リサーチ', navLabel: '投資リサーチ' },
   market: {
     openSymbol: '{{symbol}} の詳細を開く',
     pageTitle: 'マーケット',

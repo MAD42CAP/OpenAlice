@@ -15,6 +15,41 @@ import {
 } from './ui-layout'
 
 describe('ui-layout document', () => {
+  it('inserts Research first for older layouts and preserves every other saved choice', () => {
+    const saved = defaultUiLayout()
+    saved.groups[0].items = saved.groups[0].items.filter((page) => page !== 'research').reverse()
+    saved.groups.unshift({ id: 'custom:desk', label: 'Desk', items: [] })
+    saved.hidden = ['market']
+    const original = structuredClone(saved)
+
+    const layout = normalizeUiLayout(saved)
+
+    expect(defaultUiLayout().groups[0].items[0]).toBe('research')
+    expect(layout).toEqual({
+      ...saved,
+      groups: saved.groups.map((group) => group.id === 'primary'
+        ? { ...group, items: ['research', ...group.items] }
+        : group),
+    })
+    expect(saved).toEqual(original)
+    expect(normalizeUiLayout(layout)).toEqual(layout)
+  })
+
+  it('keeps an explicitly moved or hidden Research entry where the user put it', () => {
+    const saved = defaultUiLayout()
+    saved.groups[0].items = saved.groups[0].items.filter((page) => page !== 'research')
+    saved.groups.push({ id: 'custom:desk', label: 'Desk', items: ['research'] })
+    saved.hidden.push('research')
+
+    expect(normalizeUiLayout(saved)).toEqual(saved)
+    const shown = setPageHidden(saved, 'research', false)
+    expect(shown.groups).toEqual(saved.groups)
+    expect(shown.hidden).not.toContain('research')
+    const reordered = movePage(shown, 'research', 'primary', 2)
+    expect(reordered.groups[0].items[2]).toBe('research')
+    expect(normalizeUiLayout(reordered)).toEqual(reordered)
+  })
+
   it('covers every active catalog page while accepting retired layout ids', () => {
     const catalogPages = NAV_SECTIONS.flatMap((section) => section.items.map((item) => item.page))
     // Persisted layout validation stays compatible; the navigation catalog
@@ -70,7 +105,8 @@ describe('ui-layout document', () => {
       hidden: ['trading-as-git', 'dev'],
     })
     expect(layout.groups.some((group) => group.id === 'beta')).toBe(false)
-    expect(layout.groups.find((group) => group.id === 'primary')?.items.slice(0, 3)).toEqual([
+    expect(layout.groups.find((group) => group.id === 'primary')?.items.slice(0, 4)).toEqual([
+      'research',
       'office',
       'portfolio',
       'connectors',
@@ -94,11 +130,11 @@ describe('ui-layout document', () => {
     expect(saved).toEqual(original)
     expect(layout.groups.map(group => group.id)).toEqual(['custom:desk', 'primary', 'system'])
     expect(layout.groups[0]).toEqual(saved.groups[1])
-    expect(layout.groups[1].items).toEqual([...saved.groups[2].items, 'connectors', 'prediction'])
+    expect(layout.groups[1].items).toEqual(['research', ...saved.groups[2].items, 'connectors', 'prediction'])
     expect(layout.hidden).toEqual(['prediction'])
     expect(normalizeUiLayout(layout)).toEqual(layout)
     expect(normalizeUiLayout(defaultUiLayout())).toEqual(defaultUiLayout())
     const reordered = movePage(layout, 'prediction', 'primary', 1)
-    expect(reordered.groups[1].items.slice(0, 3)).toEqual(['market', 'prediction', 'chat'])
+    expect(reordered.groups[1].items.slice(0, 4)).toEqual(['research', 'prediction', 'market', 'chat'])
   })
 })

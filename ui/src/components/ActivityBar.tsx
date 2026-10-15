@@ -31,6 +31,7 @@ import { PRODUCT_NAME } from '../lib/product-brand'
  */
 function activitySectionFor(page: Page): ActivitySection {
   switch (page) {
+    case 'research':             return 'research'
     case 'chat':                 return 'chat'
     case 'auto-quant':           return 'auto-quant'
     case 'prediction':           return 'prediction'

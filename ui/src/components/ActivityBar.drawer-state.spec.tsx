@@ -52,6 +52,7 @@ vi.mock('react-i18next', () => ({
     t: (key: string) => ({
       'nav.quickStart': 'Quick Start',
       'nav.item.issue': 'Issues',
+      'nav.item.research': 'Investment Research',
       'nav.item.automation': 'Automation',
       'nav.section.beta': 'Beta',
       'nav.section.system': 'System',
@@ -159,7 +160,7 @@ describe('ActivityBar mobile drawer state', () => {
 
     expect(drawer.getAttribute('aria-modal')).toBe('true')
     expect(firstAction.getAttribute('aria-label')).toBe('common.closePanel')
-    expect(firstDestination.textContent).toContain('Quick Start')
+    expect(firstDestination.textContent).toContain('Investment Research')
     expect(lastAction.textContent).toContain('Project menu')
     await waitFor(() => expect(document.activeElement).toBe(currentDestination))
     expect(drawer.className).toContain('motion-reduce:transition-none')

@@ -238,9 +238,8 @@ const marketListModule: ViewModule<'market-list'> = {
 
 const marketMonitorModule: ViewModule<'market-monitor'> = {
   kind: 'market-monitor',
-  title: () => 'Evidence Monitor',
-  toUrl: () => '/market/evidence',
-  shell: 'market',
+  title: () => 'Investment Research',
+  toUrl: () => '/research',
   lifecycle: 'keep-mounted',
   Component: ({ visible }) => <MarketEvidenceMonitorPage visible={visible} />,
 }

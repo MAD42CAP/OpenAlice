@@ -84,6 +84,13 @@ Browser and Linux retain their existing window chrome. Windows native visual
 and Snap/high-DPI acceptance requires a Windows runtime; Mac geometry tests
 and browser layout checks do not replace that gate.
 
+Investment Research (投研平台, `/research`) leads the default primary activity
+list and opens the monitor without the Market secondary navigator. Its old
+`/market/evidence` link adopts the same saved view. Market retains news and
+other analytics; it no longer duplicates the research entry. Older layouts
+missing research receive it first in primary, while explicit user positions
+and visibility stay respected.
+
 The activity rail's utility items, groups, and visibility are user-arranged from
 Settings → Activity bar and stored in `data/ui-layout.json`. The three Harnesses
 are a fixed work section below those utilities; their visibility follows the

@@ -26,6 +26,7 @@ import { PrimaryNavigationToggle, useNavigationToggleFocus } from './components/
 export type Page =
   | 'chat' | 'auto-quant' | 'prediction' | 'inbox' | 'tracked' | 'workspaces' | 'portfolio' | 'office' | 'automation' | 'market'
   | 'issue'
+  | 'research'
   | 'connectors'
   | 'settings'
 

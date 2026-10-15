@@ -199,6 +199,7 @@ describe('MarketSidebar search keyboard controls', () => {
     expect(useWatchlist.getState().entries).toHaveLength(1)
     fireEvent.click(watchlist)
     expect(within(markets).getByText('AAPL')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: i18n.t('marketMonitor.navLabel') })).toBeNull()
     const analytics = screen.getByRole('group', { name: 'Analytics' })
     fireEvent.click(within(analytics).getByRole('button', { name: 'Term Structure' }))
     expect(getFocusedTab(useWorkspace.getState())?.spec).toEqual({ kind: 'market-board', params: { board: 'term-structure' } })

@@ -98,20 +98,22 @@ describe('ActivityBarSettingsPage', () => {
     }
     try {
       render(<ActivityBarSettingsPage />)
+      const primaryPages = () => [...document.querySelectorAll('[data-nav-group-card="primary"] [data-nav-item]')]
+        .map((node) => node.getAttribute('data-nav-item'))
+      expect(primaryPages().slice(0, 3)).toEqual(['research', 'chat', 'inbox'])
       fireEvent.pointerDown(screen.getByRole('button', { name: 'Reorder Quick Start' }), {
         pointerId: 1,
         button: 0,
         clientX: 20,
-        clientY: 10,
+        clientY: 50,
       })
-      fireEvent.pointerMove(window, { pointerId: 1, clientX: 20, clientY: 70 })
+      fireEvent.pointerMove(window, { pointerId: 1, clientX: 20, clientY: 110 })
 
-      const pages = [...document.querySelectorAll('[data-nav-group-card="primary"] [data-nav-item]')]
-        .map((node) => node.getAttribute('data-nav-item'))
-      expect(pages.slice(0, 2)).toEqual(['inbox', 'chat'])
-      fireEvent.pointerUp(window, { pointerId: 1, clientX: 20, clientY: 70 })
+      expect(primaryPages().slice(0, 3)).toEqual(['research', 'inbox', 'chat'])
+      expect(mocks.save).not.toHaveBeenCalled()
+      fireEvent.pointerUp(window, { pointerId: 1, clientX: 20, clientY: 110 })
       await waitFor(() => expect(mocks.save).toHaveBeenCalledOnce(), { timeout: 1_500 })
-      expect(mocks.save.mock.calls[0]?.[0].groups[0]?.items.slice(0, 2)).toEqual(['inbox', 'chat'])
+      expect(mocks.save.mock.calls[0]?.[0].groups[0]?.items.slice(0, 3)).toEqual(['research', 'inbox', 'chat'])
     } finally {
       HTMLElement.prototype.getBoundingClientRect = originalRect
     }

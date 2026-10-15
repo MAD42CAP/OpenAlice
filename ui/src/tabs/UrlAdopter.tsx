@@ -75,6 +75,7 @@ export function UrlAdopter() {
         />
         <Route path="/news" element={<Navigate to="/market/news" replace />} />
         <Route path="/market" element={<AdoptTraderStatic spec={{ kind: 'market-list', params: {} }} />} />
+        <Route path="/research" element={<AdoptTraderStatic spec={{ kind: 'market-monitor', params: {} }} />} />
         <Route path="/market/evidence" element={<AdoptTraderStatic spec={{ kind: 'market-monitor', params: {} }} />} />
         <Route path="/market/rotation" element={<AdoptTraderStatic spec={{ kind: 'market-rotation', params: {} }} />} />
         <Route path="/market/news" element={<AdoptNewsSelection />} />
@@ -512,9 +513,9 @@ function specToSection(spec: ViewSpec): ActivitySection {
     case 'issue-detail':       return 'issue'
     case 'automation':         return 'settings'
     case 'office':             return 'office'
+    case 'market-monitor':     return 'research'
     case 'news':
     case 'market-list':
-    case 'market-monitor':
     case 'market-rotation':
     case 'market-board':
     case 'market-detail':      return 'market'

@@ -4,12 +4,13 @@ import { defaultUiLayout, type UiLayout } from '../live/ui-layout'
 import { editorGroupsFromLayout, filterNavSections, joinNavLayout, NAV_SECTIONS, navSectionsForProduct } from './activity-navigation'
 
 describe('ActivityBar navigation hierarchy', () => {
-  it('keeps the primary workflow ordered with Quant below Issues', () => {
+  it('leads the primary workflow with Investment Research and keeps Quant below Issues', () => {
     const primary = NAV_SECTIONS.find((section) => section.sectionLabel === '')
     expect(NAV_SECTIONS.some((section) => section.id === 'beta')).toBe(false)
     const system = NAV_SECTIONS.find((section) => section.sectionLabel === 'System')
 
     expect(primary?.items.map((item) => item.page)).toEqual([
+      'research',
       'chat',
       'inbox',
       'issue',
@@ -20,6 +21,10 @@ describe('ActivityBar navigation hierarchy', () => {
       'office',
       'portfolio',
     ])
+    expect(primary?.items[0]).toMatchObject({
+      labelKey: 'nav.item.research',
+      defaultTab: { kind: 'market-monitor', params: {} },
+    })
     expect(primary?.items.find((item) => item.page === 'portfolio')?.labelKey).toBe('nav.item.trading')
     expect(system?.items).toEqual([])
   })
@@ -35,6 +40,7 @@ describe('ActivityBar navigation hierarchy', () => {
       'prediction',
       'office',
     ])
+    expect(pages).not.toContain('research')
     expect(pages).not.toContain('market')
     expect(pages).not.toContain('portfolio')
   })
@@ -85,7 +91,7 @@ describe('ActivityBar navigation hierarchy', () => {
     expect(hiddenPrimary?.items.map((item) => item.page)).not.toContain('office')
     expect(hiddenPrimary?.items.length).toBeGreaterThan(0)
     expect(shownPrimary?.items.map((item) => item.page)).toContain('office')
-    expect(shownPrimary?.items[0]?.page).toBe('chat')
+    expect(shownPrimary?.items[0]?.page).toBe('research')
   })
 
   it('flattens saved Beta entries consistently in the rail and editor', () => {

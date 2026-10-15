@@ -241,7 +241,7 @@ it('does not label a disconnected backend as active', async () => {
 it('follows the global Chinese locale for current and previously stored evidence', async () => {
   await i18n.changeLanguage('zh')
   render(<MarketEvidenceMonitorPage />)
-  expect(await screen.findByText('市场证据监测')).toBeTruthy()
+  expect(await screen.findByText('投研平台')).toBeTruthy()
   expect(screen.queryByRole('heading', { name: '每日市场简报' })).toBeNull()
   await openSection('平台规则与每日解读')
   await openSection('威科夫结构')

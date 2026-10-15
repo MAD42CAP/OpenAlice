@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  ChartNoAxesCombined,
   Building2,
   Inbox,
   LineChart,
@@ -24,6 +25,7 @@ import {
 
 type NavItemKey =
   | 'nav.quickStart'
+  | 'nav.item.research'
   | 'nav.item.inbox' | 'nav.item.tracked' | 'nav.item.chat' | 'nav.item.autoQuant' | 'nav.item.autoPrediction' | 'nav.item.workspaces'
   | 'nav.item.market' | 'nav.item.office' | 'nav.item.issue'
   | 'nav.item.trading' | 'nav.item.connectors' | 'nav.item.automation'
@@ -73,12 +75,14 @@ export function filterNavSections(
 }
 
 export const NAV_SECTIONS: NavSection[] = [
-  // Ask Alice is the product front door. Workspaces is deliberately absent:
+  // Research leads the primary navigation; Quick Start keeps its landing route.
+  // Workspaces is deliberately absent:
   // it is the engineering container/debug surface beneath conversations.
   {
     id: 'primary',
     sectionLabel: '',
     items: [
+      { page: 'research', labelKey: 'nav.item.research', icon: ChartNoAxesCombined, defaultTab: { kind: 'market-monitor', params: {} } },
       { page: 'chat',       labelKey: 'nav.quickStart',      icon: SquarePen, defaultTab: { kind: 'quick-start', params: {} } },
       { page: 'inbox',      labelKey: 'nav.item.inbox',      icon: Inbox, defaultTab: { kind: 'inbox', params: {} } },
       { page: 'issue',      labelKey: 'nav.item.issue',      icon: ListChecks, defaultTab: { kind: 'issue', params: {} } },

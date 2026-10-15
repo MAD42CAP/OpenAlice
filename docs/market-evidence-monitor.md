@@ -1,7 +1,7 @@
 # Market Evidence Monitor
 
 This guide owns the read-only BTC/TSLA/MSTR evidence monitor, its persistence and
-the `/market/evidence` dashboard. Market-data provider selection and candle
+the `/research` dashboard. The former `/market/evidence` URL remains an alias. Market-data provider selection and candle
 semantics remain owned by [[docs/market-data-architecture.md]].
 
 ## Product Boundary
@@ -1179,3 +1179,19 @@ market receipts. The page exposes failed/partial jobs and stale input notices.
 Use **Refresh archive** to reread results; queued/running tasks poll faster.
 The demo has explicit illustrative research and does not fetch real reports or
 run a model. No part of this feature places orders or changes live rule weights.
+
+
+## Primary navigation
+
+The first primary activity is **投研平台 / Investment Research**, alongside
+Quick Start, Issues, Tracked, Market and Trading. It opens the existing monitor
+directly at `/research`, without a Market secondary navigator. The Market
+Analytics directory no longer duplicates this entry. Existing bookmarks at
+`/market/evidence` and saved `market-monitor` tabs adopt the same view and select
+the research activity; desktop keep-mounted behavior is retained.
+
+Both layout catalogs include `research`. Default layouts and saved layouts
+missing the entry place it first in primary; an explicitly saved position or
+hidden setting is respected. Other groups and the default `/` Quick Start
+landing remain unchanged. Expanded and compact rails and the mobile drawer
+use the same entry; Nano hides it consistently with other market-data views.

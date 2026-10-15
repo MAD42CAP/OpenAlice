@@ -13,6 +13,7 @@ import { z } from 'zod'
 import { dataPath } from './paths.js'
 
 export const ACTIVITY_PAGE_IDS = [
+  'research',
   'chat',
   'auto-quant',
   'prediction',
@@ -64,7 +65,7 @@ export function defaultUiLayout(): UiLayout {
   return {
     version: 1,
     groups: [
-      { id: 'primary', items: ['chat', 'inbox', 'issue', 'auto-quant', 'tracked', 'market'] },
+      { id: 'primary', items: ['research', 'chat', 'inbox', 'issue', 'auto-quant', 'tracked', 'market'] },
       { id: 'beta', items: ['prediction', 'office', 'portfolio', 'connectors'] },
       { id: 'system', items: ['workspaces', 'automation', 'settings', 'dev'] },
     ],
@@ -215,7 +216,10 @@ export function normalizeUiLayout(input: unknown): UiLayout {
     if (seen.has(page)) continue
     const targetId = defaultGroupIdForPage(page)
     const target = groups.find((group) => group.id === targetId) ?? groups[0]
-    target.items.push(page)
+    // New catalog entries normally append without disturbing saved order.
+    // Research is the primary entry point when upgrading an older layout.
+    if (page === 'research') target.items.unshift(page)
+    else target.items.push(page)
     seen.add(page)
   }
 

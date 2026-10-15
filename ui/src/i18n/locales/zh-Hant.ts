@@ -223,6 +223,7 @@ export const zhHant: Resources = {
     generalChat: 'Chat',
     harnessLabel: '{{name}} Harness',
     item: {
+      research: '投研平台',
       inbox: '收件匣',
       tracked: '追蹤',
       chat: '問 Alice',
@@ -1902,7 +1903,7 @@ export const zhHant: Resources = {
   },
   // The monitor follows the global locale immediately. Its Simplified-Chinese
   // catalog is the compatibility source until the dedicated Hant copy lands.
-  marketMonitor: zh.marketMonitor,
+  marketMonitor: { ...zh.marketMonitor, title: '投研平台', navLabel: '投研平台' },
   market: {
     openSymbol: '開啟 {{symbol}} 詳情',
     pageTitle: '市場',

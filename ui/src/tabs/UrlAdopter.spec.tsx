@@ -9,6 +9,7 @@ import { UrlAdopter } from './UrlAdopter'
 const mocks = vi.hoisted(() => ({
   openOrFocus: vi.fn(),
   setSidebar: vi.fn(),
+  product: 'trader',
 }))
 
 const emptyState = {
@@ -35,7 +36,7 @@ vi.mock('./registry', () => ({
 
 vi.mock('../hooks/useAliceProject', () => ({
   useAliceProject: () => ({
-    project: { product: 'trader' },
+    project: { product: mocks.product },
     loading: false,
     error: null,
     refresh: async () => undefined,
@@ -43,6 +44,7 @@ vi.mock('../hooks/useAliceProject', () => ({
 }))
 
 beforeEach(() => {
+  mocks.product = 'trader'
   vi.clearAllMocks()
 })
 
@@ -334,19 +336,37 @@ describe('UrlAdopter Tracked selection', () => {
   })
 })
 
+describe('UrlAdopter Investment Research', () => {
+  it.each(['/research', '/market/evidence'])('adopts %s into the standalone research area', async path => {
+    render(<MemoryRouter initialEntries={[path]}><UrlAdopter /></MemoryRouter>)
+    await waitFor(() => expect(mocks.openOrFocus).toHaveBeenCalledWith({ kind: 'market-monitor', params: {} }))
+    expect(mocks.setSidebar).toHaveBeenCalledWith('research')
+    expect(mocks.setSidebar).not.toHaveBeenCalledWith('market')
+  })
+
+  it.each(['/research', '/market/evidence'])('keeps the Trader-only gate on Nano for %s', async path => {
+    mocks.product = 'nano'
+    render(<MemoryRouter initialEntries={[path]}><UrlAdopter /></MemoryRouter>)
+    await waitFor(() => expect(mocks.openOrFocus).toHaveBeenCalledWith({ kind: 'chat-landing', params: {} }))
+    expect(mocks.openOrFocus).not.toHaveBeenCalledWith({ kind: 'market-monitor', params: {} })
+    expect(mocks.setSidebar).toHaveBeenCalledWith('chat')
+  })
+})
+
 describe('UrlAdopter Market News', () => {
-  it('adopts News under Market from /market/news', async () => {
+  it.each([['/market', 'market-list'], ['/market/news', 'news']] as const)('keeps %s inside Market', async (path, kind) => {
     render(
-      <MemoryRouter initialEntries={['/market/news']}>
+      <MemoryRouter initialEntries={[path]}>
         <UrlAdopter />
       </MemoryRouter>,
     )
 
     await waitFor(() => expect(mocks.openOrFocus).toHaveBeenCalledWith({
-      kind: 'news',
+      kind,
       params: {},
     }))
     expect(mocks.setSidebar).toHaveBeenCalledWith('market')
+    expect(mocks.setSidebar).not.toHaveBeenCalledWith('research')
   })
 
   it('redirects the retired /news rail route into Market', async () => {

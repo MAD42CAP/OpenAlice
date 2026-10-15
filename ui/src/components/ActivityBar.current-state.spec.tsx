@@ -55,6 +55,7 @@ vi.mock('react-i18next', () => ({
     t: (key: string) => ({
       'nav.quickStart': 'Quick Start',
       'nav.item.issue': 'Issues',
+      'nav.item.research': 'Investment Research',
       'nav.item.connectors': 'Connectors',
       'nav.connectorNeedsAttention': '1 connector needs attention',
       'nav.collapseRail': 'Collapse activity bar',
@@ -121,6 +122,23 @@ describe('ActivityBar current destination', () => {
     expect(screen.getByTestId('activity-bar').getAttribute('data-rail-layout')).toBe('full')
     expect(screen.queryByRole('button', { name: 'Collapse activity bar' })).toBeNull()
     expect(screen.getByTestId('activity-bar').firstElementChild?.querySelector('img')).toBeNull()
+  })
+
+  it('opens Investment Research from the first destination and marks it active independently of Market', () => {
+    const onClose = vi.fn()
+    const view = render(<ActivityBar open onClose={onClose} />)
+    const research = screen.getByRole('button', { name: 'Investment Research' })
+    expect(document.getElementById('activity-section-primary')?.querySelector('button')).toBe(research)
+    research.click()
+    expect(mocks.setSidebar).toHaveBeenCalledWith('research')
+    expect(mocks.openOrFocus).toHaveBeenCalledWith({ kind: 'market-monitor', params: {} })
+    expect(onClose).toHaveBeenCalledOnce()
+
+    mocks.selectedSidebar = 'research'
+    mocks.focusedKind = 'market-monitor'
+    view.rerender(<ActivityBar open onClose={onClose} />)
+    expect(research.getAttribute('aria-current')).toBe('page')
+    expect(document.querySelectorAll('nav [aria-current="page"]')).toHaveLength(1)
   })
 
   it('moves Connectors and its warning state into the utility menu', () => {

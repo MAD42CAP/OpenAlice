@@ -1022,3 +1022,43 @@ owner modifications stay outside the commit; the two touched CLI files stage
 only the new intelligence mappings and fixture registration. No secrets,
 private reports or runtime records enter Git, and no upstream change or trade
 is performed.
+
+## October 15 primary research navigation
+
+The owner requested the investment platform outside the Market directory and
+at the front of the main navigation, named 投研平台. Selected interaction:
+add a first primary activity, research, that opens the existing market-monitor
+view directly with no Market secondary navigator. Use /research as its canonical
+URL and retain /market/evidence as an adopting alias for existing bookmarks.
+Saved monitor tabs keep their identity and keep-mounted lifecycle. Other Market
+news, boards, analytics and trading destinations retain their own names.
+
+The same entry, accessible label and selected state apply to expanded/compact
+rails and the mobile drawer. Reuse existing navigation buttons and shell header
+controls. Add research to both layout catalogs; default and older layouts missing
+the new entry receive it first in primary, while existing custom ordering and
+visibility remain respected. This is an additive catalog entry, not a new state
+format or research-data migration. Nano continues to hide trading-data surfaces.
+
+- [x] Move and rename the entry, remove the old Market child, preserve deep links.
+- [x] Verify layout persistence, selected state, types, regression and real desktop/mobile.
+- [x] Keep delivery on the owned feature branch, retaining pre-existing owner changes.
+
+Acceptance: the real page opened from the old URL adopts `/research`, with
+Investment Research first in the main rail, one current selection, and no Market
+secondary navigator. Market overview retains its directory without a duplicate
+monitor entry. The real layout API returns research exactly once, first in
+primary. The 390px mobile drawer opens the same first item and closes on
+selection; the independent page is 390px wide with no horizontal overflow. At
+820px the compact rail retains its icon/label and a single primary expand
+control. Demo `/research` also works. Temporary demo resources and viewport
+overrides were removed, and the real platform remains running.
+
+Both typechecks pass. The final complete UI owner suite passes 2,041 tests;
+141 focused navigation/layout/monitor tests and the three pointer-sort tests
+also pass. The initial complete hermetic run recorded 7,552 passing, four
+skipped and seven failing tests. Three UI failures found during editing were
+repaired (Chinese title mismatches and the old drag-coordinate fixture); the
+final complete UI run has no failures. The four previously documented PTY and
+Codex configuration failures remain outside this increment; no full-suite
+green is claimed. The original four owner modifications remain excluded.

@@ -26,6 +26,40 @@ afterEach(async () => {
 })
 
 describe('ui-layout', () => {
+  it('introduces Research first without changing the rest of an existing layout', () => {
+    const saved = defaultUiLayout()
+    saved.groups[0].items = ['market', 'chat', 'issue', 'inbox', 'auto-quant', 'tracked']
+    saved.groups.splice(1, 0, { id: 'custom:desk', label: 'Desk', items: [] })
+    saved.hidden = ['dev', 'market']
+    const original = structuredClone(saved)
+
+    const layout = normalizeUiLayout(saved)
+
+    expect(defaultUiLayout().groups[0].items[0]).toBe('research')
+    expect(layout).toEqual({
+      ...saved,
+      groups: saved.groups.map((group) => group.id === 'primary'
+        ? { ...group, items: ['research', ...group.items] }
+        : group),
+    })
+    expect(saved).toEqual(original)
+    expect(normalizeUiLayout(layout)).toEqual(layout)
+  })
+
+  it('persists the user-selected Research group, order and visibility', async () => {
+    const path = await layoutFile()
+    const saved = defaultUiLayout()
+    saved.groups[0].items = saved.groups[0].items.filter((page) => page !== 'research')
+    saved.groups.push({ id: 'custom:desk', label: 'Desk', items: ['research'] })
+    saved.hidden.push('research')
+
+    expect(parseUiLayoutWrite(saved)).toEqual(saved)
+    expect(await writeUiLayout(saved, path)).toEqual(saved)
+    expect(await readUiLayout(path)).toEqual(saved)
+    expect(normalizeUiLayout(saved).groups.flatMap((group) => group.items)
+      .filter((page) => page === 'research')).toHaveLength(1)
+  })
+
   it('accepts the Auto Prediction page emitted by the Activity Bar editor', () => {
     const layout = defaultUiLayout()
     expect(layout.groups.find((group) => group.id === 'beta')?.items).toContain('prediction')

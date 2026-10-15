@@ -88,6 +88,7 @@ export type ViewKind = ViewSpec['kind']
  * owns them, not in the app shell.
  */
 export type ActivitySection =
+  | 'research'
   | 'quick-start'
   | 'chat'
   | 'auto-quant'

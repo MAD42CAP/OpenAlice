@@ -213,6 +213,7 @@ export const zh: Resources = {
     generalChat: 'Chat',
     harnessLabel: '{{name}} Harness',
     item: {
+      research: '投研平台',
       inbox: '收件箱',
       tracked: '追踪',
       chat: '问 Alice',
@@ -2029,7 +2030,7 @@ export const zh: Resources = {
 },
     analysisBasis: '分析仅使用已收盘行情：日线 {{daily}}；小时线 {{hourly}}。图表可包含盘中行情。规则评分不代表涨跌概率。',
     legacyBasis: '旧版记录未验证收盘状态，请重新扫描。规则评分不代表涨跌概率。',
-    navLabel: '市场证据监测', title: '市场证据监测',
+    navLabel: '投研平台', title: '投研平台',
     description: 'BTC + TSLA + MSTR · {{strategy}} · 事实、假设、确认与失效条件',
     strategyEvidenceChain: '证据链', scannedAt: '扫描于 {{time}}', waitingFirstScan: '等待首次扫描',
     demoBadge: '演示数据 · 非实时', settingsTitle: '监测设置', scanNow: '立即扫描', scanRunning: '正在扫描 {{asset}}…',

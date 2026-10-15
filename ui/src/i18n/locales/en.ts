@@ -224,6 +224,7 @@ export const en = {
     generalChat: 'Chat',
     harnessLabel: '{{name}} Harness',
     item: {
+      research: 'Investment Research',
       inbox: 'Inbox',
       tracked: 'Tracked',
       chat: 'Ask Alice',
@@ -2062,8 +2063,8 @@ export const en = {
 },
     analysisBasis: 'Analysis uses closed bars: daily {{daily}}; hourly {{hourly}}. Charts may include forming bars. Rule scores are not probabilities.',
     legacyBasis: 'Legacy observation: close status unverified. Scan again. Rule scores are not probabilities.',
-    navLabel: 'Evidence Monitor',
-    title: 'Evidence Monitor',
+    navLabel: 'Investment Research',
+    title: 'Investment Research',
     description: 'BTC + TSLA + MSTR · {{strategy}} · facts, hypotheses, confirmation and invalidation',
     strategyEvidenceChain: 'Evidence chain',
     scannedAt: 'scanned {{time}}',

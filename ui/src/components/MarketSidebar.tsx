@@ -217,11 +217,6 @@ export function MarketSidebar({ onNavigate }: { onNavigate?: () => void }) {
         </MarketSection>
         <MarketSection label={t('market.analyticsSection')}>
           <SidebarRow
-            label={t('marketMonitor.navLabel')}
-            active={isFocused('market-monitor')}
-            onClick={() => openOrFocus({ kind: 'market-monitor', params: {} })}
-          />
-          <SidebarRow
             label={t('market.boardMovers')}
             active={focusedSpec?.kind === 'market-board' && focusedSpec.params.board === 'movers'}
             onClick={() => openOrFocus({ kind: 'market-board', params: { board: 'movers' } })}

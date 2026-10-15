@@ -82,6 +82,15 @@ describe('Market News URL projection', () => {
   })
 })
 
+describe('Investment Research URL projection', () => {
+  it('keeps the existing research tab independent of the Market navigator', () => {
+    const spec = { kind: 'market-monitor', params: {} } as const
+    expect(getView('market-monitor').toUrl(spec)).toBe('/research')
+    expect(getViewShell(spec)).toBeNull()
+    expect(getViewShell({ kind: 'market-list', params: {} })).toBe('market')
+  })
+})
+
 describe('Settings URL projection', () => {
   it.each(['runs', 'api'] as const)('projects current and saved legacy %s tabs into Developer', (tab) => {
     expect(getView('dev').toUrl({ kind: 'dev', params: { tab } })).toBe(`/settings/developer/${tab}`)

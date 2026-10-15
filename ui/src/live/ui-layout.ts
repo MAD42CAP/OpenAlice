@@ -1,6 +1,7 @@
 import type { Page } from '../App'
 
 export const ACTIVITY_PAGE_IDS = [
+  'research',
   'chat',
   'auto-quant',
   'prediction',
@@ -44,7 +45,7 @@ export function defaultUiLayout(): UiLayout {
   return {
     version: 1,
     groups: [
-      { id: 'primary', items: ['chat', 'inbox', 'issue', 'auto-quant', 'tracked', 'market', 'prediction', 'office', 'portfolio', 'connectors'] },
+      { id: 'primary', items: ['research', 'chat', 'inbox', 'issue', 'auto-quant', 'tracked', 'market', 'prediction', 'office', 'portfolio', 'connectors'] },
       { id: 'system', items: ['workspaces', 'automation'] },
     ],
     hidden: [],
@@ -126,7 +127,10 @@ export function normalizeUiLayout(input: unknown): UiLayout {
     if (seen.has(page)) continue
     const targetId = defaultGroupIdForPage(page)
     const target = groups.find((group) => group.id === targetId) ?? groups[0]
-    target.items.push(page)
+    // Match the server's catalog completion for saved layouts predating the
+    // Research entry, while preserving any explicit order once it exists.
+    if (page === 'research') target.items.unshift(page)
+    else target.items.push(page)
     seen.add(page)
   }
 

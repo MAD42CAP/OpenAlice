@@ -3,6 +3,7 @@ import type { ViewSpec } from '../tabs/types'
 
 export const NANO_HIDDEN_ACTIVITY_PAGES = [
   'market',
+  'research',
   'portfolio',
 ] as const satisfies readonly Page[]
 
@@ -30,6 +31,7 @@ export function isNanoHiddenSettingsCategory(
 
 export function isNanoHiddenViewSpec(spec: ViewSpec): boolean {
   switch (spec.kind) {
+    case 'market-monitor':
     case 'market-list':
     case 'market-rotation':
     case 'market-board':
