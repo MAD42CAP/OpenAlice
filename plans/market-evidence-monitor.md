@@ -952,3 +952,73 @@ for Jev, excluding the current partial candles. Live Jev acceptance still
 requires the owner to enter their key through the delivered form; the public
 settings endpoint currently reports unconfigured. No secret was read into this
 task and no claim of a successful real Jev evaluation is made.
+
+## October 14 three-layer investment intelligence
+
+The owner requested a complete additive BTC research pipeline, preserving the
+existing BTC/TSLA/MSTR monitor, historical forecasts and native AI configuration.
+Layer one normalizes dated market evidence. Layer two imports public Glassnode
+Week On-chain reports and persists immutable source material separately from AI
+interpretations. Layer three uses one existing native Workspace Issue to analyze
+both layers, publishes three independent horizon views, cross-validates evidence,
+and tracks objective preregistered conditions without changing past forecasts.
+
+Chosen interaction: BTC gets three tabs on the existing page — 市场监测,
+链上研究 and AI综合研判. The existing concise market view stays the default;
+research and synthesis lead with one conclusion and show detail on demand.
+Keep the original market content mounted but inert when hidden, so switching
+tabs preserves unsaved thesis work. Reuse shared Tabs, Collapsible and Button,
+show source/data/analysis dates, provide URL/text import and explicit job/error
+feedback, and stack controls at 390px. Stocks keep their existing experience.
+
+One native Issue owns generation; no separate LLM loop or three-agent runtime.
+Only that authenticated Issue run may obtain private source text or publish.
+Frozen inputs bind publication to source hashes, evidence identities and run
+provenance. Daily discovery catches up at startup, while successful scans
+revalidate saved conditions and request regeneration only for changed inputs.
+Missing, stale, conflicting or future evidence cannot become confirmed facts.
+Historical Jev return targets and existing user-authored thesis records remain
+unchanged. Qualitative evidence status is never a future-price probability.
+
+- [x] Implement bounded legal public discovery, source archives and versioned research.
+- [x] Implement normalized market evidence, guarded synthesis and objective AI thesis tracking.
+- [x] Connect one native task, scoped publication tools, APIs and three-tab UI/demo.
+- [x] Test stale/conflicting/future inputs, deduplication, immutable histories and authorization.
+- [x] Verify real Week 41 import, native analysis, BTC scan and responsive UI; run owner gates.
+- [x] Document operating behavior and limitations; sync only the owned feature branch.
+
+Acceptance: the real public Week 40 and Week 41 reports were discovered and
+imported in publication order. Native Issue run `run-N9jnHgmv` published two
+Chinese ten-section ResearchSnapshots, three source-linked weekly comparisons,
+one independent three-horizon synthesis and two preregistered AI theses. The
+cross-validation results include partial support, conflict and unverified
+inputs; unknown cutoff dates remain visible. Both theses currently await new
+completed observations (CHALLENGED), not retrospective claims of success.
+Repeating the Week 41 URL keeps counts at two reports/two analyses/one synthesis.
+
+Real manual BTC, TSLA and MSTR scans all succeeded: Coinbase/Alpaca daily and
+hourly sources, Deribit public context and SEC filings were available. The
+private source HTTP path returns 404; full report text stays in local private
+archives and authenticated native input only. Production remains running under
+the existing detached launcher. Desktop and 390px demo acceptance covered
+three tabs, source dates, collapsed detail and historical selection; expanded
+research and import controls retain a 390px document width. Source calendar
+dates do not shift to the previous day in Vancouver. Temporary demo resources
+were closed and the real synthesis page remains available.
+
+The final relevant suite passes 122 tests; both root and UI typechecks and
+staged whitespace checks pass. The complete regression reports 7,541 passing,
+four skipped and four failing tests, matching the existing two Supervisor TUI
+PTY failures and two Codex configuration expectations against preserved owner
+changes. The initially found new CLI registration fixture failure was repaired
+and passes in the final full run. Additional review regressions cover native
+status recovery, cached publication receipts, and all claim references in
+freshness/conflict checks. No full-suite green or improved predictive accuracy
+is claimed. Paid Glassnode Studio metrics, unsupported market context and a
+longitudinal thesis quality cohort remain unavailable or not yet mature.
+
+Only this increment is delivered on the owned feature branch. Four pre-existing
+owner modifications stay outside the commit; the two touched CLI files stage
+only the new intelligence mappings and fixture registration. No secrets,
+private reports or runtime records enter Git, and no upstream change or trade
+is performed.

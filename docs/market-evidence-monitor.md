@@ -1096,3 +1096,86 @@ horizons point that way with none opposite; the third can be transitional,
 sideways or insufficient. Localized wording states this two-of-three meaning
 rather than claiming every horizon agrees. Analysis scores and stored history
 are unchanged by this wording correction.
+
+## BTC three-layer investment intelligence
+
+The BTC page now has three tabs. **市场监测** retains the concise existing
+BTC/TSLA/MSTR behavior. **链上研究** discovers public Glassnode Week On-chain
+reports, accepts an official URL or lawfully usable text, and keeps ten Chinese
+analysis sections behind disclosures. **AI综合研判** leads with one conditional
+conclusion and three independent horizons, with cross-validation, three
+scenarios, evidence-based prices, changes and objective thesis history below.
+Stocks retain the existing monitor. These horizons describe research windows;
+they do not replace the historical Jev return/evaluation protocols.
+
+`intelligence-market.ts` projects the existing snapshot and actual closed OHLCV
+into a dated evidence contract. It distinguishes the completed daily close
+from the existing real-time quote strip. Each source retains its own cutoff;
+unsupported ETF/order-book/macro inputs are explicitly unavailable. Wyckoff
+remains a candidate hypothesis. `intelligence-types.ts`, `research-types.ts`
+and `investment-types.ts` own the additive public contracts.
+
+`glassnode.ts` permits only HTTPS public Week On-chain URLs at
+research.glassnode.com, with bounded size, redirects and timeout. It reads RSS,
+imports at most the newest two available reports in publication order, and
+never bypasses membership restrictions. `research-store.ts` separates immutable
+local source text (private files) from public metadata and short cited excerpts.
+Content hashes deduplicate reports; reanalysis appends a new ResearchSnapshot.
+Metrics, dates and dollar levels must occur in cited source paragraphs. Missing
+metric/date information stays missing. Weekly changes require citations to both
+the current report and a frozen, earlier published analysis.
+
+One native Workspace Issue, `mad42lab-investment-intelligence`, performs the
+research and synthesis using the existing Workspace runtime/model selection.
+No new provider key, in-process model loop or trading tool is introduced. Its
+daily 08:15 Vancouver schedule catches up while the application runs. Startup
+and successful BTC scans also check discovery; the persistent check interval
+is 24 hours. Native dispatch uses the existing scheduler, task status and
+15-minute watchdog. Tool validation returns bounded errors for one correction;
+there is no unbounded model retry. Source paragraphs are untrusted evidence,
+never instructions.
+
+Only this authenticated Issue run may call the three scoped `alice intelligence`
+commands: `input`, `publish-research`, and `publish-synthesis`. Input archives
+bind source hashes, market evidence and allowed prior analyses to a run and
+workspace. Ordinary HTTP routes never expose the full source text or accept
+AI publication. Manual reanalysis is available in either new tab. Identical
+inputs reuse existing work; the automatic material key covers daily data,
+structure, reports and objective thesis state, rather than every quote tick.
+Native inputs include only two relevant report versions and a compact previous
+conclusion/thesis summary to bound context growth. Archives and publication
+receipts live under `data/market-monitor/intelligence-v1`.
+
+`investment.ts` validates all evidence references and price thresholds. It
+retains the original AI proposal plus any guard warnings. `CONFIRMED`,
+`PARTIALLY_CONFIRMED`, `CONFLICTING`, `UNVERIFIED` and `OUTDATED` describe evidence
+relationships, never future-price probabilities. Each cited observation has
+its own freshness check; calendar-day research cutoffs display as source dates
+without inventing local intraday times; mixed report dates need not be collapsed into one.
+Missing, future, stale or contradictory evidence cannot silently become
+confirmation. Existing archived forecasts and user-authored `thesis-v1` files
+remain separate from the new AI thesis records in `investment-intelligence-v1`.
+
+AI theses preregister support, invalidation and optional resolution conditions
+on daily close, daily percent change or volume ratio. Only new completed data
+after creation can verify them. Stable keys keep the original conditions;
+a later prose revision cannot reset invalidated/resolved/expired theses.
+Every evaluation is appended with its triggering evidence. As-of views include
+only research actually acquired and analyzed by then, never later-generated
+simulations. Quality totals describe condition tracking; qualitative prose has
+no predefined return target and is not assigned a misleading accuracy rate.
+
+API (all under `/api/market-monitor/intelligence`):
+
+| Method/path | Purpose |
+|---|---|
+| GET `/` | Market projection, public research, synthesis/history, theses and native job status |
+| POST `/discover` | Check public feed, optionally `{force:true}` |
+| POST `/import` | `{url}` or `{url,title,text,publishedAt?}`; deduplicate and request analysis |
+| POST `/run` | Manual native reanalysis, optionally `{force:false}` to reuse material cache |
+
+Network or native-runtime failures preserve saved research and do not block
+market receipts. The page exposes failed/partial jobs and stale input notices.
+Use **Refresh archive** to reread results; queued/running tasks poll faster.
+The demo has explicit illustrative research and does not fetch real reports or
+run a model. No part of this feature places orders or changes live rule weights.

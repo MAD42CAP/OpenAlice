@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { demoMarketJudgment } from '../demo/fixtures/market-judgment'
 import { demoThesisReport } from '../demo/fixtures/market-thesis'
+import { demoMarketIntelligence } from '../demo/fixtures/market-intelligence'
 
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
@@ -14,6 +15,7 @@ const mocks = vi.hoisted(() => ({
 }))
 vi.mock('../api/market-judgment', () => ({ marketJudgmentApi: { read: vi.fn(async (asset: 'BTC' | 'TSLA' | 'MSTR') => demoMarketJudgment(asset)) } }))
 vi.mock('../api/market-thesis', () => ({ marketThesisApi: { read: vi.fn(async (asset: 'BTC' | 'TSLA' | 'MSTR') => demoThesisReport(asset)) } }))
+vi.mock('../api/market-intelligence', () => ({ marketIntelligenceApi: { read: vi.fn(async () => demoMarketIntelligence()) } }))
 vi.mock('../api', () => ({ api: { marketMonitor: mocks } }))
 vi.mock('./market/MarketAccuracySummary', () => ({ MarketAccuracySummary: ({ asset }: { asset: string }) => <div>Recent accuracy for {asset}</div> }))
 vi.mock('./market/MarketTypeSafePanel', () => ({ MarketTypeSafePanel: () => <div>Jev trend experiment</div> }))

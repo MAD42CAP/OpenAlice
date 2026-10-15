@@ -136,6 +136,7 @@ const BASE_EXPORTS: Record<string, CliExport> = {
     scope: 'scoped',
     description: 'Workspace collaboration — address peers, talk to Agents, deliver reports, coordinate Issues, and inspect provenance',
     groupDescriptions: {
+      intelligence: 'Read frozen BTC evidence and publish authorized native investment research',
       peer: 'Discover active desks, their Sessions, and absolute filesystem locations',
       conversation: 'Send ordinary Agent-to-Agent requests and retrieve their replies',
       inbox: 'Send outward-facing notifications and reports to the human Inbox; inspect and follow up on deliveries',
@@ -148,6 +149,11 @@ const BASE_EXPORTS: Record<string, CliExport> = {
       template: 'Preview or apply managed Workspace-template updates',
     },
     commands: {
+      intelligence: {
+        input: 'market_intelligence_input',
+        'publish-research': 'market_intelligence_publish_research',
+        'publish-synthesis': 'market_intelligence_publish_synthesis',
+      },
       // Peer commands only provide collaboration addresses. Coding Agents use
       // their own native file/search/Git tools once `path` resolves a desk.
       peer: {

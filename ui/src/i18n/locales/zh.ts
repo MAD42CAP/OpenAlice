@@ -1,3 +1,4 @@
+import { intelligenceZh } from './intelligence'
 import { accuracyZh } from './accuracy'
 import { thesisZh } from './thesis'
 import { judgmentZh } from './judgment'
@@ -6,6 +7,7 @@ import type { Resources } from './en'
 
 /** 简体中文. Typed as `Resources` → must match en's key structure exactly. */
 export const zh: Resources = {
+  intelligence: intelligenceZh,
   accuracy: accuracyZh,
   thesis: thesisZh,
   judgment: judgmentZh,

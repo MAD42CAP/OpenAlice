@@ -28,6 +28,7 @@ import { MarketAccuracySummary } from './market/MarketAccuracySummary'
 import { MarketTypeSafePanel } from './market/MarketTypeSafePanel'
 import { MarketJudgmentPanel } from './market/MarketJudgmentPanel'
 import { MarketThesisPanel } from './market/MarketThesisPanel'
+import { MarketIntelligenceWorkspace } from './market/MarketIntelligenceWorkspace'
 import { MonitorOperations } from '../components/market/MonitorOperations'
 import { formatMonitorDate as formatDate, formatContextValue } from './market/market-monitor-format'
 import { getIntlLocale } from '../lib/intl'
@@ -343,6 +344,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-6">
+        <MarketIntelligenceWorkspace asset={asset} visible={visible} revisionKey={revisionKey}>
         {loading && !snapshot ? <MonitorSkeleton /> : error && !snapshot ? <div><EmptyState title={t('marketMonitor.unavailable')} description={error} /><div className="-mt-9 flex justify-center pb-10"><Button onClick={() => void scan(asset, 'manual')}>{t('marketMonitor.retryScan')}</Button></div></div> : snapshot ? (
           <div key={selection} className="mx-auto flex w-full max-w-[1080px] min-w-0 flex-col gap-3 pb-5">
             <MarketLatestPrice asset={asset} visible={visible} onViewResearch={() => setOpen('charts', true)} />
@@ -398,6 +400,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
             <MonitorOperations asset={asset} hours={reportHours} onHoursChange={setReportHours} report={health.report} loading={health.loading} error={health.error} onRefresh={health.refresh} />
           </DashboardDisclosure>
         </div>
+        </MarketIntelligenceWorkspace>
       </div>
     </div>
   )

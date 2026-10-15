@@ -1,3 +1,4 @@
+import { intelligenceEn } from './intelligence'
 import { accuracyEn } from './accuracy'
 import { thesisEn } from './thesis'
 import { judgmentEn } from './judgment'
@@ -17,6 +18,7 @@ import { typeSafeEn } from './typesafe'
  */
 
 export const en = {
+  intelligence: intelligenceEn,
   accuracy: accuracyEn,
   thesis: thesisEn,
   judgment: judgmentEn,

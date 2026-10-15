@@ -1,3 +1,4 @@
+import { createMarketIntelligenceToolFactories } from '../tool/market-intelligence.js'
 import { createMarketBarsTools } from '../tool/market-bars.js'
 import { describe, it, expect } from 'vitest'
 import { ToolCenter } from '../core/tool-center.js'
@@ -106,6 +107,7 @@ describe('CLI_EXPORTS — uta export (global trading tools)', () => {
 
 describe('CLI_EXPORTS — workspace export (scoped collaboration tools)', () => {
   const wtc = new WorkspaceToolCenter()
+  for (const f of createMarketIntelligenceToolFactories(any)) wtc.register(f)
   wtc.register(inboxPushFactory)
   wtc.register(inboxReadFactory)
   wtc.register(workspacePathFactory)

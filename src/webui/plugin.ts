@@ -36,6 +36,10 @@ import { createThesisService } from '../domain/market-monitor/thesis-service.js'
 import { createMarketThesisRoutes } from './routes/market-thesis.js'
 import { createMarketMonitorScheduler, type MarketMonitorScheduler } from '../domain/market-monitor/scheduler.js'
 import { createMarketMonitorToolFactories } from '../tool/market-monitor.js'
+import { createIntelligenceService } from '../domain/market-monitor/intelligence-service.js'
+import { createMarketIntelligenceCoordinator } from './market-intelligence-coordinator.js'
+import { createMarketIntelligenceToolFactories } from '../tool/market-intelligence.js'
+import { createMarketIntelligenceRoutes } from './routes/market-intelligence.js'
 import { createMarketNarratorCoordinator } from './market-monitor-narrator.js'
 import { createBarsRoutes } from './routes/bars.js'
 import { createReferenceRoutes } from './routes/reference.js'
@@ -288,7 +292,9 @@ export class WebPlugin implements Plugin {
     app.route('/api/news', createNewsRoutes(ctx))
     app.route('/api/market', createMarketRoutes(ctx))
     const marketMonitor = createMarketMonitorService({
-      afterSnapshot: snapshot => thesis.afterScan(snapshot),
+      afterSnapshot: async snapshot => {
+        await Promise.allSettled([thesis.afterScan(snapshot), intelligence.afterScan(snapshot)])
+      },
       barService: ctx.barService,
       equityClient: ctx.equityClient,
       reference: ctx.reference,
@@ -299,6 +305,7 @@ export class WebPlugin implements Plugin {
       research: asset => createMarketMonitorStore().dashboardObservations(asset, 100),
     })
     app.route('/api/market-monitor/thesis', createMarketThesisRoutes(thesis))
+    const intelligence = createIntelligenceService({ monitor: marketMonitor })
     const typeSafe = createTypeSafeService({ monitor: marketMonitor })
     const forecastExperiment = createForecastExperiment({ baseline: typeSafe })
     app.route('/api/market-monitor/forecast-experiment', createForecastExperimentRoutes(forecastExperiment))
@@ -334,6 +341,10 @@ export class WebPlugin implements Plugin {
     this.workspacesIpc = attachWorkspacesIpc(this.workspaceService)
     if (this.workspaceServiceRef) this.workspaceServiceRef.current = this.workspaceService
     for (const factory of createMarketMonitorToolFactories(marketMonitor)) ctx.workspaceToolCenter.register(factory)
+    const intelligenceRunner = createMarketIntelligenceCoordinator(this.workspaceService)
+    intelligence.setRunner(intelligenceRunner)
+    for (const factory of createMarketIntelligenceToolFactories(intelligence)) ctx.workspaceToolCenter.register(factory)
+    app.route('/api/market-monitor/intelligence', createMarketIntelligenceRoutes(intelligence))
     const marketNarrator = createMarketNarratorCoordinator(this.workspaceService)
     const narrationSettings = await marketMonitor.settings()
     const narrationStatus = await marketNarrator.reconcile(narrationSettings.codexNarrationEnabled)
@@ -442,6 +453,7 @@ export class WebPlugin implements Plugin {
 
     if (this.config.listen === false) {
       this.marketMonitorScheduler.start()
+      intelligence.startup()
       console.log('web plugin listening over Electron IPC')
       return
     }
@@ -453,6 +465,7 @@ export class WebPlugin implements Plugin {
     const hostname = (process.env['OPENALICE_BIND_HOST'] ?? '127.0.0.1').trim()
     this.server = serve({ fetch: app.fetch, port: this.config.port, hostname }, (info: { port: number }) => {
       this.marketMonitorScheduler?.start()
+      intelligence.startup()
       console.log(`web plugin listening on http://${hostname}:${info.port}`)
     })
 

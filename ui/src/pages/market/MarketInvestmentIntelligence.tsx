@@ -1,0 +1,58 @@
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { MarketIntelligenceReport } from '../../api/market-intelligence'
+import type { InvestmentCondition } from '../../api/market-intelligence-types'
+import { Button } from '../../components/ui/button'
+import { formatMonitorDate } from './market-monitor-format'
+import { IntelligenceClaims, IntelligenceClaimView, IntelligenceDisclosure, IntelligenceEvidence, IntelligenceSources, formatResearchDate } from './MarketIntelligenceShared'
+
+export function MarketInvestmentIntelligence({ report, busy, onRun }: { report: MarketIntelligenceReport | null; busy: boolean; onRun: () => void }) {
+  const { t } = useTranslation()
+  const [selected, setSelected] = useState<string | null>(null)
+  const latest = report?.investment.latest ?? null
+  const snapshot = selected ? report?.investment.history.find(row => row.id === selected) ?? null : latest
+  const theses = report?.investment.theses ?? []
+  const condition = (item: InvestmentCondition) => <p className="text-xs leading-5">{item.description} · {t(`intelligence.conditionMetrics.${item.metric}`)} {t(`intelligence.operators.${item.operator}`)} {item.threshold}</p>
+  return <div className="min-w-0 space-y-3">
+    <Button size="sm" onClick={onRun} disabled={busy || !report?.market || !report.research.reports.length} aria-busy={busy}>{t('intelligence.run')}</Button>
+    {snapshot ? <section aria-label={t('intelligence.investment')} className="oa-data-surface min-w-0 space-y-3 p-4">
+      <p className="text-xs font-medium text-muted-foreground">{t(selected && selected !== latest?.id ? 'intelligence.historical' : 'intelligence.current')}</p>
+      {(!selected || selected === latest?.id) && (report?.market?.snapshotId !== snapshot.marketSnapshotId || report.research.latest?.id !== snapshot.researchSnapshotId) && <p role="status" className="border-l-2 border-warning px-3 py-2 text-xs leading-5 text-warning">{t('intelligence.differentInputs')}</p>}
+      <IntelligenceClaimView claim={snapshot.summary} evidence={snapshot.evidence} showEvidence={false} />
+      <p className="text-[11px] leading-5 text-muted-foreground">{t('intelligence.analysed', { time: formatMonitorDate(snapshot.analysisTime) })} · {snapshot.analysisModel ?? snapshot.provenance.agent}</p>
+      <p className="text-[11px] leading-5 text-muted-foreground">{t('intelligence.inputTime', { market: snapshot.evidence.filter(row => row.reportId === null && row.dataAsOf).map(row => row.dataAsOf).sort().at(-1) ? formatMonitorDate(snapshot.evidence.filter(row => row.reportId === null && row.dataAsOf).map(row => row.dataAsOf!).sort().at(-1)!) : t('intelligence.unknown'), research: snapshot.evidence.filter(row => row.reportId && row.dataAsOf).map(row => row.dataAsOf).sort().at(-1) ? formatResearchDate(snapshot.evidence.filter(row => row.reportId && row.dataAsOf).map(row => row.dataAsOf!).sort().at(-1)!) : t('intelligence.unknown') })}</p>
+      <div className="grid min-w-0 gap-2 sm:grid-cols-3">{(['short', 'medium', 'long'] as const).map(horizon => {
+        const outlook = snapshot.outlooks.find(row => row.horizon === horizon)
+        return <div key={horizon} className="min-w-0 rounded-md border border-border px-3 py-3"><p className="text-xs text-muted-foreground">{t(`intelligence.horizons.${horizon}`)}</p><p className="mt-1 text-base font-semibold">{t(`intelligence.directions.${outlook?.direction ?? 'uncertain'}`)}</p>{outlook && <p className="mt-1 text-xs leading-5 text-muted-foreground">{outlook.conclusion.text}</p>}</div>
+      })}</div>
+      <p className="text-xs leading-5 text-muted-foreground">{t('intelligence.conditional')}</p>
+      {snapshot.guardWarnings.length > 0 && <IntelligenceDisclosure title={t('intelligence.guards')} summary={t('intelligence.guardCount', { count: snapshot.guardWarnings.length })} warning>{snapshot.guardWarnings.map((warning, index) => <p key={index} className="text-xs leading-5 text-warning">{warning}</p>)}</IntelligenceDisclosure>}
+      <IntelligenceDisclosure title={t('intelligence.alignment')} summary={snapshot.crossValidation[0] ? `${t(`intelligence.validation.${snapshot.crossValidation[0].status}`)} · ${snapshot.crossValidation[0].claim.text}` : t('intelligence.noEvidence')}>
+        <p className="text-xs leading-5 text-muted-foreground">{t('intelligence.alignmentMeaning')}</p>{snapshot.crossValidation.map((row, index) => <section key={index} className="space-y-1 border-l border-border pl-3"><h4 className="text-xs font-medium">{t(`intelligence.validation.${row.status}`)}</h4><IntelligenceClaimView claim={row.claim} evidence={snapshot.evidence} /><p className="text-xs leading-5 text-muted-foreground">{row.explanation}</p><IntelligenceEvidence ids={[...row.marketEvidenceIds, ...row.researchEvidenceIds]} evidence={snapshot.evidence} /></section>)}
+      </IntelligenceDisclosure>
+      <IntelligenceDisclosure title={t('intelligence.details')}>
+        {snapshot.outlooks.map(row => <section key={row.horizon} className="space-y-3 border-t border-border pt-3"><h4 className="text-sm font-semibold">{t(`intelligence.horizons.${row.horizon}`)} · {t(`intelligence.directions.${row.direction}`)}</h4><IntelligenceClaimView claim={row.conclusion} evidence={snapshot.evidence} /><IntelligenceClaims title={t('intelligence.structure')} claims={[row.structure]} evidence={snapshot.evidence} />{(['supportingEvidence', 'opposingEvidence', 'risks', 'confirmation', 'invalidation'] as const).map((key, index) => <IntelligenceClaims key={key} title={t((['intelligence.support', 'intelligence.oppose', 'intelligence.risks', 'intelligence.confirm', 'intelligence.invalidate'] as const)[index])} claims={row[key]} evidence={snapshot.evidence} />)}</section>)}
+        <IntelligenceClaims title={t('intelligence.guards')} claims={snapshot.limitations} evidence={snapshot.evidence} />
+      </IntelligenceDisclosure>
+      <IntelligenceDisclosure title={t('intelligence.scenarios')}>
+        {snapshot.scenarios.map(row => <section key={row.kind} className="space-y-3 border-t border-border pt-3"><h4 className="text-sm font-semibold">{t(`intelligence.scenarioKinds.${row.kind}`)}</h4><IntelligenceClaimView claim={row.hypothesis} evidence={snapshot.evidence} /><IntelligenceClaims title={t('intelligence.conditions')} claims={row.conditions} evidence={snapshot.evidence} /><IntelligenceClaims title={t('intelligence.confirm')} claims={row.confirmation} evidence={snapshot.evidence} /><IntelligenceClaims title={t('intelligence.path')} claims={[row.path]} evidence={snapshot.evidence} /><IntelligenceClaims title={t('intelligence.invalidate')} claims={row.invalidation} evidence={snapshot.evidence} /><IntelligenceClaims title={t('intelligence.support')} claims={row.supportingEvidence} evidence={snapshot.evidence} /><IntelligenceClaims title={t('intelligence.oppose')} claims={row.opposingEvidence} evidence={snapshot.evidence} />{row.priceLevelLabels.length > 0 && <p className="text-xs text-muted-foreground">{t('intelligence.prices')} · {row.priceLevelLabels.join(' · ')}</p>}</section>)}
+      </IntelligenceDisclosure>
+      <IntelligenceDisclosure title={t('intelligence.prices')} summary={`${snapshot.priceMap.length}`}>
+        <p className="text-xs leading-5 text-muted-foreground">{t('intelligence.priceMeaning')}</p>{snapshot.priceMap.map((row, index) => <div key={index} className="border-l border-border pl-3"><p className="text-sm">{row.label} · ${row.price.toLocaleString()} · {t(`intelligence.roles.${row.role}`)}</p><IntelligenceEvidence ids={row.evidenceIds} evidence={snapshot.evidence} /></div>)}
+      </IntelligenceDisclosure>
+      <IntelligenceDisclosure title={t('intelligence.change')} summary={snapshot.changes[0]?.explanation ?? t('intelligence.noChange')}>
+        {snapshot.changes.map((row, index) => <section key={index} className="space-y-1"><p className="text-xs font-medium">{t(`intelligence.horizons.${row.horizon}`)} · {t(`intelligence.directions.${row.previous}`)} → {t(`intelligence.directions.${row.current}`)}</p><p className="text-sm leading-6">{row.explanation}</p><IntelligenceEvidence ids={row.evidenceIds} evidence={snapshot.evidence} /></section>)}
+      </IntelligenceDisclosure>
+      <IntelligenceSources evidence={snapshot.evidence} />
+    </section> : <div className="space-y-2 py-5"><h3 className="text-base font-semibold">{t('intelligence.noInvestment')}</h3><p className="text-sm leading-6 text-muted-foreground">{t('intelligence.needInputs')}</p></div>}
+    <IntelligenceDisclosure title={t('intelligence.theses')} summary={report ? t('intelligence.qualitySummary', report.investment.quality) : t('intelligence.noTheses')}>
+      <p className="text-xs leading-5 text-muted-foreground">{t('intelligence.thesisMeaning')}</p><p className="text-xs leading-5 text-muted-foreground">{t('intelligence.notAccuracy')}</p>{report && <p className="text-xs leading-5 text-muted-foreground">{t('intelligence.trackerQuality', { ...report.investment.quality, duration: report.investment.quality.meanDurationDays == null ? '—' : report.investment.quality.meanDurationDays.toFixed(1) })}</p>}{theses.map(thesis => <section key={thesis.id} className="min-w-0 space-y-2 border-t border-border py-3"><h4 className="text-sm font-medium">{thesis.title} · {t(`intelligence.thesisStatus.${thesis.status}`)}</h4><p className="text-[11px] leading-5 text-muted-foreground">{t('intelligence.created', { time: formatMonitorDate(thesis.createdAt) })} · {t('intelligence.expires', { time: formatMonitorDate(thesis.expiresAt) })}</p><IntelligenceClaimView claim={thesis.claim} evidence={thesis.evidence} /><IntelligenceDisclosure title={t('intelligence.evaluation')} summary={thesis.latestEvaluation?.reason ?? t('intelligence.noEvaluation')}>
+        {(['supportConditions', 'invalidationConditions', 'resolutionConditions'] as const).map((key, index) => <section key={key} className="space-y-1"><h5 className="text-xs font-medium text-muted-foreground">{t((['intelligence.confirm', 'intelligence.invalidate', 'intelligence.resolve'] as const)[index])}</h5>{thesis[key].map((item, i) => <div key={i}>{condition(item)}{item.thresholdEvidenceId && <IntelligenceEvidence ids={[item.thresholdEvidenceId]} evidence={thesis.evidence} />}</div>)}</section>)}
+        {report?.investment.evaluations.filter(row => row.thesisId === thesis.id).map(row => <section key={row.id} className="space-y-1 border-t border-border pt-2"><p className="text-xs font-medium">{formatMonitorDate(row.evaluatedAt)} · {t(`intelligence.thesisStatus.${row.previousStatus}`)} → {t(`intelligence.thesisStatus.${row.status}`)}</p><p className="text-xs leading-5">{row.reason}</p>{row.rows.map((check, index) => <div key={index} className="border-l border-border pl-3">{condition(check.condition)}<p className="text-xs text-muted-foreground">{t(`intelligence.results.${check.result}`)} · {check.value ?? '—'}</p>{check.evidence && <IntelligenceEvidence ids={[check.evidence.id]} evidence={[check.evidence]} />}</div>)}</section>)}
+      </IntelligenceDisclosure></section>)}
+    </IntelligenceDisclosure>
+    <IntelligenceDisclosure title={t('intelligence.history')} summary={`${report?.investment.history.length ?? 0}`}>
+      <div className="space-y-2"><Button variant="ghost" size="sm" onClick={() => setSelected(null)}>{t('intelligence.current')}</Button>{report?.investment.history.map(row => <div key={row.id} className="border-t border-border py-2"><Button variant="ghost" size="sm" aria-pressed={snapshot?.id === row.id} onClick={() => setSelected(row.id)}>{formatMonitorDate(row.analysisTime)}</Button><p className="text-xs leading-5 text-muted-foreground">{row.summary.text}</p></div>)}</div>
+    </IntelligenceDisclosure>
+  </div>
+}
