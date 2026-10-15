@@ -1,6 +1,7 @@
 // Browser mirror of the three-layer research contracts. No source report text is exposed.
 import type { HistoricalBar } from './market'
 import type { TrendDirection } from './market-monitor'
+import type { ResearchFeedbackReceipt, ResearchLoopContext } from './research-loop-types'
 type OhlcvBar = HistoricalBar
 export type TrendHorizon = 'short' | 'medium' | 'long'
 /** Shared attribution across market observations, published research and AI inference. */
@@ -161,7 +162,7 @@ export interface ResearchDiscoveryResult {
 
 export interface ResearchImportResult { stored: boolean; report: ResearchReport }
 
-export const INVESTMENT_ANALYSIS_VERSION = 'investment-intelligence-v2' as const
+export const INVESTMENT_ANALYSIS_VERSION = 'investment-intelligence-v3' as const
 export type ValidationStatus = 'CONFIRMED' | 'PARTIALLY_CONFIRMED' | 'CONFLICTING' | 'UNVERIFIED' | 'OUTDATED'
 export type InvestmentDirection = 'bullish' | 'neutral' | 'bearish' | 'conditional-bullish' | 'conditional-bearish' | 'uncertain'
 export interface MarketIntelligence {
@@ -174,7 +175,7 @@ export interface MarketIntelligence {
   dataSources: Array<{ name: string; status: string; dataAsOf: string | null; retrievedAt: string }>
   dataQuality: 'complete' | 'partial' | 'unavailable'; missingData: string[]; limitations: string[]
 }
-export interface InvestmentInput { market: MarketIntelligence; research: ResearchSnapshot }
+export interface InvestmentInput { market: MarketIntelligence; research: ResearchSnapshot; researchFeedback?: ResearchLoopContext }
 export interface InvestmentCrossValidation {
   claim: IntelligenceClaim; marketEvidenceIds: string[]; researchEvidenceIds: string[]
   status: ValidationStatus; explanation: string; horizon?: TrendHorizon
@@ -198,12 +199,14 @@ export interface InvestmentThesisDraft {
 export interface InvestmentDraft {
   summary: IntelligenceClaim; crossValidation: InvestmentCrossValidation[]; outlooks: InvestmentOutlook[]; scenarios: InvestmentScenario[]
   priceMap: InvestmentPriceLevel[]; theses: InvestmentThesisDraft[]; limitations: IntelligenceClaim[]
+  feedbackReview?: Pick<ResearchFeedbackReceipt, 'reviewedIds' | 'effect' | 'explanation'>
 }
 export interface InvestmentSnapshot extends InvestmentDraft {
-  schemaVersion: 1; id: string; asset: 'BTC'; analysisVersion: 'investment-intelligence-v1' | typeof INVESTMENT_ANALYSIS_VERSION; analysisTime: string
+  schemaVersion: 1; id: string; asset: 'BTC'; analysisVersion: 'investment-intelligence-v1' | 'investment-intelligence-v2' | typeof INVESTMENT_ANALYSIS_VERSION; analysisTime: string
   marketSnapshotId: string; researchSnapshotId: string; inputHash: string; previousSnapshotId: string | null
   provenance: IntelligenceProvenance; analysisModel: string | null; evidence: EvidenceReference[]
   rawDraft: InvestmentDraft; guardWarnings: string[]; changes: Array<{ horizon: TrendHorizon; previous: InvestmentDirection; current: InvestmentDirection; evidenceIds: string[]; explanation: string }>; recordHash: string
+  researchFeedback?: ResearchFeedbackReceipt
 }
 export type InvestmentThesisStatus = 'ACTIVE' | 'STRENGTHENING' | 'WEAKENING' | 'CHALLENGED' | 'INVALIDATED' | 'RESOLVED' | 'EXPIRED'
 export interface InvestmentThesis extends InvestmentThesisDraft {

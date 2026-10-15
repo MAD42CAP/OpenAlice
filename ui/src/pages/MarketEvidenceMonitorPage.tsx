@@ -25,6 +25,7 @@ import { MonitorReview } from '../components/market/MonitorReview'
 import { MarketResearchDashboard } from './market/MarketResearchDashboard'
 import { MarketLatestPrice } from './market/MarketLatestPrice'
 import { MarketAccuracySummary } from './market/MarketAccuracySummary'
+import { MarketResearchLoop } from './market/MarketResearchLoop'
 import { MarketTypeSafePanel } from './market/MarketTypeSafePanel'
 import { MarketJudgmentPanel } from './market/MarketJudgmentPanel'
 import { MarketThesisPanel } from './market/MarketThesisPanel'
@@ -349,6 +350,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
           <div key={selection} className="mx-auto flex w-full max-w-[1080px] min-w-0 flex-col gap-3 pb-5">
             <MarketLatestPrice asset={asset} visible={visible} onViewResearch={() => setOpen('charts', true)} />
             <MarketJudgmentPanel asset={asset} strategyId={settings.strategyId} visible={visible} revisionKey={revisionKey} />
+            <MarketResearchLoop asset={asset} visible={visible} revisionKey={revisionKey} />
             <MarketAccuracySummary asset={asset} visible={visible} revisionKey={revisionKey} />
             {(sourceWarnings.length > 0 || calendarUnknown || dailyStale || latestReceipt?.outcome === 'failed') && <div role="status" className="space-y-1 border-l-2 border-warning bg-warning/5 px-3 py-2 text-xs leading-5 text-warning">
               {dailyStale && <p>{t('marketMonitor.compact.staleDaily')}</p>}

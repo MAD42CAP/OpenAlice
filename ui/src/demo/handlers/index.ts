@@ -10,6 +10,7 @@ import { toolsSimulatorHandlers } from './toolsSimulator'
 import { marketHandlers } from './market'
 import { marketMonitorHandlers } from './market-monitor'
 import { marketIntelligenceHandlers } from './market-intelligence'
+import { researchLoopHandlers } from './research-loop'
 import { marketThesisHandlers } from './market-thesis'
 import { typeSafeHandlers } from './typesafe'
 import { configKeysHandlers } from './configKeys'
@@ -43,6 +44,7 @@ export const handlers = [
   ...marketHandlers,
   ...marketMonitorHandlers,
   ...marketIntelligenceHandlers,
+  ...researchLoopHandlers,
   ...marketThesisHandlers,
   ...typeSafeHandlers,
   ...configKeysHandlers,

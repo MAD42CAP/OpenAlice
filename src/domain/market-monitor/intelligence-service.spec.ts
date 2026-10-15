@@ -10,6 +10,8 @@ import type { createInvestmentService } from './investment-service.js'
 import type { MarketIntelligence } from './investment-types.js'
 import type { MarketMonitorSnapshot } from './types.js'
 import type { ResearchSnapshot } from './research-types.js'
+import { INVESTMENT_ANALYSIS_VERSION } from './investment-types.js'
+import { RESEARCH_LOOP_PROTOCOL, type ResearchLoopContext } from './research-loop-types.js'
 vi.mock('./intelligence-market.js', () => ({ buildMarketIntelligence: (snapshot: { id: string; chart: { price: number } }, at: Date) => ({ schemaVersion: 1, snapshotId: snapshot.id, analysisTime: at.toISOString(), price: snapshot.chart.price, horizons: [{ horizon: 'short', direction: 'neutral', structure: 'range', supportLevels: [90], resistanceLevels: [110] }], marketDataAsOf: '2026-10-13T00:00:00Z', hourlyDataAsOf: '2026-10-14T11:00:00Z', dataQuality: 'partial' }) }))
 const roots: string[] = []
 afterEach(async () => { await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))) })
@@ -28,6 +30,21 @@ async function fixture() {
 }
 const runner = (): IntelligenceRunner => ({ run: vi.fn(async () => ({ state: 'running' as const, message: 'running', updatedAt: null, runId: 'run-1' })), status: vi.fn(async () => ({ state: 'idle' as const, message: '', updatedAt: null, runId: null })) })
 describe('three-layer native evidence orchestration', () => {
+  it('freezes feedback for synthesis and leaves a concurrently arriving card pending for a later scan', async () => {
+    const f = await fixture(), r = runner()
+    let feedback: ResearchLoopContext = { protocol: RESEARCH_LOOP_PROTOCOL, hash: 'a'.repeat(64), asOf: '2026-10-14T11:59:00Z', records: [], jev: null, evidence: [] }
+    const service = createIntelligenceService({ ...f.opts, feedback: async () => structuredClone(feedback) }); service.setRunner(r)
+    const frozen = await service.nativeInput(provenance)
+    const published = await service.publishResearch(frozen.id, f.report.id, {} as never, provenance)
+    feedback = { ...feedback, hash: 'b'.repeat(64) }
+    await service.publishSynthesis(frozen.id, published.id, {} as never, provenance)
+    expect(f.investment.publish).toHaveBeenCalledWith(expect.objectContaining({ researchFeedback: expect.objectContaining({ hash: 'a'.repeat(64) }) }), {}, provenance)
+    const state = JSON.parse(await readFile(join(f.root, 'request-state.json'), 'utf8'))
+    expect(state.materialKey).toBe(frozen.materialKey)
+    expect((await service.nativeInput(provenance)).researchFeedback?.hash).toBe('a'.repeat(64))
+    await service.run(false)
+    expect(r.run).toHaveBeenCalledOnce()
+  })
   it('freezes inputs per authenticated run, rejects cross-run reuse and tampering', async () => {
     const f = await fixture(), first = await f.service.nativeInput(provenance)
     f.changeSnapshot('market-2', 200)
@@ -60,7 +77,7 @@ describe('three-layer native evidence orchestration', () => {
   it('invalidates a persisted v1 material cache on the first v2 analysis without rewriting old input archives', async () => {
     const f = await fixture(), r = runner()
     const frozen = await f.service.nativeInput(provenance)
-    expect(frozen.analysisVersion).toBe('investment-intelligence-v2')
+    expect(frozen.analysisVersion).toBe(INVESTMENT_ANALYSIS_VERSION)
     const legacy = { ...frozen }
     delete legacy.analysisVersion
     legacy.hash = createHash('sha256').update(JSON.stringify({ ...legacy, hash: '' })).digest('hex')

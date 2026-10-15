@@ -134,9 +134,15 @@ it('preserves research calendar days when Vancouver local time is still on the p
   render(<IntelligenceEvidence ids={[row.id]} evidence={[row]} />)
   expect(screen.getByRole('link').textContent).toContain('Data through 2026-10-13')
 })
-it('marks an unchanged v1 synthesis as awaiting the revised safeguards', async () => {
-  const report = demoMarketIntelligence(); report.investment.latest!.analysisVersion = 'investment-intelligence-v1'; api.read.mockResolvedValue(report)
+it.each(['investment-intelligence-v1', 'investment-intelligence-v2'] as const)('marks an unchanged %s synthesis as awaiting the revised safeguards', async version => {
+  const report = demoMarketIntelligence(); report.investment.latest!.analysisVersion = version; report.investment.latest!.researchFeedback = undefined; api.read.mockResolvedValue(report)
   renderView(); await select('AI synthesis')
   expect(screen.getByText('Earlier synthesis · awaiting an update with the revised safeguards.')).toBeTruthy()
   expect(screen.queryByText('Revised synthesis under test · conditional evidence, not a verified forecast.')).toBeNull()
+})
+it('shows the saved v3 research review receipt without claiming predictive accuracy', async () => {
+  api.read.mockResolvedValue(demoMarketIntelligence())
+  renderView(); await select('AI synthesis')
+  expect(screen.getByText(/Research reviewed · caution retained/)).toBeTruthy()
+  expect(screen.getByText('Revised synthesis under test · conditional evidence, not a verified forecast.')).toBeTruthy()
 })

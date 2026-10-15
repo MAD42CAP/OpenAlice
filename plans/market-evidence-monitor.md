@@ -1142,3 +1142,72 @@ the complete suite. All changed UI files pass; the new forward UI separately
 passes 12 tests, and the investment guard passes all 24. This is not a claim of
 a fully green repository suite. Difference/secret-marker checks pass, with all
 four original owner source modifications excluded from the feature commit.
+
+## BTC research feedback loop
+
+The owner authorized connecting Auto Prediction, Jev and Auto Quant research
+back to the BTC synthesis. This increment reuses the selected durable desks,
+native Issue runs and existing scoped intelligence CLI. It introduces no
+parallel agent runtime, broker access or strategy-weight automation.
+
+Selected contract: freeze one provenance-bound input per actual AP/AQ run;
+accept a bounded, immutable research card referencing only that input's public
+evidence. Jev is projected from the existing immutable forward-v2 candidate,
+without issuing a second prediction or changing its evaluation policy. Cards
+expire and retain their original input/source hashes. All feedback is inference
+and unvalidated; source repetition never establishes independent confirmation.
+
+The next qualitative synthesis version freezes this shared feedback context,
+explicitly reviews its IDs and saves a consumption receipt. Cache identity
+includes the actual frozen feedback; a concurrently published card cannot be
+marked consumed by an older synthesis. Existing publications and fixed-return
+forward-v2 scoring remain unchanged. Missing or failed contributors stay visible
+without blocking the price scan or falsely claiming a completed loop.
+
+UI decision: a compact feedback strip below the combined assessment, with
+available contributor count and a truthful consumed/pending label. One shared
+Collapsible contains each source's sentence, timestamp and Update research
+button. No extra charts, probabilities or top-level tabs. Shared primitives,
+wrapping 390px layout and accessible live status/disclosure controls apply.
+
+- [x] Implement immutable provenance-bound feedback inputs, cards and read model.
+- [x] Reuse native AP/AQ Issues and scoped CLI publication; expose read/run API.
+- [x] Freeze feedback into synthesis v3 with validated review and consumption.
+- [x] Add concise UI, truthful demo and regression coverage.
+- [x] Verify full tests/types, live BTC → AP/Jev/AQ → synthesis receipt, unchanged
+  historical records and desktop/mobile behavior; sync only the owned branch.
+
+Verification: the complete hermetic suite passes 7,649 tests with four skipped
+and only the same four pre-existing Codex/PTY failures (877 files, 875 passing).
+No new loop, UI or API failures remain. Root and UI typechecks pass. Focused
+acceptance includes 15 domain, seven coordinator, 47 synthesis/tool/route and
+54 UI/demo tests. The live native research tasks both published immutable cards:
+AP `run-3Qb4eJv9` at 22:06:39 UTC and AQ `run-uTrx9RC4` at 22:06:59 UTC.
+Jev is linked to the existing 20:31 candidate; all three are available, not
+three independent votes. Both cards honestly report inconclusive findings.
+
+The first native synthesis froze before AQ published and correctly reviewed
+only AP plus the three Jev horizon references. Its context hash did not match
+the later five-reference context, so the UI retained pending status. A real BTC
+read-only scan requests the next synthesis through the existing material-key
+path, exercising concurrent late-feedback handling rather than rewriting the
+first receipt. Final consumption acceptance follows below.
+
+Final live acceptance: the successful Coinbase/Deribit BTC scan stored snapshot
+`730f84f4-5044-4f27-97d3-c66472441947` and automatically dispatched
+`run-OY7D4mSh` at 22:09:18 UTC. It completed at 22:11:28 UTC and published
+synthesis v3 reviewing both native cards plus all three Jev horizon references.
+Its receipt exactly matches current context
+`71be4aaaa197f54dc58eff7dfc06f75095e5191a13ee95c3db915c4b9c4f0a0d`.
+The real page shows 3/3 available and reviewed in synthesis, with zero invalid
+records. Its AI conclusion remains uncertain across all qualitative horizons;
+no predictive improvement or automatic weighting is claimed.
+
+Actual desktop, 390px (document and scroll widths both 390), keyboard disclosure
+and clearly labelled demo/update/stocks behavior were verified. Details remain
+closed by default. Temporary demo process/tab and viewport overrides were
+removed. Hash comparisons preserve all 165 pre-existing experiment, forecast,
+publication, thesis and evaluation files, including the forward-v2 candidate;
+the four owner-modified files remain byte-identical and excluded. Secret-marker
+and diff checks pass. Runtime research archives and credentials are not in Git;
+delivery stays on the owned feature branch without a PR or upstream write.

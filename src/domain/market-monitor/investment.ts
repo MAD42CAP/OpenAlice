@@ -4,12 +4,14 @@ import { z } from 'zod'
 import type { EvidenceReference } from './intelligence-types.js'
 import { INVESTMENT_ANALYSIS_VERSION } from './investment-types.js'
 import type { InvestmentDirection, InvestmentDraft, InvestmentInput, InvestmentSnapshot, InvestmentThesis, InvestmentThesisEvaluation, InvestmentThesisStatus, ValidationStatus } from './investment-types.js'
+import { RESEARCH_LOOP_PROTOCOL } from './research-loop-types.js'
 
 const claim = z.object({ text: z.string().min(1).max(2400), evidenceIds: z.array(z.string().min(1)).min(1).max(24), inference: z.boolean() }).strict()
 const horizon = z.enum(['short', 'medium', 'long'])
 const direction = z.enum(['bullish', 'neutral', 'bearish', 'conditional-bullish', 'conditional-bearish', 'uncertain'])
 const condition = z.object({ metric: z.enum(['daily-close', 'daily-change-percent', 'volume-ratio']), operator: z.enum(['gt', 'gte', 'lt', 'lte']), threshold: z.number().finite(), thresholdEvidenceId: z.string().nullable(), description: z.string().min(1).max(600) }).strict()
 export const investmentDraftSchema = z.object({
+  feedbackReview: z.object({ reviewedIds: z.array(z.string().min(1)).max(40), effect: z.enum(['context-only', 'caution', 'conflict']), explanation: z.string().min(1).max(900) }).strict().optional(),
   summary: claim,
   crossValidation: z.array(z.object({ horizon: horizon.optional(), claim, marketEvidenceIds: z.array(z.string()).min(1).max(24), researchEvidenceIds: z.array(z.string()).min(1).max(24), status: z.enum(['CONFIRMED', 'PARTIALLY_CONFIRMED', 'CONFLICTING', 'UNVERIFIED', 'OUTDATED']), explanation: z.string().min(1).max(1800) }).strict()).min(1).max(16),
   outlooks: z.array(z.object({ horizon, direction, conclusion: claim, structure: claim, supportingEvidence: z.array(claim).max(16), opposingEvidence: z.array(claim).max(16), risks: z.array(claim).min(1).max(16), confirmation: z.array(claim).min(1).max(16), invalidation: z.array(claim).min(1).max(16), priceLevelLabels: z.array(z.string()).max(24) }).strict()).length(3),
@@ -20,7 +22,7 @@ export const investmentDraftSchema = z.object({
 }).strict()
 
 export const intelligenceRecordHash = <T extends { recordHash: string }>(row: T) => createHash('sha256').update(JSON.stringify({ ...row, recordHash: '' })).digest('hex')
-export const investmentInputHash = (input: InvestmentInput) => createHash('sha256').update(JSON.stringify({ analysisVersion: INVESTMENT_ANALYSIS_VERSION, marketSnapshotId: input.market.snapshotId, researchSnapshotId: input.research.id, researchHash: input.research.recordHash })).digest('hex')
+export const investmentInputHash = (input: InvestmentInput) => createHash('sha256').update(JSON.stringify({ analysisVersion: INVESTMENT_ANALYSIS_VERSION, marketSnapshotId: input.market.snapshotId, researchSnapshotId: input.research.id, researchHash: input.research.recordHash, feedbackHash: input.researchFeedback?.hash ?? null })).digest('hex')
 const timestamp = (value: string | null) => value === null ? NaN : Date.parse(value)
 const timely = (e: EvidenceReference, at: Date) => Number.isFinite(timestamp(e.dataAsOf)) && Number.isFinite(timestamp(e.retrievedAt)) && timestamp(e.dataAsOf) <= at.getTime() && timestamp(e.retrievedAt) <= at.getTime() && timestamp(e.dataAsOf) <= timestamp(e.retrievedAt) && (e.publishedAt === null || Number.isFinite(timestamp(e.publishedAt)) && timestamp(e.publishedAt) <= at.getTime())
 export function evidenceAvailability(e: EvidenceReference, at: Date): 'available' | 'unverified' | 'outdated' {
@@ -33,7 +35,16 @@ export function guardInvestmentDraft(input: InvestmentInput, value: unknown, at:
   const raw = investmentDraftSchema.parse(value) as InvestmentDraft
   if (new Set(raw.outlooks.map(o => o.horizon)).size !== 3 || new Set(raw.scenarios.map(s => s.kind)).size !== 3 || new Set(raw.theses.map(t => t.key)).size !== raw.theses.length || new Set(raw.priceMap.map(p => p.label)).size !== raw.priceMap.length) throw new Error('期限、情景、价格标签或观点标识重复。')
   if (!Number.isFinite(timestamp(input.market.retrievedAt)) || timestamp(input.market.retrievedAt) > at.getTime() || !Number.isFinite(timestamp(input.research.analysisTime)) || timestamp(input.research.analysisTime) > at.getTime()) throw new Error('不得使用尚未获取的市场或研究档案。')
-  const evidence = [...input.market.evidence, ...input.research.evidence]
+  const feedback = input.researchFeedback
+  if (feedback && (feedback.protocol !== RESEARCH_LOOP_PROTOCOL || !/^[a-f0-9]{64}$/.test(feedback.hash)
+    || !Number.isFinite(timestamp(feedback.asOf)) || timestamp(feedback.asOf) > at.getTime()
+    || feedback.evidence.some(e => e.kind !== 'inference' || e.reportId !== null || typeof e.value === 'number'
+      || !e.metric.startsWith('research-feedback.') || !timely(e, at)))) throw new Error('研究回流上下文未通过来源或时序核验。')
+  if (feedback?.evidence.length) {
+    const ids = new Set(feedback.evidence.map(e => e.id)), reviewed = raw.feedbackReview?.reviewedIds ?? []
+    if (!raw.feedbackReview || reviewed.length !== ids.size || new Set(reviewed).size !== reviewed.length || reviewed.some(id => !ids.has(id))) throw new Error('综合研判必须逐项审阅本次冻结的研究回流证据。')
+  } else if (raw.feedbackReview?.reviewedIds.length) throw new Error('综合研判引用了本次输入之外的研究回流。')
+  const evidence = [...input.market.evidence, ...input.research.evidence, ...(feedback?.evidence ?? [])]
   if (new Set(evidence.map(e => e.id)).size !== evidence.length) throw new Error('证据标识重复。')
   const byId = new Map(evidence.map(e => [e.id, e]))
   const requireIds = (ids: string[]) => { if (!ids.length || ids.some(id => !byId.has(id))) throw new Error('重要断言引用了不存在的证据。') }
@@ -59,6 +70,7 @@ export function guardInvestmentDraft(input: InvestmentInput, value: unknown, at:
     if (c.metric === 'volume-ratio' && c.threshold < 0) throw new Error('成交量条件不能为负。')
   }
   const warnings: string[] = []
+  if (feedback?.evidence.length) warnings.push('Auto Prediction、Jev 与 Auto Quant 回流仅为待验证研究推断，不增加独立确认票数，不自动调整规则权重。')
   if (input.research.dataAsOf && Number.isFinite(timestamp(input.research.dataAsOf)) && at.getTime() - timestamp(input.research.dataAsOf) > 14 * 86_400_000) warnings.push('报告整体数据时间较旧；各指标仍按各自明确的截止时间独立检查。')
   if (!raw.summary.inference || raw.outlooks.some(o => !o.conclusion.inference || !o.structure.inference) || raw.scenarios.some(s => !s.hypothesis.inference || !s.path.inference)) throw new Error('综合结论与情景路径必须明确标记为 AI 推断。')
   const draft = structuredClone(raw)

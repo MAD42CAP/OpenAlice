@@ -1,3 +1,4 @@
+import { researchLoopEn } from './research-loop'
 import { forwardEn } from './forecast-validation'
 import { intelligenceEn } from './intelligence'
 import { accuracyEn } from './accuracy'
@@ -19,6 +20,7 @@ import { typeSafeEn } from './typesafe'
  */
 
 export const en = {
+  researchLoop: researchLoopEn,
   forward: forwardEn,
   intelligence: intelligenceEn,
   accuracy: accuracyEn,

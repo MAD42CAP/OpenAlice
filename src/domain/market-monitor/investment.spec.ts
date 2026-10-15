@@ -12,6 +12,7 @@ import { evidenceChainV1Strategy } from './strategy.js'
 import type { MarketMonitorSnapshot } from './types.js'
 import type { InvestmentDraft, InvestmentInput } from './investment-types.js'
 import { RESEARCH_SECTION_KEYS, type ResearchSnapshot } from './research-types.js'
+import { RESEARCH_LOOP_PROTOCOL } from './research-loop-types.js'
 
 const at = new Date('2026-10-14T12:00:00Z')
 const provenance = { workspaceId: 'workspace', runId: 'run', issueId: 'issue', agent: 'codex', model: 'configured-native-model' }
@@ -43,6 +44,40 @@ function draft(i: InvestmentInput): InvestmentDraft {
 }
 
 describe('investment intelligence evidence guards', () => {
+  it('requires exact frozen feedback review without promoting inference into an independent observation', () => {
+    const i = input(), d = draft(i)
+    const ref = { ...i.market.evidence[0]!, id: 'feedback:quant', metric: 'research-feedback.quant', value: '样本不足，继续前向验证', unit: null, kind: 'inference' as const, reportId: null, sourceName: 'Auto Quant', dataAsOf: at.toISOString(), publishedAt: at.toISOString(), retrievedAt: at.toISOString() }
+    i.researchFeedback = { protocol: RESEARCH_LOOP_PROTOCOL, hash: 'a'.repeat(64), asOf: at.toISOString(), records: [], jev: null, evidence: [ref] }
+    expect(() => guardInvestmentDraft(i, d, at)).toThrow('逐项审阅')
+    d.feedbackReview = { reviewedIds: [ref.id], effect: 'caution', explanation: '复盘尚无独立优势，维持条件性研究。' }
+    i.market.evidence.find(e => e.metric === 'trend.medium')!.value = 'bullish'
+    const guarded = guardInvestmentDraft(i, d, at)
+    expect(guarded.draft.crossValidation[0]!.status).toBe('PARTIALLY_CONFIRMED')
+    expect(guarded.evidence.find(e => e.id === ref.id)?.kind).toBe('inference')
+    expect(guarded.warnings.join(' ')).toContain('不增加独立确认票数')
+    d.feedbackReview.reviewedIds = ['later-feedback']
+    expect(() => guardInvestmentDraft(i, d, at)).toThrow('逐项审阅')
+    d.feedbackReview.reviewedIds = [ref.id]
+    i.researchFeedback.evidence[0]!.kind = 'observation'
+    expect(() => guardInvestmentDraft(i, d, at)).toThrow('来源或时序')
+  })
+  it('persists the reviewed feedback receipt and gives later feedback a new publication identity', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'feedback-synthesis-'))
+    try {
+      const i = input(), d = draft(i), service = createInvestmentService({ root, now: () => at })
+      const ref = { ...i.market.evidence[0]!, id: 'feedback:prediction', metric: 'research-feedback.prediction', value: '事件资料不足', unit: null, kind: 'inference' as const, reportId: null, dataAsOf: at.toISOString(), publishedAt: at.toISOString(), retrievedAt: at.toISOString() }
+      i.researchFeedback = { protocol: RESEARCH_LOOP_PROTOCOL, hash: 'a'.repeat(64), asOf: at.toISOString(), records: [], jev: null, evidence: [ref] }
+      d.feedbackReview = { reviewedIds: [ref.id], effect: 'context-only', explanation: '事件线索保留为研究背景，暂不改变方向。' }
+      const first = await service.publish(i, d, provenance)
+      expect(first.snapshot.analysisVersion).toBe('investment-intelligence-v3')
+      expect(first.snapshot.researchFeedback).toMatchObject({ contextHash: 'a'.repeat(64), reviewedIds: [ref.id], effect: 'context-only' })
+      const original = JSON.stringify(first.snapshot)
+      i.researchFeedback.hash = 'b'.repeat(64)
+      const second = await service.publish(i, d, { ...provenance, runId: 'later-run' })
+      expect(second.snapshot.id).not.toBe(first.snapshot.id)
+      expect(JSON.stringify((await service.report()).history.find(p => p.id === first.snapshot.id))).toBe(original)
+    } finally { await rm(root, { recursive: true, force: true }) }
+  })
   it('keeps an evidenced sideways range distinct from uncertain transition', () => {
     const i = input(), d = draft(i)
     const trend = i.market.evidence.find(e => e.metric === 'trend.medium')!
@@ -317,7 +352,7 @@ describe('investment immutable history and objective theses', () => {
       expect(third.snapshot.changes[0]!.evidenceIds).toEqual(expect.arrayContaining(['report:cost-basis-2', 'report:cost-basis-3']))
     } finally { await rm(root, { recursive: true, force: true }) }
   })
-  it('keeps v1 archive bytes and hashes readable while publishing a separate v2 experiment', async () => {
+  it('keeps v1/v2 archive bytes and hashes readable while publishing separate v3 synthesis', async () => {
     const root = await mkdtemp(join(tmpdir(), 'investment-version-'))
     const service = createInvestmentService({ root, now: () => at }), i = input(), d = draft(i)
     try {
@@ -328,13 +363,19 @@ describe('investment immutable history and objective theses', () => {
       legacy.recordHash = intelligenceRecordHash(legacy)
       const legacyFile = join(root, 'publications', `${legacy.id}.json`), bytes = JSON.stringify(legacy)
       await writeFile(legacyFile, bytes)
+      const v2Hash = createHash('sha256').update(JSON.stringify({ analysisVersion: 'investment-intelligence-v2', marketSnapshotId: i.market.snapshotId, researchSnapshotId: i.research.id, researchHash: i.research.recordHash })).digest('hex')
+      const v2 = { ...legacy, id: `investment-${v2Hash}`, inputHash: v2Hash, analysisVersion: 'investment-intelligence-v2' as const }
+      v2.recordHash = intelligenceRecordHash(v2)
+      const v2File = join(root, 'publications', `${v2.id}.json`), v2Bytes = JSON.stringify(v2)
+      await writeFile(v2File, v2Bytes)
       await rm(join(root, 'publications', `${first.snapshot.id}.json`))
       const upgraded = await service.publish(i, d, provenance)
       expect(upgraded.stored).toBe(true)
       expect(upgraded.snapshot.analysisVersion).toBe(INVESTMENT_ANALYSIS_VERSION)
       expect(upgraded.snapshot.rawDraft).toEqual(d)
-      expect((await service.report()).history.map(r => r.analysisVersion)).toEqual(expect.arrayContaining(['investment-intelligence-v1', 'investment-intelligence-v2']))
+      expect((await service.report()).history.map(r => r.analysisVersion)).toEqual(expect.arrayContaining(['investment-intelligence-v1', 'investment-intelligence-v2', 'investment-intelligence-v3']))
       expect(await readFile(legacyFile, 'utf8')).toBe(bytes)
+      expect(await readFile(v2File, 'utf8')).toBe(v2Bytes)
     } finally { await rm(root, { recursive: true, force: true }) }
   })
   it('atomically preserves a competing initial record and verifies hashes', async () => {

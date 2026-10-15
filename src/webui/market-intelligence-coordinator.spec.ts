@@ -34,7 +34,7 @@ describe('single native investment Issue', () => {
     expect((await c.run()).state).toBe('blocked')
   })
   it('preregisters the v2 uncertainty, independent evidence and horizon discipline in the native prompt', () => {
-    expect(INTELLIGENCE_PROMPT).toContain('investment-intelligence-v2')
+    expect(INTELLIGENCE_PROMPT).toContain('investment-intelligence-v3')
     expect(INTELLIGENCE_PROMPT).toContain('uncertain（暂不判断）')
     expect(INTELLIGENCE_PROMPT).toContain('不重复计票')
     expect(INTELLIGENCE_PROMPT).toContain('trend.<horizon>')

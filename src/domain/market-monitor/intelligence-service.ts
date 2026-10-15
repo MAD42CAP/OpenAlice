@@ -11,6 +11,7 @@ import type { InvestmentDraft, MarketIntelligence, InvestmentReport } from './in
 import type { ResearchDraft, ResearchReport, ResearchSnapshot, ResearchSource } from './research-types.js'
 import type { MarketMonitorService } from './service.js'
 import type { MarketMonitorSnapshot } from './types.js'
+import type { ResearchLoopContext } from './research-loop-types.js'
 
 export interface IntelligenceJob {
   state: 'idle' | 'queued' | 'running' | 'success' | 'partial' | 'failed' | 'blocked'
@@ -22,6 +23,7 @@ interface FrozenInput {
   id: string; hash: string; capturedAt: string; materialKey: string; provenance: IntelligenceProvenance
   needsAnalysis: string[]; market: MarketIntelligence; reports: ResearchReport[]; sources: ResearchSource[]
   research: ResearchSnapshot[]; priorInvestment: ReturnType<typeof compactInvestment>
+  researchFeedback?: ResearchLoopContext
 }
 const compactInvestment = (report: InvestmentReport) => ({
   latest: report.latest ? { id: report.latest.id, summary: report.latest.summary, analysisTime: report.latest.analysisTime, changes: report.latest.changes, directions: report.latest.outlooks.map(o => ({ horizon: o.horizon, direction: o.direction, conclusion: o.conclusion })) } : null,
@@ -34,6 +36,7 @@ const safeError = (error: unknown) => error instanceof Error && /^(?:Glassnode|R
 export function createIntelligenceService(options: {
   monitor: Pick<MarketMonitorService, 'settings' | 'snapshots'>; research?: ResearchService
   investment?: ReturnType<typeof createInvestmentService>; root?: string; now?: () => Date
+  feedback?: () => Promise<ResearchLoopContext>
 }) {
   const research = options.research ?? createResearchService(), investment = options.investment ?? createInvestmentService()
   const root = options.root ?? dataPath('market-monitor', 'intelligence-v1'), now = options.now ?? (() => new Date())
@@ -47,12 +50,13 @@ export function createIntelligenceService(options: {
     const row = (await options.monitor.snapshots('BTC', 1, settings.strategyId)).at(-1)
     return row ? buildMarketIntelligence(row, now()) : null
   }
-  const materialKey = async (market: MarketIntelligence) => hash({
+  const materialKey = async (market: MarketIntelligence, frozenFeedbackHash?: string | null) => hash({
     analysisVersion: INVESTMENT_ANALYSIS_VERSION,
     daily: market.marketDataAsOf, price: market.price,
     horizons: market.horizons.map(h => ({ horizon: h.horizon, direction: h.direction, structure: h.structure, supportLevels: h.supportLevels, resistanceLevels: h.resistanceLevels })), quality: market.dataQuality,
     reports: (await research.reports()).map(r => r.contentHash),
     thesisStates: (await investment.report()).theses.map(t => [t.key, t.status]),
+    feedbackHash: frozenFeedbackHash !== undefined ? frozenFeedbackHash : (await options.feedback?.())?.hash ?? null,
   })
   const fail = (error: unknown) => { local = { state: 'failed', message: safeError(error), updatedAt: now().toISOString(), runId: null } }
   const job = async () => {
@@ -142,7 +146,9 @@ export function createIntelligenceService(options: {
       const priorInvestment = compactInvestment(investmentReport)
       const needsAnalysis = targets.filter(r => !existing.some(s => s.reportId === r.id) || forceNext && r.id === targets.at(-1)?.id).map(r => r.id)
       forceNext = false
-      const input: FrozenInput = { analysisVersion: INVESTMENT_ANALYSIS_VERSION, needsAnalysis, id, hash: '', capturedAt: now().toISOString(), materialKey: await materialKey(market), provenance: { ...provenance }, market, reports: targets, sources, research: existing, priorInvestment }
+      const researchFeedback = await options.feedback?.()
+      const input: FrozenInput = { analysisVersion: INVESTMENT_ANALYSIS_VERSION, needsAnalysis, id, hash: '', capturedAt: now().toISOString(), materialKey: await materialKey(market, researchFeedback?.hash ?? null), provenance: { ...provenance }, market, reports: targets, sources, research: existing, priorInvestment,
+        ...(researchFeedback ? { researchFeedback } : {}) }
       input.hash = digest(input)
       await mkdir(root, { recursive: true, mode: 0o700 })
       try { await writeFile(join(root, `${id}.json`), JSON.stringify(input), { flag: 'wx', mode: 0o600 }) }
@@ -165,8 +171,10 @@ export function createIntelligenceService(options: {
       const latestReport = input.reports.at(-1)
       const selected = (await research.snapshots()).find(s => s.id === researchSnapshotId && s.reportId === latestReport?.id && (s.provenance.runId === provenance.runId || input.research.some(r => r.id === s.id)))
       if (!selected) throw new Error('Research snapshot must be the latest report analysis bound to this input/run.')
-      const result = await investment.publish({ market: input.market, research: selected }, draft, provenance)
-      requestedKey = await materialKey(input.market)
+      const result = await investment.publish({ market: input.market, research: selected, ...(input.researchFeedback ? { researchFeedback: input.researchFeedback } : {}) }, draft, provenance)
+      // A contributor may finish while this native run is active. Only the
+      // frozen material was consumed; newer feedback must still trigger work.
+      requestedKey = input.materialKey
       requestedAt = now().getTime()
       await writeFile(join(root, 'request-state.json'), JSON.stringify({ materialKey: requestedKey, requestedAt: now().toISOString() }), { mode: 0o600 })
       const receipt = { runId: provenance.runId, inputId: input.id, snapshotId: result.snapshot.id, publishedAt: now().toISOString() }

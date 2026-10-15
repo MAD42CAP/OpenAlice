@@ -3,6 +3,7 @@ import { createInvestmentStore } from './investment-store.js'
 import { evaluateInvestmentThesis, guardInvestmentDraft, intelligenceRecordHash, investmentDraftSchema, investmentInputHash } from './investment.js'
 import { INVESTMENT_ANALYSIS_VERSION, type InvestmentDraft, type InvestmentInput, type InvestmentReport, type InvestmentSnapshot, type InvestmentThesis, type InvestmentThesisDraft, type InvestmentThesisEvaluation } from './investment-types.js'
 import type { IntelligenceProvenance } from './intelligence-types.js'
+import { RESEARCH_LOOP_PROTOCOL } from './research-loop-types.js'
 
 const stamp = (s: string) => Date.parse(s)
 const before = (value: string | null, at: Date) => value !== null && Number.isFinite(stamp(value)) && stamp(value) <= at.getTime()
@@ -93,7 +94,8 @@ export function createInvestmentService(options: { root?: string; now?: () => Da
           }
         }
         const snapshot: InvestmentSnapshot = { ...draft, schemaVersion: 1, id, asset: 'BTC', analysisVersion: INVESTMENT_ANALYSIS_VERSION, analysisTime: at.toISOString(), marketSnapshotId: input.market.snapshotId, researchSnapshotId: input.research.id,
-          inputHash, previousSnapshotId: previous?.id ?? null, provenance: structuredClone(provenance), analysisModel: provenance.model ?? null, evidence: structuredClone(evidence), rawDraft: structuredClone(rawDraft), guardWarnings: warnings, changes, recordHash: '' }
+          inputHash, previousSnapshotId: previous?.id ?? null, provenance: structuredClone(provenance), analysisModel: provenance.model ?? null, evidence: structuredClone(evidence), rawDraft: structuredClone(rawDraft), guardWarnings: warnings, changes,
+          ...(input.researchFeedback && draft.feedbackReview ? { researchFeedback: { protocol: RESEARCH_LOOP_PROTOCOL, contextHash: input.researchFeedback.hash, ...structuredClone(draft.feedbackReview) } } : {}), recordHash: '' }
         snapshot.recordHash = intelligenceRecordHash(snapshot)
         const published = await store.save('publications', snapshot)
         await initializeTheses(published.record)

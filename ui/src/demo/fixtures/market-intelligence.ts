@@ -1,5 +1,6 @@
 import type { MarketIntelligenceReport } from '../../api/market-intelligence'
 import { INVESTMENT_ANALYSIS_VERSION, RESEARCH_ANALYSIS_VERSION, RESEARCH_SECTION_KEYS, type EvidenceReference, type IntelligenceClaim, type InvestmentSnapshot, type ResearchSnapshot } from '../../api/market-intelligence-types'
+import { demoResearchLoop } from './research-loop'
 
 /** Entirely invented, visibly illustrative research. No Glassnode article text is included. */
 export function demoMarketIntelligence(): MarketIntelligenceReport {
@@ -27,7 +28,9 @@ export function demoMarketIntelligence(): MarketIntelligenceReport {
     priceMap: [{ label: '演示成本区域', price: 65000, unit: 'USD', role: 'cost-basis', evidenceIds: ['demo-report-cost'] }], theses: [], limitations: [claim('虚构示例，不可用于投资决策。', [])], rawDraft: null as unknown as InvestmentSnapshot['rawDraft'],
   }
   investment.rawDraft = { summary: investment.summary, crossValidation: investment.crossValidation, outlooks: investment.outlooks, scenarios: investment.scenarios, priceMap: investment.priceMap, theses: [], limitations: investment.limitations }
-  const older: InvestmentSnapshot = { ...investment, id: 'demo-investment-1', analysisTime: '2026-10-14T18:05:00Z', marketSnapshotId: 'demo-earlier-scan', previousSnapshotId: null, summary: claim('演示前次综合观点：中性观察。'), changes: [] }
+  const feedback = demoResearchLoop()
+  investment.researchFeedback = { protocol: feedback.protocol, contextHash: feedback.context.hash, reviewedIds: feedback.context.evidence.map(row => row.id), effect: 'caution', explanation: '演示：研究样本仍少，保留原有确认条件，不提升方向强度。' }
+  const older: InvestmentSnapshot = { ...investment, id: 'demo-investment-1', analysisVersion: 'investment-intelligence-v2', researchFeedback: undefined, analysisTime: '2026-10-14T18:05:00Z', marketSnapshotId: 'demo-earlier-scan', previousSnapshotId: null, summary: claim('演示前次综合观点：中性观察。'), changes: [] }
   const objective = { metric: 'daily-close' as const, operator: 'lt' as const, threshold: 65000, thresholdEvidenceId: 'demo-report-cost', description: '演示成本下方的已收盘日线' }
   return {
     asset: 'BTC', generatedAt: now, illustrative: true,

@@ -42,6 +42,10 @@ import { createIntelligenceService } from '../domain/market-monitor/intelligence
 import { createMarketIntelligenceCoordinator } from './market-intelligence-coordinator.js'
 import { createMarketIntelligenceToolFactories } from '../tool/market-intelligence.js'
 import { createMarketIntelligenceRoutes } from './routes/market-intelligence.js'
+import { createResearchLoop, type ResearchLoopService } from '../domain/market-monitor/research-loop.js'
+import { buildMarketIntelligence } from '../domain/market-monitor/intelligence-market.js'
+import { createMarketResearchLoopCoordinator } from './market-research-loop-coordinator.js'
+import { createResearchLoopRoutes } from './routes/research-loop.js'
 import { createMarketNarratorCoordinator } from './market-monitor-narrator.js'
 import { createBarsRoutes } from './routes/bars.js'
 import { createReferenceRoutes } from './routes/reference.js'
@@ -307,10 +311,28 @@ export class WebPlugin implements Plugin {
       research: asset => createMarketMonitorStore().dashboardObservations(asset, 100),
     })
     app.route('/api/market-monitor/thesis', createMarketThesisRoutes(thesis))
-    const intelligence = createIntelligenceService({ monitor: marketMonitor })
+    let researchLoop: ResearchLoopService
+    const intelligence = createIntelligenceService({ monitor: marketMonitor, feedback: () => researchLoop.context() })
     const typeSafe = createTypeSafeService({ monitor: marketMonitor })
     const forecastExperiment = createForecastExperiment({ baseline: typeSafe })
     const forwardValidation = createForecastValidation({ monitor: marketMonitor })
+    researchLoop = createResearchLoop({
+      source: async () => {
+        const strategy = (await marketMonitor.settings()).strategyId
+        const [snapshots, research, forward] = await Promise.all([
+          marketMonitor.snapshots('BTC', 1, strategy), intelligence.research.latest(), forwardValidation.report('BTC'),
+        ])
+        const snapshot = snapshots.at(-1)
+        if (!snapshot) throw new Error('市场资料缺失，请先扫描 BTC。')
+        return { market: buildMarketIntelligence(snapshot, new Date()), research, forward }
+      },
+      onPublished: async () => { await intelligence.run(false) },
+      synthesis: async () => {
+        const latest = (await intelligence.investment.report()).latest
+        return latest?.researchFeedback ? { contextHash: latest.researchFeedback.contextHash, snapshotId: latest.id, analysisTime: latest.analysisTime } : null
+      },
+    })
+    app.route('/api/market-monitor/research-loop', createResearchLoopRoutes(researchLoop))
     app.route('/api/market-monitor/forecast-experiment', createForecastExperimentRoutes(forecastExperiment))
     app.route('/api/market-monitor/forecast-validation', createForecastValidationRoutes(forwardValidation))
     app.route('/api/market-monitor/judgment', createMarketJudgmentRoutes(marketMonitor, typeSafe, undefined, forwardValidation))
@@ -347,7 +369,10 @@ export class WebPlugin implements Plugin {
     for (const factory of createMarketMonitorToolFactories(marketMonitor)) ctx.workspaceToolCenter.register(factory)
     const intelligenceRunner = createMarketIntelligenceCoordinator(this.workspaceService)
     intelligence.setRunner(intelligenceRunner)
-    for (const factory of createMarketIntelligenceToolFactories(intelligence)) ctx.workspaceToolCenter.register(factory)
+    const researchLoopRunner = createMarketResearchLoopCoordinator(this.workspaceService)
+    researchLoop.setRunner(researchLoopRunner)
+    await researchLoopRunner.ensure().catch(() => { /* Each contributor exposes its own blocked status. */ })
+    for (const factory of createMarketIntelligenceToolFactories(intelligence, researchLoop)) ctx.workspaceToolCenter.register(factory)
     app.route('/api/market-monitor/intelligence', createMarketIntelligenceRoutes(intelligence))
     const marketNarrator = createMarketNarratorCoordinator(this.workspaceService)
     const narrationSettings = await marketMonitor.settings()

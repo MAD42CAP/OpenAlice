@@ -1,3 +1,4 @@
+import { researchLoopZh } from './research-loop'
 import { forwardZh } from './forecast-validation'
 import { intelligenceZh } from './intelligence'
 import { accuracyZh } from './accuracy'
@@ -8,6 +9,7 @@ import type { Resources } from './en'
 
 /** 简体中文. Typed as `Resources` → must match en's key structure exactly. */
 export const zh: Resources = {
+  researchLoop: researchLoopZh,
   forward: forwardZh,
   intelligence: intelligenceZh,
   accuracy: accuracyZh,

@@ -18,6 +18,7 @@ vi.mock('../api/market-thesis', () => ({ marketThesisApi: { read: vi.fn(async (a
 vi.mock('../api/market-intelligence', () => ({ marketIntelligenceApi: { read: vi.fn(async () => demoMarketIntelligence()) } }))
 vi.mock('../api', () => ({ api: { marketMonitor: mocks } }))
 vi.mock('./market/MarketAccuracySummary', () => ({ MarketAccuracySummary: ({ asset }: { asset: string }) => <div>Recent accuracy for {asset}</div> }))
+vi.mock('./market/MarketResearchLoop', () => ({ MarketResearchLoop: ({ asset }: { asset: string }) => asset === 'BTC' ? <div>BTC research feedback</div> : null }))
 vi.mock('./market/MarketTypeSafePanel', () => ({ MarketTypeSafePanel: () => <div>Jev trend experiment</div> }))
 vi.mock('../api/market-quote', () => ({ marketQuoteApi: { read: vi.fn(async (asset: string) => ({ asset, price: 81234.56, currency: 'USD', asOf: '2026-09-18T19:00:00Z', fetchedAt: '2026-09-18T19:00:01Z', provider: 'coinbase', feed: 'Coinbase Exchange', status: 'fresh', attempts: [] })) } }))
 vi.mock('./market/MarketResearchDashboard', () => ({ MarketResearchDashboard: ({ onSelectSnapshot }: { onSelectSnapshot?: (id: string) => void }) => <button onClick={() => onSelectSnapshot?.('demo-btc-0')}>Open research judgment</button> }))
@@ -55,6 +56,9 @@ it('leads with price, combined direction and accuracy while all eight detail gro
   const combined = await screen.findByRole('region', { name: 'Combined market assessment' })
   const accuracy = screen.getByText('Recent accuracy for BTC')
   expect(combined.compareDocumentPosition(accuracy) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  const feedback = screen.getByText('BTC research feedback')
+  expect(combined.compareDocumentPosition(feedback) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(feedback.compareDocumentPosition(accuracy) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   for (const name of ['Platform rules & daily interpretation', 'Wyckoff structure', 'Jev & comparison experiment', 'Charts & research', 'Evidence & data sources', 'Historical review & input replay', 'Investment thesis', 'Run history']) {
     expect(screen.getByRole('button', { name }).getAttribute('aria-expanded')).toBe('false')
   }
@@ -109,6 +113,7 @@ it('switches between BTC, TSLA and MSTR without losing independent asset history
   render(<MarketEvidenceMonitorPage />)
   await screen.findByRole('region', { name: 'Combined market assessment' })
   fireEvent.click(screen.getByRole('tab', { name: /TSLA/ }))
+  expect(screen.queryByText('BTC research feedback')).toBeNull()
   await openSection('Evidence & data sources')
   expect((await screen.findAllByText('Evidence remains balanced')).length).toBeGreaterThan(0)
   expect(screen.getByText('Trailing P/E')).toBeTruthy()

@@ -1280,3 +1280,67 @@ current card and labelled historical, awaiting today's collection; BTC uses
 UTC dates and equities use New York dates, relative to server report time.
 Historical raw output and scores remain inspectable. No sample-size or lower-error result automatically
 promotes this revision to a validated strategy.
+
+## BTC research feedback loop
+
+`research-loop-types.ts`, `research-loop.ts` and `research-loop-store.ts` own
+the additive `btc-research-loop-v1` contract. Auto Prediction performs event,
+mechanism and counterevidence research; Auto Quant audits the frozen forward
+ledger's outcomes, coverage, abstentions and baselines. These are unvalidated
+research cards, not new independent market observations or strategy promotions.
+Jev is referenced from its existing verified `market-forward-v2` publication
+and candidate hash; no second model request or forecast-policy change is made.
+An uncertain Jev result remains abstention.
+
+The two native Issues are `mad42lab-btc-prediction-research` and
+`mad42lab-btc-quant-review`, in the explicitly selected Auto Prediction and Auto
+Quant default Workspaces. `market-research-loop-coordinator.ts` does not create
+desks implicitly. New Issues run daily at 08:00 and 08:05 Vancouver, catch up
+with fresh input after a missed admission, inherit the existing native runtime
+and have a 15-minute watchdog. Reconciliation only updates their owned What;
+owner-selected schedules, runtime, assignee and terminal status are preserved.
+The existing Issue executor owns dispatch, exclusion, provenance and scheduling.
+
+The existing scoped `alice intelligence input` command recognizes the calling
+Issue's role. AP/AQ receive a frozen `loop-input-<hash>` containing the completed
+market evidence, latest available public-report analysis, bounded forward-v2
+results and prior research. They publish with `alice intelligence publish-research
+--inputId <id> --feedback <JSON>`. The investment Issue retains its original
+`reportId`/`draft` branch. Only the investment Issue can publish synthesis.
+Ordinary HTTP clients cannot publish research cards, and no caller supplies its
+own trusted identity. The domain checks the live selected Workspace/run/Issue,
+frozen hashes, time ordering and allowed citation IDs again.
+
+Each card contains its summary, horizon, support/opposition/inconclusive result,
+supporting and opposing evidence IDs, confirmation/invalidation, limitations
+and next research suggestions. Inputs and first publications are atomic,
+immutable, private files under `data/market-monitor/research-loop-v1`. A different
+retry cannot overwrite them. Current use expires at most 24 hours after input,
+when the completed daily basis changes, or when any cited observation expires
+under its original freshness rule. Unavailable sources, corrupt archives,
+closed tasks and native completion without a published artifact are explicit
+states. One failed contributor does not block another or the market scan.
+
+The shared context's hash contains stable record/candidate identity, excluding
+polling clocks and job progress. Its server-projected evidence is string-valued
+`research-feedback.*` inference, never an independent price/flow observation.
+`investment-intelligence-v3` freezes this context into native synthesis input
+and includes it in material/cache identity. The draft must explicitly review
+every frozen feedback evidence ID, label its effect as context, caution or
+conflict, and explain its use. The saved `researchFeedback` receipt binds the
+exact context hash and reviewed IDs. It does not prove prediction accuracy.
+Feedback arriving during a synthesis is left pending: publishing the older
+run persists its frozen material key, so the next successful scan can request
+an updated analysis. Publishing a card also requests synthesis when idle.
+Existing v1/v2 qualitative publications remain readable, and historical Jev,
+forward-v2 scores and thesis conditions are unchanged.
+
+GET `/api/market-monitor/research-loop?asset=BTC` exposes public contributors,
+bounded history and current context; POST `/api/market-monitor/research-loop/run`
+with `{}` explicitly dispatches missing/stale native research. Both are uncached.
+No model credentials, raw account state or publication write is exposed there.
+The compact BTC strip shows available contributor count and distinguishes
+pending synthesis from an exact, nonempty context hash actually reviewed by
+the latest synthesis. Its disclosure contains one sentence per contributor,
+timestamps and Update research. The same API has clearly illustrative demo
+responses; TSLA/MSTR do not show the BTC research strip.
