@@ -1,3 +1,4 @@
+import { accuracyZh } from './accuracy'
 import { thesisZh } from './thesis'
 import { judgmentZh } from './judgment'
 import { typeSafeZh } from './typesafe'
@@ -14,6 +15,7 @@ import { zh } from './zh'
  * Content is UI chrome only — no geographic or other non-technical terms.
  */
 export const zhHant: Resources = {
+  accuracy: accuracyZh,
   thesis: thesisZh,
   judgment: judgmentZh,
   typesafe: typeSafeZh,

@@ -1,3 +1,4 @@
+import Decimal from 'decimal.js'
 import type { OhlcvBar } from '../market-data/bars/index.js'
 import { closedBars } from './bar-policy.js'
 import { firstPerOutcomeWindow } from './review-cohort.js'
@@ -84,6 +85,7 @@ export interface MarketReviewReport {
 
 const DAY = 86_400_000
 const REVIEW_SNAPSHOT_LIMIT = 20_000
+const returnPercent = (entry: number, close: number) => new Decimal(close).div(entry).minus(1).times(100)
 export function reviewSessionDate(asset: MarketMonitorAsset, at: string): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: asset === 'BTC' ? 'UTC' : 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(at))
 }
@@ -145,11 +147,12 @@ export function reviewOutcomes(row: ReviewCase, asset: MarketMonitorAsset, bars:
     if (invalid || (path.length < window.targetBars && feedBehind)) return { ...result, status: 'missing-data' }
     if (path.length < window.targetBars) return result
     const entry = path[0]!.open, close = path.at(-1)!.close
-    const changePercent = (close / entry - 1) * 100
+    const change = returnPercent(entry, close)
+    const changePercent = change.toNumber()
     const directional = direction === 'bullish' || direction === 'bearish'
     const verdict: ReviewVerdict = row.kind !== 'rules' || !directional ? 'not-scored'
-      : Math.abs(changePercent) <= 0.25 ? 'flat'
-      : (changePercent > 0) === (direction === 'bullish') ? 'supported' : 'opposed'
+      : change.abs().lte('0.25') ? 'flat'
+      : change.gt(0) === (direction === 'bullish') ? 'supported' : 'opposed'
     const range = row.original?.wyckoff?.range
     return { ...result, status: 'complete', verdict, start: path[0]!.date.slice(0, 10), end: path.at(-1)!.date.slice(0, 10), entry, close, changePercent,
       highPercent: (Math.max(...path.map(bar => bar.high)) / entry - 1) * 100,
@@ -177,7 +180,7 @@ export function summarizeReview(rows: ReviewCase[]): { summaries: ReviewSummary[
       excluded: items.filter(item => item.outcome.status === 'missing-data' || item.outcome.status === 'unverified').length,
       supported: count('supported'), opposed: count('opposed'), flat: count('flat'), nonDirectional: count('not-scored'), scored,
       agreementPercent: scored ? count('supported') / scored * 100 : null,
-      alwaysBullishPercent: scored ? directional.filter(item => item.outcome.changePercent! > 0.25).length / scored * 100 : null,
+      alwaysBullishPercent: scored ? directional.filter(item => returnPercent(item.outcome.entry!, item.outcome.close!).gt('0.25')).length / scored * 100 : null,
       cases: directional.map(item => item.row.id),
     }
   })

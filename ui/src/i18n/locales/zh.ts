@@ -1,3 +1,4 @@
+import { accuracyZh } from './accuracy'
 import { thesisZh } from './thesis'
 import { judgmentZh } from './judgment'
 import { typeSafeZh } from './typesafe'
@@ -5,6 +6,7 @@ import type { Resources } from './en'
 
 /** 简体中文. Typed as `Resources` → must match en's key structure exactly. */
 export const zh: Resources = {
+  accuracy: accuracyZh,
   thesis: thesisZh,
   judgment: judgmentZh,
   typesafe: typeSafeZh,
@@ -1887,9 +1889,32 @@ export const zh: Resources = {
     title: '模拟器',
   },
   marketMonitor: {
+    compact: {
+      description: '结论优先 · 按需查看依据',
+      brief: '平台规则与每日解读', wyckoff: '威科夫结构', jev: 'Jev 与对照实验', charts: '行情图表与研究', evidence: '证据与数据来源', history: '历史回看与输入回放', thesis: '投资逻辑档案', operations: '运行记录',
+      briefSummary: '平台规则与 Codex 独立解读，展开查看原文。',
+      wyckoffSummary: '{{phase}}；事件测试与未来方向分别核验。',
+      jevSummary: '独立模型估计与实验比较，尚不计入统一方向。',
+      chartsSummary: '价格走势、市场背景与判断时间线。',
+      evidenceSummary: '{{source}} 日线 · {{count}} 项证据；展开查看来源与背景。',
+      historySummary: '对照当时判断与后续走势，也可核对原始输入。',
+      thesisSummary: '记录并核验你自己的投资条件。',
+      operationsSummary: '扫描记录、数据源可靠性与运行空档。',
+      sourceWarning: '数据需留意：{{sources}}。详细原因可在证据与数据来源中查看。',
+      coverageWarning: '财报日期覆盖未知，不能视为近期没有事件。',
+      scanWarning: '最近扫描在 {{stage}} 阶段失败；具体原因保留在运行记录中。',
+      overdue: '定时扫描已逾期，可刷新状态或展开运行记录检查。',
+      continuityUnknown: '定时扫描连续性尚未核验。',
+      healthError: '运行报告暂不可用：{{error}}',
+      gapWarning: '所选 {{hours}} 小时内检测到 {{count}} 段定时扫描空档。',
+      narratorWarning: 'Codex 解读需处理：{{message}}',
+      narrationReference: '现有 Codex 解读与当前证据未核对一致，仅供历史参考。',
+      staleDaily: '当前日线已过期，先更新行情再核验判断。',
+    },
     quote: {
+      details: '报价说明', iexCompact: '仅 IEX 市场',
       title: '{{asset}} 最新成交价', refresh: '刷新价格', loading: '更新价格中…', research: '查看研究图表',
-      fresh: '最新成交报价', delayed: '回退报价，可能存在延迟', stale: '最近成交时间较早，请核对行情时效；股票可能已休市或成交稀疏。',
+      fresh: '最新成交报价', delayed: '回退报价，可能存在延迟', stale: '成交价较旧；请核对时效或休市状态。',
       unavailable: '本次报价更新失败。', retained: '当前保留上次报价，并非最新行情。',
       tradeAt: '成交时间 {{time}}', fetchedAt: '获取时间 {{time}}',
       basis: '页面可见时每 30 秒更新，支持手动刷新。趋势与威科夫分析继续使用已收盘行情。',

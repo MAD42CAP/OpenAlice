@@ -239,7 +239,8 @@ use clearly illustrative in-memory state and never save it to the user's archive
 - `src/webui/routes/market-monitor.ts` exposes the read-only scan/history API
   and validated settings updates.
 - `ui/src/pages/MarketEvidenceMonitorPage.tsx` owns the responsive dashboard,
-  1D/1H switch, export and opt-in browser alerts. The status hook at
+  compact quote/judgment and initially closed evidence disclosures, with the
+  1D/1H switch, export and opt-in browser alerts retained on demand. The status hook at
   `ui/src/hooks/useMarketMonitorStatus.ts` reads backend state; no browser
   timer owns market scans.
 - `ui/src/hooks/useMarketMonitorHealth.ts` reads the selected asset/window;
@@ -448,6 +449,9 @@ Protocol `forward-sessions-v1` was fixed before inspecting live outcome scores:
   cases, excluded data and non-directional cases. The always-bullish comparison
   uses the identical directional cohort. Rates describe overlapping samples,
   not independent trials, calibrated probabilities or executable returns.
+  Decimal arithmetic applies the inclusive flat boundary consistently to both
+  the rule verdict and the same-cohort always-bullish baseline; binary floating
+  rounding cannot turn an exact boundary price into a directional hit.
 - Summary scores collapse identical realised start/end dates within each
   asset, rule version and horizon to the earliest publication, selected before
   filtering non-directional calls. Thus Friday/weekend publications cannot
@@ -831,13 +835,35 @@ failed attempts remain in the acceptance report even after recovery.
 
 ## Combined judgment and independent analyses
 
-The dashboard leads with a current-evidence summary, followed by the existing
-daily rule brief, independent Wyckoff analysis and Jev experiment. The summary
-shows all three direction labels together and defaults to weekly details; its
+The dashboard defaults to a compact live quote, one dominant current-evidence
+judgment, a sentence of evidence/risk and a short prediction-experiment review.
+Independent rule/Codex, Wyckoff and Jev analyses, charts/research, raw evidence,
+thesis management, historical review and operational diagnostics remain in
+initially closed, labeled disclosures. Expanding a section mounts its detailed
+view; changing assets resets disclosures. Hidden details are absent from
+keyboard navigation. Current request failures, fallback/retained data, stale
+core evidence, unknown event coverage and overdue scans remain visible as
+short warnings outside those disclosures. A disclosure is not a suppression of
+the failure or a removal of its attributed diagnostic.
+
+The judgment puts its selected conclusion first, shows all three direction
+labels together and defaults to the weekly view. Its
 buttons name 1/7/30 BTC day views or 1/5/20 equity session views instead of
 relying on ambiguous short/medium/long labels. These are
 interpretation horizons, not newly calibrated return predictions. The annual
 rule trend supplies background to the monthly interpretation.
+
+`useMarketAccuracySummary.ts` reads the existing Jev and experiment reports;
+`MarketAccuracySummary.tsx` presents their separate archived prediction results.
+It does not score every live unified judgment or call that summary a trading
+win rate. Only positive-count paired cohorts with valid original, challenger
+and frequency Brier values permit a probability-error comparison. A lower
+error in some current samples is still not stable advantage or promotion.
+Unscored horizons remain pending/unavailable, and null frequency hits never
+become zero. Method attribution, sample counts and matched scores stay in the
+review disclosure rather than requiring the owner to interpret raw model
+probabilities on the default page. Fresh requests do not reuse old results as
+current; partial success is attributed alongside a visible failure/retry.
 
 `judgment.ts` owns the language-neutral `evidence-summary-v1` composition.
 Price/volume rules supply the initial bias. A matching confirmed Wyckoff event
@@ -955,7 +981,8 @@ Calibration bins display actual hit frequency for the selected directional
 option, along with counts. Overlapping daily windows are descriptive samples,
 not independent trades, profit estimates or proof of calibrated probability.
 Old forecasts and live strategy thresholds are never rewritten by feedback.
-The Jev panel keeps resolved correct/scored counts and pending counts visible.
+The detailed Jev panel keeps resolved correct/scored counts and pending counts
+visible when opened; the default page gives a short attributed review instead.
 Its review disclosure additionally shows distinct/repeated windows, flat-choice
 counts across saved forecasts and actual flat outcomes across matured windows.
 Those different denominators are explicit; a concentration of flat calls is a
@@ -1057,8 +1084,9 @@ statistical significance or automatic promotion. Outcome path extrema remain
 separate from direction hits. No score exists before outcomes mature. Missing candidates remain inspectable
 without replacing the original publication or inventing a paired outcome.
 
-The dashboard keeps a compact current comparison below the independent Jev
-panel. A disclosure shows matched scores, all-method coverage, historical
+The default dashboard shows a short experimental-accuracy verdict; opening the
+Jev/model disclosure retains the current comparison and its further matched
+scores, all-method coverage, historical
 reference, atomic checks, saved conditions and the publication history. The
 demo provides illustrative records only. This is a forward evidence experiment,
 not a cost-adjusted trading backtest, and no current accuracy gain is claimed.

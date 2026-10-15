@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Bell, CheckCircle2, Download, LoaderCircle, RefreshCw, Settings2, Sparkles, TriangleAlert, X } from 'lucide-react'
+import { Bell, CheckCircle2, ChevronDown, Download, LoaderCircle, RefreshCw, Settings2, Sparkles, TriangleAlert, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api'
 import type {
@@ -15,6 +15,7 @@ import type {
 import type { HistoricalBar } from '../api/market'
 import { PageHeader } from '../components/PageHeader'
 import { Button } from '../components/ui/button'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../components/ui/collapsible'
 import { EmptyState, Skeleton } from '../components/StateViews'
 import { cn } from '../lib/utils'
 import { useMarketMonitorReplay } from '../hooks/useMarketMonitorReplay'
@@ -23,6 +24,7 @@ import { useMarketMonitorHealth } from '../hooks/useMarketMonitorHealth'
 import { MonitorReview } from '../components/market/MonitorReview'
 import { MarketResearchDashboard } from './market/MarketResearchDashboard'
 import { MarketLatestPrice } from './market/MarketLatestPrice'
+import { MarketAccuracySummary } from './market/MarketAccuracySummary'
 import { MarketTypeSafePanel } from './market/MarketTypeSafePanel'
 import { MarketJudgmentPanel } from './market/MarketJudgmentPanel'
 import { MarketThesisPanel } from './market/MarketThesisPanel'
@@ -130,6 +132,27 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
   const snapshots = history[asset]
   const snapshot = snapshots.at(-1) ?? null
   const scanning = scanningAsset !== null
+  const selection = `${asset}:${settings.strategyId}`
+  const [disclosures, setDisclosures] = useState<{ selection: string; open: string[] }>({ selection, open: [] })
+  const isOpen = (id: string) => disclosures.selection === selection && disclosures.open.includes(id)
+  const setOpen = (id: string, open: boolean) => setDisclosures(previous => {
+    const current = previous.selection === selection ? previous.open : []
+    return { selection, open: open ? [...new Set([...current, id])] : current.filter(item => item !== id) }
+  })
+  const replayScrollRequested = useRef(false)
+  useEffect(() => {
+    if (replayScrollRequested.current && disclosures.selection === selection && disclosures.open.includes('history')) {
+      replayScrollRequested.current = false
+      document.getElementById('market-input-replay')?.scrollIntoView({ block: 'start' })
+    }
+  }, [disclosures, selection])
+  useEffect(() => { setDisclosures({ selection, open: [] }) }, [selection])
+  const revisionKey = `${snapshot?.id ?? ''}:${runtime.status?.assets.find(item => item.asset === asset)?.lastReceipt?.id ?? ''}`
+  const latestReceipt = runtime.status?.assets.find(item => item.asset === asset)?.lastReceipt
+  const sourceWarnings = snapshot?.sourceHealth.filter(source => source.status !== 'ok' || source.retained) ?? []
+  const calendarUnknown = snapshot?.sourceHealth.some(source => source.coverage?.earnings === 'unknown') ?? false
+  const dailyAt = snapshot?.analysisBasis?.dailyAt
+  const dailyStale = !!dailyAt && Date.now() - Date.parse(dailyAt) > (asset === 'BTC' ? 2 : 4) * 86_400_000
 
   const notifyNewAlerts = useCallback((next: MonitorAlert[], allowNotifications: boolean) => {
     if (!seenAlerts.current) {
@@ -290,15 +313,14 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+    <div className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
       <PageHeader
         title={t('marketMonitor.title')}
-        description={t('marketMonitor.description', { strategy: monitorStrategyLabel(t, settings.strategyId, strategies.find((strategy) => strategy.id === settings.strategyId)?.label ?? settings.strategyId) })}
+        description={t('marketMonitor.compact.description')}
         live={{ lastUpdated: snapshot ? new Date(snapshot.capturedAt) : null, label: snapshot ? t('marketMonitor.scannedAt', { time: formatDate(snapshot.capturedAt) }) : t('marketMonitor.waitingFirstScan'), hideDot: !snapshot }}
         right={<div className="flex flex-wrap items-center justify-end gap-1.5">
           {import.meta.env.VITE_DEMO_MODE && <span className="rounded-sm border border-warning/50 bg-warning/10 px-2 py-1 text-[10px] font-semibold tracking-wide text-warning">{t('marketMonitor.demoBadge')}</span>}
-          <Button variant="ghost" size="sm" onClick={() => setSettingsOpen((value) => !value)} aria-label={t('marketMonitor.settingsTitle')}><Settings2 className="size-4" /></Button>
-          <Button variant="ghost" size="sm" onClick={() => void runNarratorNow()} disabled={!settings.codexNarrationEnabled || narratorRunning} aria-busy={narratorRunning}>{narratorRunning ? <LoaderCircle className="size-3.5 animate-spin motion-reduce:animate-none" aria-hidden /> : <Sparkles className="size-3.5" aria-hidden />}{t(narratorRunning ? 'marketMonitor.narrator.running' : 'marketMonitor.narrator.runNow')}</Button>
+          <Button variant="ghost" size="sm" onClick={() => setSettingsOpen((value) => !value)} aria-label={t('marketMonitor.settingsTitle')}><Settings2 className="size-4" aria-hidden /></Button>
           <Button size="sm" onClick={() => void scan(asset, 'manual')} disabled={scanning} aria-busy={scanning}><RefreshCw className={cn('size-3.5', scanning && 'animate-spin motion-reduce:animate-none')} aria-hidden />{t(scanning ? 'marketMonitor.scanRunning' : 'marketMonitor.scanNow', { asset: scanningAsset ?? asset })}</Button>
         </div>}
       />
@@ -315,46 +337,82 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
       <RuntimeStatus asset={asset} status={runtime.status} error={runtime.error} onRetry={runtime.refresh} />
 
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border/60 px-4 py-3 md:px-6">
-        <div role="tablist" aria-label={t('marketMonitor.monitoredAsset')} className="inline-flex rounded-md border border-border bg-muted/35 p-0.5">
-          {ASSETS.map((item) => <button key={item} role="tab" aria-selected={asset === item} onClick={() => setAsset(item)} className={cn('rounded-[5px] px-4 py-1.5 text-xs font-semibold transition-colors', asset === item ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground')}>{item}<span className="ml-1.5 font-normal text-muted-foreground">{t(item === 'BTC' ? 'marketMonitor.assetBitcoin' : item === 'TSLA' ? 'marketMonitor.assetTesla' : 'marketMonitor.assetStrategy')}</span></button>)}
-        </div>
-        <div className="flex items-center gap-2">
-          <div role="group" aria-label={t('marketMonitor.chartTimeframe')} className="inline-flex rounded-md border border-border p-0.5">
-            {(['1D', '1H'] as const).map((item) => <button key={item} aria-pressed={timeframe === item} onClick={() => setTimeframe(item)} className={cn('rounded px-2.5 py-1 text-[11px]', timeframe === item ? 'bg-muted font-semibold text-foreground' : 'text-muted-foreground')}>{item}</button>)}
-          </div>
-          <Button variant="ghost" size="sm" onClick={() => exportData('csv')} disabled={!snapshots.length}><Download className="size-3.5" />CSV</Button>
-          <Button variant="ghost" size="sm" onClick={() => exportData('json')} disabled={!snapshots.length}>JSON</Button>
+        <div role="tablist" aria-label={t('marketMonitor.monitoredAsset')} className="grid w-full grid-cols-3 rounded-md border border-border bg-muted/35 p-0.5 sm:w-auto">
+          {ASSETS.map((item) => <button key={item} role="tab" aria-selected={asset === item} onClick={() => { setAsset(item); setDisclosures({ selection: `${item}:${settings.strategyId}`, open: [] }) }} className={cn('min-w-0 rounded-[5px] px-3 py-2 text-xs font-semibold transition-colors', asset === item ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground')}>{item}<span className="block font-normal text-muted-foreground sm:ml-1.5 sm:inline">{t(item === 'BTC' ? 'marketMonitor.assetBitcoin' : item === 'TSLA' ? 'marketMonitor.assetTesla' : 'marketMonitor.assetStrategy')}</span></button>)}
         </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-6">
         {loading && !snapshot ? <MonitorSkeleton /> : error && !snapshot ? <div><EmptyState title={t('marketMonitor.unavailable')} description={error} /><div className="-mt-9 flex justify-center pb-10"><Button onClick={() => void scan(asset, 'manual')}>{t('marketMonitor.retryScan')}</Button></div></div> : snapshot ? (
-          <div className="mx-auto flex max-w-[1320px] flex-col gap-4 pb-8">
-            <MarketLatestPrice asset={asset} visible={visible} />
-            <MarketJudgmentPanel asset={asset} strategyId={settings.strategyId} visible={visible} revisionKey={`${snapshot.id}:${runtime.status?.assets.find(item => item.asset === asset)?.lastReceipt?.id ?? ''}`} />
-            <MarketThesisPanel asset={asset} visible={visible} revisionKey={`${snapshot.id}:${runtime.status?.assets.find(item => item.asset === asset)?.lastReceipt?.id ?? ''}`} />
-            <div className="border-t border-border pt-4"><h2 className="text-base font-semibold">{t('judgment.independent')}</h2><p className="mt-1 text-xs text-muted-foreground">{t('judgment.independentHint')}</p></div>
-            <DailyBriefPanel snapshot={snapshot} narratorStatus={narratorStatus} />
-            <WyckoffPanel snapshot={snapshot} />
-            <MarketTypeSafePanel asset={asset} visible={visible} revisionKey={`${snapshot.id}:${runtime.status?.assets.find(item => item.asset === asset)?.lastReceipt?.id ?? ''}`} />
-            <Overview snapshot={snapshot} timeframe={timeframe} />
-            <MarketResearchDashboard asset={asset} visible={visible} revisionKey={`${snapshot.id}:${runtime.status?.assets.find(item => item.asset === asset)?.lastReceipt?.id ?? ''}`} onSelectSnapshot={id => { void replay.select(id); document.getElementById('market-input-replay')?.scrollIntoView({ block: 'start' }) }} />
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(300px,0.7fr)]">
-              <EvidenceTable snapshot={snapshot} />
-              <HypothesisPanel snapshot={snapshot} />
+          <div key={selection} className="mx-auto flex w-full max-w-[1080px] min-w-0 flex-col gap-3 pb-5">
+            <MarketLatestPrice asset={asset} visible={visible} onViewResearch={() => setOpen('charts', true)} />
+            <MarketJudgmentPanel asset={asset} strategyId={settings.strategyId} visible={visible} revisionKey={revisionKey} />
+            <MarketAccuracySummary asset={asset} visible={visible} revisionKey={revisionKey} />
+            {(sourceWarnings.length > 0 || calendarUnknown || dailyStale || latestReceipt?.outcome === 'failed') && <div role="status" className="space-y-1 border-l-2 border-warning bg-warning/5 px-3 py-2 text-xs leading-5 text-warning">
+              {dailyStale && <p>{t('marketMonitor.compact.staleDaily')}</p>}
+              {sourceWarnings.length > 0 && <p>{t('marketMonitor.compact.sourceWarning', { sources: sourceWarnings.map(source => `${monitorSourceLabel(t, source, asset)} (${source.provider})`).join(' · ') })}</p>}
+              {calendarUnknown && <p>{t('marketMonitor.compact.coverageWarning')}</p>}
+              {latestReceipt?.outcome === 'failed' && <p>{t('marketMonitor.compact.scanWarning', { stage: latestReceipt.failureStage ?? '—' })}</p>}
+            </div>}
+            {(narratorStatus?.state === 'failed' || narratorStatus?.state === 'blocked') && <p role="alert" className="border-l-2 border-warning px-3 py-2 text-xs leading-5 text-warning">{t('marketMonitor.compact.narratorWarning', { message: narratorStatus.message })}</p>}
+            <div className="min-w-0 divide-y divide-border border-y border-border">
+              <DashboardDisclosure title={t('marketMonitor.compact.brief')} summary={snapshot.aiNarration && snapshot.narrationStatus !== 'current' ? t('marketMonitor.compact.narrationReference') : t('marketMonitor.compact.briefSummary')} warning={!!snapshot.aiNarration && snapshot.narrationStatus !== 'current'} open={isOpen('brief')} onOpenChange={open => setOpen('brief', open)}>
+                <div className="flex justify-end"><Button variant="ghost" size="sm" onClick={() => void runNarratorNow()} disabled={!settings.codexNarrationEnabled || narratorRunning} aria-busy={narratorRunning}>{narratorRunning ? <LoaderCircle className="size-3.5 animate-spin motion-reduce:animate-none" aria-hidden /> : <Sparkles className="size-3.5" aria-hidden />}{t(narratorRunning ? 'marketMonitor.narrator.running' : 'marketMonitor.narrator.runNow')}</Button></div>
+                <DailyBriefPanel snapshot={snapshot} narratorStatus={narratorStatus} />
+              </DashboardDisclosure>
+              <DashboardDisclosure title={t('marketMonitor.compact.wyckoff')} summary={snapshot.wyckoff ? t('marketMonitor.compact.wyckoffSummary', { phase: monitorWyckoffPhaseLabel(t, snapshot.wyckoff.phaseCandidate) }) : t('marketMonitor.brief.upgradeHint')} open={isOpen('wyckoff')} onOpenChange={open => setOpen('wyckoff', open)}>
+                <WyckoffPanel snapshot={snapshot} />
+              </DashboardDisclosure>
+              <DashboardDisclosure title={t('marketMonitor.compact.jev')} summary={t('marketMonitor.compact.jevSummary')} open={isOpen('jev')} onOpenChange={open => setOpen('jev', open)}>
+                <MarketTypeSafePanel asset={asset} visible={visible} revisionKey={revisionKey} />
+              </DashboardDisclosure>
+              <DashboardDisclosure id="market-research" title={t('marketMonitor.compact.charts')} summary={t('marketMonitor.compact.chartsSummary')} open={isOpen('charts')} onOpenChange={open => setOpen('charts', open)}>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div role="group" aria-label={t('marketMonitor.chartTimeframe')} className="inline-flex rounded-md border border-border p-0.5">
+                    {(['1D', '1H'] as const).map((item) => <button key={item} aria-pressed={timeframe === item} onClick={() => setTimeframe(item)} className={cn('rounded px-2.5 py-1 text-[11px]', timeframe === item ? 'bg-muted font-semibold text-foreground' : 'text-muted-foreground')}>{item}</button>)}
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => exportData('csv')} disabled={!snapshots.length}><Download className="size-3.5" />CSV</Button>
+                  <Button variant="ghost" size="sm" onClick={() => exportData('json')} disabled={!snapshots.length}>JSON</Button>
+                </div>
+                <Overview snapshot={snapshot} timeframe={timeframe} />
+                <MarketResearchDashboard asset={asset} visible={visible} revisionKey={revisionKey} onSelectSnapshot={id => { replayScrollRequested.current = true; setOpen('history', true); void replay.select(id) }} />
+              </DashboardDisclosure>
+              <DashboardDisclosure title={t('marketMonitor.compact.evidence')} summary={t('marketMonitor.compact.evidenceSummary', { source: snapshot.chart.dailyMeta.sourceId, count: snapshot.evidence.length })} warning={sourceWarnings.length > 0 || calendarUnknown} open={isOpen('evidence')} onOpenChange={open => setOpen('evidence', open)}>
+                <div className="grid gap-4 xl:grid-cols-2"><EvidenceTable snapshot={snapshot} /><HypothesisPanel snapshot={snapshot} /><ContextPanel snapshot={snapshot} /><SourcePanel snapshot={snapshot} /></div>
+              </DashboardDisclosure>
+              <DashboardDisclosure id="market-input-replay" title={t('marketMonitor.compact.history')} summary={t('marketMonitor.compact.historySummary')} open={isOpen('history')} onOpenChange={open => setOpen('history', open)}>
+                <MonitorReview key={selection} asset={asset} strategyId={settings.strategyId} visible={visible} />
+                <HistoryPanel replay={replay} snapshots={snapshots} evaluation={evaluation} alerts={alerts.filter(item => item.asset === asset)} />
+              </DashboardDisclosure>
+              <DashboardDisclosure preserveContents title={t('marketMonitor.compact.thesis')} summary={t('marketMonitor.compact.thesisSummary')} open={isOpen('thesis')} onOpenChange={open => setOpen('thesis', open)}>
+                <MarketThesisPanel asset={asset} visible={visible} revisionKey={revisionKey} />
+              </DashboardDisclosure>
             </div>
-            <div className="grid gap-4 xl:grid-cols-2">
-              <ContextPanel snapshot={snapshot} />
-              <SourcePanel snapshot={snapshot} />
-            </div>
-            <MonitorReview key={`${asset}:${settings.strategyId}`} asset={asset} strategyId={settings.strategyId} visible={visible} />
-            <div id="market-input-replay" className="scroll-mt-4"><HistoryPanel replay={replay} snapshots={snapshots} evaluation={evaluation} alerts={alerts.filter((item) => item.asset === asset)} /></div>
           </div>
         ) : <EmptyState title={t('marketMonitor.noObservations')} description={t('marketMonitor.noObservationsDescription')} />}
-        <MonitorOperations asset={asset} hours={reportHours} onHoursChange={setReportHours} report={health.report} loading={health.loading} error={health.error} onRefresh={health.refresh} />
+        <div className="mx-auto w-full max-w-[1080px] min-w-0 pb-8">
+          {health.error && <div role="alert" className="mb-2 flex flex-wrap items-center gap-2 text-xs text-warning"><span>{t('marketMonitor.compact.healthError', { error: health.error })}</span><Button variant="ghost" size="sm" onClick={() => void health.refresh()}>{t('marketMonitor.retry')}</Button></div>}
+          {health.report?.continuity?.status === 'overdue' && <p role="status" className="mb-2 border-l-2 border-warning px-3 py-2 text-xs text-warning">{t('marketMonitor.compact.overdue')}</p>}
+          {(!health.report && health.loading || health.report?.continuity?.status === 'unknown') && <p role="status" className="mb-2 text-xs text-muted-foreground">{t('marketMonitor.compact.continuityUnknown')}</p>}
+          <DashboardDisclosure title={t('marketMonitor.compact.operations')} summary={health.report?.continuity?.gapCount ? t('marketMonitor.compact.gapWarning', { count: health.report.continuity.gapCount, hours: reportHours }) : t('marketMonitor.compact.operationsSummary')} warning={!!health.report?.continuity?.gapCount || !!health.error} open={isOpen('operations')} onOpenChange={open => setOpen('operations', open)}>
+            <MonitorOperations asset={asset} hours={reportHours} onHoursChange={setReportHours} report={health.report} loading={health.loading} error={health.error} onRefresh={health.refresh} />
+          </DashboardDisclosure>
+        </div>
       </div>
     </div>
   )
+}
+
+function DashboardDisclosure({ id, title, summary, warning = false, open, onOpenChange, preserveContents = false, children }: { id?: string; title: string; summary: string; warning?: boolean; open: boolean; onOpenChange: (open: boolean) => void; preserveContents?: boolean; children: React.ReactNode }) {
+  const [visited, setVisited] = useState(open)
+  const changeOpen = (next: boolean) => { if (next) setVisited(true); onOpenChange(next) }
+  return <Collapsible id={id} open={open} onOpenChange={changeOpen} className="min-w-0 scroll-mt-4">
+    <CollapsibleTrigger aria-label={title} className="flex w-full cursor-pointer items-center gap-3 py-3 text-left hover:bg-muted/30">
+      <span className="min-w-0 flex-1"><span className="block text-sm font-medium">{title}</span><span className={cn('mt-1 block text-xs leading-5', warning ? 'text-warning' : 'text-muted-foreground')}>{summary}</span></span>
+      <ChevronDown aria-hidden className={cn('mr-1 size-4 shrink-0 text-muted-foreground transition-transform motion-reduce:transition-none', open && 'rotate-180')} />
+    </CollapsibleTrigger>
+    <CollapsibleContent keepMounted={preserveContents && visited} aria-hidden={!open} inert={!open}>{(open || preserveContents && visited) && <div className="min-w-0 space-y-4 pb-5 [overflow-wrap:anywhere]">{children}</div>}</CollapsibleContent>
+  </Collapsible>
 }
 
 function ActionFeedbackBar({ feedback, onDismiss, onRetry }: { feedback: ActionFeedback; onDismiss: () => void; onRetry?: () => void }) {
@@ -374,7 +432,7 @@ function ActionFeedbackBar({ feedback, onDismiss, onRetry }: { feedback: ActionF
     )}
   >
     <Icon className={cn('size-4 shrink-0', running && 'animate-spin text-primary motion-reduce:animate-none', feedback.state === 'success' && 'text-success', feedback.state === 'error' && 'text-warning')} aria-hidden />
-    <span className="min-w-0 flex-1 leading-5">{feedback.message}</span>
+    <span className="min-w-0 flex-1 break-words leading-5">{feedback.message}</span>
     {onRetry && <Button variant="ghost" size="sm" onClick={onRetry}>{t('marketMonitor.retry')}</Button>}
     {!running && <Button variant="ghost" size="icon" onClick={onDismiss} aria-label={t('marketMonitor.feedback.dismiss')}><X className="size-3.5" aria-hidden /></Button>}
   </div>
@@ -448,10 +506,9 @@ function RuntimeStatus({ asset, status, error, onRetry }: { asset: MonitorAsset;
   return <section aria-label={t('marketMonitor.runtime.aria')} className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 border-b border-border/60 px-4 py-2 text-[11px] text-muted-foreground md:px-6">
     <span role="status" className={cn('font-medium', (error || status?.error || item?.lastError) && 'text-warning')}>{label}</span>
     {error ? <><span>{t('marketMonitor.runtime.retained', { error })}</span><Button variant="ghost" size="sm" onClick={() => void onRetry()}>{t('marketMonitor.runtime.retry')}</Button></> : <>
-      {item?.lastReceipt && <span>{t('marketMonitor.runtime.lastAttempt', { time: formatDate(item.lastReceipt.completedAt ?? item.lastReceipt.requestedAt), outcome: t(`marketMonitor.outcome.${item.lastReceipt.outcome}`) })}</span>}
-      {item?.nextScanAt && !import.meta.env.VITE_DEMO_MODE && <span>{t('marketMonitor.runtime.next', { time: formatDate(item.nextScanAt) })}</span>}
       {item?.lastError && <span className="text-warning">{item.lastError}</span>}
       {status?.error && <span className="text-warning">{status.error}</span>}
+      {(status?.error || item?.lastError) && <Button variant="ghost" size="sm" onClick={() => void onRetry()}>{t('marketMonitor.runtime.retry')}</Button>}
     </>}
   </section>
 }
@@ -560,8 +617,8 @@ function ContextPanel({ snapshot }: { snapshot: MonitorSnapshot }) {
   return <Panel title={t('marketMonitor.panels.context', { asset: snapshot.asset })}>
     {snapshot.sourceHealth.filter(source => source.retained).map(source => <p key={source.id} role="status" className="mb-3 text-xs leading-5 text-warning">{t('marketMonitor.context.retainedData', { fields: source.retained!.fields.map(key => labels[key] ?? (key === 'recentNews' ? t('marketMonitor.context.recentNews') : key === 'recentFilings' ? t('marketMonitor.context.recentFilings') : key)).join(' / '), time: formatDate(source.retained!.asOf), expires: formatDate(source.retained!.expiresAt) })}</p>)}
     <dl className="grid grid-cols-2 gap-x-5 gap-y-3">{rows.length ? rows.map(([key, label]) => <div key={key}><dt className="text-[11px] text-muted-foreground">{label}</dt><dd className="mt-1 text-sm font-medium tabular-nums">{formatContextValue(key, snapshot.context[key])}</dd></div>) : <p className="col-span-2 text-xs text-muted-foreground">{t('marketMonitor.context.unavailable')}</p>}</dl>
-    {snapshot.context.recentFilings?.length ? <div className="mt-4 border-t border-border/60 pt-3"><div className="mb-2 text-[11px] font-semibold text-muted-foreground">{t('marketMonitor.context.recentFilings')}</div><ul className="space-y-2">{snapshot.context.recentFilings.map((item) => <li key={`${item.filingDate}:${item.form}:${item.url}`} className="text-xs"><a href={item.url} target="_blank" rel="noreferrer" className="font-medium text-primary hover:underline">{item.form}</a><span className="ml-2 text-muted-foreground">{formatDate(item.filingDate)}{item.reportDate ? ` · ${t('marketMonitor.context.reportPeriod')} ${formatDate(item.reportDate)}` : ''}</span>{item.description ? <div className="mt-0.5 line-clamp-2 text-muted-foreground">{item.description}</div> : null}</li>)}</ul></div> : null}
-    {snapshot.context.recentNews?.length ? <div className="mt-4 border-t border-border/60 pt-3"><div className="mb-2 text-[11px] font-semibold text-muted-foreground">{t('marketMonitor.context.recentNews')}</div><ul className="space-y-2">{snapshot.context.recentNews.map((item) => <li key={`${item.time}:${item.title}`} className="text-xs"><span className="text-muted-foreground">{formatDate(item.time)} · {item.source ?? t('marketMonitor.context.unknown')}</span><div className="mt-0.5 line-clamp-2">{item.title}</div></li>)}</ul></div> : null}
+    {snapshot.context.recentFilings?.length ? <div className="mt-4 border-t border-border/60 pt-3"><div className="mb-2 text-[11px] font-semibold text-muted-foreground">{t('marketMonitor.context.recentFilings')}</div><ul className="space-y-2">{snapshot.context.recentFilings.map((item) => <li key={`${item.filingDate}:${item.form}:${item.url}`} className="text-xs"><a href={item.url} target="_blank" rel="noreferrer" className="font-medium text-primary hover:underline">{item.form}</a><span className="ml-2 text-muted-foreground">{formatDate(item.filingDate)}{item.reportDate ? ` · ${t('marketMonitor.context.reportPeriod')} ${formatDate(item.reportDate)}` : ''}</span>{item.description ? <div className="mt-0.5 text-muted-foreground">{item.description}</div> : null}</li>)}</ul></div> : null}
+    {snapshot.context.recentNews?.length ? <div className="mt-4 border-t border-border/60 pt-3"><div className="mb-2 text-[11px] font-semibold text-muted-foreground">{t('marketMonitor.context.recentNews')}</div><ul className="space-y-2">{snapshot.context.recentNews.map((item) => <li key={`${item.time}:${item.title}`} className="text-xs"><span className="text-muted-foreground">{formatDate(item.time)} · {item.source ?? t('marketMonitor.context.unknown')}</span><div className="mt-0.5">{item.title}</div></li>)}</ul></div> : null}
   </Panel>
 }
 

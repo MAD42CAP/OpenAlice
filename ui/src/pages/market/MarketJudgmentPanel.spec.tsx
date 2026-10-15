@@ -14,8 +14,10 @@ it('defaults to the weekly headline, switches horizons and keeps independent mod
   expect(screen.getByRole('button', { name: '7 天视角' }).getAttribute('aria-pressed')).toBe('true')
   expect(screen.getAllByText('方向暂不明确')).toHaveLength(2)
   expect(screen.queryByText('平台规则判断')).toBeNull()
+  expect(screen.queryByText('威科夫结构的确认条件')).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '查看综合依据与各方意见' }))
   expect(screen.getByText('平台规则判断')).toBeTruthy()
+  expect(screen.getByText('威科夫结构的确认条件')).toBeTruthy()
   expect(screen.getByText('独立威科夫结构')).toBeTruthy()
   expect(screen.getByText(/未经校准的概率暂不改变顶部综合结论/)).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '1 天视角' }))
@@ -34,4 +36,16 @@ it('uses trading sessions for equities and leaves direction withheld when no evi
   rerender(<MarketJudgmentView report={null} loading error={false} refresh={vi.fn()} />)
   expect(screen.getByRole('status')).toBeTruthy()
   expect(screen.queryByText('偏多')).toBeNull()
+})
+
+it('leads with the conditional result and leaves important data risks visible before expansion', () => {
+  const report = demoMarketJudgment('TSLA')
+  report.horizons.medium.direction = 'bullish'
+  report.horizons.medium.risks = ['calendar-unknown']
+  render(<MarketJudgmentView report={report} loading={false} error={false} refresh={vi.fn()} />)
+  const direction = screen.getAllByText('偏多')[0]!
+  const choices = screen.getByRole('group', { name: '判断期限' })
+  expect(direction.compareDocumentPosition(choices) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(screen.getByText('下一次财报日期尚未核实，事件风险仍未知。')).toBeTruthy()
+  expect(screen.getByText(/并非已验证的收益预测/)).toBeTruthy()
 })

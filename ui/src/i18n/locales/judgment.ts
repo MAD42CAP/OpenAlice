@@ -1,6 +1,7 @@
 export const judgmentEn = {
   title: 'Combined market assessment', horizon: 'Assessment horizon', days_one: '{{count}}-day view', sessions_one: '{{count}}-session view', days: '{{count}}-day view', sessions: '{{count}}-session view',
-  interpretation: 'Current evidence across three horizons. These biases are conditional interpretations, not validated return forecasts.',
+  daysCompact: '{{count}}d', sessionsCompact: '{{count}} sessions',
+  interpretation: 'Closed-bar evidence; conditional direction, not a verified win probability.',
   bullish: 'Bullish bias', bearish: 'Bearish bias', range: 'Trading range', unclear: 'Direction is not clear', insufficient: 'Insufficient current evidence',
   loading: 'Combining available evidence…', empty: 'Run a scan to build the assessment.', retry: 'Retry',
   loadError: 'The current assessment could not be refreshed.', stale: 'The previous assessment is shown below for reference; its current validity is unknown.',
@@ -36,7 +37,8 @@ export const judgmentEn = {
 }
 export const judgmentZh: typeof judgmentEn = {
   title: '统一市场判断', horizon: '判断期限', days_one: '{{count}} 天视角', sessions_one: '{{count}} 个交易日视角', days: '{{count}} 天视角', sessions: '{{count}} 个交易日视角',
-  interpretation: '同时查看三个期限的当前证据。偏多、偏空均有成立条件，尚非已验证的收益预测。',
+  daysCompact: '{{count}} 天', sessionsCompact: '{{count}} 交易日',
+  interpretation: '依据已收盘行情；方向有成立条件，并非已验证的收益预测。',
   bullish: '偏多', bearish: '偏空', range: '区间震荡', unclear: '方向暂不明确', insufficient: '当前证据不足',
   loading: '正在整理各项判断…', empty: '完成扫描后生成综合判断。', retry: '重试',
   loadError: '暂时无法刷新当前判断。', stale: '下方保留上次分析供参考，当前是否仍成立尚无法核验。',

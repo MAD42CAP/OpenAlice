@@ -1,3 +1,4 @@
+import { accuracyEn } from './accuracy'
 import { thesisEn } from './thesis'
 import { judgmentEn } from './judgment'
 import { typeSafeEn } from './typesafe'
@@ -16,6 +17,7 @@ import { typeSafeEn } from './typesafe'
  */
 
 export const en = {
+  accuracy: accuracyEn,
   thesis: thesisEn,
   judgment: judgmentEn,
   typesafe: typeSafeEn,
@@ -1920,9 +1922,32 @@ export const en = {
     title: 'Simulator',
   },
   marketMonitor: {
+    compact: {
+      description: 'Result first · Evidence on demand',
+      brief: 'Platform rules & daily interpretation', wyckoff: 'Wyckoff structure', jev: 'Jev & comparison experiment', charts: 'Charts & research', evidence: 'Evidence & data sources', history: 'Historical review & input replay', thesis: 'Investment thesis', operations: 'Run history',
+      briefSummary: 'Platform rules and independent Codex interpretation; expand for the original text.',
+      wyckoffSummary: '{{phase}}; event tests and future direction are separate checks.',
+      jevSummary: 'Independent model estimates and comparison; no vote in the combined direction yet.',
+      chartsSummary: 'Price paths, market context and the judgment timeline.',
+      evidenceSummary: '{{source}} daily bars · {{count}} evidence items; expand for source and context.',
+      historySummary: 'Compare original judgments with later prices, or verify their original inputs.',
+      thesisSummary: 'Record and check your own investment conditions.',
+      operationsSummary: 'Scan records, source reliability and observed gaps.',
+      sourceWarning: 'Data needs attention: {{sources}}. See Evidence & data sources for the causes.',
+      coverageWarning: 'Earnings-date coverage is unknown; this does not mean there are no upcoming events.',
+      scanWarning: 'Latest scan failed at {{stage}}; run history retains the causes.',
+      overdue: 'A scheduled scan is overdue. Refresh status or inspect Run history.',
+      continuityUnknown: 'Scheduled continuity is not verified yet.',
+      healthError: 'Run report unavailable: {{error}}',
+      gapWarning: '{{count}} scheduled gaps detected in the selected {{hours}} hours.',
+      narratorWarning: 'Codex interpretation needs attention: {{message}}',
+      narrationReference: 'The Codex interpretation is not verified against current evidence; historical reference only.',
+      staleDaily: 'The daily evidence is old; refresh the market data before interpreting the assessment.',
+    },
     quote: {
+      details: 'Quote details', iexCompact: 'IEX venue only',
       title: '{{asset}} latest trade', refresh: 'Refresh price', loading: 'Updating price…', research: 'View research charts',
-      fresh: 'Latest trade quote', delayed: 'Fallback quote; may be delayed', stale: 'The last trade is older. Check freshness; equities may be closed or trading sparsely.',
+      fresh: 'Latest trade quote', delayed: 'Fallback quote; may be delayed', stale: 'The last trade is older; check freshness or market hours.',
       unavailable: 'This price refresh failed.', retained: 'The previous quote is retained and is not current.',
       tradeAt: 'Trade time {{time}}', fetchedAt: 'Retrieved {{time}}',
       basis: 'Updates every 30 seconds while visible, or on manual refresh. Trend and Wyckoff analysis still use closed bars.',

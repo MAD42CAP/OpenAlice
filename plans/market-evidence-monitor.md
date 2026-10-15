@@ -6,6 +6,73 @@ No integration, merge or release is authorized.
 
 Related issues: none.
 
+## October 14 concise dashboard and accuracy review
+
+The owner requested a substantially simpler result-first dashboard and another
+audit of recent judgments against realised market moves. Preserve all archived
+predictions, return targets and independent model attribution. No trade, model
+promotion or retrospective weight fitting is authorized by this increment.
+
+Selected interaction: retain one page with a compact live quote, one dominant
+conditional judgment, three horizon choices, one sentence of evidence/risk and
+a compact retrospective verdict. Put independent rule/Wyckoff/model analyses,
+research charts, thesis management and operational diagnostics behind initially
+closed, labeled disclosures. Reuse shared Collapsible/Button primitives and
+theme tokens. Hidden contents must not enter keyboard navigation; failures,
+stale evidence and meaningful data gaps remain visible in summaries. Stack on
+narrow screens with readable controls, not smaller type. This autonomous choice
+implements the owner's requested simplicity; separate routes would add
+navigation and a pure deletion would remove evidence needed for review.
+
+- [x] Audit latest matured forecasts using original windows and matched baselines.
+- [x] Simplify the default page and retain accessible, attributed evidence on demand.
+- [x] Surface a short accuracy verdict with sample counts and uncertainty.
+- [x] Correct confirmed evaluation defects without changing historical predictions.
+- [x] Complete focused/full regression, typechecks, real API and responsive browser acceptance.
+- [x] Record findings and prepare verified delivery only to the owned feature branch.
+
+Audit through October 14: original Jev short hits are BTC 5/23, TSLA 6/17 and
+MSTR 2/17; medium hits are 0/17, 2/13 and 3/13. Long windows have not matured.
+Rule-v2 short direction support is 2/8, 2/9 and 6/14, versus same-cohort
+always-bullish 5/8, 4/9 and 7/14; weekly support is 7/18, 7/12 and 3/13,
+versus 8/18, 7/12 and 3/13. These method-specific cohorts are not a head-to-head
+ranking or a trading win rate. Six matched short/medium Brier comparisons all
+favor historical frequency over both Jev variants. MSTR challenger hits 10/15
+and 7/11 match its frequency baseline; higher hits than the original do not
+establish incremental predictive value. Samples remain small and overlapping.
+Continue prospective, fixed-version comparison before altering judgment weights;
+retain Jev as an independent experiment and prioritize verifiable evidence
+checks over interpreting its raw probabilities as an established forecast.
+
+The confirmed evaluation defect was binary floating rounding at the inclusive
+0.25% boundary: 100.07 to 100.320175 was wrongly scored as directional support.
+Decimal now gives the intended flat verdict in both rule review and the matched
+always-bullish baseline. Exact positive/negative boundaries and just-outside
+prices are covered. All 137 currently completed rule outcome records retain
+their previous verdicts; the fix does not inflate the observed results.
+
+Acceptance: 99 relevant tests pass (40 backend, 35 existing UI, 24 new summary
+and hook cases); root and UI typechecks pass. The complete suite reports
+7,464 passing, four skipped and four failing tests. These are the previously
+documented two Codex AI-config expectations against preserved user changes and
+two Supervisor TUI PTY failures; no full-suite green is claimed. There are no
+new failing tests in this increment.
+
+Final real read-only BTC, TSLA and MSTR scans succeed using Coinbase/Alpaca,
+with healthy derivatives/SEC feeds and matching judgment snapshot identities;
+all three input replays verify. All 75 original Jev forecasts compare equal to
+the initial audit reports. Desktop acceptance shows price, three directions
+and retrospective text on the first screen. Production and expanded demo
+charts both keep a 390px page width at a 390px viewport. Keyboard disclosure,
+asset resets, hourly selection, chart-to-history replay and hidden-editor draft
+retention are verified. Demo data remains labeled and no real thesis is edited.
+The temporary tabs/server are closed, original TSLA selection and viewport are
+restored, and the detached production platform remains running. The four
+pre-existing user files remain byte-equivalent and excluded from delivery.
+
+Owner guides: [[docs/market-evidence-monitor.md]],
+[[docs/ui-interaction-and-motion.md]], [[docs/testing.md]].
+
 ## October 7 judgment-quality and continuity increment
 
 The owner accepted the live audit and requested implementation. Preserve the

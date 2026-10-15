@@ -82,6 +82,30 @@ describe('fixed-window historical review', () => {
     expect(reviewOutcomes(row, 'BTC', flat, new Date('2026-09-18'))[0].verdict).toBe('not-scored')
   })
 
+  it.each([
+    { boundary: 'upper', entry: 100.07, close: 100.320175, change: 0.25 },
+    { boundary: 'lower', entry: 100.01, close: 99.759975, change: -0.25 },
+  ])('keeps the exact $boundary flat boundary flat in both rules and the baseline', ({ entry, close, change }) => {
+    const data = bars()
+    data[1] = { ...data[1]!, open: entry, close }
+    const row = sample()
+    row.outcomes = reviewOutcomes(row, 'BTC', data, new Date('2026-09-18'))
+    expect(row.outcomes[0]).toMatchObject({ status: 'complete', changePercent: change, verdict: 'flat' })
+    expect(summarizeReview([row]).summaries[0]).toMatchObject({ flat: 1, scored: 1, supported: 0, agreementPercent: 0, alwaysBullishPercent: 0 })
+  })
+
+  it.each([
+    { boundary: 'above', entry: 100.07, close: 100.3201750001, verdict: 'supported', baseline: 100 },
+    { boundary: 'below', entry: 100.01, close: 99.7599749999, verdict: 'opposed', baseline: 0 },
+  ])('scores prices strictly $boundary the flat band without widening its boundary', ({ entry, close, verdict, baseline }) => {
+    const data = bars()
+    data[1] = { ...data[1]!, open: entry, close }
+    const row = sample()
+    row.outcomes = reviewOutcomes(row, 'BTC', data, new Date('2026-09-18'))
+    expect(row.outcomes[0]).toMatchObject({ status: 'complete', verdict })
+    expect(summarizeReview([row]).summaries[0]).toMatchObject({ flat: 0, scored: 1, alwaysBullishPercent: baseline })
+  })
+
   it('counts observed stock sessions and respects New York dates across DST', () => {
     expect(reviewSessionDate('TSLA', '2026-11-02T02:00:00Z')).toBe('2026-11-01')
     const row = sample(); row.sessionDate = '2026-09-11'

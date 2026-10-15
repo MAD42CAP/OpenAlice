@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('../api/market-judgment', () => ({ marketJudgmentApi: { read: vi.fn(async (asset: 'BTC' | 'TSLA' | 'MSTR') => demoMarketJudgment(asset)) } }))
 vi.mock('../api/market-thesis', () => ({ marketThesisApi: { read: vi.fn(async (asset: 'BTC' | 'TSLA' | 'MSTR') => demoThesisReport(asset)) } }))
 vi.mock('../api', () => ({ api: { marketMonitor: mocks } }))
+vi.mock('./market/MarketAccuracySummary', () => ({ MarketAccuracySummary: ({ asset }: { asset: string }) => <div>Recent accuracy for {asset}</div> }))
 vi.mock('./market/MarketTypeSafePanel', () => ({ MarketTypeSafePanel: () => <div>Jev trend experiment</div> }))
 vi.mock('../api/market-quote', () => ({ marketQuoteApi: { read: vi.fn(async (asset: string) => ({ asset, price: 81234.56, currency: 'USD', asOf: '2026-09-18T19:00:00Z', fetchedAt: '2026-09-18T19:00:01Z', provider: 'coinbase', feed: 'Coinbase Exchange', status: 'fresh', attempts: [] })) } }))
 vi.mock('./market/MarketResearchDashboard', () => ({ MarketResearchDashboard: ({ onSelectSnapshot }: { onSelectSnapshot?: (id: string) => void }) => <button onClick={() => onSelectSnapshot?.('demo-btc-0')}>Open research judgment</button> }))
@@ -41,14 +42,30 @@ beforeEach(async () => {
 })
 afterEach(() => { cleanup(); vi.clearAllMocks() })
 
-it('places one combined assessment above independently retained rule, Wyckoff and Jev analyses', async () => {
+async function openSection(name: string) {
+  const button = await screen.findByRole('button', { name })
+  fireEvent.click(button)
+  expect(button.getAttribute('aria-expanded')).toBe('true')
+}
+
+it('leads with price, combined direction and accuracy while all eight detail groups start closed', async () => {
   render(<MarketEvidenceMonitorPage />)
   const combined = await screen.findByRole('region', { name: 'Combined market assessment' })
-  const independent = screen.getByRole('heading', { name: 'Independent analyses' })
-  expect(combined.compareDocumentPosition(independent) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  const accuracy = screen.getByText('Recent accuracy for BTC')
+  expect(combined.compareDocumentPosition(accuracy) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  for (const name of ['Platform rules & daily interpretation', 'Wyckoff structure', 'Jev & comparison experiment', 'Charts & research', 'Evidence & data sources', 'Historical review & input replay', 'Investment thesis', 'Run history']) {
+    expect(screen.getByRole('button', { name }).getAttribute('aria-expanded')).toBe('false')
+  }
+  expect(screen.queryByText('Jev trend experiment')).toBeNull()
+  expect(screen.queryByRole('heading', { name: 'Daily market brief' })).toBeNull()
+  expect(screen.queryByRole('img', { name: /Price path ending/ })).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Replay check' })).toBeNull()
+  expect(screen.queryByRole('button', { name: /Run Codex/ })).toBeNull()
+  expect(screen.queryByRole('table', { name: 'Data source reliability' })).toBeNull()
+  await openSection('Jev & comparison experiment')
   expect(screen.getByText('Jev trend experiment')).toBeTruthy()
-  expect(screen.getByText('Wyckoff structure')).toBeTruthy()
-  expect(screen.getByText('Daily market brief')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: 'Jev & comparison experiment' }))
+  expect(screen.queryByText('Jev trend experiment')).toBeNull()
 })
 
 it('shows actual fallback attribution, original errors and failed stage in Chinese too', async () => {
@@ -65,13 +82,20 @@ it('shows actual fallback attribution, original errors and failed stage in Chine
     return report
   })
   render(<MarketEvidenceMonitorPage />)
+  expect(await screen.findByText(/数据需留意/)).toBeTruthy()
+  expect(screen.queryByText(fallback)).toBeNull()
+  await openSection('证据与数据来源')
   expect(await screen.findByText(fallback)).toBeTruthy()
+  await openSection('运行记录')
   expect(await screen.findByText(/daily-bars: BTC 1d: coinbase failed.*yfinance failed/)).toBeTruthy()
   expect(screen.getByText(/HTTP 403 view denied/)).toBeTruthy()
 })
 
 it('shows attributed BTC evidence and switches to the independent hourly series', async () => {
   render(<MarketEvidenceMonitorPage />)
+  await screen.findByRole('region', { name: 'Combined market assessment' })
+  await openSection('Charts & research')
+  await openSection('Evidence & data sources')
   expect((await screen.findAllByText('Demand has provisional control')).length).toBeGreaterThan(0)
   expect(screen.getAllByText('demo/coinbase').length).toBeGreaterThan(0)
   fireEvent.click(screen.getByRole('button', { name: '1H' }))
@@ -81,8 +105,9 @@ it('shows attributed BTC evidence and switches to the independent hourly series'
 
 it('switches between BTC, TSLA and MSTR without losing independent asset history', async () => {
   render(<MarketEvidenceMonitorPage />)
-  await screen.findAllByText('Demand has provisional control')
+  await screen.findByRole('region', { name: 'Combined market assessment' })
   fireEvent.click(screen.getByRole('tab', { name: /TSLA/ }))
+  await openSection('Evidence & data sources')
   expect((await screen.findAllByText('Evidence remains balanced')).length).toBeGreaterThan(0)
   expect(screen.getByText('Trailing P/E')).toBeTruthy()
   expect(screen.getByRole('link', { name: '8-K' }).getAttribute('href')).toContain('sec.gov/Archives/edgar')
@@ -91,23 +116,26 @@ it('switches between BTC, TSLA and MSTR without losing independent asset history
   expect(mocks.snapshots).toHaveBeenCalledWith('TSLA', 120, 'evidence-chain-v1')
   expect(mocks.snapshots).toHaveBeenCalledWith('MSTR', 120, 'evidence-chain-v1')
   fireEvent.click(screen.getByRole('tab', { name: /MSTR/ }))
+  expect(screen.getByRole('button', { name: 'Evidence & data sources' }).getAttribute('aria-expanded')).toBe('false')
+  expect(screen.queryByText('Trailing P/E')).toBeNull()
+  await openSection('Charts & research')
   expect(await screen.findByText('MSTR market state')).toBeTruthy()
 })
 
 it('keeps the rendered snapshot when a background refresh fails', async () => {
   render(<MarketEvidenceMonitorPage />)
-  await screen.findAllByText('Demand has provisional control')
+  await screen.findByRole('region', { name: 'Combined market assessment' })
   mocks.scan.mockRejectedValueOnce(new Error('offline'))
   fireEvent.click(screen.getByRole('button', { name: /Scan now/ }))
   await waitFor(() => expect(screen.getByText('BTC scan failed: offline')).toBeTruthy())
-  expect(screen.getAllByText('Demand has provisional control').length).toBeGreaterThan(0)
+  expect(screen.getByRole('region', { name: 'Combined market assessment' })).toBeTruthy()
 })
 
 it('shows scan progress immediately and confirms a new result when it finishes', async () => {
   let finishScan!: (value: unknown) => void
   mocks.scan.mockImplementationOnce(() => new Promise((resolve) => { finishScan = resolve }))
   render(<MarketEvidenceMonitorPage />)
-  await screen.findAllByText('Demand has provisional control')
+  await screen.findByRole('region', { name: 'Combined market assessment' })
   fireEvent.click(screen.getByRole('button', { name: /Scan now/ }))
   expect(screen.getByRole('button', { name: 'Scanning BTC…' }).getAttribute('aria-busy')).toBe('true')
   expect(screen.getByText('Scanning BTC, fetching market data and recalculating evidence…')).toBeTruthy()
@@ -118,7 +146,7 @@ it('shows scan progress immediately and confirms a new result when it finishes',
 
 it('renders the registered strategy in monitor settings', async () => {
   render(<MarketEvidenceMonitorPage />)
-  await screen.findAllByText('Demand has provisional control')
+  await screen.findByRole('region', { name: 'Combined market assessment' })
   fireEvent.click(screen.getByRole('button', { name: 'Monitor settings' }))
   expect((screen.getByRole('combobox', { name: 'Strategy' }) as HTMLSelectElement).value).toBe('evidence-chain-v1')
   expect(screen.getByRole('option', { name: 'Evidence chain v1' })).toBeTruthy()
@@ -126,7 +154,7 @@ it('renders the registered strategy in monitor settings', async () => {
 
 it('keeps Codex daily interpretation enabled by default and can dispatch it now', async () => {
   render(<MarketEvidenceMonitorPage />)
-  await screen.findAllByText('Codex daily interpretation')
+  await openSection('Platform rules & daily interpretation')
   fireEvent.click(screen.getByRole('button', { name: /Run Codex/ }))
   await waitFor(() => expect(mocks.runNarratorNow).toHaveBeenCalledOnce())
   expect(await screen.findByText('Codex interpretation complete. The latest available BTC, TSLA and MSTR results are now displayed.')).toBeTruthy()
@@ -136,7 +164,7 @@ it('keeps Codex daily interpretation enabled by default and can dispatch it now'
 
 it('keeps Codex visibly busy until its background task actually finishes', async () => {
   render(<MarketEvidenceMonitorPage />)
-  await screen.findAllByText('Codex daily interpretation')
+  await openSection('Platform rules & daily interpretation')
   let finishStatus!: (value: unknown) => void
   mocks.narratorStatus.mockImplementationOnce(() => new Promise((resolve) => { finishStatus = resolve }))
   fireEvent.click(screen.getByRole('button', { name: /Run Codex/ }))
@@ -158,24 +186,30 @@ it('opens empty history without silently dispatching a scan', async () => {
   mocks.snapshots.mockResolvedValue({ snapshots: [], count: 0 })
   render(<MarketEvidenceMonitorPage />)
   await screen.findByText('No observations yet')
+  expect(screen.queryByRole('table', { name: 'Recent scan attempts' })).toBeNull()
+  await openSection('Run history')
   expect(await screen.findByRole('table', { name: 'Recent scan attempts' })).toBeTruthy()
   expect(mocks.scan).not.toHaveBeenCalled()
 })
 
 it('selects a per-asset operational report independently of the evidence history', async () => {
   render(<MarketEvidenceMonitorPage />)
+  await openSection('Run history')
   await screen.findByRole('table', { name: 'Data source reliability' })
   fireEvent.click(screen.getByRole('button', { name: '72 hours' }))
   await waitFor(() => expect(mocks.health).toHaveBeenCalledWith('BTC', 72))
   fireEvent.click(screen.getByRole('tab', { name: /TSLA/ }))
   await waitFor(() => expect(mocks.health).toHaveBeenCalledWith('TSLA', 72))
+  expect(screen.queryByRole('region', { name: 'TSLA monitor operations' })).toBeNull()
+  expect(screen.getByRole('button', { name: 'Run history' }).getAttribute('aria-expanded')).toBe('false')
+  await openSection('Run history')
   expect(await screen.findByRole('region', { name: 'TSLA monitor operations' })).toBeTruthy()
   expect(mocks.scan).not.toHaveBeenCalled()
 })
 
 it('saves explicit background consent and a selected asset', async () => {
   render(<MarketEvidenceMonitorPage />)
-  await screen.findAllByText('Demand has provisional control')
+  await screen.findByRole('region', { name: 'Combined market assessment' })
   fireEvent.click(screen.getByRole('button', { name: 'Monitor settings' }))
   fireEvent.click(screen.getByRole('checkbox', { name: 'Background monitoring' }))
   fireEvent.click(screen.getByRole('checkbox', { name: 'TSLA' }))
@@ -187,7 +221,7 @@ it('saves explicit background consent and a selected asset', async () => {
 it('keeps settings open and reports a failed save', async () => {
   mocks.saveSettings.mockRejectedValueOnce(new Error('disk unavailable'))
   render(<MarketEvidenceMonitorPage />)
-  await screen.findAllByText('Demand has provisional control')
+  await screen.findByRole('region', { name: 'Combined market assessment' })
   fireEvent.click(screen.getByRole('button', { name: 'Monitor settings' }))
   fireEvent.click(screen.getByRole('button', { name: 'Save' }))
   expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Settings were not saved. disk unavailable')
@@ -206,9 +240,14 @@ it('follows the global Chinese locale for current and previously stored evidence
   await i18n.changeLanguage('zh')
   render(<MarketEvidenceMonitorPage />)
   expect(await screen.findByText('市场证据监测')).toBeTruthy()
+  expect(screen.queryByRole('heading', { name: '每日市场简报' })).toBeNull()
+  await openSection('平台规则与每日解读')
+  await openSection('威科夫结构')
+  await openSection('证据与数据来源')
+  await openSection('运行记录')
   expect(screen.getByText('每日市场简报')).toBeTruthy()
   expect(screen.getByText('至少两个周期偏多，暂无偏空周期；其他周期仍需逐项查看。')).toBeTruthy()
-  expect(screen.getByText('威科夫结构')).toBeTruthy()
+  expect(screen.getAllByText('威科夫结构').length).toBeGreaterThan(0)
   expect(screen.getAllByText('上涨阶段候选').length).toBeGreaterThan(0)
   expect(screen.getByText('强势信号（SOS）')).toBeTruthy()
   expect(screen.getAllByText('需求暂时占优').length).toBeGreaterThan(0)
@@ -222,8 +261,10 @@ it('keeps old stored observations readable and asks for one new scan', async () 
   const { trend: _trend, wyckoff: _wyckoff, dailyBrief: _dailyBrief, ...oldSnapshot } = demoMonitorSnapshot('BTC')
   mocks.snapshots.mockResolvedValue({ snapshots: [oldSnapshot], count: 1 })
   render(<MarketEvidenceMonitorPage />)
-  await screen.findAllByText('Demand has provisional control')
-  expect(screen.getAllByText(/Run a new scan to create multi-timeframe and Wyckoff analysis/)).toHaveLength(2)
+  await screen.findByRole('region', { name: 'Combined market assessment' })
+  await openSection('Platform rules & daily interpretation')
+  await openSection('Wyckoff structure')
+  expect(screen.getAllByText(/Run a new scan to create multi-timeframe and Wyckoff analysis/).length).toBeGreaterThanOrEqual(2)
   expect(mocks.scan).not.toHaveBeenCalled()
 })
 
@@ -236,6 +277,9 @@ it('shows scoring limits, closed-bar dates and precise derivative units together
     return { snapshots: [snapshot], count: 1 }
   })
   render(<MarketEvidenceMonitorPage />)
+  await openSection('Evidence & data sources')
+  await openSection('Wyckoff structure')
+  await openSection('Charts & research')
   expect(await screen.findByText('0.007141%')).toBeTruthy()
   expect(screen.getByText('790,265,750 USD')).toBeTruthy()
   expect(screen.getByText('433,850.1 BTC')).toBeTruthy()
@@ -259,6 +303,7 @@ it('refreshes evaluation when the latest observation changes while history lengt
 it('checks a selected historical record and explains unavailable legacy inputs', async () => {
   mocks.replay.mockResolvedValue({ status: 'unavailable', snapshotId: 'old' })
   render(<MarketEvidenceMonitorPage />)
+  await openSection('Historical review & input replay')
   fireEvent.click(await screen.findByRole('button', { name: 'Replay check' }))
   expect(await screen.findByText(/Original inputs are unavailable/)).toBeTruthy()
   expect(mocks.replay).toHaveBeenCalledWith(demoMonitorSnapshot('BTC').id)
@@ -272,6 +317,8 @@ it.each(['stale', 'unverified', 'current'] as const)('labels the narration input
     return { snapshots: [row], count: 1 }
   })
   render(<MarketEvidenceMonitorPage />)
+  if (status !== 'current') expect(await screen.findByText(/not verified against current evidence/)).toBeTruthy()
+  await openSection('Platform rules & daily interpretation')
   const text = status === 'stale' ? /Evidence has changed since/ : status === 'current' ? 'Matches this observation' : /Older interpretation without/
   expect(await screen.findByText(text)).toBeTruthy()
 })
@@ -290,6 +337,9 @@ it('labels retained context next to the values and distinguishes daily interpret
     return report
   })
   render(<MarketEvidenceMonitorPage />)
+  expect(await screen.findByText(/Data needs attention/)).toBeTruthy()
+  await openSection('Evidence & data sources')
+  await openSection('Run history')
   expect(await screen.findByText(/Last valid data: Funding rate \(8h\).*reference only until/)).toBeTruthy()
   expect(screen.getByText('request timed out')).toBeTruthy()
   expect(await screen.findByText('daily interpretation')).toBeTruthy()
@@ -311,10 +361,45 @@ it('opens the archived input replay from a research chart judgment', async () =>
   mocks.replay.mockResolvedValue({ status: 'unavailable', snapshotId: 'demo-btc-0' })
   try {
     render(<MarketEvidenceMonitorPage />)
+    await openSection('Charts & research')
+    expect(screen.queryByRole('button', { name: 'Replay check' })).toBeNull()
     fireEvent.click(await screen.findByRole('button', { name: 'Open research judgment' }))
+    expect(screen.getByRole('button', { name: 'Historical review & input replay' }).getAttribute('aria-expanded')).toBe('true')
     await waitFor(() => expect(mocks.replay).toHaveBeenCalledWith('demo-btc-0'))
     expect(scroll).toHaveBeenCalledWith({ block: 'start' })
   } finally {
     Element.prototype.scrollIntoView = original
   }
+})
+
+
+it('keeps an overdue scan and report failure visible without expanding operational details', async () => {
+  mocks.health.mockImplementation(async (asset: 'BTC' | 'TSLA' | 'MSTR', hours: 24 | 72) => {
+    const report = demoMonitorHealth(asset, hours)
+    report.continuity = { enabled: true, intervalMinutes: 15, scheduledSamples: 1, status: 'overdue', lastScheduledAt: '2026-09-12T12:00:00Z', elapsedSinceLastMs: 3_600_000, gapCount: 1, longestGapMs: 3_600_000, recentGaps: [] }
+    return report
+  })
+  render(<MarketEvidenceMonitorPage />)
+  expect(await screen.findByText(/A scheduled scan is overdue/)).toBeTruthy()
+  expect(screen.queryByRole('table', { name: 'Recent scan attempts' })).toBeNull()
+})
+
+it('keeps a report read error and retry available with details closed', async () => {
+  mocks.health.mockRejectedValue(new Error('report offline'))
+  render(<MarketEvidenceMonitorPage />)
+  expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Run report unavailable: report offlineRetry')
+  expect(screen.getByRole('button', { name: 'Run history' }).getAttribute('aria-expanded')).toBe('false')
+  expect(screen.getByRole('button', { name: 'Retry' })).toBeTruthy()
+})
+
+
+it('preserves an unsaved thesis draft when its disclosure is closed and reopened', async () => {
+  render(<MarketEvidenceMonitorPage />)
+  await openSection('Investment thesis')
+  fireEvent.click(await screen.findByRole('button', { name: 'Edit thesis' }))
+  fireEvent.change(screen.getByRole('textbox', { name: 'Investment reasoning' }), { target: { value: 'An unsaved investment condition' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Investment thesis' }))
+  expect(screen.queryByRole('textbox', { name: 'Investment reasoning' })).toBeNull()
+  await openSection('Investment thesis')
+  expect((screen.getByRole('textbox', { name: 'Investment reasoning' }) as HTMLTextAreaElement).value).toBe('An unsaved investment condition')
 })

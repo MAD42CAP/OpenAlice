@@ -12,11 +12,14 @@ beforeEach(async () => {
   mock.hook.mockReturnValue({ quote: { price: 81123.45, asOf: '2026-09-18T19:00:00Z', fetchedAt: '2026-09-18T19:00:01Z', feed: 'Coinbase Exchange', status: 'fresh' }, loading: false, failed: false, attempts: [], refresh: mock.refresh })
 })
 afterEach(() => { cleanup(); vi.clearAllMocks() })
-it('shows a separate attributed last trade and refresh/jump controls', () => {
+it('shows a compact attributed quote and reveals its calculation and research controls on demand', () => {
   render(<MarketLatestPrice asset="BTC" visible />)
   expect(screen.getByRole('region', { name: 'BTC latest trade' })).toBeTruthy()
   expect(screen.getByText(/81,123.45/)).toBeTruthy()
   expect(screen.getByText(/Coinbase Exchange/)).toBeTruthy()
+  expect(screen.queryByText(/analysis still use closed bars/)).toBeNull()
+  expect(screen.queryByRole('link', { name: 'View research charts' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: 'Quote details' }))
   expect(screen.getByText(/analysis still use closed bars/)).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: 'Refresh price' }))
   expect(mock.refresh).toHaveBeenCalledOnce()
