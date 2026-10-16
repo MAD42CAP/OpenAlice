@@ -99,6 +99,16 @@ runtime's native launch interface:
 - Codex provider arguments/environment plus `--model` and
   `model_reasoning_effort` configuration arguments.
 
+Codex shell-tool launches preserve Alice's non-secret routing and provenance
+through explicit `shell_environment_policy.set` overrides, because a native
+`inherit=core` policy may otherwise discard the child environment. A closed
+allowlist covers the composed PATH, Alice home/project/tool/MCP/runtime paths,
+Workspace ID and actual run or session ID. Arbitrary environment variables and
+provider credentials are never copied into these command-line arguments. The
+user's inheritance policy is retained, and `allow_login_shell=false` preserves
+the composed PATH. Fresh, resumed, interactive, headless and Web launches share
+this contract; server-side caller provenance remains authoritative.
+
 Writing the same values into native project files is a deprecated compatibility
 export for users who intentionally start the CLI outside OpenAlice. It is not a
 managed Session default, readiness gate, or launch-time fallback. Grok Build
@@ -209,6 +219,17 @@ Vault choices store only the credential slug and, when the provider uses a
 model API protocol, its wire shape. Runtime-direct provider credentials such as
 Cursor omit the inapplicable wire shape. Keys and resolved provider payloads
 never enter the Workspace file.
+
+Validated, secret-free runtime settings use a dedicated atomic file writer:
+it completes a sibling temporary file before publishing by rename. Concurrent
+launch-policy and Issue-detail readers therefore see the previous or next
+complete JSON, never a truncated intermediate write. Failed writes preserve
+the previous file and remove incomplete scratch data; regular-file permissions
+are retained and target symlinks are replaced without changing their original
+targets. Credential configuration writers retain their existing target-file
+behavior and Git exclusion boundaries. The settings schema is unchanged,
+genuinely invalid user-authored configuration still fails validation, and
+read-modify-write updates remain serialized within the launcher.
 
 A fresh Session resolves that surface/Agent preference together with any
 explicit credential, model, or effort choice into one immutable, secret-free

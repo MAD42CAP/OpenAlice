@@ -29,7 +29,22 @@ const CODEX_SESSION_PROVIDER_NAME = 'openalice_session';
 const CODEX_DEFAULT_BASE_URL = 'https://api.openai.com/v1';
 // Alice already composes the Workspace PATH. Login profiles can replace it
 // (notably /etc/profile on Linux), hiding every injected CLI from shell tools.
-const CODEX_SHELL_ARGS = ['-c', 'allow_login_shell=false'] as const;
+function codexShellArgs(ctx: SpawnContext): string[] {
+  // `inherit = "core"` drops Alice routing and provenance even when the
+  // launcher supplied them. Project only these non-secret transport values;
+  // retain the user's inheritance policy and unrelated shell settings.
+  const keys = [
+    'PATH', 'OPENALICE_HOME', 'OPENALICE_PROJECT_ID',
+    'OPENALICE_TOOL_URL', 'OPENALICE_TOOL_SOCKET', 'OPENALICE_MCP_URL',
+    'OPENALICE_MANAGED_PI_NODE_PATH', 'AQ_WS_ID', 'AQ_RUN_ID', 'AQ_SESSION_ID',
+  ];
+  const args = ['-c', 'allow_login_shell=false'];
+  for (const key of keys) {
+    const value = ctx.env[key];
+    if (value !== undefined) args.push('-c', `shell_environment_policy.set.${key}=${tomlString(value)}`);
+  }
+  return args;
+}
 const CODEX_INTERACTIVE_PERMISSION_ARGS = [
   '--sandbox',
   'danger-full-access',
@@ -279,7 +294,7 @@ export const codexAdapter: CliAdapter = {
       'approval_policy="never"',
       '-c',
       'sandbox_mode="danger-full-access"',
-      ...CODEX_SHELL_ARGS,
+      ...codexShellArgs(ctx),
       'exec',
     ];
     if (ctx.resume === 'last') return [...head, 'resume', '--json', '--last', prompt];
@@ -302,7 +317,7 @@ export const codexAdapter: CliAdapter = {
       'codex',
       ...(ctx.sessionRuntime?.webArgs ?? ctx.sessionRuntime?.interactiveArgs ?? []),
       ...codexMcpConfigArgs(ctx),
-      ...CODEX_SHELL_ARGS,
+      ...codexShellArgs(ctx),
       'app-server',
       '--listen',
       'stdio://',
@@ -685,7 +700,7 @@ function codexMcpHead(ctx: SpawnContext): string[] {
         `model_provider=${tomlString(CODEX_PROVIDER_NAME)}`,
       ]
     : [];
-  return ['codex', ...selection, ...CODEX_INTERACTIVE_PERMISSION_ARGS, ...CODEX_SHELL_ARGS, ...codexMcpConfigArgs(ctx)];
+  return ['codex', ...selection, ...CODEX_INTERACTIVE_PERMISSION_ARGS, ...codexShellArgs(ctx), ...codexMcpConfigArgs(ctx)];
 }
 
 /** `-c mcp_servers.*` overrides that register the launcher's MCP gateway. */

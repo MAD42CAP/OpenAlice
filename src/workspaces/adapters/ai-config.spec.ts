@@ -33,6 +33,7 @@ import {
   piWorkspaceProviderId,
 } from './pi-config.js';
 import { prepareAgentRuntimeWorkspace } from '../cli-adapter.js';
+import type { SpawnContext } from '../cli-adapter.js';
 import { credentialToWorkspaceAiCred } from '../credential-injection.js';
 
 let dir: string;
@@ -227,6 +228,10 @@ describe('codexAdapter AI-config', () => {
       '-c',
       'allow_login_shell=false',
       '-c',
+      'shell_environment_policy.set.OPENALICE_MCP_URL="http://127.0.0.1:47332/mcp"',
+      '-c',
+      'shell_environment_policy.set.AQ_WS_ID="ws-abc"',
+      '-c',
       'mcp_servers.openalice.url="http://127.0.0.1:47332/mcp"',
       '-c',
       'mcp_servers.openalice-workspace.url="http://127.0.0.1:47332/mcp/ws-abc"',
@@ -247,6 +252,10 @@ describe('codexAdapter AI-config', () => {
       '-c',
       'allow_login_shell=false',
       '-c',
+      'shell_environment_policy.set.OPENALICE_MCP_URL="http://127.0.0.1:47332/mcp"',
+      '-c',
+      'shell_environment_policy.set.AQ_WS_ID="ws-abc"',
+      '-c',
       'mcp_servers.openalice.url="http://127.0.0.1:47332/mcp"',
       '-c',
       'mcp_servers.openalice-workspace.url="http://127.0.0.1:47332/mcp/ws-abc"',
@@ -262,6 +271,10 @@ describe('codexAdapter AI-config', () => {
       '-c',
       'allow_login_shell=false',
       '-c',
+      'shell_environment_policy.set.OPENALICE_MCP_URL="http://127.0.0.1:47332/mcp"',
+      '-c',
+      'shell_environment_policy.set.AQ_WS_ID="ws-abc"',
+      '-c',
       'mcp_servers.openalice.url="http://127.0.0.1:47332/mcp"',
       '-c',
       'mcp_servers.openalice-workspace.url="http://127.0.0.1:47332/mcp/ws-abc"',
@@ -269,6 +282,109 @@ describe('codexAdapter AI-config', () => {
       'rollout-id',
     ]);
   });
+
+  it.each([
+    ['interactive', false], ['interactive', true],
+    ['headless', false], ['headless', true],
+    ['web', false], ['web', true],
+  ] as const)('keeps only scoped routing/provenance in %s shells (resume=%s)', (surface, resumed) => {
+    // Codex's native inherit=core policy can discard Alice's child env. The
+    // explicit set bridge must carry scope without copying credentials into argv.
+    const identity: Record<string, string> = surface === 'headless'
+      ? { AQ_RUN_ID: 'run-current' }
+      : { AQ_SESSION_ID: 'session-current' };
+    const forbiddenEnv = {
+      OPENAI_API_KEY: 'synthetic-provider-credential',
+      OPENALICE_WORKSPACE_KEY: 'synthetic-workspace-credential',
+      AWS_SECRET_ACCESS_KEY: 'synthetic-cloud-credential',
+      OPENALICE_UNKNOWN_TOKEN: 'synthetic-unlisted-token',
+      AQ_OTHER_RUN_ID: 'run-unrelated',
+      ARBITRARY_ENV: 'unrelated-value',
+    };
+    const context: SpawnContext = {
+      cwd: dir,
+      env: {
+        PATH: '/workspace/"研究"\\bin:/usr/bin',
+        OPENALICE_HOME: '/state/Alice Home',
+        OPENALICE_PROJECT_ID: 'project-current',
+        OPENALICE_TOOL_URL: 'http://127.0.0.1:47331/cli',
+        OPENALICE_TOOL_SOCKET: '/state/Alice Home/tool.sock',
+        OPENALICE_MCP_URL: 'http://127.0.0.1:47332/mcp',
+        OPENALICE_MANAGED_PI_NODE_PATH: '/runtime/node',
+        AQ_WS_ID: 'workspace-current',
+        ...identity,
+        ...forbiddenEnv,
+      },
+      ...(resumed ? { resume: { sessionId: 'native-existing' } } : {}),
+    };
+    const argv = surface === 'headless'
+      ? codexAdapter.composeHeadlessCommand!([], context, 'read-only research')
+      : surface === 'web'
+        ? codexAdapter.composeWebCommand!([], context)
+        : codexAdapter.composeCommand([], context);
+    const projection = argv.filter((arg) => arg.startsWith('shell_environment_policy.set.'));
+    expect(projection).toEqual([
+      'shell_environment_policy.set.PATH="/workspace/\\"研究\\"\\\\bin:/usr/bin"',
+      'shell_environment_policy.set.OPENALICE_HOME="/state/Alice Home"',
+      'shell_environment_policy.set.OPENALICE_PROJECT_ID="project-current"',
+      'shell_environment_policy.set.OPENALICE_TOOL_URL="http://127.0.0.1:47331/cli"',
+      'shell_environment_policy.set.OPENALICE_TOOL_SOCKET="/state/Alice Home/tool.sock"',
+      'shell_environment_policy.set.OPENALICE_MCP_URL="http://127.0.0.1:47332/mcp"',
+      'shell_environment_policy.set.OPENALICE_MANAGED_PI_NODE_PATH="/runtime/node"',
+      'shell_environment_policy.set.AQ_WS_ID="workspace-current"',
+      surface === 'headless'
+        ? 'shell_environment_policy.set.AQ_RUN_ID="run-current"'
+        : 'shell_environment_policy.set.AQ_SESSION_ID="session-current"',
+    ]);
+    for (const arg of projection) expect(argv[argv.indexOf(arg) - 1]).toBe('-c');
+    expect(argv.filter((arg) => arg === 'allow_login_shell=false')).toHaveLength(1);
+    expect(argv.some((arg) => arg.startsWith('shell_environment_policy.inherit='))).toBe(false);
+    for (const [name, value] of Object.entries(forbiddenEnv)) {
+      expect(argv.join('\n')).not.toContain(name);
+      expect(argv.join('\n')).not.toContain(value);
+    }
+    if (surface === 'headless') {
+      expect(argv.some((arg) => arg.startsWith('mcp_servers.'))).toBe(false);
+      expect(argv.slice(-3)).toEqual(resumed
+        ? ['--json', 'native-existing', 'read-only research']
+        : ['--json', '--', 'read-only research']);
+    } else {
+      expect(argv).toContain('mcp_servers.openalice.url="http://127.0.0.1:47332/mcp"');
+      expect(argv).toContain('mcp_servers.openalice-workspace.url="http://127.0.0.1:47332/mcp/workspace-current"');
+      if (surface === 'web') expect(argv.slice(-3)).toEqual(['app-server', '--listen', 'stdio://']);
+      else if (resumed) expect(argv.slice(-2)).toEqual(['resume', 'native-existing']);
+    }
+  });
+
+  it('refuses MCP registration without the authoritative workspace scope', () => {
+    const context = { cwd: dir, env: { OPENALICE_MCP_URL: 'http://127.0.0.1:47332/mcp' } };
+    expect(() => codexAdapter.composeCommand([], context)).toThrow('AQ_WS_ID missing from spawn env');
+    expect(() => codexAdapter.composeWebCommand!([], context)).toThrow('AQ_WS_ID missing from spawn env');
+  });
+
+  it.each([undefined, { sessionId: 'native-existing' }] as const)(
+    'keeps the scoped headless CLI bridge when optional MCP is disabled (%j)', (resume) => {
+      const argv = codexAdapter.composeHeadlessCommand!([], {
+        cwd: dir,
+        env: {
+          PATH: '/alice/bin:/usr/bin',
+          OPENALICE_TOOL_SOCKET: '/alice/tool.sock',
+          AQ_WS_ID: 'workspace-readonly',
+          AQ_RUN_ID: 'run-readonly',
+        },
+        resume,
+      }, 'inspect frozen evidence');
+      expect(argv.filter((arg) => arg.startsWith('shell_environment_policy.set.'))).toEqual([
+        'shell_environment_policy.set.PATH="/alice/bin:/usr/bin"',
+        'shell_environment_policy.set.OPENALICE_TOOL_SOCKET="/alice/tool.sock"',
+        'shell_environment_policy.set.AQ_WS_ID="workspace-readonly"',
+        'shell_environment_policy.set.AQ_RUN_ID="run-readonly"',
+      ]);
+      expect(argv.join('\n')).not.toContain('MCP_URL');
+      expect(argv.join('\n')).not.toContain('AQ_SESSION_ID');
+      expect(argv.some((arg) => arg.startsWith('mcp_servers.'))).toBe(false);
+    },
+  );
 
   it('keeps explicit full access when interactive Codex runs without MCP', () => {
     expect(codexAdapter.composeCommand([], { cwd: dir, env: {} })).toEqual([

@@ -1,5 +1,6 @@
-import { readdir, readFile as nodeReadFile, writeFile as nodeWriteFile, mkdir, lstat as nodeLstat, stat, lstat, unlink } from 'node:fs/promises';
-import { dirname, isAbsolute, normalize, resolve, sep } from 'node:path';
+import { readdir, readFile as nodeReadFile, writeFile as nodeWriteFile, mkdir, lstat as nodeLstat, stat, lstat, unlink, rename, chmod } from 'node:fs/promises';
+import { basename, dirname, isAbsolute, normalize, resolve, sep } from 'node:path';
+import { randomUUID } from 'node:crypto';
 
 export interface FileEntry {
   readonly name: string;
@@ -115,7 +116,7 @@ export async function readWorkspaceFile(
 }
 
 /**
- * Atomically write a UTF-8 text file at `<workspaceDir>/<relPath>`.
+ * Write a UTF-8 text file at `<workspaceDir>/<relPath>`.
  * Creates parent directories if missing. If a symlink exists at the
  * target path, it's replaced with a regular file (used by the AI-config
  * UI to upgrade `.codex/auth.json` from the bootstrap-time symlink to a
@@ -129,16 +130,48 @@ export async function writeWorkspaceFile(
   const abs = resolveInside(workspaceDir, relPath);
   await mkdir(dirname(abs), { recursive: true });
 
-  // If the existing entry is a symlink, unlink before write so we don't
-  // mutate the link target.
+  // Preserve the established target-file behavior for credential/config owners.
+  // Their exact Git exclusions must not gain an unprotected scratch copy.
   try {
     const ls = await nodeLstat(abs);
     if (ls.isSymbolicLink()) await unlink(abs);
   } catch (err) {
     if (!isENOENT(err)) throw err;
   }
-
   await nodeWriteFile(abs, content, 'utf8');
+}
+
+/**
+ * Publish a validated, secret-free Workspace document atomically. Sibling
+ * scratch names are not covered by credential owners' exact Git exclusions,
+ * so credential/config writers must retain their established write seam.
+ */
+export async function writeWorkspaceFileAtomically(
+  workspaceDir: string,
+  relPath: string,
+  content: string,
+): Promise<void> {
+  const abs = resolveInside(workspaceDir, relPath);
+  await mkdir(dirname(abs), { recursive: true });
+
+  // Publish in the same directory so readers see the previous complete file
+  // or the next one, never writeFile's truncate/write interval. Rename also
+  // replaces a target symlink without following or temporarily removing it.
+  let mode: number | undefined;
+  try {
+    const ls = await nodeLstat(abs);
+    if (ls.isFile()) mode = ls.mode & 0o777;
+  } catch (err) {
+    if (!isENOENT(err)) throw err;
+  }
+  const temporary = resolve(dirname(abs), `.${basename(abs)}.${randomUUID()}.tmp`);
+  try {
+    await nodeWriteFile(temporary, content, { encoding: 'utf8', flag: 'wx', ...(mode === undefined ? {} : { mode }) });
+    if (mode !== undefined) await chmod(temporary, mode);
+    await rename(temporary, abs);
+  } finally {
+    await unlink(temporary).catch(err => { if (!isENOENT(err)) throw err; });
+  }
 }
 
 function isENOENT(err: unknown): boolean {

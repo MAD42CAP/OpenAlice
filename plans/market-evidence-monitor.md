@@ -1302,3 +1302,86 @@ were verified. Actual TSLA/MSTR pages show3/3 available and reviewed. Temporary
 browser viewport and demo tab/server are cleaned up. The four owner-modified
 files and177preexisting immutable archives remain byte-identical and excluded;
 secret-material and diff checks pass. No PR, upstream write or trading action.
+
+## SEC and platform stability follow-up (2026-10-15)
+
+The owner explicitly requested fixing the transient TSLA SEC refresh and the
+four remaining test failures, then verifying continued platform operation.
+Preserve existing files and immutable market/research history. The current
+Codex adapter edit is a directly related dependency of the two failing tests:
+retain its bytes and include that behavior with its corrected contract tests.
+The three unrelated CLI/narrator edits remain outside this delivery.
+
+- [x] Classify SEC network/timeout/status/format errors, add bounded compliant
+  transient recovery, preserve cooldown and explicit stale reference behavior.
+- [x] Fix Codex launch contract regressions without dropping scoped routing or
+  provenance and without projecting credentials into CLI arguments.
+- [x] Make PTY fixtures genuinely isolated from real Inbox and localhost state;
+  retain actual pointer/keyboard assertions rather than weakening them.
+- [x] Repair the observed native runtime-settings partial-JSON read/write race
+  with atomic publication and concurrency coverage, keeping the schema intact.
+- [x] Run affected suites, required typechecks, complete hermetic tests, real
+  readonly SEC refresh/scans, native scheduling and background/browser checks.
+- [x] Verify owner/history fingerprints and prepare owned feature-branch delivery.
+
+No dashboard redesign is needed; existing concise statuses and collapsed
+source details stay in place. No new credentials, trading rights, model engine
+or parallel scheduler are introduced.
+
+
+Stability implementation: SEC now distinguishes safe transport/timeout/HTTP/
+JSON/schema failures, retries one recoverable failure within a 12.5-second total
+budget and keeps both causes if attempts fail. All attempts share the existing
+one-per-second gate; 403 is never retried during a refresh, and its 15-minute
+restriction/long Retry-After survive competing errors. A stalled body or
+transport cannot hold the scan indefinitely or inject a late success. Pending
+aborted work stays explicitly tracked until settlement, preventing overlap.
+No contact values, headers or arbitrary server/error bodies enter diagnostics.
+
+The two Codex assertions now reflect the already-intended routing/provenance
+bridge, including closed non-secret env projection, TOML escaping, fresh/resume
+and interactive/headless/Web coverage. The existing codex.ts bytes are retained
+as the delivery dependency. The other three owner edits remain excluded.
+PTY fixtures now always inject Inbox/read-state/health dependencies, including
+the zero-unread case; accidental fetch fails closed and state paths use the
+isolated test home. Existing mouse geometry and tiny-layout assertions remain.
+
+Runtime settings publication uses a dedicated atomic writer only after strict
+secret-free schema validation. Readers see complete old or new JSON, failed
+writes preserve the previous file, permissions/symlink behavior stay guarded,
+and scratch data is cleaned. Independent review identified credential-config
+Git exclusions as an important boundary, so all native credential/config
+writers deliberately retain their original target-file seam. A regression
+asserts those paths create no sibling scratch copy. The settings schema and
+within-process update serialization are unchanged.
+
+Initial full suite: 880 files passed;7,752 tests passed,4 skipped,zero failures,
+377.56 seconds. CLI owner: 69 files / 746 tests including 59 PTY journeys pass; Codex
+adapter/env/runtime closure 19 files / 363 tests passes. SEC/context/monitor 65 tests,
+Workspace/API atomic closure 42 tests and final focused atomic/adapter 153 tests
+pass. Root, UI and CLI typechecks pass. After narrowing the atomic writer to runtime
+settings alone, the final full suite passed all 880 files: 7,753 tests passed,
+4 skipped and zero failures in 385.51 seconds.
+
+Live readonly acceptance: TSLA and MSTR each refreshed three times at
+04:26:54, 04:26:58 and 04:27:01 UTC on Oct16. All six actual scan receipts contain
+healthy current SEC source timestamps and six material filings; completed-bar
+snapshots correctly deduplicate unchanged evidence without rewriting history.
+BTC real scan also succeeds with Coinbase daily/hourly and Deribit. Native
+TSLA run `run-H6ZBshzY` completed successfully; 20 concurrent Issue-detail reads
+returned 200 without partial-JSON errors. After narrowing the atomic writer,
+a second real native TSLA run, `run-9xJ4Frml`, completed with exit code 0 in
+119.827 seconds; another 20 concurrent Issue-detail reads all returned 200.
+Its published feedback matches the current research context.
+
+Final background status: existing native scheduler is running every 15 minutes;
+BTC, TSLA and MSTR remain enabled with no current scan error. The actual TSLA
+dashboard shows healthy SEC status and six filings, then is restored to the
+concise collapsed view. This is current acceptance evidence, not a claim of
+24 hours without any historical interruption; old failure receipts remain.
+
+All four owner-file byte fingerprints and 198 existing immutable market/research
+records are preserved. Only the related unchanged Codex adapter is included; the
+three unrelated owner edits remain unstaged. The staged delivery passes diff
+and secret-material checks. Synchronization uses the owned repository and
+feature branch with an expected-head lease; no upstream or trading action.

@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -21,6 +21,25 @@ async function fixture(): Promise<string> {
 }
 
 describe('Workspace runtime settings', () => {
+  it('keeps launch-policy reads valid while concurrent sessions publish recent settings', async () => {
+    const dir = await fixture()
+    try {
+      await writeWorkspaceRuntimeSettings(dir, emptyWorkspaceRuntimeSettings())
+      const writes = Array.from({ length: 20 }, (_, index) => {
+        const settings = emptyWorkspaceRuntimeSettings()
+        settings.runtime.headless.recent = {
+          agent: 'codex', agents: { codex: { accessMode: 'native', model: `test-model-${index}` } },
+        }
+        return writeWorkspaceRuntimeSettings(dir, settings)
+      })
+      const reads = Array.from({ length: 8 }, async () => {
+        for (let i = 0; i < 20; i++) expect((await readWorkspaceRuntimeSettings(dir)).ok).toBe(true)
+      })
+      await Promise.all([...writes, ...reads])
+      const final = await readWorkspaceRuntimeSettings(dir)
+      expect(final).toMatchObject({ ok: true, settings: { version: 3, runtime: { headless: { recent: { agent: 'codex' } } } } })
+    } finally { await rm(dir, { recursive: true, force: true }) }
+  })
   it('round-trips secret-free fixed defaults and recent fallbacks by scenario', async () => {
     const dir = await fixture()
     const settings = emptyWorkspaceRuntimeSettings()

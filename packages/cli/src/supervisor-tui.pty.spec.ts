@@ -1122,8 +1122,10 @@ describe.skipIf(process.platform === 'win32')('Supervisor TUI PTY', () => {
 
     expect(stripSgr(transcript)).toContain('│ › [ Enter ]')
     expect(stripSgr(transcript)).toContain('HOME MISSING')
+    expect(stripSgr(transcript)).toContain('Inbox  clear')
     expect(transcript).toContain('Opened the verified Web')
     expect(transcript).toContain('FIXTURE_RESULT starts=0 opens=1')
+    expect(transcript).toContain('unexpectedFetches=0')
     expect(transcript).toContain('\u001b[?25h')
     expect(transcript).toContain('\u001b[?2004l')
   }, 12_000)
@@ -2206,6 +2208,7 @@ describe.skipIf(process.platform === 'win32')('Supervisor TUI PTY', () => {
     expect(plain).toContain('◇  Tip: No Runtime events in this lens')
     expect(plain).toContain('╰─ [ / ] Commands  ›  [ q ] Detach')
     expect(plain).toContain('FIXTURE_RESULT starts=0 opens=0 loads=2')
+    expect(plain).toContain('unexpectedFetches=0')
     expect(transcript).toContain('\u001b[?25h')
     expect(transcript).toContain('\u001b[?2004l')
     expect(transcript).toContain('\u001b[?1006l')

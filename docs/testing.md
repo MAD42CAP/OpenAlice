@@ -166,3 +166,14 @@ acceptance.
 Do not create a new Vitest project merely to obtain a product label. Add or
 change execution environments only when isolation or runtime behavior actually
 requires one.
+
+
+## Supervisor PTY fixture isolation
+
+Supervisor launchpad PTY fixtures always inject empty or configured Inbox
+responses, read-state mutations and health probes. Zero unread reports is an
+explicit fixture response, never permission to fall through to the real local
+Runtime. State and diagnostic paths use the isolated test home, and any
+unexpected fetch makes the fixture fail. Pointer and tiny-terminal assertions
+therefore verify the intended UI without depending on a developer's live
+reports, network or configured account state.

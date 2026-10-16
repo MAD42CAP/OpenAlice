@@ -1,3 +1,5 @@
+import { join } from 'node:path'
+
 import { resolveLaunchContext } from '../launch-context.ts'
 import type { MachineFleetEnvelope, MachineInventory } from '../machine-inventory.ts'
 import { runSupervisorTui } from '../supervisor-tui.ts'
@@ -17,10 +19,23 @@ const healthFlap = process.env['OPENALICE_TUI_FIXTURE_HEALTH'] === 'flap'
 const fleetRows = Number(process.env['OPENALICE_TUI_FIXTURE_FLEET_ROWS'] ?? 0)
 const inboxUnread = Number(process.env['OPENALICE_TUI_FIXTURE_INBOX_UNREAD'] ?? 0)
 const fleet = fleetRows > 0 ? fixtureFleet(fleetRows, remote) : undefined
+const fixtureHome = process.env['OPENALICE_HOME']
+if (!fixtureHome) throw new Error('The PTY fixture requires an isolated OPENALICE_HOME.')
+const fixtureEnv = {
+  ...process.env,
+  OPENALICE_SUPERVISOR_HOME: join(fixtureHome, 'supervisor'),
+}
+let unexpectedFetches = 0
+// A missed dependency must fail the fixture instead of contacting a real Runtime.
+globalThis.fetch = async () => {
+  unexpectedFetches += 1
+  throw new Error('Network access is forbidden in the Supervisor PTY fixture.')
+}
 
 const exitCode = await runSupervisorTui({}, {
-  env: process.env,
+  env: fixtureEnv,
   resolveContext: () => resolveLaunchContext({
+    env: fixtureEnv,
     cwd: process.cwd(),
     homeDir: '/fixture',
     flags: { project: 'default', home: '/fixture/default' },
@@ -45,6 +60,25 @@ const exitCode = await runSupervisorTui({}, {
     running = true
   },
   open: async () => { opens += 1 },
+  probeTarget: async () => true,
+  readInbox: async (endpoint: string) => ({
+    endpoint,
+    refreshedAt: Date.now(),
+    hasMore: false,
+    entries: Array.from({ length: inboxUnread }, (_, index) => ({
+      id: `fixture-inbox-${index + 1}`,
+      ts: Date.now() - index * 60_000,
+      workspaceId: `fixture-workspace-${index + 1}`,
+      workspaceLabel: index === 0 ? 'Morning research' : `Workspace ${index + 1}`,
+      comments: index === 0
+        ? 'Agent report is ready for review.'
+        : `Fixture report ${index + 1} is ready.`,
+      origin: { kind: 'headless' as const, agent: 'fixture-agent' },
+    })),
+  }),
+  setInboxRead: async (_endpoint: string, _id: string, read: boolean) => (
+    read ? Date.now() : undefined
+  ),
   readLogs: async () => {
     loads += 1
     return { entries: [] }
@@ -103,33 +137,11 @@ const exitCode = await runSupervisorTui({}, {
       }
     : {}),
   discoverUpdate: async () => null,
-  ...(inboxUnread > 0
-    ? {
-        readInbox: async (endpoint: string) => ({
-          endpoint,
-          refreshedAt: Date.now(),
-          hasMore: false,
-          entries: Array.from({ length: inboxUnread }, (_, index) => ({
-            id: `fixture-inbox-${index + 1}`,
-            ts: Date.now() - index * 60_000,
-            workspaceId: `fixture-workspace-${index + 1}`,
-            workspaceLabel: index === 0 ? 'Morning research' : `Workspace ${index + 1}`,
-            comments: index === 0
-              ? 'Agent report is ready for review.'
-              : `Fixture report ${index + 1} is ready.`,
-            origin: { kind: 'headless' as const, agent: 'fixture-agent' },
-          })),
-        }),
-        setInboxRead: async (_endpoint: string, _id: string, read: boolean) => (
-          read ? Date.now() : undefined
-        ),
-      }
-    : {}),
   pollIntervalMs: 60_000,
 })
 
-process.stdout.write(`\nFIXTURE_RESULT starts=${starts} opens=${opens} loads=${loads} diagnoses=${diagnoses} disconnects=${disconnects} probes=${probes}\n`)
-process.exitCode = exitCode
+process.stdout.write(`\nFIXTURE_RESULT starts=${starts} opens=${opens} loads=${loads} diagnoses=${diagnoses} disconnects=${disconnects} probes=${probes} unexpectedFetches=${unexpectedFetches}\n`)
+process.exitCode = unexpectedFetches === 0 ? exitCode : 1
 
 function fixtureFleet(projectCount: number, includeRemote = false): MachineFleetEnvelope {
   return {

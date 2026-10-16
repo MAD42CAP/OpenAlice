@@ -6,7 +6,7 @@ import type {
   ResolvedSessionRuntimeBinding,
   SessionRuntimeBinding,
 } from './cli-adapter.js'
-import { readWorkspaceFile, writeWorkspaceFile } from './file-service.js'
+import { readWorkspaceFile, writeWorkspaceFileAtomically } from './file-service.js'
 import type { SessionRuntimeSelection } from './session-runtime-binding.js'
 
 export const WORKSPACE_RUNTIME_SETTINGS_REL = '.alice/settings.json'
@@ -111,7 +111,7 @@ export async function writeWorkspaceRuntimeSettings(
   settings: WorkspaceRuntimeSettings,
 ): Promise<WorkspaceRuntimeSettings> {
   const parsed = workspaceRuntimeSettingsSchema.parse(settings)
-  await writeWorkspaceFile(wsDir, WORKSPACE_RUNTIME_SETTINGS_REL, `${JSON.stringify(parsed, null, 2)}\n`)
+  await writeWorkspaceFileAtomically(wsDir, WORKSPACE_RUNTIME_SETTINGS_REL, `${JSON.stringify(parsed, null, 2)}\n`)
   return parsed
 }
 

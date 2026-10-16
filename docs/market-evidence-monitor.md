@@ -52,13 +52,30 @@ correction clears the previous declaration cooldown.
 
 `sec-edgar.ts` owns that request policy and filing validation. Both equity
 sources share a request-start queue capped at one request per second, and
-concurrent reads for the same company share one request. HTTP 403 pauses SEC
-access for at least 15 minutes; other HTTP failures pause it for at least one
-minute. A longer Retry-After is honored. Requests time out after ten seconds,
-and redirects are rejected so the contact is sent only to the configured SEC
-host. Error bodies and raw transport messages are not persisted. HTTP 200 is
-healthy only with valid filing columns and a matching company identity when
-provided. A valid empty filing list is distinct from malformed data.
+concurrent reads for the same company share one refresh. A refresh has a
+12.5-second total budget, at most two attempts, and a six-second limit per
+attempt. Transient transport failures, timeouts, 5xx and truncated JSON can
+recover through one bounded retry on that same shared queue. Invalid filing
+schemas, mismatched companies and ordinary non-transient 4xx are not retried.
+HTTP 403 always pauses SEC access for at least 15 minutes; it is never retried
+within that refresh. HTTP 429 is retried only with an explicit Retry-After that
+fits the remaining budget; otherwise it pauses for at least one minute.
+Exhausted transient errors also cool down for at least one minute, and longer
+Retry-After values are honored. A concurrent failure cannot shorten a stronger
+restriction.
+
+An outer deadline also bounds body parsing or a transport that ignores abort.
+The refresh returns unavailable promptly, rejects any late success, and keeps
+an unsettled request tracked so another scan cannot overlap it. A later scan
+reports that pending state explicitly; settlement releases ownership and normal
+cooldown recovery resumes. Timeouts, transport errors, truncated/invalid JSON
+and schema errors have distinct safe diagnostics; both attempt causes remain
+visible if recovery fails. Redirects are rejected so the contact is sent only
+to the configured SEC host. Error bodies and raw transport messages are never
+persisted. HTTP 200 is healthy only with valid filing columns and a matching
+company identity when provided. A valid empty filing list is distinct from
+malformed data. Existing reference retention never renews timestamps on failure
+or promotes retained filings into current confirmation.
 
 An undeclared-tool 403 identifies SEC's automated-access rejection; it does not
 prove that changing the declaration alone will remove a network-address block.
