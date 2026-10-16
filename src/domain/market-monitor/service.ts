@@ -57,6 +57,7 @@ export interface MarketMonitorServiceDeps {
   store?: MarketMonitorStore
   fetcher?: MarketMonitorFetch
   officialEarningsReader?: MarketContextProviderDeps['officialEarningsReader']
+  reviewedEarnings?: MarketContextProviderDeps['reviewedEarnings']
   secContactEmail?: () => Promise<string | null>
   strategyRegistry?: MarketMonitorStrategyRegistry
   contextProviderRegistry?: MarketContextProviderRegistry
@@ -190,6 +191,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
     ...(deps.newsProvider ? { newsProvider: deps.newsProvider } : {}),
     ...(deps.fetcher ? { fetcher: deps.fetcher } : {}),
     ...(deps.officialEarningsReader ? { officialEarningsReader: deps.officialEarningsReader } : {}),
+    ...(deps.reviewedEarnings ? { reviewedEarnings: deps.reviewedEarnings } : {}),
     ...(deps.secContactEmail ? { secContactEmail: deps.secContactEmail } : {}),
   })
   const loadSettings = async (): Promise<MarketMonitorSettings> => {

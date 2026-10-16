@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createOfficialEarningsReader, isOfficialEarningsSourceUrl, type OfficialEarningsAsset, type OfficialEarningsResult } from './official-earnings.js'
+import { SecEarningsError } from './sec-earnings.js'
 
 const at = new Date('2027-04-10T12:00:00Z')
 const urls = {
@@ -163,5 +164,63 @@ describe('bounded official requests and reviewed public-source recovery', () => 
     expect(direct.verification).toBe('live-official'); expect(callback).not.toHaveBeenCalled()
     const conflict = await createOfficialEarningsReader({ fetcher: responses('TSLA', announcement('TSLA'), listing('TSLA', [{ url: urls.TSLA, date: '2027-04-22' }])), reviewed: callback })('TSLA', at)
     expect(conflict.status).toBe('conflict'); expect(callback).not.toHaveBeenCalled()
+  })
+})
+
+describe('automatic SEC earnings recovery', () => {
+  const sourceUrl = 'https://www.sec.gov/Archives/edgar/data/1318605/000162828027000001/exhibit991.htm'
+  function secEvent(at: Date, overrides: Partial<OfficialEarningsResult> = {}): OfficialEarningsResult {
+    return { ...reviewed(), sourceUrl, publishedAt: '2027-04-02T13:00:00Z', retrievedAt: at.toISOString(), verification: 'live-official', ...overrides }
+  }
+  it('uses current SEC company evidence without reading blocked IR or manual reviewed state', async () => {
+    const fetcher = vi.fn<typeof fetch>(), reviewed = vi.fn(async () => null)
+    const read = createOfficialEarningsReader({ fetcher, reviewed, sec: async (_, at) => secEvent(at) })
+    expect(await read('TSLA', at)).toMatchObject({ sourceUrl, verification: 'live-official', retrievedAt: at.toISOString() })
+    expect(fetcher).not.toHaveBeenCalled(); expect(reviewed).not.toHaveBeenCalled()
+  })
+  it('refreshes automatically beyond 24 hours and preserves cache-hit verification time', async () => {
+    let time = at
+    const fetcher = vi.fn<typeof fetch>(), reviewed = vi.fn(async () => null), sec = vi.fn(async (_asset: OfficialEarningsAsset, at: Date) => secEvent(at))
+    const read = createOfficialEarningsReader({ fetcher, reviewed, sec, now: () => time })
+    const first = await read('TSLA', time)
+    time = new Date(at.getTime() + 4 * 3_600_000)
+    expect((await read('TSLA', time)).retrievedAt).toBe(first.retrievedAt)
+    time = new Date(at.getTime() + 25 * 3_600_000)
+    expect(await read('TSLA', time)).toMatchObject({ date: '2027-04-21', verification: 'live-official', retrievedAt: time.toISOString() })
+    expect(sec).toHaveBeenCalledTimes(2); expect(fetcher).not.toHaveBeenCalled(); expect(reviewed).not.toHaveBeenCalled()
+  })
+  it.each(['conflict', 'unannounced'] as const)('does not overwrite a verified SEC %s with a convenient older date', async status => {
+    const fetcher = responses('TSLA'), fallback = vi.fn(async () => reviewed())
+    const result = await createOfficialEarningsReader({ fetcher, reviewed: fallback,
+      sec: async (_, at) => secEvent(at, { status, date: null, timing: 'unknown', webcastAt: null }) })('TSLA', at)
+    expect(result.status).toBe(status); expect(result.date).toBeNull()
+    expect(fetcher).not.toHaveBeenCalled(); expect(fallback).not.toHaveBeenCalled()
+  })
+  it('recovers a failed SEC read through direct IR while preserving manual evidence time if both fail', async () => {
+    const sec = vi.fn(async () => { throw new Error('unexpected upstream transport text') })
+    expect((await createOfficialEarningsReader({ sec, fetcher: responses('TSLA') })('TSLA', at)).sourceUrl).toBe(urls.TSLA)
+    const record = reviewed()
+    const result = await createOfficialEarningsReader({ sec, fetcher: vi.fn(async () => new Response('', { status: 403 })), reviewed: async () => record })('TSLA', at)
+    expect(result.retrievedAt).toBe(record.retrievedAt)
+    expect(result.detail).toContain('SEC earnings verification unavailable.'); expect(result.detail).toContain('HTTP 403')
+    expect(result.detail).not.toContain('unexpected upstream')
+  })
+  it('does not call the Tesla SEC reader for MSTR', async () => {
+    const sec = vi.fn()
+    expect((await createOfficialEarningsReader({ sec, fetcher: responses('MSTR') })('MSTR', at)).date).toBe('2027-04-21')
+    expect(sec).not.toHaveBeenCalled()
+  })
+  it('never revives an older reviewed date when current SEC coverage is incomplete', async () => {
+    const fetcher = responses('TSLA'), fallback = vi.fn(async () => reviewed())
+    const sec = async () => { throw new SecEarningsError('incomplete', true) }
+    await expect(createOfficialEarningsReader({ sec, fetcher, reviewed: fallback })('TSLA', at)).rejects.toThrow('SEC earnings')
+    expect(fetcher).not.toHaveBeenCalled(); expect(fallback).not.toHaveBeenCalled()
+  })
+  it('cannot renew expired reviewed evidence after a failed automatic refresh', async () => {
+    const record = reviewed(), originalTime = record.retrievedAt
+    const fetcher = vi.fn<typeof fetch>(async () => new Response('', { status: 403 }))
+    const sec = async () => { throw new SecEarningsError('unavailable') }
+    await expect(createOfficialEarningsReader({sec, fetcher, reviewed: async () => record})('TSLA', new Date(at.getTime() + 25 * 3_600_000))).rejects.toThrow('HTTP 403')
+    expect(record.retrievedAt).toBe(originalTime)
   })
 })

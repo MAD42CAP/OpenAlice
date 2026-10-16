@@ -1547,3 +1547,71 @@ passes all six. Reader 41 and reviewed-store 34 targeted cases also pass.
 No local event-state files or raw credentials are included in Git; only
 implementation, synthetic fixtures/tests and subsystem documentation ship.
 Owned origin and local base both equal b2b4eacf before the checked-head update.
+
+## Automatic Tesla SEC earnings verification (2026-10-16)
+
+Owner request: remove the manual 24-hour renewal dependency for TSLA earnings,
+using a reliable automatic source and real readonly verification. Tesla IR
+continues to reject Node requests. The public SEC submissions, 8-K primary
+report and linked company Exhibit 99.1 all load successfully on this Mac.
+
+Selected interaction: retain the existing single date/timing line. Keep the
+actual official source and verification time in the existing closed disclosure;
+no additional dashboard panels or settings. SEC evidence is labelled as SEC
+company disclosure, not direct access to the Tesla IR website.
+
+- [x] Share SEC declaration, paced queue, cooldown and in-flight request ownership
+  between filing metadata and the earnings verification chain.
+- [x] Discover current company filings and actual exhibit links; parse the issuer's
+  explicit release date with publication/availability and content provenance.
+- [x] Refresh genuine official verification after cache expiry; preserve fixed
+  reviewed evidence age on failures and reject incomplete/conflicting coverage.
+- [x] Verify automatic source with reviewed evidence disabled, repeated real reads,
+  actual stock scans, judgment/native propagation, replay and browser.
+- [x] Pass required regression/types, preserve history and owner changes, and
+  synchronize only the owned feature branch.
+
+
+Implemented source/queue boundary: SEC only supports fixed issuer/archive
+identities, preserves the existing private declaration internally, coalesces
+metadata and earnings reads, shares one paced queue/cooldown and bounds body,
+per-request and complete-chain time. The earnings reader scans newest-first
+through the latest usable financial-results disclosure; every newer filing and
+all linked 99-series exhibits encountered must be covered. Older immutable
+filings cannot supersede that latest announcement. Withdrawals, contradictory
+attachments and incomplete traversal block a convenient older-date fallback.
+
+Frozen-source focused checks: 33 SEC earnings cases, 52 SEC transport/legacy
+cases and 114 related context/cache/judgment/native-evidence cases pass. Root
+and UI typechecks exit 0. Two independent fresh real readers, with reviewed
+fallback explicitly disabled, each complete the three SEC requests in about
+2.2 seconds and confirm TSLA 2026-10-21 after close. Co-running filing metadata
+shares the same submissions request. Neither run reads manual reviewed state.
+
+The restored real platform scans both stocks successfully. TSLA is now
+live-official from the actual SEC company attachment, with current retrieval
+identity and SEC acceptance publication time. MSTR remains live-official from
+Strategy's official release directory. Both original and new stock archives
+replay as verified. The actual browser shows one concise verified date line,
+short-term earnings-near abstention, and the actual SEC link/time inside the
+existing disclosure. Disclosure is restored closed. Both native equity-v2 jobs finish successfully against the new frozen stock
+snapshots, with their exact earnings date, official URL and source timestamps
+in the published observation. Active forward ledgers retain zero invalid
+records for both stocks.
+
+The first sandboxed full-suite attempt could not bind local test servers
+(confirmed listen EPERM); it was stopped without changing source. The complete
+suite is rerunning with local test-port permission. No installer or production
+account connection is part of this hermetic run.
+
+
+Final frozen-source regression: 888 files, 8,021 passing tests, four existing
+skipped and zero failures (460.53 seconds). Root and UI delivery typechecks
+exit 0. All 14 production/spec TypeScript fingerprints match the source freeze.
+Both real stock scans, native publications, source provenance, original/new
+replays and active forward-record integrity pass. The actual browser remains
+simple, with source details closed; the platform is restored in readonly mode.
+The final staged audit preserves all 3,846 original immutable public records
+and all three unrelated owner-file byte fingerprints. No real credential,
+private contact or local public-event state is included in delivery. Only the
+owned feature branch is synchronized with a checked expected-head lease.

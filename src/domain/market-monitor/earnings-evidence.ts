@@ -1,4 +1,5 @@
 import { reviewSessionDate } from './review.js'
+import { isOfficialEarningsSourceUrl } from './official-earnings.js'
 import type { MarketEarningsEvent, MarketMonitorSnapshot } from './types.js'
 
 /** New event records carry their own source identity; unrelated news or SEC
@@ -17,11 +18,6 @@ export function currentOfficialEarnings(snapshot: MarketMonitorSnapshot, at: Dat
   if (!Number.isFinite(retrieved) || !Number.isFinite(at.getTime()) || retrieved > at.getTime() || retrieved > captured
     || at.getTime() - retrieved > 86_400_000 || source.asOf !== event.retrievedAt
     || !event.publishedAt || !Number.isFinite(Date.parse(event.publishedAt)) || Date.parse(event.publishedAt) > retrieved) return null
-  try {
-    const url = new URL(event.sourceUrl ?? '')
-    const allowed = snapshot.asset === 'TSLA' ? url.origin === 'https://ir.tesla.com' && url.pathname.startsWith('/press-release/')
-      : url.origin === 'https://www.strategy.com' && url.pathname.startsWith('/press/')
-    if (!allowed || url.username || url.password || url.search || url.hash) return null
-  } catch { return null }
+  if (!isOfficialEarningsSourceUrl(snapshot.asset, event.sourceUrl ?? '')) return null
   return event
 }

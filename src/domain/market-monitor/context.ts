@@ -1,6 +1,8 @@
 import { reviewSessionDate } from './review.js'
 import { createOfficialEarningsReader, type OfficialEarningsResult } from './official-earnings.js'
 import { createSecEdgarContext } from './sec-edgar.js'
+import { createSecEdgarTransport, isSecEdgarArchiveUrl } from './sec-edgar-transport.js'
+import { createSecEarningsReader, SecEarningsError } from './sec-earnings.js'
 import { contextReadFailure, createContextReader } from './context-read.js'
 import { safeMarketDataError } from '../market-data/bars/safe-error.js'
 import type { EquityClientLike } from '../market-data/client/types.js'
@@ -34,6 +36,7 @@ export interface MarketContextProviderDeps {
   fetcher?: MarketMonitorFetch
   secContactEmail?: () => Promise<string | null>
   officialEarningsReader?: (asset: 'TSLA' | 'MSTR', at: Date) => Promise<OfficialEarningsResult>
+  reviewedEarnings?: (asset: 'TSLA' | 'MSTR', at: Date) => Promise<OfficialEarningsResult | null>
 }
 
 export class MarketContextProviderRegistry {
@@ -198,7 +201,7 @@ async function equityContext(
   const officialCurrent = officialResult?.asset === asset && Number.isFinite(officialTime) && officialTime <= at.getTime() && at.getTime() - officialTime <= 86_400_000
     && (publicationTime === null || Number.isFinite(publicationTime) && publicationTime <= officialTime)
     && (officialResult.status !== 'confirmed' || Boolean(validOfficialDate))
-  const officialFailure = official.status === 'rejected' ? contextReadFailure(official.reason) : 'official response is not current or verifiable'
+  const officialFailure = official.status === 'rejected' ? official.reason instanceof SecEarningsError ? official.reason.message : contextReadFailure(official.reason) : 'official response is not current or verifiable'
   const earningsEvent: MarketEarningsEvent = officialCurrent && officialResult ? { ...officialResult, referenceDate, referenceSource } : {
     asset, status: referenceDate ? 'estimated' : 'unavailable', date: referenceDate, timing: 'unknown', webcastAt: null,
     sourceUrl: null, title: null, publishedAt: null, retrievedAt: referenceOk && Number.isFinite(referenceTime) ? calendar.status === 'fulfilled' ? calendar.value.meta.asOf : at.toISOString() : at.toISOString(),
@@ -247,7 +250,8 @@ async function equityContext(
       detail: `${confirmedEarnings ? 'Earnings date available from official announcement' : 'No confirmed official earnings date'}; ${newsOk ? `${newsRows.length} recent matching stories` : deps.newsProvider ? describe('news', news, false) : 'news: collector not configured'}. ${referenceDetail}.` },
     { id: `${sourceId}-earnings`, label: `${asset} official earnings announcement`,
       status: officialLoaded ? 'ok' : earningsEvent.status === 'conflict' || earningsEvent.status === 'estimated' ? 'degraded' : 'unavailable',
-      provider: asset === 'TSLA' ? 'Tesla Investor Relations' : 'Strategy Investor Relations',
+      provider: asset === 'TSLA' && isSecEdgarArchiveUrl(asset, earningsEvent.sourceUrl ?? '') ? 'SEC EDGAR — Tesla official announcement'
+        : asset === 'TSLA' ? 'Tesla Investor Relations' : 'Strategy Investor Relations',
       asOf: officialCurrent ? earningsEvent.retrievedAt : null,
       failedFields: officialCurrent ? [] : ['nextEarningsAt', 'earningsEvent'],
       detail: `${officialCurrent ? earningsEvent.detail : `Official earnings: ${officialFailure}`}. ${referenceDetail}.` },
@@ -257,8 +261,10 @@ async function equityContext(
 export function createDefaultMarketContextProviderRegistry(deps: MarketContextProviderDeps): MarketContextProviderRegistry {
   const fetcher = deps.fetcher ?? fetch
   const read = createContextReader()
-  const officialEarnings = deps.officialEarningsReader ?? createOfficialEarningsReader({ fetcher })
-  const secEdgarContext = createSecEdgarContext({ fetcher, contactEmail: deps.secContactEmail })
+  const secTransport = createSecEdgarTransport({ fetcher, contactEmail: deps.secContactEmail })
+  const officialEarnings = deps.officialEarningsReader ?? createOfficialEarningsReader({ fetcher,
+    sec: createSecEarningsReader({ transport: secTransport }), reviewed: deps.reviewedEarnings })
+  const secEdgarContext = createSecEdgarContext({ transport: secTransport })
   return new MarketContextProviderRegistry([
     {
       manifest: { id: 'deribit-btc-v1', label: 'BTC derivatives', assets: ['BTC'], description: 'Deribit public futures, perpetual and options summaries.' },

@@ -34,3 +34,17 @@ it('keeps fixed verification time and rejects expired, future and already-passed
   expect(currentOfficialEarnings(s, new Date(s.capturedAt))).toBeNull()
   expect(before.context.earningsEvent!.retrievedAt).toBe(before.capturedAt)
 })
+
+it('accepts only the correct-company SEC archive as automatic official earnings evidence', () => {
+  const s = fixture()
+  s.context.earningsEvent!.sourceUrl = 'https://www.sec.gov/Archives/edgar/data/1318605/000162828026064366/exhibit991111111.htm'
+  s.context.earningsEvent!.verification = 'live-official'
+  expect(currentOfficialEarnings(s, new Date(s.capturedAt))?.verification).toBe('live-official')
+  for (const url of [
+    'https://www.sec.gov/Archives/edgar/data/1050446/000162828026064366/exhibit991111111.htm',
+    'https://www.sec.gov/Archives/edgar/data/1318605/000162828026064366/../secret.htm',
+    'https://www.sec.gov/Archives/edgar/data/1318605/000162828026064366/exhibit991111111.htm?token=synthetic',
+    'https://www.sec.gov.evil.test/Archives/edgar/data/1318605/000162828026064366/exhibit991111111.htm',
+    'https://operator:synthetic@www.sec.gov/Archives/edgar/data/1318605/000162828026064366/exhibit991111111.htm',
+  ]) { s.context.earningsEvent!.sourceUrl = url; expect(currentOfficialEarnings(s, new Date(s.capturedAt))).toBeNull() }
+})

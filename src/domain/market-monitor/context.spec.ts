@@ -4,6 +4,7 @@ import type { EquityClientLike } from '../market-data/client/types.js'
 import type { ReferenceDataService } from '../market-data/reference/types.js'
 import type { OfficialEarningsResult } from './official-earnings.js'
 import { currentOfficialEarnings } from './earnings-evidence.js'
+import { SecEarningsError } from './sec-earnings.js'
 import { judgmentSnapshot } from './judgment.fixture.js'
 
 
@@ -238,4 +239,22 @@ describe('independent official earnings context', () => {
     expect(result.context.earningsEvent?.status).toBe('unavailable')
     expect(result.health.find(source => source.id === 'tsla-earnings')?.status).toBe('unavailable')
   })
+})
+
+it('attributes a current SEC earnings exhibit correctly through context and the judgment guard', async () => {
+  const sourceUrl = 'https://www.sec.gov/Archives/edgar/data/1318605/000162828026064366/exhibit991111111.htm'
+  const result = await earningsContext({ official: async (asset, at) => officialEvent(asset, at, {
+    status: 'confirmed', date: '2026-10-21', timing: 'after-close', sourceUrl, publishedAt: '2026-10-02T13:04:26Z',
+  }) })
+  expect(result.health.find(s => s.id === 'tsla-earnings')).toMatchObject({ status: 'ok', provider: 'SEC EDGAR — Tesla official announcement' })
+  const snapshot = { ...judgmentSnapshot(), asset: 'TSLA' as const, capturedAt: '2026-10-07T12:00:00Z', context: result.context, sourceHealth: result.health }
+  expect(currentOfficialEarnings(snapshot, new Date(snapshot.capturedAt))).toMatchObject({ sourceUrl, date: '2026-10-21' })
+})
+
+it('keeps incomplete SEC earnings verification explicit without promoting a generic calendar estimate', async () => {
+  const result = await earningsContext({ official: async () => { throw new SecEarningsError('incomplete', true) },
+    calendar: { earnings: [{ symbol: 'TSLA', report_date: '2026-10-21' }], meta: { provider: 'fmp', asOf: '2026-10-07T12:00:00Z' } } })
+  expect(result.context.nextEarningsAt).toBeNull()
+  expect(result.context.earningsEvent).toMatchObject({ status: 'estimated', verification: null })
+  expect(result.health.find(s => s.id === 'tsla-earnings')?.detail).toContain('SEC earnings coverage is incomplete')
 })

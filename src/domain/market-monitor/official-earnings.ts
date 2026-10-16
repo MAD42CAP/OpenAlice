@@ -1,4 +1,6 @@
 import { createHash } from 'node:crypto'
+import { isSecEdgarArchiveUrl, SecEdgarError } from './sec-edgar-transport.js'
+import { SecEarningsError } from './sec-earnings.js'
 
 export type OfficialEarningsAsset = 'TSLA' | 'MSTR'
 export interface OfficialEarningsResult {
@@ -60,7 +62,7 @@ function canonical(asset: OfficialEarningsAsset, href: string, index = false): s
     return allowed ? url.href : null
   } catch { return null }
 }
-export const isOfficialEarningsSourceUrl = (asset: OfficialEarningsAsset, url: string): boolean => canonical(asset, url) !== null
+export const isOfficialEarningsSourceUrl = (asset: OfficialEarningsAsset, url: string): boolean => canonical(asset, url) === url || asset === 'TSLA' && isSecEdgarArchiveUrl(asset, url)
 interface Candidate { url: string; title: string; tableDate: string | null }
 function links(html: string, asset: OfficialEarningsAsset): Candidate[] {
   return [...html.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a\s*>/gi)].flatMap(match => {
@@ -160,6 +162,8 @@ export function createOfficialEarningsReader(options: {
   fetcher?: typeof fetch
   now?: () => Date
   reviewed?: (asset: OfficialEarningsAsset, at: Date) => Promise<OfficialEarningsResult | null>
+  /** Uses the same SEC transport as the filings provider, including its cooldown. */
+  sec?: (asset: OfficialEarningsAsset, at: Date) => Promise<OfficialEarningsResult>
 } = {}) {
   const fetcher = options.fetcher ?? fetch, now = options.now ?? (() => new Date())
   const cache = new Map<OfficialEarningsAsset, { savedAt: number; result: OfficialEarningsResult }>()
@@ -213,12 +217,26 @@ export function createOfficialEarningsReader(options: {
     && ['after-close', 'before-open', 'unknown'].includes(result.timing)
     && (result.webcastAt === null || Number.isFinite(Date.parse(result.webcastAt)) && result.webcastAt.slice(0, 10) >= result.date))
   const load = async (asset: OfficialEarningsAsset, at: Date): Promise<OfficialEarningsResult> => {
+    const deadline = Date.now() + (asset === 'TSLA' && options.sec ? 12_000 : TIMEOUT)
+    let secFailure: string | null = null
+    if (asset === 'TSLA' && options.sec) {
+      try {
+        // A verified conflict/unannounced result is authoritative. A failed SEC
+        // read may recover through IR; neither failure renews reviewed evidence.
+        return await options.sec(asset, at)
+      } catch (error) {
+        if (error instanceof SecEarningsError && error.blocksFallback) throw error
+        // Only transport/parser summaries cross this boundary, never raw bodies.
+        secFailure = error instanceof SecEarningsError || error instanceof SecEdgarError
+          ? error.message : 'SEC earnings verification unavailable.'
+      }
+    }
     try {
-      const deadline = Date.now() + TIMEOUT
-      const index = await fetchHtml(INDEX[asset], asset, true, deadline), candidates = discover(index, asset)
+      const irDeadline = Math.min(deadline, Date.now() + TIMEOUT)
+      const index = await fetchHtml(INDEX[asset], asset, true, irDeadline), candidates = discover(index, asset)
       const announcements: Announcement[] = []
       for (const candidate of candidates) {
-        const announcement = parseAnnouncement(await fetchHtml(candidate.url, asset, false, deadline), candidate, asset, at)
+        const announcement = parseAnnouncement(await fetchHtml(candidate.url, asset, false, irDeadline), candidate, asset, at)
         if (announcement) announcements.push(announcement)
       }
       const clean = (announcement: Announcement): OfficialEarningsResult => { const { period: _, revised: __, ...result } = announcement; return result }
@@ -236,21 +254,22 @@ export function createOfficialEarningsReader(options: {
       }
       return { asset, status: 'unannounced', date: null, timing: 'unknown', webcastAt: null, sourceUrl: INDEX[asset], title: asset === 'TSLA' ? 'Tesla official investor-relations earnings table' : 'Strategy official press listing', publishedAt: null, retrievedAt: at.toISOString(), contentHash: hash(inertHtml(index)), verification: 'live-official', detail: 'The verified official listing contains no usable upcoming financial-results announcement; this does not mean event risk is absent.' }
     } catch (error) {
-      const cause = error instanceof OfficialEarningsError ? error.message : failure('network or response failure.').message
+      const irFailure = error instanceof OfficialEarningsError ? error.message : failure('network or response failure.').message
+      const cause = secFailure ? `${secFailure} ${irFailure}` : irFailure
       let reviewed: OfficialEarningsResult | null = null
       try { reviewed = await options.reviewed?.(asset, at) ?? null } catch { /* A local public-evidence read failure cannot expose file contents. */ }
       if (validReviewed(reviewed, asset, at)) return { ...structuredClone(reviewed), detail: `${cause} Using a still-current research-reviewed official announcement; its original retrieval time is preserved.` }
-      throw error instanceof OfficialEarningsError ? error : failure('network or response failure.')
+      throw new OfficialEarningsError(cause)
     }
   }
   return async (asset: OfficialEarningsAsset, at: Date): Promise<OfficialEarningsResult> => {
     if (!['TSLA', 'MSTR'].includes(asset) || !Number.isFinite(at.getTime())) throw failure('asset or evidence-capture time is invalid.')
     const cached = cache.get(asset)
-    if (cached && now().getTime() - cached.savedAt < CACHE_MS && Date.parse(cached.result.retrievedAt) <= at.getTime()
+    if (cached && now().getTime() >= cached.savedAt && now().getTime() - cached.savedAt < CACHE_MS && Date.parse(cached.result.retrievedAt) <= at.getTime()
       && (!cached.result.date || cached.result.date >= sessionDay(at)) && at.getTime() - Date.parse(cached.result.retrievedAt) <= REVIEW_TTL) return structuredClone(cached.result)
     if (pending.has(asset)) {
       const result = await pending.get(asset)!
-      if (Date.parse(result.retrievedAt) <= at.getTime() && (!result.date || result.date >= sessionDay(at))) return structuredClone(result)
+      if (Date.parse(result.retrievedAt) <= at.getTime() && at.getTime() - Date.parse(result.retrievedAt) <= REVIEW_TTL && (!result.date || result.date >= sessionDay(at))) return structuredClone(result)
     }
     const work = load(asset, at)
     pending.set(asset, work)

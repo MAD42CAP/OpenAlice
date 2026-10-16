@@ -1489,8 +1489,9 @@ verification time and content hash remain visible. Reviewed confirmation lasts
 no more than 24 hours and never after its event session. An HTTP failure does
 not renew that time. Latest damaged/conflicting records fail closed rather
 than reviving an older convenient record. There is no new HTTP write endpoint.
-If direct official access remains restricted after expiry, event risk returns
-to unknown until new trustworthy verification is available.
+If every configured automatic official source remains unavailable after expiry,
+event risk returns to unknown until new trustworthy verification is available.
+TSLA now also uses the automatic SEC verification path described below.
 
 A separate `*-earnings` source owns confirmation, independent of `*-calendar-news`
 and SEC. General provider dates are estimates; `errors.earnings`, stale data
@@ -1516,3 +1517,58 @@ MSTR schedules 2026-10-29 after close, per
 Actual Node reads reach Strategy; Tesla IR returns 403, so its current record
 uses independently reviewed official evidence with the original fixed time.
 Webcast times are recorded separately as 17:30/17:00 America/New_York.
+
+
+## Automatic Tesla SEC earnings verification
+
+Tesla's IR site can reject automated requests even while the announcement is
+publicly readable. TSLA therefore prefers a current SEC company-disclosure
+verification: load the fixed company submissions feed, traverse newer 8-K/8-K/A
+primary reports, and follow their real public announcement exhibit links.
+The chain uses the existing private SEC client declaration internally, needs
+no new paid calendar key, and never exposes that declaration in public data.
+Strategy retains its working direct official directory/announcement reader.
+
+`sec-edgar-transport.ts` is shared by filing metadata and earnings verification
+inside the default context registry. It owns the one-request-per-second start
+queue, the strongest active 403/429 cooldown, URL-level in-flight deduplication,
+fixed issuer/archive identities, redirect rejection, bounded documents and
+request deadlines. A shorter coalesced caller keeps its own deadline without
+abandoning ownership of an upstream request that ignores cancellation.
+
+`sec-earnings.ts` reads actual SEC div/table announcement text without executing
+page scripts. It separates the financial reporting quarter, release session
+and webcast time, preserves the SEC acceptance timestamp as evidence availability,
+and records the actual exhibit URL and document hash. Newer relevant reports
+and attachments must be covered before an older date can be confirmed again.
+Conflicts, withdrawals and incomplete coverage fail closed; a convenient older
+reviewed record cannot hide an observed current contradiction.
+
+The existing five-hour earnings cache remains in place. A cache hit retains its
+original verification time. A genuine refresh reads current submissions and
+necessary documents again; it can supply a new official verification time
+without writing or renewing manual reviewed state. The 24-hour validity check
+remains a safeguard for unavailable sources rather than a manual renewal task.
+No release date, accession or exhibit filename is hardcoded in production.
+
+The independent earnings source, judgment guard and native evidence accept only
+the exact issuer's HTTPS SEC archive identity. The provider name identifies SEC
+company disclosure. The main dashboard still has one short earnings date/timing
+line; its existing closed disclosure contains source and verification time.
+Verification resolves calendar uncertainty, never creates a directional vote
+or removes the nearby-earnings short-term caution. Historical archives and old
+forecast scores are not rewritten. SEC coverage proves filed disclosures; a
+website-only announcement not yet filed cannot be guaranteed by SEC alone.
+
+
+2026-10-16 real acceptance: two new reader instances each reread current SEC
+submissions plus the actual primary report and company exhibit in about 2.2
+seconds, with manual reviewed fallback disabled. Both confirm TSLA 2026-10-21
+after close and share the submissions request with filing monitoring. Restored
+platform TSLA/MSTR scans and native equity-v2 publications succeed; original
+and new archives replay as verified, with zero invalid active forward records.
+The real TSLA page shows the verified date, actual SEC source and fresh checking
+time. Simulated cache-expiry coverage exercises automatic refresh beyond 24
+hours; this is not a claim that a full new 24-hour live window has elapsed.
+Full frozen-source regression passes 888 files / 8,021 tests, with four existing
+skipped, and root/UI typechecks both pass.

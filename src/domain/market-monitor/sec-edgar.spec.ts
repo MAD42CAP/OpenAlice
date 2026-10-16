@@ -237,8 +237,9 @@ describe('SEC declared read-only access', () => {
   it('keeps the 403 restriction even when its diagnostic response body never finishes', async () => {
     vi.useFakeTimers(); vi.setSystemTime(at)
     let finishBody: ((value: string) => void) | undefined
-    const denied = new Response('denied', { status: 403 })
-    vi.spyOn(denied, 'text').mockImplementation(() => new Promise(resolve => { finishBody = resolve }))
+    const denied = new Response(new ReadableStream<Uint8Array>({
+      start(controller) { finishBody = value => { controller.enqueue(new TextEncoder().encode(value)); controller.close() } },
+    }), { status: 403 })
     const fetcher = vi.fn(async () => denied)
     const load = createSecEdgarContext({ fetcher, contactEmail: async () => contact })
     const pending = load('TSLA', at)
