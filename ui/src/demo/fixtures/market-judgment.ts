@@ -3,7 +3,7 @@ import type { MonitorAsset } from '../../api/market-monitor'
 import { demoMonitorSnapshot } from './market-monitor'
 
 /** Illustrative display contract; never a live synthesis or predictive record. */
-export function demoMarketJudgment(asset: MonitorAsset, version: 'v1' | 'v2' = 'v1'): MarketJudgmentReport {
+export function demoMarketJudgment(asset: MonitorAsset, version: 'v1' | 'v2' | 'v3' = 'v1'): MarketJudgmentReport {
   const snapshot = demoMonitorSnapshot(asset)
   const report: MarketJudgmentReport = {
     protocol: 'evidence-summary-v1', asset, strategyId: snapshot.strategyId, snapshotId: snapshot.id, generatedAt: snapshot.capturedAt,
@@ -17,12 +17,15 @@ export function demoMarketJudgment(asset: MonitorAsset, version: 'v1' | 'v2' = '
     context: { currentFields: Object.keys(snapshot.context).filter(k => typeof snapshot.context[k] === 'number'), referenceFields: [], newsCount: snapshot.context.recentNews?.length ?? 0, filingsCount: snapshot.context.recentFilings?.length ?? 0, earningsAt: null },
     jev: { status: 'different-basis', issuedAt: snapshot.capturedAt, directions: { short: 'down', medium: 'insufficient', long: 'up' } },
   }
-  if (version === 'v2') {
-    report.protocol = 'evidence-summary-v2'
-    report.validation = { status: 'experimental', policy: 'evidence-summary-v2' }
+  if (version === 'v2' || version === 'v3') {
+    report.protocol = version === 'v3' ? 'evidence-summary-v3' : 'evidence-summary-v2'
+    report.validation = { status: 'experimental', policy: version === 'v3' ? 'evidence-summary-v3' : 'evidence-summary-v2' }
     report.jev.policy = 'jev-base-rate-v2'
     report.jev.directions = { short: 'insufficient', medium: 'insufficient', long: 'up' }
     for (const horizon of Object.values(report.horizons)) horizon.decision = horizon.direction === 'bullish' || horizon.direction === 'bearish' ? 'conditional' : 'abstain'
+  }
+  if (version === 'v3' && asset !== 'BTC') {
+    report.horizons.short = { ...report.horizons.short, direction: 'unclear', decision: 'abstain', reasons: ['calendar-unknown'], risks: ['calendar-unknown'] }
   }
   return report
 }

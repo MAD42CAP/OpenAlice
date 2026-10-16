@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
-import { buildGuardedMarketJudgment } from '../../domain/market-monitor/judgment.js'
+import { buildSessionGuardedMarketJudgment } from '../../domain/market-monitor/judgment.js'
 import { reviewSessionDate } from '../../domain/market-monitor/review.js'
 import type { ForwardReport } from '../../domain/market-monitor/forecast-validation-types.js'
 import type { MarketMonitorService } from '../../domain/market-monitor/service.js'
@@ -24,7 +24,7 @@ export function createMarketJudgmentRoutes(monitor: Pick<MarketMonitorService, '
       const snapshot = snapshots.at(-1)
       if (!snapshot) return c.json({ error: 'Run a market scan first' }, 404)
       const receipt = receipts.filter(r => r.strategyId === snapshot.strategyId).at(-1)
-      const at = now(), report = buildGuardedMarketJudgment(snapshot, at, jev, receipt)
+      const at = now(), report = buildSessionGuardedMarketJudgment(snapshot, at, jev, receipt)
       if (forward) {
         const latest = validation?.asset === asset.data ? validation.latest : null, candidate = latest?.candidate
         const currentSession = candidate && reviewSessionDate(asset.data, candidate.issuedAt) === reviewSessionDate(asset.data, at.toISOString())

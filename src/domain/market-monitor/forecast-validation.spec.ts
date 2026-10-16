@@ -8,7 +8,7 @@ import { hashJevInput } from './typesafe-input.js'
 import { buildForwardValidationInput, guardedJevDecision } from './forecast-validation-input.js'
 import { createForecastValidationStore, forwardRecordHash } from './forecast-validation-store.js'
 import { createForecastValidation, summarizeForwardValidation } from './forecast-validation.js'
-import { FORWARD_PROTOCOL, JEV_DECISION_POLICY } from './forecast-validation-types.js'
+import { FORWARD_PROTOCOL, PREVIOUS_FORWARD_PROTOCOL, LEGACY_FORWARD_PROTOCOL, JEV_DECISION_POLICY } from './forecast-validation-types.js'
 import { TYPESAFE_MODEL, type JevAnswer, type JevQuestion, type JevResult } from './typesafe-client.js'
 import { JEV_HORIZONS } from './typesafe-types.js'
 import type { ReturnHistory } from './forecast-experiment-types.js'
@@ -66,13 +66,13 @@ describe('versioned forward validation', () => {
     f.evaluate.mockImplementationOnce(async (_key, _state, questions) => {
       const publication = await f.store.publication('BTC', '2026-09-20')
       expect(publication?.protocol).toBe(FORWARD_PROTOCOL)
-      expect(publication?.combined.protocol).toBe('evidence-summary-v2')
+      expect(publication?.combined.protocol).toBe('evidence-summary-v3')
       expect(publication?.input.state.requestAt).toBe(publication?.issuedAt)
       return result(questions)
     })
     const [first, second] = await Promise.all([f.service.collect('BTC'), f.service.collect('BTC')])
     expect(first.id).toBe(second.id); expect(f.evaluate).toHaveBeenCalledOnce()
-    expect(first.policy).toMatchObject({ ...JEV_DECISION_POLICY, combinedProtocol: 'evidence-summary-v2', combinedDecisionPolicy: 'guarded-price-evidence-v2' })
+    expect(first.policy).toMatchObject({ ...JEV_DECISION_POLICY, combinedProtocol: 'evidence-summary-v3', combinedDecisionPolicy: 'guarded-price-evidence-v3' })
     const frozen = await readFile(join(f.v2Root, 'BTC-2026-09-20.json'), 'utf8')
     const frozenCandidate = await readFile(join(f.v2Root, 'BTC-2026-09-20.candidate.json'), 'utf8')
     await createForecastValidation(f.deps).collect('BTC')
@@ -83,6 +83,93 @@ describe('versioned forward validation', () => {
     const report = await f.service.report('BTC')
     expect(report.summaries[0]).toMatchObject({ pending: 1, complete: 0, probability: { count: 0 }, matched: { count: 0 } })
     expect(JSON.stringify(report)).not.toContain('synthetic-key-placeholder')
+  })
+
+  it('freezes active v4 on the same day without modifying the legacy v2 publication or request contract', async () => {
+    const f = await fixture()
+    const legacyRoot = join(f.root, 'legacy-v2')
+    const legacyStore = createForecastValidationStore(legacyRoot, LEGACY_FORWARD_PROTOCOL)
+    const legacy = createForecastValidation({ ...f.deps, protocol: LEGACY_FORWARD_PROTOCOL, store: legacyStore })
+    const old = await legacy.collect('BTC')
+    const oldCandidate = await legacyStore.candidate('BTC', '2026-09-20')
+    const oldBytes = await readFile(join(legacyRoot, 'BTC-2026-09-20.json'), 'utf8')
+    const candidateBytes = await readFile(join(legacyRoot, 'BTC-2026-09-20.candidate.json'), 'utf8')
+    expect(old.protocol).toBe(LEGACY_FORWARD_PROTOCOL)
+    expect(old.combined.protocol).toBe('evidence-summary-v2')
+    expect(old.input.questions.short!.instructions).toContain('This is market-forward-v2.')
+    expect(old.input.state.forecastProtocol).toBe(LEGACY_FORWARD_PROTOCOL)
+    const active = await f.service.collect('BTC')
+    expect(active.protocol).toBe(FORWARD_PROTOCOL)
+    expect(active.id).not.toBe(old.id)
+    expect(active.combined.protocol).toBe('evidence-summary-v3')
+    expect(active.input.questions.short!.instructions).toContain(`This is ${FORWARD_PROTOCOL}.`)
+    expect((await f.store.candidate('BTC', '2026-09-20'))!.decisions).toEqual(oldCandidate!.decisions)
+    f.advance()
+    const [oldReport, activeReport] = await Promise.all([legacy.report('BTC'), f.service.report('BTC')])
+    expect(oldReport.protocol).toBe(LEGACY_FORWARD_PROTOCOL)
+    expect(oldReport.rows).toHaveLength(1)
+    expect(activeReport.protocol).toBe(FORWARD_PROTOCOL)
+    expect(activeReport.rows).toHaveLength(1)
+    expect(await readFile(join(legacyRoot, 'BTC-2026-09-20.json'), 'utf8')).toBe(oldBytes)
+    expect(await readFile(join(legacyRoot, 'BTC-2026-09-20.candidate.json'), 'utf8')).toBe(candidateBytes)
+    expect(f.evaluate).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps the intermediate v3 cohort separate and byte-identical while collecting active v4 on the same session', async () => {
+    const f = await fixture(), previousRoot = join(f.root, 'previous-v3')
+    const previousStore = createForecastValidationStore(previousRoot, PREVIOUS_FORWARD_PROTOCOL)
+    const previousService = createForecastValidation({ ...f.deps, protocol: PREVIOUS_FORWARD_PROTOCOL, store: previousStore })
+    const previous = await previousService.collect('BTC')
+    const publicationPath = join(previousRoot, 'BTC-2026-09-20.json')
+    const candidatePath = join(previousRoot, 'BTC-2026-09-20.candidate.json')
+    const publicationBytes = await readFile(publicationPath, 'utf8'), candidateBytes = await readFile(candidatePath, 'utf8')
+    const active = await f.service.collect('BTC')
+    expect(previous.protocol).toBe('market-forward-v3')
+    expect(active.protocol).toBe('market-forward-v4')
+    expect(previous.id).not.toBe(active.id)
+    expect(previous.policy).toEqual(active.policy)
+    expect(previous.policy.id).toBe('jev-base-rate-v2')
+    f.advance()
+    const oldReport = await previousService.report('BTC'), currentReport = await f.service.report('BTC')
+    expect(oldReport).toMatchObject({ protocol: PREVIOUS_FORWARD_PROTOCOL, invalidRecords: 0 })
+    expect(oldReport.rows).toHaveLength(1); expect(currentReport.rows).toHaveLength(1)
+    expect(oldReport.validation!.current.cohort.protocol).toBe(PREVIOUS_FORWARD_PROTOCOL)
+    expect(currentReport.validation!.current.cohort.protocol).toBe(FORWARD_PROTOCOL)
+    expect(await readFile(publicationPath, 'utf8')).toBe(publicationBytes)
+    expect(await readFile(candidatePath, 'utf8')).toBe(candidateBytes)
+    expect(f.evaluate).toHaveBeenCalledTimes(2)
+  })
+
+  it('retains invalid intermediate v3 stock records without cleansing them or leaking their scores into v4', async () => {
+    const f = await fixture(), previousRoot = join(f.root, 'invalid-previous-v3')
+    const previousStore = createForecastValidationStore(previousRoot, PREVIOUS_FORWARD_PROTOCOL)
+    const previousService = createForecastValidation({ ...f.deps, protocol: PREVIOUS_FORWARD_PROTOCOL, store: previousStore })
+    const publication = structuredClone(await previousService.collect('BTC'))
+    publication.asset = 'TSLA'; publication.input.state.asset = 'TSLA'; publication.combined.asset = 'TSLA'
+    publication.input.history.medium.sessions = 5; publication.input.history.long.sessions = 20
+    publication.combined.horizons.medium.sessions = 5; publication.combined.horizons.long.sessions = 20
+    publication.inputHash = hashJevInput(publication.input); publication.recordHash = forwardRecordHash(publication)
+    await previousStore.savePublication('TSLA', '2026-09-20', publication)
+    const path = join(previousRoot, 'TSLA-2026-09-20.json'), originalBytes = await readFile(path, 'utf8')
+    const previousReport = await previousService.report('TSLA'), activeReport = await f.service.report('TSLA')
+    expect(previousReport).toMatchObject({ protocol: PREVIOUS_FORWARD_PROTOCOL, invalidRecords: 1, rows: [], latest: null })
+    expect(activeReport).toMatchObject({ protocol: FORWARD_PROTOCOL, invalidRecords: 0, rows: [], latest: null })
+    expect(await readFile(path, 'utf8')).toBe(originalBytes)
+    expect(f.evaluate).toHaveBeenCalledOnce()
+  })
+
+  it('refuses an active stock publication bound to a pre-session-policy archive even with recomputed hashes', async () => {
+    const f = await fixture(), publication = structuredClone(await f.service.collect('BTC'))
+    publication.asset = 'TSLA'; publication.input.state.asset = 'TSLA'; publication.combined.asset = 'TSLA'
+    publication.input.history.medium.sessions = 5; publication.input.history.long.sessions = 20
+    publication.combined.horizons.medium.sessions = 5; publication.combined.horizons.long.sessions = 20
+    publication.inputHash = hashJevInput(publication.input); publication.recordHash = forwardRecordHash(publication)
+    await f.store.savePublication('TSLA', '2026-09-20', publication)
+    vi.mocked(f.market.archive).mockClear()
+    const rejected = await f.service.report('TSLA')
+    expect(rejected).toMatchObject({ invalidRecords: 1, latest: null, rows: [] })
+    expect(f.market.archive).not.toHaveBeenCalled()
+    expect(f.evaluate).toHaveBeenCalledOnce()
   })
 
   it('reports common open-to-close future outcomes with the original target and never requests on reads', async () => {
@@ -261,6 +348,77 @@ describe('frozen input and Jev decision gate', () => {
     expect(JSON.stringify(before.state)).not.toMatch(/phaseCandidate|bullish|bearish|confirmation/)
     f.archive.input.dailyBars.push({ date: '2026-09-20', open: 101, close: 999, high: 999, low: 100, volume: 10 })
     expect(buildForwardValidationInput(f.archive, at)).toEqual(before)
+  })
+
+  it('feeds active stock research qualified regular-session numbers while preserving v2 raw input and original archives', async () => {
+    const f = await fixture(), at = new Date('2026-09-18T22:00:00Z')
+    f.archive.input.asset = 'TSLA'; f.archive.snapshot.asset = 'TSLA'
+    f.archive.input.strategyVersion = 3; f.archive.input.asOf = at.toISOString()
+    expect(() => buildForwardValidationInput(f.archive, at)).toThrow(/重新扫描/)
+    f.archive.snapshot.analysisBasis!.version = 3
+    f.archive.snapshot.capturedAt = at.toISOString()
+    delete f.archive.snapshot.chart.intradayMeta!.barCapability
+    f.archive.input.sourceHealth.find(value => value.id === 'intraday-bars')!.provider = 'alpaca'
+    f.archive.input.sourceHealth.find(value => value.id === 'daily-bars')!.provider = 'alpaca'
+    const businessDates: string[] = []
+    for (let day = Date.parse('2026-09-18'); businessDates.length < 120; day -= 86_400_000) {
+      const date = new Date(day)
+      if (date.getUTCDay() > 0 && date.getUTCDay() < 6) businessDates.unshift(date.toISOString().slice(0, 10))
+    }
+    f.archive.input.dailyBars = businessDates.map(date => ({ date, open: 100, close: 101, low: 99, high: 102, volume: 100_000 }))
+    f.archive.input.intradayBars = ['14', '15', '16', '17', '18'].flatMap(day => [18, 19].map(hour => ({
+      date: `2026-09-${day}T${hour}:00:00Z`, open: 100, close: hour === 18 ? 100 : 101,
+      low: 99, high: 102, volume: 100_000,
+    })))
+    f.archive.input.intradayBars.push({ date: '2026-09-18T21:00:00Z', open: 100, close: 80, high: 100, low: 80, volume: 549 })
+    const original = structuredClone(f.archive)
+    const legacy = buildForwardValidationInput(f.archive, at, LEGACY_FORWARD_PROTOCOL)
+    const active = buildForwardValidationInput(f.archive, at)
+    expect(legacy.state.hourly).toMatchObject({ lastClose: 80 })
+    expect(legacy.state).not.toHaveProperty('hourlyInputPolicy')
+    expect(active.state.hourly).toMatchObject({ lastClose: 101, count: 2, latestChangePercent: 1 })
+    expect(active.state.hourlyInputPolicy).toMatchObject({ id: 'equity-regular-session-v3', source: 'alpaca', rawBarCount: 11, continuousBarCount: 2, excluded: { session: 1 } })
+    expect((active.state.hourlyInputPolicy as { volumeScope: string }).volumeScope).toContain('not consolidated')
+    expect(active.state.barVolumeScope).toMatchObject({ daily: expect.stringContaining('IEX'), hourly: expect.stringContaining('IEX') })
+    expect(f.archive).toEqual(original)
+    // Source metadata remains an explicit fallback when the health item is absent.
+    f.archive.input.sourceHealth = f.archive.input.sourceHealth.filter(value => value.id !== 'intraday-bars')
+    f.archive.snapshot.chart.intradayMeta!.sourceId = 'alpaca'
+    expect(buildForwardValidationInput(f.archive, at).state.hourlyInputPolicy).toMatchObject({ source: 'alpaca', volumeScope: expect.stringContaining('IEX') })
+    // A thin latest regular bucket suppresses numerical momentum; older usable
+    // bars cannot be stitched across it or promoted into a current hourly view.
+    f.archive.input.intradayBars.push({ date: '2026-09-18T19:00:00Z', open: 101, close: 90, high: 101, low: 90, volume: 549 })
+    expect(buildForwardValidationInput(f.archive, at).state.hourly).toBeNull()
+    f.archive.input.strategyVersion = 2
+    expect(() => buildForwardValidationInput(f.archive, at)).toThrow(/重新扫描/)
+    expect(() => buildForwardValidationInput(f.archive, at, LEGACY_FORWARD_PROTOCOL)).not.toThrow()
+  })
+
+  it.each(['2026-09-21T14:00:00Z', '2026-09-21T20:30:00Z'])('rechecks a premarket frozen stock archive against the request session at %s', async requestAt => {
+    const f = await fixture(), capturedAt = '2026-09-21T12:00:00Z'
+    f.archive.input.asset = 'TSLA'; f.archive.snapshot.asset = 'TSLA'; f.archive.input.strategyVersion = 3
+    f.archive.input.asOf = capturedAt; f.archive.snapshot.capturedAt = capturedAt
+    f.archive.snapshot.analysisBasis = { version: 3, closedBarsOnly: true, dailyAt: '2026-09-18', hourlyAt: '2026-09-18T19:00:00Z' }
+    const dates: string[] = []
+    for (let day = Date.parse('2026-09-18'); dates.length < 120; day -= 86_400_000) {
+      const date = new Date(day)
+      if (date.getUTCDay() > 0 && date.getUTCDay() < 6) dates.unshift(date.toISOString().slice(0, 10))
+    }
+    f.archive.input.dailyBars = dates.map(date => ({ date, open: 100, high: 102, low: 99, close: 101, volume: 100_000 }))
+    f.archive.input.intradayBars = ['14', '15', '16', '17', '18'].flatMap(day => [18, 19].map(hour => ({
+      date: `2026-09-${day}T${hour}:00:00Z`, open: 100, close: hour === 18 ? 100 : 101, high: 102, low: 99, volume: 100_000,
+    })))
+    const original = structuredClone(f.archive)
+    const premarket = buildForwardValidationInput(f.archive, new Date(capturedAt))
+    expect(premarket.state.hourly).toMatchObject({ lastClosedAt: '2026-09-18T19:00:00Z', lastClose: 101 })
+    expect(premarket.state.hourlyInputPolicy).toMatchObject({ fresh: true })
+    const active = buildForwardValidationInput(f.archive, new Date(requestAt))
+    expect(active.state.hourly).toBeNull()
+    expect(active.state.hourlyInputPolicy).toMatchObject({ fresh: false, evidenceCapturedAt: capturedAt })
+    // The shipped v2 request contract keeps its former four-day off-hours
+    // tolerance; only prospective session-policy inputs receive this fix.
+    expect(buildForwardValidationInput(f.archive, new Date(requestAt), LEGACY_FORWARD_PROTOCOL).state.hourly).not.toBeNull()
+    expect(f.archive).toEqual(original)
   })
 
   it('separates uncertainty, data insufficiency and sparse history from flat', () => {

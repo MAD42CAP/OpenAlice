@@ -32,13 +32,21 @@ function input(): InvestmentInput & { research: ResearchSnapshot } {
     sections: Object.fromEntries(RESEARCH_SECTION_KEYS.map(k => [k, [claim]])) as ResearchSnapshot['sections'], metrics: [], keyPriceLevels: [{ label: '成本线', price: 100, unit: 'USD', role: 'cost-basis', dataAsOf: '2026-10-12T00:00:00Z', evidenceIds: [researchId] }], bullishEvidence: [claim], bearishEvidence: [], uncertainties: [claim], limitations: [claim], weeklyChanges: [], recordHash: 'research-hash', evidence: [{ id: researchId, asset: 'BTC', sourceName: 'Glassnode', sourceUrl: 'https://research.glassnode.com/fixture/', metric: 'source-paragraph', value: 'Cost basis $100', unit: null, dataAsOf: '2026-10-12T00:00:00Z', publishedAt: '2026-10-13T10:00:00Z', retrievedAt: '2026-10-13T11:00:00Z', quality: 'available', reportId: 'report-1', kind: 'observation' }] }
   return { market, research }
 }
+function decisionConditions(i: InvestmentInput, horizon: 'short' | 'medium' | 'long', bullish = true) {
+  const upper = i.market.evidence.find(e => e.metric === `resistance.${horizon}`)!
+  const lower = i.market.evidence.find(e => e.metric === `support.${horizon}`)!
+  return {
+    confirmation: { metric: 'daily-close' as const, operator: bullish ? 'gt' as const : 'lt' as const, threshold: (bullish ? upper : lower).value as number, thresholdEvidenceId: (bullish ? upper : lower).id, description: '未来新完成日线越过已声明确认边界' },
+    invalidation: { metric: 'daily-close' as const, operator: bullish ? 'lt' as const : 'gt' as const, threshold: (bullish ? lower : upper).value as number, thresholdEvidenceId: (bullish ? lower : upper).id, description: '未来新完成日线越过已声明失效边界' },
+  }
+}
 function draft(i: InvestmentInput & { research: ResearchSnapshot }): InvestmentDraft {
   const dailyId = i.market.evidence.find(e => e.metric === 'daily-close')!.id
   const trendId = i.market.evidence.find(e => e.metric === 'trend.medium')!.id
   const reportId = i.research.evidence[0]!.id
   const claim = { text: '依据已获取证据提出待验证情景，不表示保证的价格方向。', evidenceIds: [dailyId, reportId], inference: true }
   return { summary: claim, crossValidation: [{ claim, marketEvidenceIds: [trendId], researchEvidenceIds: [reportId], status: 'CONFIRMED', explanation: '模型认为同向。' }],
-    outlooks: (['short', 'medium', 'long'] as const).map(horizon => ({ horizon, direction: 'neutral', conclusion: claim, structure: claim, supportingEvidence: [claim], opposingEvidence: [], risks: [claim], confirmation: [claim], invalidation: [claim], priceLevelLabels: ['成本线'] })),
+    outlooks: (['short', 'medium', 'long'] as const).map(horizon => ({ horizon, direction: 'neutral', conclusion: claim, structure: claim, supportingEvidence: [claim], opposingEvidence: [], risks: [claim], confirmation: [claim], invalidation: [claim], priceLevelLabels: ['成本线'], decisionConditions: decisionConditions(i, horizon) })),
     scenarios: (['bullish', 'neutral', 'bearish'] as const).map(kind => ({ kind, hypothesis: claim, conditions: [claim], confirmation: [claim], path: claim, invalidation: [claim], supportingEvidence: [claim], opposingEvidence: [], priceLevelLabels: ['成本线'] })), priceMap: [{ label: '成本线', price: 100, role: 'cost-basis', unit: 'USD', evidenceIds: [reportId] }], limitations: [claim],
     theses: [{ key: 'medium-recovery', title: '中期修复假设', claim, horizon: 'medium', observationDays: 7, supportConditions: [{ metric: 'daily-close', operator: 'gt', threshold: 100, thresholdEvidenceId: reportId, description: '新收盘站上成本线' }], invalidationConditions: [{ metric: 'daily-close', operator: 'lt', threshold: 100, thresholdEvidenceId: reportId, description: '新收盘跌破成本线' }], resolutionConditions: [] }] }
 }
@@ -77,7 +85,7 @@ describe('investment intelligence evidence guards', () => {
       i.researchFeedback = { protocol: RESEARCH_LOOP_PROTOCOL, hash: 'a'.repeat(64), asOf: at.toISOString(), records: [], jev: null, evidence: [ref] }
       d.feedbackReview = { reviewedIds: [ref.id], effect: 'context-only', explanation: '事件线索保留为研究背景，暂不改变方向。' }
       const first = await service.publish(i, d, provenance)
-      expect(first.snapshot.analysisVersion).toBe('investment-intelligence-v3')
+      expect(first.snapshot.analysisVersion).toBe(INVESTMENT_ANALYSIS_VERSION)
       expect(first.snapshot.researchFeedback).toMatchObject({ contextHash: 'a'.repeat(64), reviewedIds: [ref.id], effect: 'context-only' })
       const original = JSON.stringify(first.snapshot)
       i.researchFeedback.hash = 'b'.repeat(64)
@@ -85,6 +93,61 @@ describe('investment intelligence evidence guards', () => {
       expect(second.snapshot.id).not.toBe(first.snapshot.id)
       expect(JSON.stringify((await service.report()).history.find(p => p.id === first.snapshot.id))).toBe(original)
     } finally { await rm(root, { recursive: true, force: true }) }
+  })
+  it('requires publication-bound same-horizon conditions and normalizes the visible conditions without editing the AI draft', () => {
+    const i = input(), d = draft(i)
+    i.market.evidence.find(e => e.metric === 'trend.medium')!.value = 'bullish'
+    d.outlooks[1]!.direction = 'bullish'
+    d.outlooks[1]!.confirmation[0]!.text = '已经确认上涨'
+    const guarded = guardInvestmentDraft(i, d, at).draft.outlooks[1]!
+    expect(guarded.direction).toBe('conditional-bullish')
+    expect(guarded.confirmation).toEqual([{ text: '未来新完成日线收盘高于 $132。', evidenceIds: [d.outlooks[1]!.decisionConditions!.confirmation.thresholdEvidenceId], inference: true }])
+    expect(guarded.invalidation[0]!.text).toBe('未来新完成日线收盘低于 $90。')
+    expect(d.outlooks[1]!.confirmation[0]!.text).toBe('已经确认上涨')
+    delete d.outlooks[1]!.decisionConditions
+    const abstained = guardInvestmentDraft(i, d, at)
+    expect(abstained.draft.outlooks[1]!.direction).toBe('uncertain')
+    expect(abstained.draft.summary.text).toContain('中期暂不判断')
+    expect(abstained.warnings.join(' ')).toContain('机读确认与失效边界缺失或已过期')
+  })
+  it.each(['invented', 'other-horizon', 'wrong-operator', 'wrong-metric', 'non-observation', 'unordered'] as const)('rejects %s directional boundaries even when prose or price values appear plausible', failure => {
+    const i = input(), d = draft(i), pair = d.outlooks[1]!.decisionConditions!
+    d.outlooks[1]!.direction = 'bullish'
+    if (failure === 'invented') pair.confirmation.threshold += 1
+    if (failure === 'other-horizon') pair.confirmation.thresholdEvidenceId = i.market.evidence.find(e => e.metric === 'resistance.short')!.id
+    if (failure === 'wrong-operator') pair.confirmation.operator = 'lt'
+    if (failure === 'wrong-metric') pair.confirmation.metric = 'volume-ratio'
+    if (failure === 'non-observation') i.market.evidence.find(e => e.metric === 'resistance.medium')!.kind = 'interpretation'
+    if (failure === 'unordered') { const lower = i.market.evidence.find(e => e.metric === 'support.medium')!; lower.value = pair.confirmation.threshold; pair.invalidation.threshold = pair.confirmation.threshold }
+    expect(() => guardInvestmentDraft(i, d, at)).toThrow('同期限可用支撑/阻力')
+  })
+  it('keeps bearish confirmation and invalidation ordered in the opposite direction', () => {
+    const i = input(), d = draft(i)
+    i.market.evidence.find(e => e.metric === 'trend.medium')!.value = 'bearish'
+    i.research.bearishEvidence = i.research.bullishEvidence; i.research.bullishEvidence = []
+    d.outlooks[1]!.direction = 'bearish'; d.outlooks[1]!.decisionConditions = decisionConditions(i, 'medium', false)
+    const result = guardInvestmentDraft(i, d, at).draft.outlooks[1]!
+    expect(result.direction).toBe('conditional-bearish')
+    expect(result.confirmation[0]!.text).toContain('低于 $90')
+    expect(result.invalidation[0]!.text).toContain('高于 $132')
+  })
+  it('does not expose an unvalidated pair attached to an uncertain proposal as a guarded decision condition', () => {
+    const i = input(), d = draft(i)
+    d.outlooks[1]!.direction = 'uncertain'
+    d.outlooks[1]!.decisionConditions!.confirmation.thresholdEvidenceId = 'untrusted-model-placeholder'
+    const result = guardInvestmentDraft(i, d, at)
+    expect(result.draft.outlooks[1]!.decisionConditions).toBeUndefined()
+    expect(d.outlooks[1]!.decisionConditions!.confirmation.thresholdEvidenceId).toBe('untrusted-model-placeholder')
+  })
+  it('abstains when the declared boundary evidence has expired without inventing new thresholds', () => {
+    const i = input(), d = draft(i)
+    d.outlooks[1]!.direction = 'bullish'
+    i.market.evidence.find(e => e.metric === 'resistance.medium')!.quality = 'outdated'
+    const result = guardInvestmentDraft(i, d, at)
+    expect(result.draft.outlooks[1]!.direction).toBe('uncertain')
+    expect(result.draft.outlooks[1]!.decisionConditions).toBeUndefined()
+    expect(result.draft.outlooks[1]!.confirmation[0]!.text).toContain('等待可核验')
+    expect(d.outlooks[1]!.decisionConditions).toBeDefined()
   })
   it('keeps an evidenced sideways range distinct from uncertain transition', () => {
     const i = input(), d = draft(i)
@@ -354,19 +417,22 @@ describe('investment immutable history and objective theses', () => {
       clock = new Date('2026-10-16T12:00:00Z')
       const newParagraph = JSON.parse(JSON.stringify(current).replaceAll('report:cost-basis-2', 'report:cost-basis-3')) as InvestmentInput & { research: ResearchSnapshot }
       newParagraph.research.id = 'research-3'; newParagraph.research.recordHash = 'research-hash-3'
-      const revised = draft(newParagraph); revised.outlooks[1]!.direction = 'bearish'
+      const revised = draft(newParagraph); revised.outlooks[1]!.direction = 'bearish'; revised.outlooks[1]!.decisionConditions = decisionConditions(newParagraph, 'medium', false)
       const third = await service.publish(newParagraph, revised, provenance)
       expect(third.snapshot.changes[0]!.explanation).toContain('同一报告新增引用段落 Glassnode/report-2')
       expect(third.snapshot.changes[0]!.evidenceIds).toEqual(expect.arrayContaining(['report:cost-basis-2', 'report:cost-basis-3']))
     } finally { await rm(root, { recursive: true, force: true }) }
   })
-  it('keeps v1/v2 archive bytes and hashes readable while publishing separate v3 synthesis', async () => {
+  it('keeps v1/v2/v3 archive bytes and hashes readable while publishing a separate current synthesis', async () => {
     const root = await mkdtemp(join(tmpdir(), 'investment-version-'))
     const service = createInvestmentService({ root, now: () => at }), i = input(), d = draft(i)
     try {
       const first = await service.publish(i, d, provenance)
       const oldHash = createHash('sha256').update(JSON.stringify({ version: 1, marketSnapshotId: i.market.snapshotId, researchSnapshotId: i.research.id, researchHash: i.research.recordHash })).digest('hex')
       expect(investmentInputHash(i)).not.toBe(oldHash)
+      const currentBtcHash = createHash('sha256').update(JSON.stringify({ analysisVersion: INVESTMENT_ANALYSIS_VERSION, marketSnapshotId: i.market.snapshotId, researchSnapshotId: i.research.id, researchHash: i.research.recordHash, feedbackHash: null })).digest('hex')
+      expect(investmentInputHash(i, at)).toBe(currentBtcHash)
+      expect(investmentInputHash(i, new Date('2026-10-15T12:00:00Z'))).toBe(currentBtcHash)
       const legacy = { ...first.snapshot, id: `investment-${oldHash}`, inputHash: oldHash, analysisVersion: 'investment-intelligence-v1' as const, summary: d.summary }
       legacy.recordHash = intelligenceRecordHash(legacy)
       const legacyFile = join(root, 'publications', `${legacy.id}.json`), bytes = JSON.stringify(legacy)
@@ -376,14 +442,20 @@ describe('investment immutable history and objective theses', () => {
       v2.recordHash = intelligenceRecordHash(v2)
       const v2File = join(root, 'publications', `${v2.id}.json`), v2Bytes = JSON.stringify(v2)
       await writeFile(v2File, v2Bytes)
+      const v3Hash = createHash('sha256').update(JSON.stringify({ analysisVersion: 'investment-intelligence-v3', marketSnapshotId: i.market.snapshotId, researchSnapshotId: i.research.id, researchHash: i.research.recordHash, feedbackHash: null })).digest('hex')
+      const v3 = { ...legacy, id: `investment-${v3Hash}`, inputHash: v3Hash, analysisVersion: 'investment-intelligence-v3' as const }
+      v3.recordHash = intelligenceRecordHash(v3)
+      const v3File = join(root, 'publications', `${v3.id}.json`), v3Bytes = JSON.stringify(v3)
+      await writeFile(v3File, v3Bytes)
       await rm(join(root, 'publications', `${first.snapshot.id}.json`))
       const upgraded = await service.publish(i, d, provenance)
       expect(upgraded.stored).toBe(true)
       expect(upgraded.snapshot.analysisVersion).toBe(INVESTMENT_ANALYSIS_VERSION)
       expect(upgraded.snapshot.rawDraft).toEqual(d)
-      expect((await service.report()).history.map(r => r.analysisVersion)).toEqual(expect.arrayContaining(['investment-intelligence-v1', 'investment-intelligence-v2', 'investment-intelligence-v3']))
+      expect((await service.report()).history.map(r => r.analysisVersion)).toEqual(expect.arrayContaining(['investment-intelligence-v1', 'investment-intelligence-v2', 'investment-intelligence-v3', INVESTMENT_ANALYSIS_VERSION]))
       expect(await readFile(legacyFile, 'utf8')).toBe(bytes)
       expect(await readFile(v2File, 'utf8')).toBe(v2Bytes)
+      expect(await readFile(v3File, 'utf8')).toBe(v3Bytes)
     } finally { await rm(root, { recursive: true, force: true }) }
   })
   it('atomically preserves a competing initial record and verifies hashes', async () => {
@@ -406,6 +478,9 @@ describe('equity investment isolation and conservative synthesis', () => {
     const market = structuredClone(original.market)
     market.asset = asset
     market.evidence.forEach(e => { e.asset = asset })
+    market.hourlyDataAsOf = '2026-10-13T19:00:00Z'
+    market.evidence.find(e => e.metric === 'hourly-close')!.dataAsOf = market.hourlyDataAsOf
+    market.evidence.push({ ...market.evidence[0]!, id: 'equity-calendar', metric: 'equity.next-earnings', value: '2026-12-10', unit: 'session-date', dataAsOf: at.toISOString(), retrievedAt: at.toISOString(), kind: 'observation' })
     const daily = market.evidence.find(e => e.metric === 'daily-close')!
     const oldReportId = original.research.evidence[0]!.id
     const remapped = JSON.parse(JSON.stringify(d).replaceAll(oldReportId, daily.id)) as InvestmentDraft
@@ -427,6 +502,103 @@ describe('equity investment isolation and conservative synthesis', () => {
     i.research = input().research
     expect(() => guardInvestmentDraft(i, d, at)).toThrow('不匹配')
   })
+  it.each(['missing', 'outdated', 'past', 'invalid', 'future-acquisition'] as const)('abstains from short equity direction for %s earnings context, without using it as a bearish vote', failure => {
+    const { i, d } = equity('TSLA'), event = i.market.evidence.find(e => e.metric === 'equity.next-earnings')!
+    if (failure === 'missing') event.value = null
+    if (failure === 'outdated') event.quality = 'outdated'
+    if (failure === 'past') event.value = '2026-10-13'
+    if (failure === 'invalid') event.value = '2026-99-99'
+    if (failure === 'future-acquisition') event.retrievedAt = '2026-10-15T12:00:00Z'
+    const result = guardInvestmentDraft(i, d, at).draft
+    expect(result.outlooks[0]!.direction).toBe('uncertain')
+    expect(result.outlooks[0]!.risks[0]!.text).toContain('财报日历未验证或已过期')
+    expect(result.outlooks[1]!.direction).toBe('conditional-bullish')
+    expect(result.crossValidation.every(row => row.status === 'PARTIALLY_CONFIRMED')).toBe(true)
+  })
+  it('uses the official holiday calendar for the five upcoming session earnings-risk window', () => {
+    const { i, d } = equity('TSLA'), clock = new Date('2026-11-25T22:00:00Z')
+    i.market.retrievedAt = clock.toISOString()
+    i.market.evidence.forEach(e => { e.retrievedAt = clock.toISOString(); e.dataAsOf = e.metric.startsWith('equity.') ? clock.toISOString() : '2026-11-24T00:00:00Z' })
+    i.market.hourlyDataAsOf = '2026-11-25T20:00:00Z'
+    i.market.evidence.find(e => e.metric === 'hourly-close')!.dataAsOf = i.market.hourlyDataAsOf
+    const event = i.market.evidence.find(e => e.metric === 'equity.next-earnings')!
+    event.value = '2026-12-03'
+    const near = guardInvestmentDraft(i, d, clock).draft
+    expect(near.outlooks[0]!.direction).toBe('uncertain')
+    expect(near.outlooks[0]!.conclusion.text).toContain('五个计划交易时段')
+    expect(near.outlooks[1]!.direction).toBe('conditional-bullish')
+    event.value = '2026-12-04'
+    expect(guardInvestmentDraft(i, d, clock).draft.outlooks[0]!.direction).toBe('conditional-bullish')
+    event.value = '2026-11-25'
+    expect(guardInvestmentDraft(i, d, clock).draft.outlooks[0]!.direction).toBe('uncertain')
+  })
+  it('does not restore a stock short-term direction when hourly data failed regular-session quality checks', () => {
+    const { i, d } = equity('MSTR'); i.market.hourlyDataAsOf = null
+    const result = guardInvestmentDraft(i, d, at).draft
+    expect(result.outlooks[0]!.direction).toBe('uncertain')
+    expect(result.outlooks[0]!.conclusion.text).toContain('常规时段与量能筛选')
+    expect(result.outlooks[1]!.direction).toBe('conditional-bullish')
+  })
+  it.each(['missing', 'interpretation', 'report', 'unavailable', 'mismatched-date', 'null-price'] as const)('cannot bypass active hourly admission with %s evidence by omitting it from the AI citations', failure => {
+    const { i, d } = equity('TSLA'), hourly = i.market.evidence.find(e => e.metric === 'hourly-close')!
+    expect(JSON.stringify(d)).not.toContain(hourly.id)
+    if (failure === 'missing') i.market.evidence = i.market.evidence.filter(e => e !== hourly)
+    if (failure === 'interpretation') hourly.kind = 'interpretation'
+    if (failure === 'report') hourly.reportId = 'untrusted-report'
+    if (failure === 'unavailable') hourly.quality = 'unavailable'
+    if (failure === 'mismatched-date') i.market.hourlyDataAsOf = '2026-10-14T09:00:00Z'
+    if (failure === 'null-price') hourly.value = null
+    const result = guardInvestmentDraft(i, d, at)
+    expect(result.draft.outlooks[0]!.direction).toBe('uncertain')
+    expect(result.draft.outlooks[0]!.conclusion.text).toContain('当前可用')
+    expect(result.draft.outlooks[1]!.direction).toBe('conditional-bullish')
+  })
+  it('rechecks frozen hourly evidence at publication after the next session opens even when the model never cites it', async () => {
+    const { i, d } = equity('TSLA'), root = await mkdtemp(join(tmpdir(), 'equity-delayed-publication-'))
+    const hourly = i.market.evidence.find(e => e.metric === 'hourly-close')!
+    expect(JSON.stringify(d)).not.toContain(hourly.id)
+    expect(evidenceAvailability(hourly, at)).toBe('available')
+    const bytes = JSON.stringify(i), frozen = structuredClone(i), delayed = new Date('2026-10-14T14:35:00Z')
+    try {
+      const service = createInvestmentService({ asset: 'TSLA', root, now: () => delayed })
+      const result = await service.publish(frozen, d, provenance)
+      expect(frozen.market.hourlyDataAsOf).not.toBeNull()
+      expect(frozen.market.evidence.find(e => e.id === hourly.id)!.quality).toBe('available')
+      expect(evidenceAvailability(hourly, delayed)).toBe('outdated')
+      expect(result.snapshot.outlooks[0]!.direction).toBe('uncertain')
+      expect(result.snapshot.outlooks[0]!.conclusion.text).toContain('当前可用')
+      expect(result.snapshot.outlooks[1]!.direction).toBe('conditional-bullish')
+      expect(result.snapshot.rawDraft.outlooks[0]!.direction).toBe('bullish')
+      expect(JSON.stringify(frozen)).toBe(bytes)
+    } finally { await rm(root, { recursive: true, force: true }) }
+  })
+  it('gives a changed server admission state a new publication identity without overwriting the preopen result or multiplying unchanged states', async () => {
+    const { i, d } = equity('TSLA'), root = await mkdtemp(join(tmpdir(), 'equity-admission-cache-'))
+    let clock = at
+    try {
+      const service = createInvestmentService({ asset: 'TSLA', root, now: () => clock })
+      const first = await service.publish(i, d, provenance)
+      expect(first.snapshot.outlooks[0]!.direction).toBe('conditional-bullish')
+      const path = join(root, 'publications', `${first.snapshot.id}.json`), bytes = await readFile(path, 'utf8')
+      clock = new Date('2026-10-14T12:05:00Z')
+      const unchanged = await service.publish(i, d, { ...provenance, runId: 'same-admission' })
+      expect(unchanged.stored).toBe(false)
+      expect(unchanged.snapshot.id).toBe(first.snapshot.id)
+      clock = new Date('2026-10-14T14:35:00Z')
+      const opened = await service.publish(i, d, { ...provenance, runId: 'opened-session' })
+      expect(opened.stored).toBe(true)
+      expect(opened.snapshot.id).not.toBe(first.snapshot.id)
+      expect(opened.snapshot.previousSnapshotId).toBe(first.snapshot.id)
+      expect(opened.snapshot.outlooks[0]!.direction).toBe('uncertain')
+      expect(opened.snapshot.outlooks[1]!.direction).toBe('conditional-bullish')
+      expect(await readFile(path, 'utf8')).toBe(bytes)
+      clock = new Date('2026-10-14T14:40:00Z')
+      const stillUnavailable = await service.publish(i, d, { ...provenance, runId: 'same-opened-state' })
+      expect(stillUnavailable.stored).toBe(false)
+      expect(stillUnavailable.snapshot.id).toBe(opened.snapshot.id)
+      expect((await service.report()).history).toHaveLength(2)
+    } finally { await rm(root, { recursive: true, force: true }) }
+  })
   it('rejects cross-asset evidence and feedback and keeps stock publication identities separate', async () => {
     const a = equity('TSLA'), b = equity('MSTR')
     expect(investmentInputHash(a.i)).not.toBe(investmentInputHash(b.i))
@@ -440,10 +612,28 @@ describe('equity investment isolation and conservative synthesis', () => {
     try {
       const service = createInvestmentService({ asset: 'TSLA', root, now: () => at })
       const result = await service.publish(a.i, a.d, provenance)
-      expect(result.snapshot).toMatchObject({ asset: 'TSLA', analysisVersion: 'investment-intelligence-equity-v1', researchSnapshotId: null })
+      expect(result.snapshot).toMatchObject({ asset: 'TSLA', analysisVersion: 'investment-intelligence-equity-v2', researchSnapshotId: null })
       await expect(service.publish(b.i, b.d, provenance)).rejects.toThrow('不匹配')
       await expect(service.revalidate(b.i.market)).rejects.toThrow()
       expect((await service.report()).latest?.asset).toBe('TSLA')
+    } finally { await rm(root, { recursive: true, force: true }) }
+  })
+  it('reads legacy equity publications without adding new conditions or rewriting their bytes', async () => {
+    const { i, d } = equity('TSLA'), root = await mkdtemp(join(tmpdir(), 'equity-legacy-'))
+    try {
+      const service = createInvestmentService({ asset: 'TSLA', root, now: () => at })
+      const current = await service.publish(i, d, provenance)
+      const oldHash = createHash('sha256').update('synthetic-equity-v1-publication').digest('hex')
+      const legacy = structuredClone({ ...current.snapshot, id: `investment-${oldHash}`, inputHash: oldHash, analysisVersion: 'investment-intelligence-equity-v1' as const })
+      legacy.outlooks.forEach(o => { delete o.decisionConditions })
+      legacy.rawDraft.outlooks.forEach(o => { delete o.decisionConditions })
+      legacy.recordHash = intelligenceRecordHash(legacy)
+      const file = join(root, 'publications', `${legacy.id}.json`), bytes = JSON.stringify(legacy)
+      await writeFile(file, bytes)
+      const record = (await service.report()).history.find(s => s.id === legacy.id)!
+      expect(record.analysisVersion).toBe('investment-intelligence-equity-v1')
+      expect(record.outlooks.every(o => o.decisionConditions === undefined)).toBe(true)
+      expect(await readFile(file, 'utf8')).toBe(bytes)
     } finally { await rm(root, { recursive: true, force: true }) }
   })
   it('cannot turn an equity market capitalization into a price threshold', () => {

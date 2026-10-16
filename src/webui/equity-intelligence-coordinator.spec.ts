@@ -112,8 +112,9 @@ describe('equity native synthesis Issue coordinator', () => {
 
   it.each(['TSLA', 'MSTR'] as const)('requires frozen, asset-scoped, read-only %s synthesis and an exact feedback receipt', (asset: EquityIntelligenceAsset) => {
     const text = EQUITY_INTELLIGENCE_PROMPTS[asset]
-    for (const part of [asset, 'investment-intelligence-equity-v1', 'AGENTS.md', 'alice intelligence input', 'alice intelligence publish-synthesis', '省略 researchSnapshotId', 'Python subprocess 参数数组', 'researchEvidenceIds 使用空数组', 'trend.<horizon>', '1、5、20 个交易日', 'observationWindow', 'SEC 元数据只证明申报事件和日期', 'uncertain（暂不判断）', 'neutral（横盘）', '不重复计票', '研究反馈不验证自身', 'researchFeedback.evidence 的所有 ID', '本次冻结 ID', '不读取未来资料', '不访问、输出或记录凭据']) expect(text).toContain(part)
+    for (const part of [asset, 'investment-intelligence-equity-v2', 'AGENTS.md', 'alice intelligence input', 'alice intelligence publish-synthesis', '省略 researchSnapshotId', 'Python subprocess 参数数组', 'researchEvidenceIds 使用空数组', 'trend.<horizon>', '1、5、20 个交易日', 'observationWindow', 'SEC 元数据只证明申报事件和日期', 'uncertain（暂不判断）', 'neutral（横盘）', '不重复计票', '研究反馈不验证自身', 'researchFeedback.evidence 的所有 ID', '本次冻结 ID', '不读取未来资料', '不访问、输出或记录凭据']) expect(text).toContain(part)
     expect(text).toContain('不修改项目代码')
+    for (const field of ['decisionConditions', 'thresholdEvidenceId', 'resistance.<horizon>', 'support.<horizon>', '旧 thesis 的 key 和条件不可']) expect(text).toContain(field)
     expect(text).not.toContain('researchSnapshotId 采用最新周报')
     if (asset === 'MSTR') expect(text).toContain('BTC 价格判断不能替代 MSTR')
   })

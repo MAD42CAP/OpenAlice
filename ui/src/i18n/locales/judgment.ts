@@ -33,6 +33,7 @@ export const judgmentEn = {
     'context-partial': 'Some background data is missing or too old for current confirmation.',
     'earnings-near': 'An upcoming earnings event is close to this horizon; check its scheduled date.',
     'latest-scan-failed': 'The latest scan failed; the last usable observation is retained.',
+    'hourly-policy-unverified': 'Run a new scan to verify regular-session stock evidence.',
   },
 }
 export const judgmentZh: typeof judgmentEn = {
@@ -70,5 +71,6 @@ export const judgmentZh: typeof judgmentEn = {
     'context-partial': '部分背景数据缺失或过期，不能作为当前确认依据。',
     'earnings-near': '该期限附近有财报事件，请留意计划公布日期。',
     'latest-scan-failed': '最近一次扫描失败，目前沿用最后一份可用行情。',
+    'hourly-policy-unverified': '请重新扫描，核验正常交易时段的股票行情。',
   },
 }

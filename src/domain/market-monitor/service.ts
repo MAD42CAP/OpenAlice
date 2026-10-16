@@ -7,6 +7,7 @@ import type { BarMeta, BarService, BarsResult, OhlcvBar } from '../market-data/b
 import type { INewsProvider } from '../news/types.js'
 import type { ReferenceDataService } from '../market-data/reference/types.js'
 import { assertFreshBars, closedBars } from './bar-policy.js'
+import { selectAnalysisHourlyBars } from './equity-session.js'
 import { analysisInputHash, replayAnalysis, type MarketAnalysisArchive, type MarketReplayResult } from './replay.js'
 import { evaluateSnapshots } from './analysis.js'
 import { buildMarketReview, reviewFeedback, type MarketReviewReport, type ReviewWindow } from './review.js'
@@ -24,6 +25,7 @@ import {
   type MarketMonitorStrategyRegistry,
 } from './strategy.js'
 import {
+  DEFAULT_MARKET_MONITOR_STRATEGY_ID,
   MARKET_MONITOR_ASSET_CONFIG,
   MARKET_MONITOR_ASSETS,
   MARKET_DAILY_NARRATION_ISSUE_ID,
@@ -340,6 +342,12 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
             abnormalVolumeRatio: settings.abnormalVolumeRatio,
           }
           const analysis = strategy.analyze(strategyInput)
+          if (asset !== 'BTC' && strategy.manifest.id === DEFAULT_MARKET_MONITOR_STRATEGY_ID && strategy.manifest.version >= 3 && intraday) {
+            const selection = selectAnalysisHourlyBars(strategyInput.intradayBars, asset, new Date(requestedAt), strategyInput)
+            const health = sourceHealth.find(source => source.id === 'intraday-bars')!
+            health.detail += ` Analysis: ${selection.note}`
+            if (!selection.pulse.available && health.status === 'ok') health.status = 'degraded'
+          }
           failureStage = 'context'
           const previous = (await store.snapshots(asset, 1000)).filter((row) => row.strategyId === strategy.manifest.id).at(-1)
           const providers = contextProviderRegistry.forAsset(asset)
@@ -383,7 +391,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
             id: randomUUID(), asset, capturedAt: requestedAt, trigger,
             strategyId: strategy.manifest.id, fingerprint, ...enrichedAnalysis, context, sourceHealth,
             analysisInput: { hash: analysisInputHash(input), strategyVersion: strategy.manifest.version },
-            analysisBasis: { version: 2, closedBarsOnly: true, dailyAt: analysis.metrics.lastBarAt.slice(0, 10), hourlyAt: analysis.metrics.intraday.latestAt },
+            analysisBasis: { version: strategy.manifest.id === DEFAULT_MARKET_MONITOR_STRATEGY_ID && strategy.manifest.version >= 3 ? 3 : 2, closedBarsOnly: true, dailyAt: analysis.metrics.lastBarAt.slice(0, 10), hourlyAt: analysis.metrics.intraday.available ? analysis.metrics.intraday.latestAt : null },
             chart: {
               daily: compactBars(daily.result.bars, 400), intraday: compactBars(intraday?.result.bars ?? [], 180),
               dailyMeta: daily.result.meta, intradayMeta: intraday?.result.meta ?? null,
@@ -392,6 +400,10 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
           failureStage = 'storage'
           await store.saveContextCache(asset, strategy.manifest.id, fallback.cache)
           const stored = previous?.fingerprint !== fingerprint || !previous?.analysisInput || previous.analysisInput.strategyVersion !== strategy.manifest.version
+            || previous.analysisBasis?.version !== snapshot.analysisBasis?.version
+            || previous.analysisBasis?.closedBarsOnly !== snapshot.analysisBasis?.closedBarsOnly
+            || previous.analysisBasis?.dailyAt !== snapshot.analysisBasis?.dailyAt
+            || previous.analysisBasis?.hourlyAt !== snapshot.analysisBasis?.hourlyAt
           await store.saveLatestSeries(asset, snapshot.chart, snapshot.strategyId)
           if (stored) {
             await store.saveArchive({ schemaVersion: 1, input, snapshot: { ...snapshot, chart: { ...snapshot.chart, daily: input.dailyBars, intraday: input.intradayBars } } })
@@ -434,7 +446,7 @@ function healthFromMeta(id: string, label: string, meta: BarMeta, fallback: BarF
   return {
     id, label, status: stale || fallback ? 'degraded' : 'ok',
     provider: meta.sourceId ?? meta.provider ?? 'OpenAlice BarService', asOf,
-    detail: `${fallback ? `Preferred source ${fallback.from} failed; explicit ${fallback.to} fallback used (${fallback.reason}). ` : ''}${stale ? `${meta.staleTradingDays} weekday(s) behind the request anchor.` : `${meta.bars} attributed bars.`}`,
+    detail: `${fallback ? `Preferred source ${fallback.from} failed; explicit ${fallback.to} fallback used (${fallback.reason}). ` : ''}${stale ? `${meta.staleTradingDays} weekday(s) behind the request anchor.` : `${meta.bars} attributed bars.`}${meta.sourceId === 'alpaca' || meta.provider === 'alpaca' ? ' Alpaca feed=iex: volume covers IEX only, not consolidated US-market volume.' : ''}`,
   }
 }
 

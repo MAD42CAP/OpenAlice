@@ -4,10 +4,10 @@ type TrendHorizon = 'short' | 'medium' | 'long'
 
 // Browser DTO for the read-only current-evidence summary.
 export type JudgmentDirection = 'bullish' | 'bearish' | 'range' | 'unclear' | 'insufficient'
-export type JudgmentReason = 'rules-bullish' | 'rules-bearish' | 'range-observed' | 'rules-mixed' | 'daily-missing' | 'hourly-missing' | 'structure-conflict' | 'structure-pending' | 'structure-agrees' | 'structure-unknown' | 'context-partial' | 'calendar-unknown' | 'earnings-near' | 'latest-scan-failed'
+export type JudgmentReason = 'rules-bullish' | 'rules-bearish' | 'range-observed' | 'rules-mixed' | 'daily-missing' | 'hourly-missing' | 'structure-conflict' | 'structure-pending' | 'structure-agrees' | 'structure-unknown' | 'context-partial' | 'calendar-unknown' | 'earnings-near' | 'latest-scan-failed' | 'hourly-policy-unverified'
 export interface MarketJudgmentReport {
-  protocol: 'evidence-summary-v1' | 'evidence-summary-v2'
-  validation?: { status: 'experimental'; policy: 'evidence-summary-v2' }
+  protocol: 'evidence-summary-v1' | 'evidence-summary-v2' | 'evidence-summary-v3'
+  validation?: { status: 'experimental'; policy: 'evidence-summary-v2' | 'evidence-summary-v3' }
   asset: MonitorAsset
   strategyId: string
   snapshotId: string

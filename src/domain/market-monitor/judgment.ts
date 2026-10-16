@@ -1,13 +1,14 @@
 import { assertFreshBars, closedBars } from './bar-policy.js'
 import { reviewSessionDate } from './review.js'
+import { isCurrentEquityHourlyEvidence, upcomingEquitySessionEnd } from './equity-session.js'
 import type { JevReport } from './typesafe-types.js'
 import type { MarketMonitorReceipt, MarketMonitorSnapshot, TrendDirection, TrendHorizon } from './types.js'
 
 export type JudgmentDirection = 'bullish' | 'bearish' | 'range' | 'unclear' | 'insufficient'
-export type JudgmentReason = 'rules-bullish' | 'rules-bearish' | 'range-observed' | 'rules-mixed' | 'daily-missing' | 'hourly-missing' | 'structure-conflict' | 'structure-pending' | 'structure-agrees' | 'structure-unknown' | 'context-partial' | 'calendar-unknown' | 'earnings-near' | 'latest-scan-failed'
+export type JudgmentReason = 'rules-bullish' | 'rules-bearish' | 'range-observed' | 'rules-mixed' | 'daily-missing' | 'hourly-missing' | 'structure-conflict' | 'structure-pending' | 'structure-agrees' | 'structure-unknown' | 'context-partial' | 'calendar-unknown' | 'earnings-near' | 'latest-scan-failed' | 'hourly-policy-unverified'
 export interface MarketJudgmentReport {
-  protocol: 'evidence-summary-v1' | 'evidence-summary-v2'
-  validation?: { status: 'experimental'; policy: 'evidence-summary-v2' }
+  protocol: 'evidence-summary-v1' | 'evidence-summary-v2' | 'evidence-summary-v3'
+  validation?: { status: 'experimental'; policy: 'evidence-summary-v2' | 'evidence-summary-v3' }
   asset: MarketMonitorSnapshot['asset']
   strategyId: string
   snapshotId: string
@@ -26,6 +27,33 @@ export interface MarketJudgmentReport {
   structure: { phase: string; direction: 'bullish' | 'bearish' | 'unclear'; confirmed: boolean; lower: number | null; upper: number | null; confirmation: string[]; invalidation: string[] }
   context: { currentFields: string[]; referenceFields: string[]; newsCount: number; filingsCount: number; earningsAt: string | null }
   jev: { status: 'current' | 'different-basis' | 'stale' | 'missing' | 'unavailable'; issuedAt: string | null; directions: Record<TrendHorizon, 'up' | 'flat' | 'down' | 'insufficient'> | null; policy?: 'jev-base-rate-v2' | 'legacy' }
+}
+
+/** Prospective v3 adds a session-policy and near-term event guard. The v2
+ * builder remains unchanged for its separately frozen historical cohort. */
+export function buildSessionGuardedMarketJudgment(snapshot: MarketMonitorSnapshot, at: Date, jev?: JevReport | null, receipt?: MarketMonitorReceipt | null): MarketJudgmentReport {
+  const report = buildGuardedMarketJudgment(snapshot, at, jev, receipt)
+  report.protocol = 'evidence-summary-v3'
+  report.validation = { status: 'experimental', policy: 'evidence-summary-v3' }
+  if (snapshot.asset !== 'BTC') {
+    const short = report.horizons.short
+    const policyVerified = snapshot.analysisBasis?.version === 3 && (snapshot.analysisInput?.strategyVersion ?? 0) >= 3
+    const calendar = snapshot.sourceHealth.find(source => source.id.endsWith('-calendar-news'))
+    const today = reviewSessionDate(snapshot.asset, at.toISOString())
+    const end = upcomingEquitySessionEnd(today)
+    const earnings = report.context.earningsAt
+    const calendarVerified = calendar?.coverage?.earnings === 'available' && !calendar.failedFields?.includes('nextEarningsAt') && !calendar.retained?.fields.includes('nextEarningsAt') && earnings && end
+    const eventRisk = !calendarVerified ? 'calendar-unknown' : earnings.slice(0, 10) <= end ? 'earnings-near' : null
+    const risk = !policyVerified ? 'hourly-policy-unverified' : !isCurrentEquityHourlyEvidence(report.basis.hourlyAt, at) ? 'hourly-missing' : eventRisk
+    if (risk) {
+      short.direction = 'unclear'
+      short.decision = 'abstain'
+      short.reasons = [risk, ...short.reasons.filter(r => r !== risk)]
+      if (!short.risks.includes(risk)) short.risks.push(risk)
+      if (report.quality === 'complete') report.quality = 'partial'
+    }
+  }
+  return report
 }
 
 /** Versioned decision projection. The v1 builder remains the exact legacy

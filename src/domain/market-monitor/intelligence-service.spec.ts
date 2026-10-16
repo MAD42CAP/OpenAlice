@@ -12,7 +12,7 @@ import type { MarketMonitorAsset, MarketMonitorSnapshot } from './types.js'
 import type { ResearchSnapshot } from './research-types.js'
 import { EQUITY_INVESTMENT_ANALYSIS_VERSION, INVESTMENT_ANALYSIS_VERSION } from './investment-types.js'
 import { RESEARCH_LOOP_PROTOCOL, researchLoopProtocol, type ResearchLoopContext } from './research-loop-types.js'
-vi.mock('./intelligence-market.js', () => ({ buildMarketIntelligence: (snapshot: { id: string; asset: MarketMonitorAsset; chart: { price: number }; companyEvidence?: unknown[]; dataQuality?: string }, at: Date) => ({ schemaVersion: 1, asset: snapshot.asset, snapshotId: snapshot.id, evidence: snapshot.companyEvidence ?? [], retrievedAt: at.toISOString(), analysisTime: at.toISOString(), price: snapshot.chart.price, horizons: [{ horizon: 'short', direction: 'neutral', structure: 'range', supportLevels: [90], resistanceLevels: [110] }], marketDataAsOf: '2026-10-13T00:00:00Z', hourlyDataAsOf: '2026-10-14T11:00:00Z', dataQuality: snapshot.dataQuality ?? 'partial' }) }))
+vi.mock('./intelligence-market.js', () => ({ buildMarketIntelligence: (snapshot: { id: string; asset: MarketMonitorAsset; chart: { price: number }; companyEvidence?: unknown[]; dataQuality?: string; hourlyDataAsOf?: string | null }, at: Date) => ({ schemaVersion: 1, asset: snapshot.asset, snapshotId: snapshot.id, evidence: snapshot.companyEvidence ?? [], retrievedAt: at.toISOString(), analysisTime: at.toISOString(), price: snapshot.chart.price, horizons: [{ horizon: 'short', direction: 'neutral', structure: 'range', supportLevels: [90], resistanceLevels: [110] }], marketDataAsOf: '2026-10-13T00:00:00Z', hourlyDataAsOf: snapshot.hourlyDataAsOf === undefined ? '2026-10-14T11:00:00Z' : snapshot.hourlyDataAsOf, dataQuality: snapshot.dataQuality ?? 'partial' }) }))
 const roots: string[] = []
 afterEach(async () => { await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))) })
 const provenance = { workspaceId: 'workspace', issueId: 'research', runId: 'run-1', agent: 'codex' }
@@ -93,6 +93,21 @@ describe('three-layer native evidence orchestration', () => {
     expect(r.run).toHaveBeenCalledTimes(1)
     expect(await readFile(file, 'utf8')).toBe(bytes)
   })
+  it.each([undefined, 'investment-intelligence-v3'] as const)('keeps %s frozen inputs readable but rejects relabelling an old in-flight proposal as current synthesis', async version => {
+    const f = await fixture(), frozen = await f.service.nativeInput(provenance)
+    const legacy = { ...frozen, analysisVersion: version }
+    if (version === undefined) delete legacy.analysisVersion
+    legacy.hash = createHash('sha256').update(JSON.stringify({ ...legacy, hash: '' })).digest('hex')
+    const file = join(f.root, `${legacy.id}.json`), bytes = JSON.stringify(legacy)
+    await writeFile(file, bytes)
+    expect((await f.service.nativeInput(provenance)).hash).toBe(legacy.hash)
+    await expect(f.service.publishSynthesis(legacy.id, undefined, {} as never, provenance)).rejects.toThrow('研究约束版本已更新')
+    expect(f.investment.publish).not.toHaveBeenCalled()
+    expect(await readFile(file, 'utf8')).toBe(bytes)
+    const next = await f.service.nativeInput({ ...provenance, runId: 'new-policy-run' })
+    expect(next.analysisVersion).toBe(INVESTMENT_ANALYSIS_VERSION)
+    expect(next.id).not.toBe(legacy.id)
+  })
   it('rechecks objective conditions on successful manual scans and ignores other assets', async () => {
     const f = await fixture()
     await f.service.afterScan({ asset: 'TSLA' } as MarketMonitorSnapshot)
@@ -130,7 +145,7 @@ async function equityFixture(asset: 'TSLA' | 'MSTR') {
   const opts = { ...f.opts, asset, root: join(f.root, asset), monitor, feedback: vi.fn(async () => structuredClone(feedback)) }
   const service = createIntelligenceService(opts)
   const p = { ...provenance, issueId: `mad42lab-${asset.toLowerCase()}-investment-intelligence` }
-  return { ...f, opts, service, monitor, feedback, p, changeSnapshot: (id: string, companyEvidence?: unknown[], dataQuality?: string) => { snapshot = { ...snapshot, id, companyEvidence, dataQuality } as unknown as MarketMonitorSnapshot } }
+  return { ...f, opts, service, monitor, feedback, p, changeSnapshot: (id: string, companyEvidence?: unknown[], dataQuality?: string, hourlyDataAsOf?: string | null) => { snapshot = { ...snapshot, id, companyEvidence, dataQuality, hourlyDataAsOf } as unknown as MarketMonitorSnapshot } }
 }
 
 describe('equity native synthesis asset isolation', () => {
@@ -177,6 +192,16 @@ describe('equity native synthesis asset isolation', () => {
     expect(f.research.discover).not.toHaveBeenCalled()
   })
 
+  it.each(['TSLA', 'MSTR'] as const)('does not relabel an in-flight legacy %s input after the equity policy version changes', async asset => {
+    const f = await equityFixture(asset), frozen = await f.service.nativeInput(f.p)
+    const legacy = { ...frozen, analysisVersion: 'investment-intelligence-equity-v1' as const }
+    legacy.hash = createHash('sha256').update(JSON.stringify({ ...legacy, hash: '' })).digest('hex')
+    const file = join(f.opts.root, `${legacy.id}.json`), bytes = JSON.stringify(legacy)
+    await writeFile(file, bytes)
+    await expect(f.service.publishSynthesis(legacy.id, undefined, {} as never, f.p)).rejects.toThrow('研究约束版本已更新')
+    expect(f.investment.publish).not.toHaveBeenCalled()
+    expect(await readFile(file, 'utf8')).toBe(bytes)
+  })
   it('keeps both stock input identities distinct even when a native run/workspace ID is reused', async () => {
     const tsla = await equityFixture('TSLA'), mstr = await equityFixture('MSTR')
     const a = await tsla.service.nativeInput(tsla.p), b = await mstr.service.nativeInput(mstr.p)
@@ -186,6 +211,23 @@ describe('equity native synthesis asset isolation', () => {
     expect(tsla.investment.publish).not.toHaveBeenCalled(); expect(mstr.investment.publish).not.toHaveBeenCalled()
   })
 
+  it('dispatches once when official-session admission changes even when source values and the selected snapshot are unchanged', async () => {
+    const f = await equityFixture('TSLA'), r = runner()
+    let clock = new Date('2026-10-14T12:00:00Z')
+    const base = { asset: 'TSLA', unit: 'USD', sourceName: 'readonly-bars', sourceUrl: null, retrievedAt: '2026-10-14T11:55:00Z', publishedAt: null, quality: 'available', reportId: null, kind: 'observation' }
+    f.changeSnapshot('unchanged-snapshot', [
+      { ...base, id: 'current-hour', metric: 'hourly-close', value: 400, dataAsOf: '2026-10-13T19:00:00Z' },
+      { ...base, id: 'earnings-calendar', metric: 'equity.next-earnings', value: '2026-12-10', unit: 'session-date', dataAsOf: '2026-10-14T11:55:00Z' },
+    ], 'partial', '2026-10-13T19:00:00Z')
+    const service = createIntelligenceService({ ...f.opts, now: () => clock }); service.setRunner(r)
+    await service.run(false); expect(r.run).toHaveBeenCalledTimes(1)
+    clock = new Date('2026-10-14T12:05:00Z')
+    await service.run(false); expect(r.run).toHaveBeenCalledTimes(1)
+    clock = new Date('2026-10-14T14:35:00Z')
+    await service.run(false); expect(r.run).toHaveBeenCalledTimes(2)
+    clock = new Date('2026-10-14T14:40:00Z')
+    await service.run(false); expect(r.run).toHaveBeenCalledTimes(2)
+  })
   it('reuses an unchanged equity evidence cache across rescans, but refreshes changed facts or feedback', async () => {
     const f = await equityFixture('TSLA'), r = runner(); f.service.setRunner(r)
     const reference = { id: 'snapshot-one:market-cap', asset: 'TSLA', metric: 'equity.market-cap', value: 1_000_000, unit: 'USD', sourceName: 'readonly-reference', sourceUrl: null, dataAsOf: '2026-10-14T11:00:00Z', retrievedAt: '2026-10-14T11:05:00Z', publishedAt: null, quality: 'available', reportId: null, kind: 'observation' }

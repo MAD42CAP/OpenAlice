@@ -1215,7 +1215,7 @@ use the same entry; Nano hides it consistently with other market-data views.
 
 ## Forward validation after the BTC archive audit
 
-The active research path is `market-forward-v2`, stored separately under
+The preceding research path `market-forward-v2` is retained separately under
 `data/market-monitor/forecast-validation-v2`. Original Jev, the
 `same-evidence-history-v1` experiment, its evaluator and its records stay
 unchanged and readable as historical experiments. New scheduled scans collect
@@ -1406,3 +1406,63 @@ All assets retain one compact feedback strip with details closed. Equities
 have Market and AI synthesis tabs; the on-chain report tab remains BTC only.
 Selection-bound hooks reject late or cross-asset responses. Demonstration
 fixtures are explicitly illustrative and use isolated asset IDs and receipts.
+
+## Session-quality and forward-comparison follow-up
+
+The active default strategy advances to version 3 and records
+`analysisBasis.version=3`. Version-2 analysis and fingerprints remain registered
+for exact historical replay. New equity hourly evidence follows the regular
+session/relative-volume policy in [[docs/market-data-architecture.md]]. Original
+provider bars remain visible; filtered numerical evidence carries its own last
+qualified timestamp. An unavailable latest pulse cannot revive an earlier one.
+
+Active collection now appends `market-forward-v4` under its own
+`forecast-validation-v4` directory. This permits recording the new input policy
+on a session that already has a frozen v2 call. The Jev decision thresholds
+remain `jev-base-rate-v2`; this change does not fit calibration on recent misses
+or reinterpret existing probabilities. The active prompts identify their session and
+volume scope, and only qualified continuous equity hours enter numeric model
+features. Active stock collection rejects an old analysis basis until a new scan.
+
+GET `/api/market-monitor/forecast-validation?asset=BTC|TSLA|MSTR` returns the
+active report. Adding `protocol=market-forward-v2` reads the previous ledger;
+legacy collection is rejected. `protocol=market-forward-v3` also remains
+readonly for the intermediate development records; those records are neither
+overwritten nor pooled into final-version results. That archive remains inspectable through the
+existing closed history disclosure, without model requests on reads.
+
+The additive `forward-comparison-v1` read projection groups original strategy
+and policy identities. It keeps the earliest complete observation for each
+identical start/end window before grouping, so later calls cannot replace an
+earlier abstention. Rules/Jev and rules/combined each have their own common-call
+denominator; unavailable frequency or another candidate does not discard a
+valid pair. Coverage, real abstention, missing model output, exclusions and
+pending outcomes stay separate. Raw three-class Brier includes valid model
+distributions even when the effective decision abstains, and compares with the
+same frozen historical-frequency windows. Selected-probability gaps use the
+exact scored-call cohort. An auxiliary non-overlapping count does not imply
+independent trials. Reporting gates of 30 common/20 non-overlapping windows
+remain descriptive; no result promotes models or changes weights automatically.
+The current strategy's empty cohort never inherits an older version's success.
+
+The overview uses `evidence-summary-v3`; its earlier builders remain unchanged
+for their frozen experiments. Unverified equity hourly policy or unknown/near
+earnings risk withholds the short-term call rather than inferring an event-free
+market. Price rules and Wyckoff remain one evidence family.
+
+Native synthesis advances to BTC `investment-intelligence-v4` and equity
+`investment-intelligence-equity-v2`. Directional outlooks require a verified
+same-horizon `decisionConditions` pair: strict future daily-close confirmation
+and invalidation, anchored to the actual available support/resistance evidence.
+Invented, cross-horizon, wrong-unit or inverted boundaries are rejected; missing
+or old boundaries yield uncertainty. The server supplies one concise future
+condition sentence. A pair is immutable research intent, not a resolved trade,
+not a return hit and not a replacement for stable-key thesis conditions.
+Existing thesis tracking and fixed-return evaluation remain separate.
+
+New native tasks bind the analysis version in their frozen input; an older
+in-flight task cannot publish under a newer label. Legacy publications remain
+readable. News titles and SEC submission metadata do not provide independent
+fundamental-direction confirmation. The dashboard keeps the conclusion and
+one key condition visible; source, pairwise and calibration detail stays in
+existing initially closed disclosures.

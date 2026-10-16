@@ -244,7 +244,7 @@ export interface MarketMonitorSnapshot {
   /** Absent on legacy observations; scores are rules, not calibrated probabilities. */
   analysisInput?: { hash: string; strategyVersion: number }
   narrationStatus?: 'current' | 'stale' | 'unverified'
-  analysisBasis?: { version: 2; closedBarsOnly: true; dailyAt: string; hourlyAt: string | null }
+  analysisBasis?: { version: 2 | 3; closedBarsOnly: true; dailyAt: string; hourlyAt: string | null }
   id: string
   asset: MarketMonitorAsset
   capturedAt: string

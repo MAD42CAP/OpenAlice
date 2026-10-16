@@ -46,3 +46,14 @@ it('withholds a prior success when refresh fails and sanitizes collection failur
   await act(async () => hook.result.current.collect())
   expect(hook.result.current.error).toBe('collect')
 })
+
+it('reads the prior protocol only when visible and never exposes a legacy collection action', async () => {
+  api.read.mockImplementation(async (asset, _signal, protocol) => demoForecastValidation(asset, protocol))
+  const hook = renderHook(({ visible }) => useForecastValidation('TSLA', visible, 'history', 'market-forward-v2'), { initialProps: { visible: false } })
+  expect(api.read).not.toHaveBeenCalled()
+  hook.rerender({ visible: true }); await flush()
+  expect(hook.result.current.report?.protocol).toBe('market-forward-v2')
+  expect(api.read.mock.calls[0]?.[2]).toBe('market-forward-v2')
+  await act(async () => hook.result.current.collect())
+  expect(api.collect).not.toHaveBeenCalled()
+})

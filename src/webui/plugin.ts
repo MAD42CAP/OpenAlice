@@ -3,6 +3,7 @@ import { Hono, type Context } from 'hono'
 import { createTypeSafeService } from '../domain/market-monitor/typesafe-service.js'
 import { createForecastExperiment } from '../domain/market-monitor/forecast-experiment.js'
 import { createForecastValidation } from '../domain/market-monitor/forecast-validation.js'
+import { LEGACY_FORWARD_PROTOCOL, PREVIOUS_FORWARD_PROTOCOL } from '../domain/market-monitor/forecast-validation-types.js'
 import { createForecastValidationRoutes } from './routes/forecast-validation.js'
 import { createForecastExperimentRoutes } from './routes/forecast-experiment.js'
 import { createTypeSafeRoutes } from './routes/typesafe.js'
@@ -318,6 +319,8 @@ export class WebPlugin implements Plugin {
     const typeSafe = createTypeSafeService({ monitor: marketMonitor })
     const forecastExperiment = createForecastExperiment({ baseline: typeSafe })
     const forwardValidation = createForecastValidation({ monitor: marketMonitor })
+    const legacyForwardValidation = createForecastValidation({ monitor: marketMonitor, protocol: LEGACY_FORWARD_PROTOCOL })
+    const previousForwardValidation = createForecastValidation({ monitor: marketMonitor, protocol: PREVIOUS_FORWARD_PROTOCOL })
     for (const asset of ['BTC', 'TSLA', 'MSTR'] as const) {
       const ownIntelligence = intelligences[asset]
       researchLoops[asset] = createResearchLoop({
@@ -341,7 +344,7 @@ export class WebPlugin implements Plugin {
     const researchLoop = researchLoops.BTC
     app.route('/api/market-monitor/research-loop', createResearchLoopRoutes(researchLoop, { TSLA: researchLoops.TSLA, MSTR: researchLoops.MSTR }))
     app.route('/api/market-monitor/forecast-experiment', createForecastExperimentRoutes(forecastExperiment))
-    app.route('/api/market-monitor/forecast-validation', createForecastValidationRoutes(forwardValidation))
+    app.route('/api/market-monitor/forecast-validation', createForecastValidationRoutes(forwardValidation, legacyForwardValidation, previousForwardValidation))
     app.route('/api/market-monitor/judgment', createMarketJudgmentRoutes(marketMonitor, typeSafe, undefined, forwardValidation))
     app.route('/api/market-monitor/typesafe', createTypeSafeRoutes(typeSafe))
     this.marketMonitorScheduler = createMarketMonitorScheduler(marketMonitor, { afterScan: asset => forwardValidation.automatic(asset) })

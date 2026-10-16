@@ -1385,3 +1385,99 @@ records are preserved. Only the related unchanged Codex adapter is included; the
 three unrelated owner edits remain unstaged. The staged delivery passes diff
 and secret-material checks. Synchronization uses the owned repository and
 feature branch with an expected-head lease; no upstream or trading action.
+
+## Equity-session quality and prospective evidence validation (2026-10-15)
+
+The owner authorized proceeding in order after the three-asset audit: isolate
+sparse extended-session stock bars from the rules, improve Jev/combined
+validation and evidence use, then verify on real readonly market data.
+Existing historical calls, raw probabilities, grades and the three unrelated
+owner edits are preserved. Delivery stays on the owned feature branch.
+
+Chosen UI interaction: retain the existing compact conclusion and horizon
+selector; add at most a concise current-cohort validation sentence. Detailed
+coverage, pairwise comparisons and probability diagnostics stay inside the
+existing initially closed disclosure. No new navigation or dense panels.
+Keyboard/accessible disclosure behavior and narrow-width layout stay intact.
+
+- [x] Introduce a versioned equity regular-session input policy with explicit
+  source-volume scope, retaining raw charts and exact legacy replay.
+- [x] Freeze a separate active forward cohort, retain v2 readonly history,
+  report fair pairwise comparisons/coverage/calibration with no automatic
+  weighting or retrospective regrading.
+- [x] Strengthen native synthesis with verifiable same-horizon conditions and
+  bounded event-risk handling; retain all original qualitative publications.
+- [x] Keep the UI simple and mirror API/demo contracts with focused tests.
+- [x] Pass required types, focused and full regression suites; verify real
+  stock/BTC scans, Jev collection, native synthesis, replay and responsive UI.
+- [x] Verify historical/owner fingerprints, diff/secret checks and prepare
+  synchronization of the owned feature branch only.
+
+Cutover discovery: source-backed hot reload ran the existing scheduler while
+new code was being assembled. It appended intermediate v3 records (one BTC,
+one per stock; the stock basis marker is now correctly unverified). Stop the
+real platform during final assembly, preserve every intermediate record and
+use a separate final `market-forward-v4` ledger. V2 and intermediate v3 remain
+explicitly readonly; no failed or invalid record is deleted or regraded as a
+new prediction. Restore the existing background runtime after source freezes.
+
+Implemented input policy: scheduled NYSE 2026–2028 regular sessions, DST and
+early closes; full completed hourly buckets only. At least three prior matching
+local-time sessions establish a past-only median, and <10%/zero volume is
+insufficient evidence. Missing/noncontinuous hours never bridge a gap; the
+latest sparse bucket cannot revive an older pulse. Market-open freshness and
+post-close expected-session checks are shared by rules, Jev and native evidence.
+IEX volume is explicitly single-venue, while raw provider charts remain intact.
+
+Native BTC v4/equity v2 adds exact same-horizon decision conditions, genuine
+price anchors, current-hourly admission at publication and a shared five-session
+earnings-risk window. Stable admission state participates in equity material
+and publication cache identity, so a new open cannot reuse an earlier accepted
+short outlook. Missing conditions/events yield uncertainty, not synthetic flat
+returns. This does not add verified fundamental-direction sources or claim
+forecast improvement. Existing qualitative theses retain their original keys.
+
+First complete regression: 882 files / 7,837 tests passed, four existing skipped,
+zero failures (403.82 seconds). Real BTC/TSLA/MSTR price scans and v4 Jev
+collections succeeded; all new publications have pending future outcomes.
+Three original v2 archives and new v3 analysis archives replay as verified.
+A transition-only MSTR snapshot shared the semantic fingerprint but retained
+basis2; deduplication now compares the complete analysis-basis identity so a
+new basis3 record is saved without altering the old one.
+
+Final acceptance additionally checks historical research-loop identity across
+forward protocol versions: an old frozen v2 input must reconstruct its original
+Jev references and original hourly admission, while current context must use the
+new availability policy. Retaining valid historical provenance never makes an
+old extended-session hour current directional evidence.
+
+Final regression before the last focused clock-boundary correction: 882 test
+files / 7,845 passed, four existing skipped, zero failures (388.21 seconds).
+The final request-time Jev freshness correction separately passes three files /
+54 tests, including pre-open capture requested after the next open or close;
+legacy v2 request-time semantics remain unchanged. Final root and UI TypeScript
+checks both exit 0. Readonly cross-review found no further concrete blocker.
+
+Actual acceptance: all three assets scan successfully; BTC uses Coinbase daily
+and hourly plus Deribit, stocks use Alpaca IEX plus healthy SEC submissions.
+Each has one valid new v4 publication, zero invalid new records, and pending
+1/5/20-session outcomes. Native BTC v4 and equity v2 publications succeed and
+review the current research context. Missing verified earnings dates remain
+explicit unknown event risk, with short-term abstention rather than fabricated
+calendar coverage. No percentage is represented as demonstrated accuracy.
+
+The actual MSTR main view displays a short-term abstention, conditional medium
+and long directions, a concise pending-validation line, reviewed research
+feedback and closed detail panels. Demo evidence/condition interactions and
+390px layout pass without horizontal overflow; desktop viewport is restored,
+temporary demo tab/server are removed, and the production background monitor
+remains enabled for all three assets at its existing 15-minute interval.
+The real dashboard proof is saved outside Git in the local acceptance directory.
+
+Integrity checks preserve all 3,719 pre-existing immutable public market/research
+record fingerprints and all three unrelated owner-file byte fingerprints.
+The 64 intended delivery files pass whitespace and secret-material checks;
+owner edits are excluded from the staged tree. Delivery uses only the owned
+repository feature branch, with a checked expected-head lease. Existing
+schedulers keep collecting subsequent completed market windows; this is a
+prospective experiment, with no automatic weight promotion or regrading.

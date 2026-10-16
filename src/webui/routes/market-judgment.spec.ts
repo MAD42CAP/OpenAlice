@@ -11,7 +11,7 @@ it('uses the new effective Jev decision and never falls back to legacy probabili
   const validation = { asset: 'BTC', latest: { publication: { basis: { snapshotId: 'test-btc' } }, candidate: { issuedAt: at.toISOString(), decisions: { short: { rawChoice: 'flat', choice: null }, medium: { rawChoice: 'up', choice: 'up' }, long: { rawChoice: 'flat', choice: null } } } } } as unknown as ForwardReport
   const forward = { report: vi.fn(async () => validation) }
   const app = createMarketJudgmentRoutes(monitor, legacy, () => at, forward)
-  expect(await (await app.request('/?asset=BTC')).json()).toMatchObject({ protocol: 'evidence-summary-v2', validation: { status: 'experimental' }, jev: { policy: 'jev-base-rate-v2', status: 'current', directions: { short: 'insufficient', medium: 'up', long: 'insufficient' } } })
+  expect(await (await app.request('/?asset=BTC')).json()).toMatchObject({ protocol: 'evidence-summary-v3', validation: { status: 'experimental' }, jev: { policy: 'jev-base-rate-v2', status: 'current', directions: { short: 'insufficient', medium: 'up', long: 'insufficient' } } })
   expect(legacy.report).not.toHaveBeenCalled()
   forward.report.mockRejectedValueOnce(new Error('private error'))
   expect(await (await app.request('/?asset=BTC')).json()).toMatchObject({ jev: { policy: 'jev-base-rate-v2', status: 'unavailable', directions: null } })

@@ -118,7 +118,7 @@ export function analyzeEvidence(input: {
   intradayBars: OhlcvBar[]
   abnormalVolumeRatio: number
   abnormalMovePercent: number
-}): { metrics: MarketMonitorMetrics; evidence: EvidenceItem[]; hypothesis: MarketHypothesis; trend: MultiTimeframeTrend; wyckoff: WyckoffAssessment; dailyBrief: MarketDailyBrief } {
+}, intradayOverride?: IntradayPulse): { metrics: MarketMonitorMetrics; evidence: EvidenceItem[]; hypothesis: MarketHypothesis; trend: MultiTimeframeTrend; wyckoff: WyckoffAssessment; dailyBrief: MarketDailyBrief } {
   const asOf = input.asOf ?? new Date()
   const daily = sortedBars(closedBars(input.dailyBars, input.asset ?? 'BTC', '1d', asOf))
   const intraday = sortedBars(closedBars(input.intradayBars, input.asset ?? 'BTC', '1h', asOf))
@@ -130,7 +130,7 @@ export function analyzeEvidence(input: {
   const dailyVolumeRatio = volumeRatio(daily, 20)
   const weekly = weeklyCloses(daily, asOf)
   const weeklyChange = weekly.length >= 2 ? pct(weekly.at(-1)!, weekly.at(-2)!) : null
-  const pulse = intradayPulse(intraday, input.abnormalVolumeRatio, input.abnormalMovePercent)
+  const pulse = intradayOverride ?? intradayPulse(intraday, input.abnormalVolumeRatio, input.abnormalMovePercent)
   const recent20 = daily.slice(-21, -1)
   const priorHigh = Math.max(...recent20.map((bar) => bar.high))
   const priorLow = Math.min(...recent20.map((bar) => bar.low))
@@ -268,7 +268,9 @@ export function evaluateSnapshots(asset: MarketMonitorAsset, snapshots: MarketMo
   const rows = ordered.map((snapshot, index) => {
     const next = ordered[index + 1]
     const change = next ? pct(next.metrics.lastPrice, snapshot.metrics.lastPrice) : null
-    const comparable = next && (snapshot.analysisBasis?.version ?? 1) === (next.analysisBasis?.version ?? 1) && Date.parse(next.metrics.lastBarAt) > Date.parse(snapshot.metrics.lastBarAt)
+    const comparable = next && (snapshot.analysisBasis?.version ?? 1) === (next.analysisBasis?.version ?? 1)
+      && (snapshot.analysisInput?.strategyVersion ?? 1) === (next.analysisInput?.strategyVersion ?? 1)
+      && Date.parse(next.metrics.lastBarAt) > Date.parse(snapshot.metrics.lastBarAt)
     const correct = !comparable || change == null || change === 0 || snapshot.hypothesis.bias === 'neutral'
       ? null
       : snapshot.hypothesis.bias === 'bullish' ? change > 0 : change < 0

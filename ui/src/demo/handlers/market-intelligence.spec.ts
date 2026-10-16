@@ -20,7 +20,7 @@ it.each(['TSLA', 'MSTR'])('serves %s native synthesis without fabricating Glassn
   const report = await response.json()
   expect(response.status).toBe(200); expect(report.illustrative).toBe(true); expect(report.asset).toBe(asset)
   expect(report.research).toMatchObject({ reports: [], snapshots: [], latest: null })
-  expect(report.investment.latest).toMatchObject({ asset, researchSnapshotId: null, analysisVersion: 'investment-intelligence-equity-v1' })
+  expect(report.investment.latest).toMatchObject({ asset, researchSnapshotId: null, analysisVersion: 'investment-intelligence-equity-v2' })
   expect(report.investment.latest.evidence.every((row: { asset: string }) => row.asset === asset)).toBe(true)
   expect((await fetch(`${path}/run?asset=${asset}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"force":true}' })).status).toBe(200)
   expect((await fetch(`${path}/discover?asset=${asset}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })).status).toBe(400)

@@ -81,6 +81,9 @@ describe('market evidence analysis', () => {
     expect(evaluateSnapshots('BTC', [make(100, 'bullish', '2026-01-01'), make(100, 'bearish', '2026-01-02')]).resolved).toBe(0)
     const upgraded = { ...make(110, 'bearish', '2026-01-02'), analysisBasis: { version: 2 as const, closedBarsOnly: true as const, dailyAt: '2026-01-02', hourlyAt: null } }
     expect(evaluateSnapshots('BTC', [make(100, 'bullish', '2026-01-01'), upgraded]).resolved).toBe(0)
+    const v2 = { ...make(100, 'bullish', '2026-01-01'), analysisInput: { hash: 'old', strategyVersion: 2 } }
+    const v3 = { ...make(110, 'bearish', '2026-01-02'), analysisInput: { hash: 'new', strategyVersion: 3 } }
+    expect(evaluateSnapshots('BTC', [v2, v3]).resolved).toBe(0)
   })
 })
 

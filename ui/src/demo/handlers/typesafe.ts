@@ -1,3 +1,4 @@
+import { FORWARD_PROTOCOL, LEGACY_FORWARD_PROTOCOL, PREVIOUS_FORWARD_PROTOCOL } from '../../api/forecast-validation-types'
 import { demoForecastValidation } from '../fixtures/forecast-validation'
 import { http, HttpResponse } from 'msw'
 import { demoJevReport } from '../fixtures/typesafe'
@@ -8,14 +9,18 @@ export const typeSafeHandlers = [
   http.get('/api/market-monitor/forecast-validation', ({ request }) => {
     const asset = new URL(request.url).searchParams.get('asset') as MonitorAsset
     if (!['BTC', 'TSLA', 'MSTR'].includes(asset)) return HttpResponse.json({ error: 'Invalid asset' }, { status: 400 })
-    const report = { ...demoForecastValidation(asset), ...settings }
+    const protocol = new URL(request.url).searchParams.get('protocol') ?? FORWARD_PROTOCOL
+    if (protocol !== FORWARD_PROTOCOL && protocol !== LEGACY_FORWARD_PROTOCOL && protocol !== PREVIOUS_FORWARD_PROTOCOL) return HttpResponse.json({ error: 'Unknown validation protocol' }, { status: 400 })
+    const report = { ...demoForecastValidation(asset, protocol), ...settings }
     if (!settings.configured && report.latest) { report.latest.candidate = null; report.rows.forEach(row => { row.candidateAvailable = false; row.outcomes.forEach(outcome => { outcome.choices.jev = null; outcome.correct.jev = null }) }) }
     return HttpResponse.json(report)
   }),
   http.post('/api/market-monitor/forecast-validation', async ({ request }) => {
+    const protocol = new URL(request.url).searchParams.get('protocol')
+    if (protocol && protocol !== FORWARD_PROTOCOL) return HttpResponse.json({ error: 'Historical validation is read-only' }, { status: 400 })
     const input = await request.json() as { asset?: string }
-    if (!input || !['BTC', 'TSLA', 'MSTR'].includes(input.asset ?? '')) return HttpResponse.json({ error: 'Invalid asset' }, { status: 400 })
-    return HttpResponse.json({ id: 'demo-forward-v2', issuedAt: new Date().toISOString(), illustrative: true })
+    if (!input || Object.keys(input).some(key => key !== 'asset') || !['BTC', 'TSLA', 'MSTR'].includes(input.asset ?? '')) return HttpResponse.json({ error: 'Invalid asset' }, { status: 400 })
+    return HttpResponse.json({ id: `demo-${FORWARD_PROTOCOL}`, issuedAt: new Date().toISOString(), illustrative: true })
   }),
   http.get('/api/market-monitor/forecast-experiment', ({ request }) => {
     const asset = new URL(request.url).searchParams.get('asset') as MonitorAsset

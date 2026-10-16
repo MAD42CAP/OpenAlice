@@ -116,6 +116,21 @@ requests `feed=iex`, so its volume is IEX volume rather than consolidated US
 market volume. Missing or rejected credentials are explicit source failures;
 the monitor may attribute a Yahoo fallback but never relabel it as Alpaca.
 
+Evidence strategy version 3 retains the provider's raw stock bars for charts
+and immutable replay, while numerical hourly confirmation uses only completed
+full-hour buckets wholly inside the New York regular session. It excludes
+pre/post-market bars, opening/closing partial buckets and scheduled early-close
+overlaps. The finite session table follows the [published NYSE 2026–2028
+schedule](https://www.nyse.com/trade/hours-calendars); later years and emergency
+closures are not claimed as verified. Low or zero volume supplies missing
+evidence rather than a bearish vote: a bucket needs three past same-local-time
+reference sessions and at least 10% of their median volume. These are fixed
+input-quality rules, not fitted return thresholds. Hourly changes never bridge
+gaps or silently substitute an older qualified pulse for a sparse latest one.
+IEX volumes remain single-venue source-native observations, as described in
+[Alpaca's stock-data guide](https://docs.alpaca.markets/us/docs/historical-stock-data-1).
+BTC's original continuous-market calculations are unchanged.
+
 `coinbase|BTC-USD` is a separate read-only spot-crypto source and is not a
 Coinbase trading account. Coinbase's public Advanced Trade market endpoint
 works without credentials. Optional CDP **API Key Name + ECDSA Private Key**

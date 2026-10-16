@@ -4,11 +4,11 @@ import type { MarketMonitorAsset, TrendDirection, TrendHorizon } from './types.j
 import type { OhlcvBar } from '../market-data/bars/types.js'
 import type { ResearchFeedbackReceipt, ResearchLoopContext } from './research-loop-types.js'
 
-export const INVESTMENT_ANALYSIS_VERSION = 'investment-intelligence-v3' as const
-export const EQUITY_INVESTMENT_ANALYSIS_VERSION = 'investment-intelligence-equity-v1' as const
+export const INVESTMENT_ANALYSIS_VERSION = 'investment-intelligence-v4' as const
+export const EQUITY_INVESTMENT_ANALYSIS_VERSION = 'investment-intelligence-equity-v2' as const
 export const investmentAnalysisVersion = (asset: MarketMonitorAsset) => asset === 'BTC' ? INVESTMENT_ANALYSIS_VERSION : EQUITY_INVESTMENT_ANALYSIS_VERSION
 /** Archived v1 records retain their original bytes, hashes and evaluation protocol. */
-export type InvestmentAnalysisVersion = 'investment-intelligence-v1' | 'investment-intelligence-v2' | typeof INVESTMENT_ANALYSIS_VERSION | typeof EQUITY_INVESTMENT_ANALYSIS_VERSION
+export type InvestmentAnalysisVersion = 'investment-intelligence-v1' | 'investment-intelligence-v2' | 'investment-intelligence-v3' | 'investment-intelligence-equity-v1' | typeof INVESTMENT_ANALYSIS_VERSION | typeof EQUITY_INVESTMENT_ANALYSIS_VERSION
 export type ValidationStatus = 'CONFIRMED' | 'PARTIALLY_CONFIRMED' | 'CONFLICTING' | 'UNVERIFIED' | 'OUTDATED'
 export type InvestmentDirection = 'bullish' | 'neutral' | 'bearish' | 'conditional-bullish' | 'conditional-bearish' | 'uncertain'
 export interface MarketIntelligence {
@@ -33,6 +33,8 @@ export interface InvestmentOutlook {
   horizon: TrendHorizon; direction: InvestmentDirection; conclusion: IntelligenceClaim; structure: IntelligenceClaim
   supportingEvidence: IntelligenceClaim[]; opposingEvidence: IntelligenceClaim[]; risks: IntelligenceClaim[]
   confirmation: IntelligenceClaim[]; invalidation: IntelligenceClaim[]; priceLevelLabels: string[]
+  /** Publication-bound price conditions; never a rewrite of a stable-key thesis. */
+  decisionConditions?: { confirmation: InvestmentCondition; invalidation: InvestmentCondition }
 }
 export interface InvestmentScenario {
   kind: 'bullish' | 'neutral' | 'bearish'; hypothesis: IntelligenceClaim; conditions: IntelligenceClaim[]; confirmation: IntelligenceClaim[]

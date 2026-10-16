@@ -6,6 +6,7 @@ import { buildMarketIntelligence } from './intelligence-market.js'
 import { intelligenceIssueId, type IntelligenceProvenance } from './intelligence-types.js'
 import { createResearchService, type ResearchService } from './research-service.js'
 import { createInvestmentService } from './investment-service.js'
+import { investmentAdmission } from './investment.js'
 import { investmentAnalysisVersion, type InvestmentAnalysisVersion } from './investment-types.js'
 import type { InvestmentDraft, MarketIntelligence, InvestmentReport } from './investment-types.js'
 import type { ResearchDraft, ResearchReport, ResearchSnapshot, ResearchSource } from './research-types.js'
@@ -59,7 +60,7 @@ export function createIntelligenceService(options: {
     analysisVersion: investmentAnalysisVersion(asset),
     daily: market.marketDataAsOf, price: market.price,
     horizons: market.horizons.map(h => ({ horizon: h.horizon, direction: h.direction, structure: h.structure, supportLevels: h.supportLevels, resistanceLevels: h.resistanceLevels })), quality: market.dataQuality,
-    ...(asset === 'BTC' ? {} : { asset, companyEvidence: market.evidence.filter(e => e.metric.startsWith('equity.')).map(e => ({ metric: e.metric, value: e.value, unit: e.unit, sourceName: e.sourceName, sourceUrl: e.sourceUrl, publishedAt: e.publishedAt, quality: e.quality })) }),
+    ...(asset === 'BTC' ? {} : { asset, admission: investmentAdmission(market, now()), companyEvidence: market.evidence.filter(e => e.metric.startsWith('equity.')).map(e => ({ metric: e.metric, value: e.value, unit: e.unit, sourceName: e.sourceName, sourceUrl: e.sourceUrl, publishedAt: e.publishedAt, quality: e.quality })) }),
     reports: (await reportsForAsset()).map(r => r.contentHash),
     thesisStates: (await investment.report()).theses.map(t => [t.key, t.status]),
     feedbackHash: frozenFeedbackHash !== undefined ? frozenFeedbackHash : (await options.feedback?.())?.hash ?? null,
@@ -178,6 +179,7 @@ export function createIntelligenceService(options: {
     },
     async publishSynthesis(id: string, researchSnapshotId: string | undefined, draft: InvestmentDraft, provenance: IntelligenceProvenance) {
       const input = await readInput(id, provenance)
+      if (input.analysisVersion !== investmentAnalysisVersion(asset)) throw new Error('研究约束版本已更新；请以新原生任务重新冻结输入，旧输入保留但不能标记为新版成果。')
       const latestReport = input.reports.at(-1)
       if (asset !== 'BTC' && researchSnapshotId !== undefined) throw new Error('Equity synthesis must not attach a BTC research report.')
       const selected = asset === 'BTC' ? (await research.snapshots()).find(s => s.id === researchSnapshotId && s.reportId === latestReport?.id && (s.provenance.runId === provenance.runId || input.research.some(r => r.id === s.id))) : null

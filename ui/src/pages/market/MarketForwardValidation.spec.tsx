@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { demoForecastValidation } from '../../demo/fixtures/forecast-validation'
 import { i18n } from '../../i18n'
-import { MarketForwardJevView, MarketForwardValidationSummary } from './MarketForwardValidation'
+import { ForwardValidationDetails, MarketForwardJevView, MarketForwardValidationSummary } from './MarketForwardValidation'
 const actions = { refresh: vi.fn(), collect: vi.fn() }
 beforeEach(async () => { await i18n.changeLanguage('zh') })
 afterEach(() => { cleanup(); vi.clearAllMocks() })
@@ -34,9 +34,9 @@ it('permits freezing rules and combined evidence without a key and never fabrica
 
 it('keeps new results experimental even with lower Brier, and leaves coverage inside the disclosure', () => {
   const report = demoForecastValidation('BTC')
-  Object.assign(report.summaries[0]!, { complete: 2, pending: 0, probability: { count: 2, jevBrier: 0.1, frequencyBrier: 0.9 } })
+  Object.assign(report.validation!.current.summaries[0]!, { uniqueWindows: 2, pending: 0, probability: { count: 2, nonOverlappingWindows: 2, jevBrier: 0.1, frequencyBrier: 0.9, difference: -0.8 } })
   render(<MarketForwardValidationSummary report={report} loading={false} error={null} refresh={actions.refresh} />)
-  expect(screen.getByText('新版实验中 · 尚未证明稳定优势。')).toBeTruthy()
+  expect(screen.getByText('本轮新版 · 2 个窗口已到期，是否带来额外提升仍在验证。')).toBeTruthy()
   expect(screen.queryByText(/Brier：/)).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '查看验证明细' }))
   expect(screen.getByText('同批原始概率 Brier：Jev 0.100 · 历史频率 0.900 · 2 个窗口')).toBeTruthy()
@@ -75,7 +75,7 @@ it.each([
   render(<><MarketForwardValidationSummary report={report} loading={false} error={null} refresh={actions.refresh} /><MarketForwardJevView report={report} loading={false} error={null} collecting={false} {...actions} /></>)
   const warnings = screen.queryAllByText('历史记录 · 等待今日采集，当前暂无今日 Jev 判断。')
   expect(warnings).toHaveLength(current ? 0 : 2)
-  expect(screen.queryAllByText(/Jev · 看涨$/)).toHaveLength(current ? 1 : 0)
+  expect(screen.queryAllByText(/Jev · 看涨$/)).toHaveLength(0)
   expect(screen.queryAllByText('看涨')).toHaveLength(current ? 1 : 0)
   expect(screen.getByRole('button', { name: current ? 'Jev 原始输出 · 实验数据，不是已校准胜率' : '历史 Jev 原始输出 · 实验数据，不是已校准胜率' }).getAttribute('aria-expanded')).toBe('false')
 })
@@ -89,4 +89,37 @@ it('keeps historical raw output and outcome scoring available behind disclosures
   expect(screen.getAllByText('模型原始选择：flat')).toHaveLength(2)
   fireEvent.click(screen.getByRole('button', { name: '查看验证明细' }))
   expect(screen.getAllByText(/同批原始概率 Brier：/)).toHaveLength(3)
+})
+
+it('keeps current strategy results separate from older aggregate successes and shows fair pairs only on demand', () => {
+  const report = demoForecastValidation('MSTR')
+  report.summaries[0]!.complete = 40
+  report.summaries[0]!.methods.jev = { scored: 40, correct: 40, abstained: 0 }
+  const current = report.validation!.current.summaries[0]!
+  Object.assign(current, { uniqueWindows: 2, pending: 0 })
+  current.pairwise.combined = { count: 2, rulesCorrect: 1, candidateCorrect: 1, accuracyDifference: 0, disagreements: 0, candidateOnlyCorrect: 0, rulesOnlyCorrect: 0, nonOverlappingWindows: 2, status: 'insufficient' }
+  render(<MarketForwardValidationSummary report={report} loading={false} error={null} refresh={actions.refresh} />)
+  expect(screen.getByText('本轮新版 · 2 个窗口已到期，是否带来额外提升仍在验证。')).toBeTruthy()
+  expect(screen.queryByText(/同样 2 次判断/)).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '查看验证明细' }))
+  expect(screen.getByText('规则版本 3；不混入旧版成绩。')).toBeTruthy()
+  expect(screen.getByText(/综合判断对照规则：同样 2 次判断，命中 1\/2 对 1\/2/)).toBeTruthy()
+  expect(screen.queryByText(/40\/40/)).toBeNull()
+})
+
+it('withholds same-date model output based on an older strategy version', () => {
+  const report = demoForecastValidation('TSLA')
+  report.latest!.publication.basis.strategyVersion = 2
+  render(<MarketForwardJevView report={report} loading={false} error={null} collecting={false} {...actions} />)
+  expect(screen.getByText('历史记录 · 等待今日采集，当前暂无今日 Jev 判断。')).toBeTruthy()
+  expect(screen.queryByText('看涨')).toBeNull()
+})
+
+it('keeps actual previous-version scores visible even when its current strategy cohort is empty', () => {
+  const report = demoForecastValidation('BTC', 'market-forward-v2')
+  report.validation = demoForecastValidation('BTC').validation
+  Object.assign(report.summaries[0]!.methods.jev, { scored: 2, correct: 1 })
+  render(<ForwardValidationDetails report={report} />)
+  expect(screen.getByText('新版 Jev：命中 1/2 · 0 暂不判断')).toBeTruthy()
+  expect(screen.queryByText('规则版本 3；不混入旧版成绩。')).toBeNull()
 })

@@ -53,7 +53,7 @@ export function createInvestmentService(options: { asset?: MarketMonitorAsset; r
         if (input.market.asset !== asset) throw new Error('综合研判标的与归档空间不匹配。')
         const rawDraft = investmentDraftSchema.parse(value) as InvestmentDraft
         const { draft, warnings, evidence } = guardInvestmentDraft(input, rawDraft, at)
-        const inputHash = investmentInputHash(input), id = `investment-${inputHash}`
+        const inputHash = investmentInputHash(input, at), id = `investment-${inputHash}`
         const existing = await store.read('publications', id)
         if (existing) { await initializeTheses(existing); await revalidateInternal(input.market, at); return { stored: false, snapshot: existing } }
         const publications = (await store.list('publications')).filter(p => before(p.analysisTime, at)).sort((a, b) => a.analysisTime.localeCompare(b.analysisTime))

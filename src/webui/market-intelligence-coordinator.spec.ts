@@ -34,12 +34,13 @@ describe('single native investment Issue', () => {
     expect((await c.run()).state).toBe('blocked')
   })
   it('preregisters the v2 uncertainty, independent evidence and horizon discipline in the native prompt', () => {
-    expect(INTELLIGENCE_PROMPT).toContain('investment-intelligence-v3')
+    expect(INTELLIGENCE_PROMPT).toContain('investment-intelligence-v4')
     expect(INTELLIGENCE_PROMPT).toContain('uncertain（暂不判断）')
     expect(INTELLIGENCE_PROMPT).toContain('不重复计票')
     expect(INTELLIGENCE_PROMPT).toContain('trend.<horizon>')
     expect(INTELLIGENCE_PROMPT).toContain('不得以多个 AI 同意来代替验证')
     expect(INTELLIGENCE_PROMPT).toContain('不修改旧预测')
+    for (const field of ['decisionConditions', 'thresholdEvidenceId', 'resistance.<horizon>', 'support.<horizon>', '旧 thesis 的 key 和条件不可']) expect(INTELLIGENCE_PROMPT).toContain(field)
   })
   it('dispatches through the existing native scheduler, without a new model client', async () => {
     const { service, run } = await fixture(), c = createMarketIntelligenceCoordinator(service)

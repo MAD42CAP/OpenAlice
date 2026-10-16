@@ -8,11 +8,11 @@ import { buildGuardedMarketJudgment } from './judgment.js'
 import { hashJevInput } from './typesafe-input.js'
 import { forwardRecordHash } from './forecast-validation-store.js'
 import { guardedJevDecision } from './forecast-validation-input.js'
-import { FORWARD_PROTOCOL, JEV_DECISION_POLICY, type ForwardCandidate, type ForwardPublication, type ForwardReport } from './forecast-validation-types.js'
+import { FORWARD_PROTOCOL, LEGACY_FORWARD_PROTOCOL, PREVIOUS_FORWARD_PROTOCOL, JEV_DECISION_POLICY, type ForwardProtocol, type ForwardCandidate, type ForwardPublication, type ForwardReport } from './forecast-validation-types.js'
 import { TYPESAFE_MODEL, type JevResult } from './typesafe-client.js'
 import { createResearchLoop, researchFeedbackDraftSchema } from './research-loop.js'
 import { createResearchLoopStore, researchLoopInputHash, researchLoopRecordHash } from './research-loop-store.js'
-import { RESEARCH_LOOP_ISSUES, researchLoopIssueIds, researchLoopProtocol, type ResearchFeedbackDraft, type ResearchLoopJob, type ResearchLoopRunner, type ResearchRole } from './research-loop-types.js'
+import { RESEARCH_LOOP_ISSUES, researchLoopIssueIds, researchLoopProtocol, type ResearchFeedbackDraft, type ResearchFeedbackRecord, type ResearchLoopInput, type ResearchLoopJob, type ResearchLoopRunner, type ResearchRole } from './research-loop-types.js'
 import type { IntelligenceProvenance } from './intelligence-types.js'
 import type { ReturnHistory } from './forecast-experiment-types.js'
 import type { MarketMonitorAsset } from './types.js'
@@ -54,6 +54,28 @@ async function fixture(asset: MarketMonitorAsset = 'BTC', initialAt = '2026-09-2
   const provenance = (role: ResearchRole): IntelligenceProvenance => ({ workspaceId: `workspace-${role}`, runId: `run-${role}`, issueId: researchLoopIssueIds(asset)[role], agent: 'codex' })
   const draft: ResearchFeedbackDraft = { summary: 'Price structure remains conditional; no independent return edge has been established.', horizon: 'short', conclusion: 'supports', supportingEvidenceIds: [market.evidence.find(e => e.metric === 'daily-close')!.id], opposingEvidenceIds: [], confirmation: 'A later completed close must retain the boundary.', invalidation: 'A later close breaks the observed boundary.', limitations: ['Overlapping windows and shared price evidence do not establish independence.'], recommendations: ['Keep the next forecast version unchanged until prospective outcomes mature.'] }
   return { root, market, forward, source, status, runner, published, service, provenance, draft, setAt: (value: string) => { at = new Date(value) } }
+}
+
+/** Persist a synthetic publication with the shipped identity/byte contract.
+ * Production upgrades must read these records, never rewrite them. */
+async function saveVintageFeedback(f: Awaited<ReturnType<typeof fixture>>, input: ResearchLoopInput, row: ResearchFeedbackRecord, protocol: ForwardProtocol = LEGACY_FORWARD_PROTOCOL) {
+  input.forward.protocol = protocol
+  const { publication, candidate } = input.forward.latest!
+  publication.protocol = protocol; publication.recordHash = forwardRecordHash(publication)
+  const previousHash = candidate!.recordHash
+  candidate!.protocol = protocol; candidate!.recordHash = forwardRecordHash(candidate!)
+  for (const evidence of input.evidence.filter(e => e.metric.startsWith('research-feedback.jev.'))) {
+    evidence.id = evidence.id.replace(previousHash, candidate!.recordHash)
+    evidence.sourceName = `Jev ${protocol} (unvalidated inference)`
+    evidence.excerpt = evidence.excerpt?.replace(previousHash, candidate!.recordHash)
+  }
+  input.hash = researchLoopInputHash(input)
+  row.inputHash = input.hash
+  row.evidence = input.evidence.filter(e => [...row.supportingEvidenceIds, ...row.opposingEvidenceIds].includes(e.id))
+  row.recordHash = researchLoopRecordHash(row)
+  const inputPath = join(f.root, 'inputs', `${input.id}.json`), recordPath = join(f.root, 'feedback', `${row.id}.json`)
+  await writeFile(inputPath, JSON.stringify(input)); await writeFile(recordPath, JSON.stringify(row))
+  return { inputPath, recordPath, inputBytes: await readFile(inputPath, 'utf8'), recordBytes: await readFile(recordPath, 'utf8') }
 }
 
 describe('BTC research feedback loop', () => {
@@ -238,6 +260,56 @@ describe('BTC research feedback loop', () => {
     const parsed = researchFeedbackDraftSchema.safeParse(f)
     expect(parsed.success).toBe(false)
     expect(JSON.stringify(parsed)).not.toContain('syntheticLongCredentialPlaceholder')
+  })
+})
+
+describe('frozen research replay across forward-protocol upgrades', () => {
+  it.each((['BTC', 'TSLA', 'MSTR'] as const).flatMap(asset => [LEGACY_FORWARD_PROTOCOL, PREVIOUS_FORWARD_PROTOCOL].map(protocol => ({ asset, protocol }))))('keeps $asset $protocol feedback verifiable while current Jev stays active-only', async ({ asset, protocol }) => {
+    const f = await fixture(asset); await f.service.run()
+    const p = f.provenance('prediction'), input = await f.service.nativeInput('prediction', p)
+    const row = await f.service.publish(input.id, f.draft, p)
+    const frozen = await saveVintageFeedback(f, input, row, protocol)
+    f.status.prediction.state = 'success'
+    const report = await f.service.report()
+    expect(report.invalidRecords).toBe(0)
+    expect(report.history).toHaveLength(1)
+    expect(report.contributors.find(c => c.source === 'prediction')).toMatchObject({ state: 'ready', recordId: row.id })
+    expect(report.context.jev!.candidateHash).toBe(f.forward.latest!.candidate!.recordHash)
+    expect(report.context.evidence.filter(e => e.metric.startsWith('research-feedback.jev.')).every(e => e.sourceName === `Jev ${FORWARD_PROTOCOL} (unvalidated inference)`)).toBe(true)
+    expect(input.evidence.filter(e => e.metric.startsWith('research-feedback.jev.')).every(e => e.sourceName === `Jev ${protocol} (unvalidated inference)`)).toBe(true)
+    expect(await readFile(frozen.inputPath, 'utf8')).toBe(frozen.inputBytes)
+    expect(await readFile(frozen.recordPath, 'utf8')).toBe(frozen.recordBytes)
+    // An old report is historical replay material, never today's Jev fallback.
+    f.source.mockResolvedValue({ market: f.market, research: null, forward: input.forward })
+    expect((await f.service.context()).jev).toBeNull()
+    expect((await f.service.report()).history).toHaveLength(1)
+  })
+
+  it('retains a valid v2 stock after-hours citation as history while the revised current policy makes it stale', async () => {
+    const f = await fixture('TSLA'); await f.service.run()
+    const p = f.provenance('prediction'), input = await f.service.nativeInput('prediction', p)
+    const row = await f.service.publish(input.id, f.draft, p)
+    const marketHourly = input.market.evidence.find(e => e.metric === 'hourly-close')!
+    const frozenHourly = input.evidence.find(e => e.metric === 'hourly-close')!
+    for (const evidence of [marketHourly, frozenHourly]) {
+      evidence.dataAsOf = '2026-09-18T21:00:00Z'; evidence.quality = 'available'
+    }
+    input.market.hourlyDataAsOf = marketHourly.dataAsOf
+    row.supportingEvidenceIds = [frozenHourly.id]
+    const frozen = await saveVintageFeedback(f, input, row)
+    f.status.prediction.state = 'success'
+    const report = await f.service.report()
+    expect(report.invalidRecords).toBe(0)
+    expect(report.history).toHaveLength(1)
+    expect(report.context.records).toHaveLength(0)
+    expect(report.contributors.find(c => c.source === 'prediction')).toMatchObject({ state: 'stale', recordId: row.id })
+    expect(await readFile(frozen.inputPath, 'utf8')).toBe(frozen.inputBytes)
+    expect(await readFile(frozen.recordPath, 'utf8')).toBe(frozen.recordBytes)
+    // Legacy replay retains every original quality check; it does not pardon
+    // a genuinely unavailable citation merely because the input is old.
+    marketHourly.quality = 'unknown'; frozenHourly.quality = 'unknown'
+    await saveVintageFeedback(f, input, row)
+    expect((await f.service.report()).invalidRecords).toBe(1)
   })
 })
 

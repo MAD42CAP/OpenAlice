@@ -3,16 +3,18 @@ import { createTypeSafeClient, TypeSafeError, TYPESAFE_MODEL, type JevResult } f
 import { createTypeSafeStore } from './typesafe-store.js'
 import { createMarketMonitorStore, type MarketMonitorStore } from './store.js'
 import type { MarketMonitorService } from './service.js'
-import { buildGuardedMarketJudgment } from './judgment.js'
+import { buildGuardedMarketJudgment, buildSessionGuardedMarketJudgment } from './judgment.js'
 import { buildForwardValidationInput, guardedJevDecision, validForwardAnswer } from './forecast-validation-input.js'
 import { createForecastValidationStore, forwardRecordHash } from './forecast-validation-store.js'
-import { FORWARD_PROTOCOL, JEV_DECISION_POLICY, type ForwardCandidate, type ForwardMethod, type ForwardPublication, type ForwardReport, type ForwardRow } from './forecast-validation-types.js'
+import { FORWARD_PROTOCOL, JEV_DECISION_POLICY, type ForwardCandidate, type ForwardMethod, type ForwardPublication, type ForwardProtocol, type ForwardReport, type ForwardRow } from './forecast-validation-types.js'
 import { hashJevInput } from './typesafe-input.js'
 import { JEV_HORIZONS, type JevHorizon } from './typesafe-types.js'
 import { analysisInputHash, type MarketAnalysisArchive } from './replay.js'
 import { reviewOutcomes, reviewSessionDate } from './review.js'
 import { firstPerOutcomeWindow } from './review-cohort.js'
 import { returnChoice } from './forecast-history.js'
+import { analyzeForwardValidation, forwardCohort } from './forecast-validation-analytics.js'
+import { createMarketMonitorStrategyRegistry } from './strategy.js'
 import type { ReturnChoice } from './forecast-experiment-types.js'
 import type { MarketMonitorAsset } from './types.js'
 
@@ -53,19 +55,22 @@ export function summarizeForwardValidation(rows: ForwardRow[]): ForwardReport['s
   })
 }
 
-function validatePublication(row: ForwardPublication, asset: MarketMonitorAsset, session: string, at: Date): void {
-  if (!row || row.schemaVersion !== 1 || row.protocol !== FORWARD_PROTOCOL || row.asset !== asset || typeof row.id !== 'string' || !row.id
+function validatePublication(row: ForwardPublication, asset: MarketMonitorAsset, session: string, at: Date, protocol: ForwardProtocol): void {
+  const combinedProtocol = protocol !== 'market-forward-v2' ? 'evidence-summary-v3' : 'evidence-summary-v2'
+  const combinedDecisionPolicy = protocol !== 'market-forward-v2' ? 'guarded-price-evidence-v3' : 'guarded-price-evidence-v2'
+  if (!row || row.schemaVersion !== 1 || row.protocol !== protocol || row.asset !== asset || typeof row.id !== 'string' || !row.id
     || !Number.isFinite(timestamp(row.issuedAt)) || timestamp(row.issuedAt) > at.getTime() || reviewSessionDate(asset, row.issuedAt) !== session
     || forwardRecordHash(row) !== row.recordHash || !row.basis || !Number.isFinite(timestamp(row.basis.capturedAt)) || timestamp(row.basis.capturedAt) > timestamp(row.issuedAt)
     || !Number.isInteger(row.basis.strategyVersion) || row.basis.strategyVersion < 1
+    || protocol !== 'market-forward-v2' && asset !== 'BTC' && row.basis.strategyVersion < 3
     || !row.input || hashJevInput(row.input) !== row.inputHash || row.input.state.asset !== asset || row.input.state.evidenceCapturedAt !== row.basis.capturedAt
-    || row.input.state.forecastProtocol !== FORWARD_PROTOCOL || row.input.state.requestAt !== row.issuedAt
+    || row.input.state.forecastProtocol !== protocol || row.input.state.requestAt !== row.issuedAt
     || !Number.isFinite(timestamp(row.input.state.requestAt as string)) || timestamp(row.input.state.requestAt as string) > timestamp(row.issuedAt)
     || timestamp(row.input.state.requestAt as string) < timestamp(row.basis.capturedAt)
     || !row.policy || Object.entries(JEV_DECISION_POLICY).some(([key, value]) => row.policy[key as keyof typeof JEV_DECISION_POLICY] !== value)
-    || row.policy.combinedDecisionPolicy !== 'guarded-price-evidence-v2' || row.policy.combinedProtocol !== 'evidence-summary-v2' || row.combined?.protocol !== 'evidence-summary-v2'
+    || row.policy.combinedDecisionPolicy !== combinedDecisionPolicy || row.policy.combinedProtocol !== combinedProtocol || row.combined?.protocol !== combinedProtocol
     || row.combined.asset !== asset || row.combined.snapshotId !== row.basis.snapshotId || row.combined.strategyId !== row.basis.strategyId
-    || row.combined.basis.capturedAt !== row.basis.capturedAt || row.combined.validation?.policy !== 'evidence-summary-v2' || row.combined.validation.status !== 'experimental'
+    || row.combined.basis.capturedAt !== row.basis.capturedAt || row.combined.validation?.policy !== combinedProtocol || row.combined.validation.status !== 'experimental'
     || !Number.isFinite(timestamp(row.combined.generatedAt)) || timestamp(row.combined.generatedAt) > timestamp(row.issuedAt)
     || JEV_HORIZONS.some(h => {
       const history = row.input.history[h], combined = row.combined.horizons[h]
@@ -83,7 +88,7 @@ function validatePublication(row: ForwardPublication, asset: MarketMonitorAsset,
 }
 
 function validateCandidate(row: ForwardCandidate, publication: ForwardPublication, at: Date): void {
-  if (!row || row.schemaVersion !== 1 || row.protocol !== FORWARD_PROTOCOL || row.publicationId !== publication.id || row.inputHash !== publication.inputHash
+  if (!row || row.schemaVersion !== 1 || row.protocol !== publication.protocol || row.publicationId !== publication.id || row.inputHash !== publication.inputHash
     || forwardRecordHash(row) !== row.recordHash || !Number.isFinite(timestamp(row.requestedAt)) || !Number.isFinite(timestamp(row.issuedAt))
     || timestamp(row.requestedAt) < timestamp(publication.issuedAt) || timestamp(row.issuedAt) < timestamp(row.requestedAt) || timestamp(row.issuedAt) > at.getTime()
     || reviewSessionDate(publication.asset, row.requestedAt) !== reviewSessionDate(publication.asset, publication.issuedAt)
@@ -104,18 +109,21 @@ function verifiedArchive(archive: MarketAnalysisArchive | null, publication: For
     && archive.input.strategyVersion === publication.basis.strategyVersion && archive.snapshot.analysisInput.strategyVersion === publication.basis.strategyVersion
     && archive.snapshot.capturedAt === publication.basis.capturedAt && archive.input.asOf === publication.basis.capturedAt
     && archive.snapshot.analysisBasis?.closedBarsOnly === true
+    && (publication.protocol === 'market-forward-v2' || publication.asset === 'BTC' || archive.snapshot.analysisBasis.version === 3)
     && publication.basis.provider === (archive.snapshot.sourceHealth.find(source => source.id === 'daily-bars')?.provider ?? null)
     && JEV_HORIZONS.every(h => publication.rules[h] === direction(archive.snapshot.trend?.[h].direction ?? 'insufficient'))
     && timestamp(archive.input.asOf) <= timestamp(publication.issuedAt))
 }
 
 export function createForecastValidation(deps: {
-  monitor: Pick<MarketMonitorService, 'scan' | 'settings' | 'snapshots'>
+  monitor: Pick<MarketMonitorService, 'scan' | 'settings' | 'snapshots'> & Partial<Pick<MarketMonitorService, 'strategies'>>
+  protocol?: ForwardProtocol
   market?: MarketMonitorStore; store?: ReturnType<typeof createForecastValidationStore>
   credentials?: Pick<ReturnType<typeof createTypeSafeStore>, 'config' | 'settings'>
   client?: ReturnType<typeof createTypeSafeClient>; now?: () => Date
 }) {
-  const market = deps.market ?? createMarketMonitorStore(), store = deps.store ?? createForecastValidationStore()
+  const protocol = deps.protocol ?? FORWARD_PROTOCOL
+  const market = deps.market ?? createMarketMonitorStore(), store = deps.store ?? createForecastValidationStore(undefined, protocol)
   const credentials = deps.credentials ?? createTypeSafeStore(), client = deps.client ?? createTypeSafeClient(), now = deps.now ?? (() => new Date())
   const pending = new Map<MarketMonitorAsset, { allowModel: boolean; task: Promise<ForwardPublication> }>()
   const errors = new Map<MarketMonitorAsset, string>()
@@ -138,13 +146,13 @@ export function createForecastValidation(deps: {
           || snapshot.analysisInput?.hash !== archive.snapshot.analysisInput.hash || archive.input.asOf !== snapshot.capturedAt) {
           throw new TypeSafeError('basis', '本次扫描缺少可验证的原始行情档案，未请求模型。')
         }
-        const requestAt = now(), input = buildForwardValidationInput(archive, requestAt)
-        const combined = buildGuardedMarketJudgment(archive.snapshot, requestAt)
+        const requestAt = now(), input = buildForwardValidationInput(archive, requestAt, protocol)
+        const combined = protocol !== 'market-forward-v2' ? buildSessionGuardedMarketJudgment(archive.snapshot, requestAt) : buildGuardedMarketJudgment(archive.snapshot, requestAt)
         const issuedAt = now().toISOString()
         if (reviewSessionDate(asset, issuedAt) !== session) throw new TypeSafeError('session', '记录期间交易日期变化，未合并不同窗口，请重试。')
         input.state.requestAt = issuedAt
-        const row: ForwardPublication = { schemaVersion: 1, protocol: FORWARD_PROTOCOL, id: randomUUID(), asset, issuedAt,
-          policy: { ...JEV_DECISION_POLICY, combinedProtocol: combined.protocol, combinedDecisionPolicy: 'guarded-price-evidence-v2' },
+        const row: ForwardPublication = { schemaVersion: 1, protocol, id: randomUUID(), asset, issuedAt,
+          policy: { ...JEV_DECISION_POLICY, combinedProtocol: combined.protocol, combinedDecisionPolicy: protocol !== 'market-forward-v2' ? 'guarded-price-evidence-v3' : 'guarded-price-evidence-v2' },
           basis: { snapshotId: archive.snapshot.id, inputHash: archive.snapshot.analysisInput!.hash, capturedAt: archive.input.asOf,
             strategyId: strategy, strategyVersion: archive.input.strategyVersion, provider: archive.snapshot.sourceHealth.find(source => source.id === 'daily-bars')?.provider ?? null },
           input, inputHash: hashJevInput(input), rules: Object.fromEntries(JEV_HORIZONS.map(h => [h, direction(archive.snapshot.trend?.[h].direction ?? 'insufficient')])) as ForwardPublication['rules'],
@@ -152,7 +160,7 @@ export function createForecastValidation(deps: {
         row.recordHash = forwardRecordHash(row)
         publication = await store.savePublication(asset, session, row)
       }
-      validatePublication(publication, asset, session, now())
+      validatePublication(publication, asset, session, now(), protocol)
       const archive = await market.archive(publication.basis.snapshotId)
       if (!verifiedArchive(archive, publication)) throw new TypeSafeError('basis', '冻结的新版验证缺少可核验原始档案，未请求模型。')
       const existing = await store.candidate(asset, session)
@@ -167,7 +175,7 @@ export function createForecastValidation(deps: {
       const issuedAt = now().toISOString()
       if (reviewSessionDate(asset, issuedAt) !== session) throw new TypeSafeError('session', '模型请求跨越交易日期，结果未写入原窗口，请重试。')
       if (!validResult(raw)) throw new TypeSafeError('response', '新版验证模型返回格式无效，原始发布已保留。')
-      const candidate: ForwardCandidate = { schemaVersion: 1, protocol: FORWARD_PROTOCOL, publicationId: publication.id, requestedAt, issuedAt, inputHash: publication.inputHash,
+      const candidate: ForwardCandidate = { schemaVersion: 1, protocol, publicationId: publication.id, requestedAt, issuedAt, inputHash: publication.inputHash,
         raw: structuredClone(raw), decisions: Object.fromEntries(JEV_HORIZONS.map(h => [h, guardedJevDecision(raw, h, publication!.input.history[h])])) as ForwardCandidate['decisions'], recordHash: '' }
       candidate.recordHash = forwardRecordHash(candidate)
       validateCandidate(candidate, publication, now())
@@ -207,7 +215,7 @@ export function createForecastValidation(deps: {
         try {
           const publication = await store.publication(asset, session)
           if (!publication) continue
-          validatePublication(publication, asset, session, at)
+          validatePublication(publication, asset, session, at, protocol)
           let candidate: ForwardCandidate | null = null
           try {
             candidate = await store.candidate(asset, session)
@@ -232,16 +240,24 @@ export function createForecastValidation(deps: {
               frequency: frequencyChoice(frequency), alwaysUp: 'up',
             }
             const brier = (probabilities: Record<ReturnChoice, number> | null) => actual && probabilities ? (['up', 'flat', 'down'] as const).reduce((sum, key) => sum + (probabilities[key] - (key === actual ? 1 : 0)) ** 2, 0) : null
+            const jevProbabilities = validForwardAnswer(answer, ['up', 'flat', 'down']) ? answer.probabilities as Record<ReturnChoice, number> : null
             return { horizon: h, outcome, actual, choices,
+              selectedProbabilities: { jev: choices.jev && jevProbabilities ? jevProbabilities[choices.jev] : null,
+                frequency: choices.frequency && frequency ? frequency[choices.frequency] : null },
               correct: Object.fromEntries(methods.map(method => [method, actual && choices[method] ? actual === choices[method] : null])) as Record<ForwardMethod, boolean | null>,
-              brier: { jev: brier(validForwardAnswer(answer, ['up', 'flat', 'down']) ? answer.probabilities as Record<ReturnChoice, number> : null), frequency: brier(frequency) } }
+              brier: { jev: brier(jevProbabilities), frequency: brier(frequency) } }
           })
-          rows.push({ id: publication.id, issuedAt: publication.issuedAt, snapshotId: publication.basis.snapshotId, candidateAvailable: Boolean(candidate), providerChanged, outcomes })
+          rows.push({ id: publication.id, issuedAt: publication.issuedAt, snapshotId: publication.basis.snapshotId, candidateAvailable: Boolean(candidate), providerChanged, cohort: forwardCohort(publication), outcomes })
           latest = verified ? { publication, candidate } : null
         } catch { invalidRecords++ }
       }
-      return { protocol: FORWARD_PROTOCOL, asset, generatedAt: at.toISOString(), configured: settings.configured, automatic: settings.automatic,
-        invalidRecords, historyTruncated: listing.truncated, lastError: errors.get(asset) ?? null, latest, rows, summaries: summarizeForwardValidation(rows) }
+      const { strategyId } = await deps.monitor.settings()
+      const strategyVersion = deps.monitor.strategies?.().find(strategy => strategy.id === strategyId)?.version
+        ?? (() => { const registry = createMarketMonitorStrategyRegistry(); return registry.has(strategyId) ? registry.get(strategyId).manifest.version : 0 })()
+      const currentCohort = forwardCohort({ protocol, basis: { strategyId, strategyVersion },
+        policy: { ...JEV_DECISION_POLICY, combinedProtocol: protocol !== 'market-forward-v2' ? 'evidence-summary-v3' : 'evidence-summary-v2', combinedDecisionPolicy: protocol !== 'market-forward-v2' ? 'guarded-price-evidence-v3' : 'guarded-price-evidence-v2' } })
+      return { protocol, asset, generatedAt: at.toISOString(), configured: settings.configured, automatic: settings.automatic,
+        invalidRecords, historyTruncated: listing.truncated, lastError: errors.get(asset) ?? null, latest, rows, summaries: summarizeForwardValidation(rows), validation: analyzeForwardValidation(rows, currentCohort) }
     },
   }
 }

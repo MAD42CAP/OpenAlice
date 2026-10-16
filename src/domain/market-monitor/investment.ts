@@ -4,6 +4,7 @@ import { z } from 'zod'
 import type { EvidenceReference } from './intelligence-types.js'
 import { investmentAnalysisVersion } from './investment-types.js'
 import { assertFreshBars, closedBars } from './bar-policy.js'
+import { isCurrentEquityHourlyEvidence, upcomingEquitySessionEnd } from './equity-session.js'
 import type { InvestmentDirection, InvestmentDraft, InvestmentInput, InvestmentSnapshot, InvestmentThesis, InvestmentThesisEvaluation, InvestmentThesisStatus, ValidationStatus } from './investment-types.js'
 import { researchLoopProtocol } from './research-loop-types.js'
 
@@ -15,7 +16,7 @@ export const investmentDraftSchema = z.object({
   feedbackReview: z.object({ reviewedIds: z.array(z.string().min(1)).max(40), effect: z.enum(['context-only', 'caution', 'conflict']), explanation: z.string().min(1).max(900) }).strict().optional(),
   summary: claim,
   crossValidation: z.array(z.object({ horizon: horizon.optional(), claim, marketEvidenceIds: z.array(z.string()).min(1).max(24), researchEvidenceIds: z.array(z.string()).max(24), status: z.enum(['CONFIRMED', 'PARTIALLY_CONFIRMED', 'CONFLICTING', 'UNVERIFIED', 'OUTDATED']), explanation: z.string().min(1).max(1800) }).strict()).min(1).max(16),
-  outlooks: z.array(z.object({ horizon, direction, conclusion: claim, structure: claim, supportingEvidence: z.array(claim).max(16), opposingEvidence: z.array(claim).max(16), risks: z.array(claim).min(1).max(16), confirmation: z.array(claim).min(1).max(16), invalidation: z.array(claim).min(1).max(16), priceLevelLabels: z.array(z.string()).max(24) }).strict()).length(3),
+  outlooks: z.array(z.object({ horizon, direction, conclusion: claim, structure: claim, supportingEvidence: z.array(claim).max(16), opposingEvidence: z.array(claim).max(16), risks: z.array(claim).min(1).max(16), confirmation: z.array(claim).min(1).max(16), invalidation: z.array(claim).min(1).max(16), priceLevelLabels: z.array(z.string()).max(24), decisionConditions: z.object({ confirmation: condition, invalidation: condition }).strict().optional() }).strict()).length(3),
   scenarios: z.array(z.object({ kind: z.enum(['bullish', 'neutral', 'bearish']), hypothesis: claim, conditions: z.array(claim).min(1).max(16), confirmation: z.array(claim).min(1).max(16), path: claim, invalidation: z.array(claim).min(1).max(16), supportingEvidence: z.array(claim).max(16), opposingEvidence: z.array(claim).max(16), priceLevelLabels: z.array(z.string()).max(24) }).strict()).length(3),
   priceMap: z.array(z.object({ label: z.string().min(1).max(160), price: z.number().positive().finite(), unit: z.literal('USD'), role: z.enum(['support', 'resistance', 'cost-basis', 'reference']), evidenceIds: z.array(z.string()).min(1).max(24) }).strict()).max(24),
   theses: z.array(z.object({ key: z.string().regex(/^[a-z0-9][a-z0-9-]{0,63}$/), title: z.string().min(1).max(240), claim, horizon, observationDays: z.number().int().min(1).max(180), supportConditions: z.array(condition).min(1).max(12), invalidationConditions: z.array(condition).min(1).max(12), resolutionConditions: z.array(condition).max(12) }).strict()).min(1).max(12),
@@ -25,17 +26,43 @@ export const investmentDraftSchema = z.object({
 })
 
 export const intelligenceRecordHash = <T extends { recordHash: string }>(row: T) => createHash('sha256').update(JSON.stringify({ ...row, recordHash: '' })).digest('hex')
-export const investmentInputHash = (input: InvestmentInput) => createHash('sha256').update(JSON.stringify({ ...(input.market.asset === 'BTC' ? {} : { asset: input.market.asset }), analysisVersion: investmentAnalysisVersion(input.market.asset), marketSnapshotId: input.market.snapshotId, researchSnapshotId: input.research?.id ?? null, researchHash: input.research?.recordHash ?? null, feedbackHash: input.researchFeedback?.hash ?? null })).digest('hex')
+export const investmentInputHash = (input: InvestmentInput, at = new Date(input.market.analysisTime)) => createHash('sha256').update(JSON.stringify({ ...(input.market.asset === 'BTC' ? {} : { asset: input.market.asset, admission: investmentAdmission(input.market, at) }), analysisVersion: investmentAnalysisVersion(input.market.asset), marketSnapshotId: input.market.snapshotId, researchSnapshotId: input.research?.id ?? null, researchHash: input.research?.recordHash ?? null, feedbackHash: input.researchFeedback?.hash ?? null })).digest('hex')
 const timestamp = (value: string | null) => value === null ? NaN : Date.parse(value)
 const timely = (e: EvidenceReference, at: Date) => Number.isFinite(timestamp(e.dataAsOf)) && Number.isFinite(timestamp(e.retrievedAt)) && timestamp(e.dataAsOf) <= at.getTime() && timestamp(e.retrievedAt) <= at.getTime() && timestamp(e.dataAsOf) <= timestamp(e.retrievedAt) && (e.publishedAt === null || Number.isFinite(timestamp(e.publishedAt)) && timestamp(e.publishedAt) <= at.getTime())
 export function evidenceAvailability(e: EvidenceReference, at: Date): 'available' | 'unverified' | 'outdated' {
   if (!timely(e, at) || e.quality === 'unavailable' || e.quality === 'unknown') return 'unverified'
   if (e.asset !== 'BTC' && !e.reportId && !e.metric.startsWith('research-feedback.') && !e.metric.startsWith('equity.')) {
+    if (['hourly-close', 'rule.intraday'].includes(e.metric)) return e.quality === 'outdated' || !isCurrentEquityHourlyEvidence(e.dataAsOf, at) ? 'outdated' : 'available'
     try { assertFreshBars([{ date: e.dataAsOf!, open: 1, high: 1, low: 1, close: 1, volume: 0 }], e.asset, ['hourly-close', 'rule.intraday'].includes(e.metric) ? '1h' : '1d', at) } catch { return 'outdated' }
     return e.quality === 'outdated' ? 'outdated' : 'available'
   }
   const ttl = e.metric.startsWith('equity.') ? 86_400_000 : e.metric.startsWith('research-feedback.') ? 86_400_000 : e.reportId ? 14 * 86_400_000 : e.metric === 'hourly-close' ? 3 * 3_600_000 : ['funding-8h', 'open-interest', 'annualized-basis', 'option-open-interest', 'put-call-ratio'].includes(e.metric) ? 30 * 60_000 : 2 * 86_400_000
   return e.quality === 'outdated' || at.getTime() - timestamp(e.dataAsOf) > ttl ? 'outdated' : 'available'
+}
+/** Upcoming earnings are event-risk context, never a direction vote. */
+function equityEventRisk(input: InvestmentInput, at: Date): { reason: string; evidenceId: string | null } | null {
+  if (input.market.asset === 'BTC') return null
+  const ref = input.market.evidence.find(e => e.metric === 'equity.next-earnings')
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(at)
+  const date = typeof ref?.value === 'string' ? ref.value.slice(0, 10) : ''
+  const dateAt = Date.parse(`${date}T12:00:00Z`)
+  const validDate = /^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isFinite(dateAt) && new Date(dateAt).toISOString().slice(0, 10) === date
+  if (!ref || ref.kind !== 'observation' || ref.reportId !== null || evidenceAvailability(ref, at) !== 'available' || !validDate || date < today) return { reason: '财报日历未验证或已过期，短期暂不判断。', evidenceId: ref?.id ?? null }
+  const end = upcomingEquitySessionEnd(today, 5)
+  if (!end) return { reason: '近期交易日历超出已验证范围，短期暂不判断。', evidenceId: ref.id }
+  return date <= end ? { reason: '财报落在当前或未来五个计划交易时段窗口内，跳空风险未定，短期暂不判断。', evidenceId: ref.id } : null
+}
+/** Stable server-derived admission state, shared by publication and dispatch
+ * identities. A clock tick alone cannot manufacture a new research result. */
+export function investmentAdmission(market: InvestmentInput['market'], at: Date): { hourlyCurrent: boolean; eventRisk: string | null } | null {
+  if (market.asset === 'BTC') return null
+  const hourly = market.evidence.find(e => e.metric === 'hourly-close')
+  return {
+    hourlyCurrent: Boolean(hourly?.kind === 'observation' && hourly.reportId === null
+      && hourly.unit === 'USD' && typeof hourly.value === 'number' && Number.isFinite(hourly.value) && hourly.value > 0
+      && hourly.dataAsOf === market.hourlyDataAsOf && evidenceAvailability(hourly, at) === 'available'),
+    eventRisk: equityEventRisk({ market, research: null }, at)?.reason ?? null,
+  }
 }
 /** Validate claims against supplied evidence; retain the AI proposal separately. */
 export function guardInvestmentDraft(input: InvestmentInput, value: unknown, at: Date): { draft: InvestmentDraft; warnings: string[]; evidence: EvidenceReference[] } {
@@ -77,6 +104,26 @@ export function guardInvestmentDraft(input: InvestmentInput, value: unknown, at:
     if (c.thresholdEvidenceId && !byId.has(c.thresholdEvidenceId)) throw new Error('条件引用了不存在的阈值证据。')
     if (c.metric === 'daily-close' && (!c.thresholdEvidenceId || !groundedPrice(c.threshold, [c.thresholdEvidenceId]))) throw new Error('收盘价条件的阈值必须来自真实价格证据。')
     if (c.metric === 'volume-ratio' && c.threshold < 0) throw new Error('成交量条件不能为负。')
+  }
+  // This boundary belongs to one immutable outlook publication. Stable thesis
+  // keys keep their original conditions and cannot silently track a new range.
+  const directionalConditions = (outlook: InvestmentDraft['outlooks'][number]) => {
+    const pair = outlook.decisionConditions
+    if (!pair) return null
+    const bullish = outlook.direction.includes('bullish')
+    if (!bullish && !outlook.direction.includes('bearish')) return null
+    const anchor = input.market.horizons.find(h => h.horizon === outlook.horizon)
+    const matches = (c: typeof pair.confirmation, metric: string, operator: 'gt' | 'lt') => {
+      const e = c.thresholdEvidenceId ? byId.get(c.thresholdEvidenceId) : undefined
+      return c.metric === 'daily-close' && c.operator === operator && e?.metric === metric && anchor?.evidenceIds.includes(e.id)
+        && e.kind === 'observation' && e.reportId === null && e.unit === 'USD' && typeof e.value === 'number'
+        && e.value > 0 && new Decimal(e.value).eq(c.threshold)
+    }
+    const valid = matches(pair.confirmation, `${bullish ? 'resistance' : 'support'}.${outlook.horizon}`, bullish ? 'gt' : 'lt')
+      && matches(pair.invalidation, `${bullish ? 'support' : 'resistance'}.${outlook.horizon}`, bullish ? 'lt' : 'gt')
+      && (bullish ? pair.invalidation.threshold < pair.confirmation.threshold : pair.confirmation.threshold < pair.invalidation.threshold)
+    if (!valid) throw new Error('方向条件必须精确引用同期限可用支撑/阻力的真实数值，以未来新完成日线严格越界确认或失效。')
+    return [pair.confirmation, pair.invalidation].every(c => evidenceAvailability(byId.get(c.thresholdEvidenceId!)!, at) === 'available') ? pair : null
   }
   const warnings: string[] = []
   if (feedback?.evidence.length) warnings.push('Auto Prediction、Jev 与 Auto Quant 回流仅为待验证研究推断，不增加独立确认票数，不自动调整规则权重。')
@@ -130,6 +177,9 @@ export function guardInvestmentDraft(input: InvestmentInput, value: unknown, at:
     row.explanation = `${explanation} AI 原解释：${row.explanation}`
     if (status !== original) warnings.push(`交叉验证 ${original} → ${status}：${row.claim.text}`)
   }
+  const eventRisk = equityEventRisk(input, at)
+  // Admission is independent of which references the model happens to cite.
+  const admission = investmentAdmission(input.market, at)
   const label = { short: '短期', medium: '中期', long: '长期' }
   const directionLabels: Record<InvestmentDirection, string> = { bullish: '偏多', bearish: '偏空', neutral: '区间判断', 'conditional-bullish': '有条件偏多', 'conditional-bearish': '有条件偏空', uncertain: '暂不判断' }
   for (const outlook of draft.outlooks) {
@@ -143,13 +193,36 @@ export function guardInvestmentDraft(input: InvestmentInput, value: unknown, at:
     const blocked = !trend || !related.length || availability.some(a => a !== 'available') || related.some(r => ['UNVERIFIED', 'OUTDATED', 'CONFLICTING'].includes(r.status)) || opposite
     const original = outlook.direction
     let reason = ''
-    if (blocked) {
+    const conditions = directionalConditions(outlook)
+    if (!conditions) delete outlook.decisionConditions
+    if (outlook.horizon === 'short' && eventRisk) {
+      outlook.direction = 'uncertain'
+      reason = eventRisk.reason
+      if (eventRisk.evidenceId) {
+        ids.push(...ids.includes(eventRisk.evidenceId) ? [] : [eventRisk.evidenceId])
+        outlook.risks.unshift({ text: eventRisk.reason, evidenceIds: [eventRisk.evidenceId], inference: true })
+      }
+    } else if (outlook.horizon === 'short' && input.market.asset !== 'BTC' && !admission?.hourlyCurrent) {
+      outlook.direction = 'uncertain'
+      reason = '缺少当前可用且通过常规时段与量能筛选的连续小时线'
+    } else if ((outlook.direction.includes('bullish') || outlook.direction.includes('bearish')) && !conditions) {
+      outlook.direction = 'uncertain'
+      reason = '本期限预声明的机读确认与失效边界缺失或已过期'
+    } else if (blocked) {
       outlook.direction = 'uncertain'
       reason = !trend || !related.length ? '缺少同期限交叉验证' : availability.some(a => a !== 'available') ? '关键证据缺失或过期' : '同期限证据存在冲突或尚未核验'
     } else if (!related.some(r => r.status === 'CONFIRMED')) {
       if (outlook.direction === 'bullish' || outlook.direction === 'bearish') outlook.direction = `conditional-${outlook.direction}`
       else if (outlook.direction === 'neutral' && trend?.value !== 'sideways') outlook.direction = 'uncertain'
       reason = '独立证据不足，仅保留待验证条件'
+    }
+    if (conditions) {
+      const asClaim = (c: typeof conditions.confirmation) => ({ text: `未来新完成日线收盘${c.operator === 'gt' ? '高于' : '低于'} $${new Decimal(c.threshold).toFixed()}。`, evidenceIds: [c.thresholdEvidenceId!], inference: true })
+      outlook.confirmation = [asClaim(conditions.confirmation)]
+      outlook.invalidation = [asClaim(conditions.invalidation)]
+    } else if (outlook.direction === 'uncertain') {
+      outlook.confirmation = [{ text: '等待可核验的同期限证据与预声明价格边界。', evidenceIds: ids, inference: true }]
+      outlook.invalidation = [{ text: '尚无可用方向条件；不能将未知数据视为确认或失效。', evidenceIds: ids, inference: true }]
     }
     if (reason) {
       outlook.conclusion = { text: `${label[outlook.horizon]}${directionLabels[outlook.direction]}：${reason}。`, evidenceIds: ids, inference: true }

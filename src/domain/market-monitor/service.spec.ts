@@ -12,7 +12,7 @@ import { MarketContextProviderRegistry } from './context.js'
 import { createMarketMonitorService } from './service.js'
 import { createMarketMonitorStore, type MarketMonitorStore } from './store.js'
 import { createMarketMonitorScheduler } from './scheduler.js'
-import { createMarketMonitorStrategyRegistry, evidenceChainV1Strategy } from './strategy.js'
+import { MarketMonitorStrategyRegistry, createMarketMonitorStrategyRegistry, evidenceChainV1Strategy, evidenceChainV2Strategy } from './strategy.js'
 import { DEFAULT_MARKET_MONITOR_SETTINGS, type MarketAiNarration, type MarketMonitorAlert, type MarketMonitorReceipt, type MarketMonitorSnapshot } from './types.js'
 
 function bars(count: number, step: number, end = '2026-04-01T00:00:00Z'): OhlcvBar[] {
@@ -485,7 +485,7 @@ it('falls back on stale preferred daily candles even when their metadata claims 
   })
   const result = await createMarketMonitorService({ ...deps, store: memoryStore() }).scan('BTC', 'manual')
   expect(result.receipt.sourceHealth?.find(row => row.id === 'daily-bars')).toMatchObject({ provider: 'yfinance', status: 'degraded', detail: expect.stringMatching(/coinbase.*Stale 1d/) })
-  expect(result.snapshot.analysisBasis).toMatchObject({ version: 2, closedBarsOnly: true })
+  expect(result.snapshot.analysisBasis).toMatchObject({ version: 3, closedBarsOnly: true })
 })
 
 it('does not resurrect old news when only SEC fails and the news result is successfully empty', async () => {
@@ -497,4 +497,54 @@ it('does not resurrect old news when only SEC fails and the news result is succe
   const next = await service.scan('TSLA', 'manual')
   expect(next.snapshot.context.recentNews).toEqual([])
   expect(next.snapshot.sourceHealth.find(row => row.id === 'tsla-sec-filings')?.detail).toContain('HTTP 403')
+})
+
+
+it('keeps original stock chart/archive hours while v3 analyzes qualified regular-session hours and preserves v2 replay', async () => {
+  const at = '2026-10-16T01:00:00Z', deps = dependencies(true, at), store = memoryStore()
+  const daily = bars(90, 86400000, at)
+  const intraday = ['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15'].flatMap(day => [14, 15, 16, 17, 18, 19].map((hour, i) => ({ date: `${day}T${hour}:00:00Z`, open: 150, high: 153, low: 149, close: 150 + i / 4, volume: 1000 })))
+  intraday.at(-1)!.close = 151.28
+  intraday.push({ date: '2026-10-15T20:00:00Z', open: 151, high: 152, low: 145, close: 145.8, volume: 549 })
+  vi.mocked(deps.barService.getBars).mockImplementation(async (_ref, options) => {
+    const rows = options.interval === '1h' ? intraday : daily
+    return { bars: structuredClone(rows), meta: { symbol: 'MSTR', from: rows[0]!.date, to: rows.at(-1)!.date, bars: rows.length, source: 'vendor', sourceId: 'alpaca', provider: 'alpaca' } }
+  })
+  const legacyService = createMarketMonitorService({ ...deps, store, strategyRegistry: new MarketMonitorStrategyRegistry([evidenceChainV2Strategy]) })
+  const old = await legacyService.scan('MSTR', 'manual')
+  expect(old.snapshot.metrics.intraday.latestAt).toBe('2026-10-15T20:00:00Z')
+  const originalArchive = JSON.stringify(await store.archive(old.snapshot.id))
+  const service = createMarketMonitorService({ ...deps, store })
+  const current = await service.scan('MSTR', 'manual')
+  expect(current.receipt.outcome).toBe('stored')
+  expect(current.snapshot.analysisInput?.strategyVersion).toBe(3)
+  expect(current.snapshot.analysisBasis).toMatchObject({ version: 3, hourlyAt: '2026-10-15T19:00:00Z' })
+  expect(current.snapshot.metrics.intraday).toMatchObject({ available: true, latestAt: '2026-10-15T19:00:00Z' })
+  expect(current.snapshot.chart.intraday.at(-1)).toMatchObject({ date: '2026-10-15T20:00:00Z', close: 145.8, volume: 549 })
+  expect((await store.archive(current.snapshot.id))?.input.intradayBars.at(-1)?.date).toBe('2026-10-15T20:00:00Z')
+  expect(current.snapshot.sourceHealth.find(source => source.id === 'intraday-bars')?.detail).toContain('IEX only, not consolidated')
+  expect(current.snapshot.sourceHealth.find(source => source.id === 'intraday-bars')?.detail).toContain('regular-session full-hour')
+  expect(await service.replay(old.snapshot.id)).toMatchObject({ status: 'verified', differences: [] })
+  expect(await service.replay(current.snapshot.id)).toMatchObject({ status: 'verified', differences: [] })
+  expect(JSON.stringify(await store.archive(old.snapshot.id))).toBe(originalArchive)
+})
+
+it('publishes a fresh verified basis when an existing v3 strategy observation still carries the transitional v2 basis', async () => {
+  const store = memoryStore(), service = createMarketMonitorService({ ...dependencies(), store })
+  const first = await service.scan('MSTR', 'manual')
+  const saved = store.data.snapshots.find(snapshot => snapshot.id === first.snapshot.id)!
+  const archive = (await store.archive(first.snapshot.id))!
+  // A scan made while the policy revision was rolling out has the same market
+  // fingerprint and strategy version, but must not remain the canonical basis.
+  saved.analysisBasis!.version = 2
+  archive.snapshot.analysisBasis!.version = 2
+  const originalArchive = JSON.stringify(archive)
+  expect(saved.analysisInput?.strategyVersion).toBe(3)
+  const current = await service.scan('MSTR', 'manual')
+  expect(current.snapshot.fingerprint).toBe(first.snapshot.fingerprint)
+  expect(current.receipt.outcome).toBe('stored')
+  expect(current.snapshot.id).not.toBe(first.snapshot.id)
+  expect(current.snapshot.analysisBasis).toMatchObject({ version: 3, closedBarsOnly: true })
+  expect(await service.replay(current.snapshot.id)).toMatchObject({ status: 'verified', differences: [] })
+  expect(JSON.stringify(await store.archive(first.snapshot.id))).toBe(originalArchive)
 })

@@ -16,9 +16,9 @@ beforeEach(async () => {
   api.legacyRead.mockImplementation(async asset => demoJevReport(asset)); api.experimentRead.mockImplementation(async asset => demoForecastExperiment(asset))
 })
 afterEach(() => { cleanup(); vi.resetAllMocks() })
-it('uses only v2 for explicit collection and keeps old v1 archives read-only behind disclosure', async () => {
+it('uses only the active protocol for explicit collection and keeps old v1 archives read-only behind disclosure', async () => {
   render(<MarketTypeSafePanel asset="BTC" visible revisionKey="current" />)
-  const collect = await screen.findByRole('button', { name: 'Record today’s v2 assessment' })
+  const collect = await screen.findByRole('button', { name: 'Record today’s assessment' })
   await waitFor(() => expect((collect as HTMLButtonElement).disabled).toBe(false))
   expect(api.legacyRead).not.toHaveBeenCalled(); expect(api.experimentRead).not.toHaveBeenCalled()
   fireEvent.click(collect)

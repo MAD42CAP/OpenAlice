@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useForecastValidation } from '../../hooks/useForecastValidation'
-import { MarketForwardValidationSummary } from './MarketForwardValidation'
+import { ForwardValidationDetails, MarketForwardValidationSummary } from './MarketForwardValidation'
+import { LEGACY_FORWARD_PROTOCOL } from '../../api/forecast-validation-types'
 import { useTranslation } from 'react-i18next'
 import type { MonitorAsset } from '../../api/market-monitor'
 import type { ExperimentReport } from '../../api/forecast-experiment'
@@ -24,8 +25,18 @@ function MarketAccuracyCurrent(props: { asset: MonitorAsset; visible: boolean; r
   const [historyOpen, setHistoryOpen] = useState(false)
   return <><MarketForwardValidationSummary {...model} /><Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
     <CollapsibleTrigger className="cursor-pointer py-2 text-xs font-medium text-muted-foreground">{t('forward.history')}</CollapsibleTrigger>
-    <CollapsibleContent>{historyOpen && <><p className="text-xs text-muted-foreground">{t('forward.legacy')}</p><MarketLegacyAccuracy {...props} /></>}</CollapsibleContent>
+    <CollapsibleContent>{historyOpen && <><p className="text-xs text-muted-foreground">{t('forward.legacy')}</p><MarketLegacyForwardValidation {...props} /><MarketLegacyAccuracy {...props} /></>}</CollapsibleContent>
   </Collapsible></>
+}
+function MarketLegacyForwardValidation(props: { asset: MonitorAsset; visible: boolean; revisionKey: string }) {
+  const { t } = useTranslation()
+  const model = useForecastValidation(props.asset, props.visible, props.revisionKey, LEGACY_FORWARD_PROTOCOL)
+  return <section aria-label={t('forward.legacyV2')} className="min-w-0 border-t border-border py-3">
+    <h3 className="text-xs font-medium">{t('forward.legacyV2')}</h3>
+    {model.loading && <p role="status" className="mt-2 text-xs">{t('forward.loading')}</p>}
+    {model.error && <p role="alert" className="mt-2 text-xs text-warning">{t('forward.legacyReadError')}</p>}
+    {model.report && <ForwardValidationDetails report={model.report} />}
+  </section>
 }
 function MarketLegacyAccuracy(props: { asset: MonitorAsset; visible: boolean; revisionKey: string }) {
   const model = useMarketAccuracySummary(props.asset, props.visible, props.revisionKey)

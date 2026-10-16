@@ -1,9 +1,45 @@
 import { describe, expect, it } from 'vitest'
-import { buildGuardedMarketJudgment, buildMarketJudgment } from './judgment.js'
+import { buildGuardedMarketJudgment, buildMarketJudgment, buildSessionGuardedMarketJudgment } from './judgment.js'
 import { judgmentSnapshot } from './judgment.fixture.js'
 import type { JevReport } from './typesafe-types.js'
 
 const at = new Date('2026-09-20T12:00:00Z')
+describe('session-aware v3 judgment', () => {
+  it('retains the historical v2 result while withholding unverified stock hourly policy', () => {
+    const s = judgmentSnapshot(); s.asset = 'MSTR'
+    const old = buildGuardedMarketJudgment(s, at)
+    const current = buildSessionGuardedMarketJudgment(s, at)
+    expect(current).toMatchObject({ protocol: 'evidence-summary-v3', horizons: { short: { direction: 'unclear', decision: 'abstain', reasons: ['hourly-policy-unverified', ...old.horizons.short.reasons] } } })
+    expect(buildGuardedMarketJudgment(s, at)).toEqual(old)
+    expect(current.horizons.medium).toEqual(old.horizons.medium)
+  })
+  it('keeps unknown or nearby earnings out of an unconditional stock short-term call', () => {
+    const s = judgmentSnapshot(); s.asset = 'TSLA'; s.analysisInput = { hash: 'fixture', strategyVersion: 3 }
+    s.analysisBasis!.version = 3
+    s.chart.intraday = s.chart.intraday.map((bar, i) => ({ ...bar, date: `2026-09-18T${18 + i}:00:00Z` }))
+    s.analysisBasis!.hourlyAt = '2026-09-18T19:00:00Z'
+    s.metrics.intraday.latestAt = s.analysisBasis!.hourlyAt
+    s.sourceHealth.push({ id: 'tsla-calendar-news', label: 'Calendar', provider: 'fixture', status: 'ok', asOf: at.toISOString(), detail: 'Synthetic verified date', coverage: { earnings: 'available', news: 'matched' } })
+    for (const earnings of [null, '2026-09-21', '2026-09-25']) {
+      s.context.nextEarningsAt = earnings
+      const result = buildSessionGuardedMarketJudgment(s, at)
+      expect(result.horizons.short.decision).toBe('abstain')
+      expect(result.horizons.short.reasons[0]).toBe(earnings ? 'earnings-near' : 'calendar-unknown')
+    }
+    s.context.nextEarningsAt = '2026-10-30'
+    expect(buildSessionGuardedMarketJudgment(s, at).horizons.short).toEqual(buildGuardedMarketJudgment(s, at).horizons.short)
+    const open = new Date('2026-09-21T14:00:00Z')
+    expect(buildSessionGuardedMarketJudgment(s, open).horizons.short).toMatchObject({ decision: 'abstain', reasons: expect.arrayContaining(['hourly-missing']) })
+  })
+  it('retains BTC price evidence behavior and keeps new guards experimental', () => {
+    const s = judgmentSnapshot()
+    const before = structuredClone(s)
+    const result = buildSessionGuardedMarketJudgment(s, at)
+    expect(result.horizons).toEqual(buildGuardedMarketJudgment(s, at).horizons)
+    expect(result.validation).toEqual({ status: 'experimental', policy: 'evidence-summary-v3' })
+    expect(s).toEqual(before)
+  })
+})
 describe('versioned guarded judgment', () => {
   it('keeps v1 unchanged and makes conditional evidence an abstention from return prediction', () => {
     const s = judgmentSnapshot()

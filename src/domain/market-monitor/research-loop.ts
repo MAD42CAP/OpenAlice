@@ -3,7 +3,7 @@ import { hashJevInput } from './typesafe-input.js'
 import { evidenceAvailability } from './investment.js'
 import { forwardRecordHash } from './forecast-validation-store.js'
 import { guardedJevDecision } from './forecast-validation-input.js'
-import { FORWARD_PROTOCOL } from './forecast-validation-types.js'
+import { FORWARD_PROTOCOL, LEGACY_FORWARD_PROTOCOL, PREVIOUS_FORWARD_PROTOCOL, type ForwardProtocol } from './forecast-validation-types.js'
 import { createResearchLoopStore, researchLoopInputHash, researchLoopRecordHash } from './research-loop-store.js'
 import { researchLoopIssueIds, researchLoopProtocol, type ResearchContributor, type ResearchFeedbackDraft, type ResearchFeedbackRecord, type ResearchLoopContext, type ResearchLoopInput, type ResearchLoopJob, type ResearchLoopJev, type ResearchLoopReport, type ResearchLoopRunner, type ResearchRole } from './research-loop-types.js'
 import type { EvidenceReference, IntelligenceProvenance } from './intelligence-types.js'
@@ -44,12 +44,12 @@ const marketReady = (market: MarketIntelligence, at: Date, asset: MarketMonitorA
 }
 const provenanceValid = (role: ResearchRole, p: IntelligenceProvenance, asset: MarketMonitorAsset) => provenanceSchema.safeParse(p).success && p.issueId === researchLoopIssueIds(asset)[role]
 
-function currentJev(source: Source, at: Date): { jev: ResearchLoopJev | null; evidence: EvidenceReference[] } {
+function currentJev(source: Source, at: Date, protocol: ForwardProtocol = FORWARD_PROTOCOL): { jev: ResearchLoopJev | null; evidence: EvidenceReference[] } {
   const asset = source.market.asset
   const { publication: pub, candidate } = source.forward.latest ?? {}
-  if (!pub || !candidate || source.forward.asset !== asset || source.forward.protocol !== FORWARD_PROTOCOL || pub.protocol !== FORWARD_PROTOCOL || pub.asset !== asset
+  if (!pub || !candidate || source.forward.asset !== asset || source.forward.protocol !== protocol || pub.protocol !== protocol || pub.asset !== asset
     || pub.recordHash !== forwardRecordHash(pub) || pub.inputHash !== hashJevInput(pub.input) || candidate.recordHash !== forwardRecordHash(candidate)
-    || candidate.protocol !== FORWARD_PROTOCOL || candidate.publicationId !== pub.id || candidate.inputHash !== pub.inputHash
+    || candidate.protocol !== protocol || candidate.publicationId !== pub.id || candidate.inputHash !== pub.inputHash
     || !validTime(pub.issuedAt, at) || !validTime(candidate.requestedAt, at) || !validTime(candidate.issuedAt, at)
     || stamp(pub.issuedAt) > stamp(candidate.requestedAt) || stamp(candidate.requestedAt) > stamp(candidate.issuedAt)
     || reviewSessionDate(asset, pub.issuedAt) !== reviewSessionDate(asset, at.toISOString())
@@ -60,7 +60,7 @@ function currentJev(source: Source, at: Date): { jev: ResearchLoopJev | null; ev
     if (HORIZONS.some(h => JSON.stringify(guardedJevDecision(candidate.raw, h, pub.input.history[h])) !== JSON.stringify(candidate.decisions[h]))) return { jev: null, evidence: [] }
     const decisions = Object.fromEntries(HORIZONS.map(h => [h, { choice: candidate.decisions[h].choice, reasons: [...candidate.decisions[h].reasons] }])) as ResearchLoopJev['decisions']
     const jev: ResearchLoopJev = { publicationId: pub.id, candidateHash: candidate.recordHash, issuedAt: candidate.issuedAt, inputHash: pub.inputHash, snapshotId: pub.basis.snapshotId, decisions }
-    const evidence = HORIZONS.map((h): EvidenceReference => ({ id: `jev:${pub.id}:${candidate.recordHash}:${h}`, asset, sourceName: 'Jev market-forward-v2 (unvalidated inference)', sourceUrl: null,
+    const evidence = HORIZONS.map((h): EvidenceReference => ({ id: `jev:${pub.id}:${candidate.recordHash}:${h}`, asset, sourceName: `Jev ${pub.protocol} (unvalidated inference)`, sourceUrl: null,
       metric: `research-feedback.jev.${h}`, value: decisions[h].choice ?? 'abstain', unit: null, dataAsOf: candidate.issuedAt, publishedAt: candidate.issuedAt, retrievedAt: candidate.issuedAt,
       quality: 'available', reportId: null, kind: 'inference', excerpt: JSON.stringify({ publicationId: pub.id, candidateHash: candidate.recordHash, effectiveChoice: decisions[h].choice, reasons: decisions[h].reasons, rawProbabilities: candidate.raw.answers[h]?.probabilities ?? null }) }))
     return { jev, evidence }
@@ -69,12 +69,29 @@ function currentJev(source: Source, at: Date): { jev: ResearchLoopJev | null; ev
 
 function validateInput(input: ResearchLoopInput, at: Date, asset: MarketMonitorAsset) {
   if (input.hash !== researchLoopInputHash(input) || input.schemaVersion !== 1 || input.protocol !== researchLoopProtocol(asset) || !ROLES.includes(input.role)
+    || ![LEGACY_FORWARD_PROTOCOL, PREVIOUS_FORWARD_PROTOCOL, FORWARD_PROTOCOL].includes(input.forward?.protocol)
     || !provenanceValid(input.role, input.provenance, asset) || input.id !== identity(input.role, input.provenance, asset) || !validTime(input.capturedAt, at)
     || stamp(input.expiresAt) !== stamp(input.capturedAt) + DAY || at.getTime() >= stamp(input.expiresAt) || !marketReady(input.market, new Date(input.capturedAt), asset) || input.forward.asset !== asset || (asset !== 'BTC' && input.research !== null) || input.evidence.some(e => e.asset !== asset)
     || new Set(input.evidence.map(e => e.id)).size !== input.evidence.length) throw new Error('研究输入无效、已过期或来源不匹配。')
-  const expected = [...input.market.evidence, ...(input.research?.evidence ?? []), ...currentJev(input, new Date(input.capturedAt)).evidence]
+  const expected = [...input.market.evidence, ...(input.research?.evidence ?? []), ...currentJev(input, new Date(input.capturedAt), input.forward.protocol).evidence]
   if (JSON.stringify(expected) !== JSON.stringify(input.evidence)) throw new Error('研究输入的证据与冻结来源不匹配。')
   if (input.research && (!validTime(input.research.analysisTime, new Date(input.capturedAt)) || input.research.publicationTime !== null && !validTime(input.research.publicationTime, new Date(input.capturedAt)))) throw new Error('研究来源尚未发布或尚未获取。')
+}
+
+/** Replay the shipped v2 citation-availability contract only when validating
+ * an immutable v2 input/result. Current-context freshness always uses the
+ * current policy below, so an old valid result may become stale, never corrupt. */
+function frozenEvidenceAvailability(input: ResearchLoopInput, e: EvidenceReference, at: Date): 'available' | 'unverified' | 'outdated' {
+  if (input.forward.protocol !== LEGACY_FORWARD_PROTOCOL) return evidenceAvailability(e, at)
+  const timestamp = (value: string | null) => value === null ? NaN : Date.parse(value)
+  const timely = Number.isFinite(timestamp(e.dataAsOf)) && Number.isFinite(timestamp(e.retrievedAt)) && timestamp(e.dataAsOf) <= at.getTime() && timestamp(e.retrievedAt) <= at.getTime() && timestamp(e.dataAsOf) <= timestamp(e.retrievedAt) && (e.publishedAt === null || Number.isFinite(timestamp(e.publishedAt)) && timestamp(e.publishedAt) <= at.getTime())
+  if (!timely || e.quality === 'unavailable' || e.quality === 'unknown') return 'unverified'
+  if (e.asset !== 'BTC' && !e.reportId && !e.metric.startsWith('research-feedback.') && !e.metric.startsWith('equity.')) {
+    try { assertFreshBars([{ date: e.dataAsOf!, open: 1, high: 1, low: 1, close: 1, volume: 0 }], e.asset, ['hourly-close', 'rule.intraday'].includes(e.metric) ? '1h' : '1d', at) } catch { return 'outdated' }
+    return e.quality === 'outdated' ? 'outdated' : 'available'
+  }
+  const ttl = e.metric.startsWith('equity.') ? 86_400_000 : e.metric.startsWith('research-feedback.') ? 86_400_000 : e.reportId ? 14 * 86_400_000 : e.metric === 'hourly-close' ? 3 * 3_600_000 : ['funding-8h', 'open-interest', 'annualized-basis', 'option-open-interest', 'put-call-ratio'].includes(e.metric) ? 30 * 60_000 : 2 * 86_400_000
+  return e.quality === 'outdated' || at.getTime() - timestamp(e.dataAsOf) > ttl ? 'outdated' : 'available'
 }
 
 function validateDraft(input: ResearchLoopInput, value: unknown, at: Date): ResearchFeedbackDraft {
@@ -82,7 +99,7 @@ function validateDraft(input: ResearchLoopInput, value: unknown, at: Date): Rese
   const byId = new Map(input.evidence.map(e => [e.id, e]))
   for (const id of [...draft.supportingEvidenceIds, ...draft.opposingEvidenceIds]) {
     const e = byId.get(id)
-    if (!e || evidenceAvailability(e, at) !== 'available' || !validTime(e.retrievedAt, new Date(input.capturedAt)) || e.publishedAt !== null && !validTime(e.publishedAt, new Date(input.capturedAt))) throw new Error('引用必须来自冻结输入中当时可用的证据。')
+    if (!e || frozenEvidenceAvailability(input, e, at) !== 'available' || !validTime(e.retrievedAt, new Date(input.capturedAt)) || e.publishedAt !== null && !validTime(e.publishedAt, new Date(input.capturedAt))) throw new Error('引用必须来自冻结输入中当时可用的证据。')
   }
   return draft
 }
@@ -154,7 +171,7 @@ export function createResearchLoop(options: {
     })
     const priorJev = source?.forward.latest?.candidate
     contributors.push({ source: 'jev', state: !source ? 'blocked' : context.jev ? 'ready' : priorJev ? 'stale' : 'waiting', updatedAt: context.jev?.issuedAt ?? priorJev?.issuedAt ?? null,
-      summary: context.jev ? '已引用当前会话 Jev v2 推断；暂不判断保留为弃权，不计作独立证据。' : '等待当前会话、相同已收盘日线依据的 Jev v2 结果。', recordId: context.jev ? `${context.jev.publicationId}:${context.jev.candidateHash}` : null, workspaceId: null, runId: null })
+      summary: context.jev ? '已引用当前会话 Jev 推断；暂不判断保留为弃权，不计作独立证据。' : '等待当前会话、相同已收盘日线依据的 Jev 结果。', recordId: context.jev ? `${context.jev.publicationId}:${context.jev.candidateHash}` : null, workspaceId: null, runId: null })
     let synthesis: ResearchLoopReport['synthesis'] = null
     try { synthesis = await options.synthesis?.() ?? null } catch { /* A failed synthesis does not hide saved research. */ }
     return { protocol, asset, generatedAt: at.toISOString(), contributors, context, history: archive.rows.slice(0, 60), invalidRecords: archive.invalid, synthesis }

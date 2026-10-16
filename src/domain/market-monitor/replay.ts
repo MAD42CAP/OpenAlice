@@ -32,11 +32,10 @@ export function analysisInputHash(input: MarketAnalysisArchive['input']): string
 export function replayAnalysis(archive: MarketAnalysisArchive, registry: MarketMonitorStrategyRegistry): MarketReplayResult {
   const { input, snapshot } = archive
   const base = { snapshotId: snapshot.id, archive }
-  if (archive.schemaVersion !== 1 || !registry.has(input.strategyId)
-    || registry.get(input.strategyId).manifest.version !== input.strategyVersion) {
+  const strategy = registry.getVersion(input.strategyId, input.strategyVersion)
+  if (archive.schemaVersion !== 1 || !strategy) {
     return { ...base, status: 'unsupported' }
   }
-  const strategy = registry.get(input.strategyId)
   const analysis = strategy.analyze({ ...input, asOf: new Date(input.asOf) })
   const recomputed = { ...analysis, dailyBrief: createDailyMarketBrief({ ...analysis, sourceHealth: input.sourceHealth }) }
   const differences = (Object.keys(recomputed) as Array<keyof MarketMonitorStrategyOutput>)

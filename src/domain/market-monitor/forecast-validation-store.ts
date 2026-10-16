@@ -3,13 +3,14 @@ import { randomUUID } from 'node:crypto'
 import { dataPath } from '../../core/paths.js'
 import { hashJevInput } from './typesafe-input.js'
 import { TypeSafeError } from './typesafe-client.js'
-import { FORWARD_PROTOCOL, type ForwardCandidate, type ForwardPublication } from './forecast-validation-types.js'
+import { FORWARD_PROTOCOL, type ForwardCandidate, type ForwardProtocol, type ForwardPublication } from './forecast-validation-types.js'
 import type { MarketMonitorAsset } from './types.js'
 
 export const forwardRecordHash = <T extends { recordHash: string }>(row: T) => hashJevInput({ ...row, recordHash: '' })
 
 /** A separate append-only cohort. No reads or writes touch either v1 ledger. */
-export function createForecastValidationStore(root = dataPath('market-monitor', 'forecast-validation-v2')) {
+export function createForecastValidationStore(root: string | undefined = undefined, protocol: ForwardProtocol = FORWARD_PROTOCOL) {
+  root ??= dataPath('market-monitor', protocol === 'market-forward-v4' ? 'forecast-validation-v4' : protocol === 'market-forward-v3' ? 'forecast-validation-v3' : 'forecast-validation-v2')
   const file = (asset: MarketMonitorAsset, session: string, candidate = false) => {
     if (!['BTC', 'TSLA', 'MSTR'].includes(asset) || !/^\d{4}-\d{2}-\d{2}$/.test(session) || !Number.isFinite(Date.parse(session))) throw new Error('Invalid forward identity')
     return `${root}/${asset}-${session}${candidate ? '.candidate' : ''}.json`
@@ -17,7 +18,7 @@ export function createForecastValidationStore(root = dataPath('market-monitor', 
   const read = async <T extends { recordHash: string; protocol: string }>(path: string): Promise<T | null> => {
     try {
       const row = JSON.parse(await readFile(path, 'utf8')) as T
-      if (!row || row.protocol !== FORWARD_PROTOCOL || forwardRecordHash(row) !== row.recordHash) throw new Error('integrity')
+      if (!row || row.protocol !== protocol || forwardRecordHash(row) !== row.recordHash) throw new Error('integrity')
       return row
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null
@@ -25,7 +26,7 @@ export function createForecastValidationStore(root = dataPath('market-monitor', 
     }
   }
   const publish = async <T extends { recordHash: string; protocol: string }>(path: string, row: T): Promise<T> => {
-    if (row.protocol !== FORWARD_PROTOCOL || forwardRecordHash(row) !== row.recordHash) throw new Error('Invalid forward hash')
+    if (row.protocol !== protocol || forwardRecordHash(row) !== row.recordHash) throw new Error('Invalid forward hash')
     await mkdir(root, { recursive: true })
     const temp = `${path}.${randomUUID()}.tmp`
     await writeFile(temp, JSON.stringify(row), { flag: 'wx', mode: 0o600 })

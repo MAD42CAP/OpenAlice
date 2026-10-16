@@ -1,15 +1,53 @@
 import Decimal from 'decimal.js'
 import type { MarketAnalysisArchive } from './replay.js'
 import { buildChallengerInput } from './forecast-history.js'
-import { FORWARD_PROTOCOL, JEV_DECISION_POLICY, type GuardedJevDecision, type JevDecisionReason } from './forecast-validation-types.js'
+import { FORWARD_PROTOCOL, JEV_DECISION_POLICY, type ForwardPublication, type ForwardProtocol, type GuardedJevDecision, type JevDecisionReason } from './forecast-validation-types.js'
 import type { ReturnHistory } from './forecast-experiment-types.js'
 import type { JevAnswer, JevResult } from './typesafe-client.js'
 import { JEV_HORIZONS, type JevHorizon } from './typesafe-types.js'
+import { isCurrentEquityHourlyEvidence, selectAnalysisHourlyBars } from './equity-session.js'
+import { TypeSafeError } from './typesafe-client.js'
 
 /** Keep the old question builder immutable: this input belongs to a new,
  * prospectively frozen cohort, never a replacement for a historical call. */
-export function buildForwardValidationInput(archive: MarketAnalysisArchive, at: Date) {
+export function buildForwardValidationInput(archive: MarketAnalysisArchive, at: Date, protocol: ForwardProtocol = FORWARD_PROTOCOL): ForwardPublication['input'] {
+  if (protocol !== 'market-forward-v2' && archive.input.asset !== 'BTC' && (archive.input.strategyVersion < 3 || archive.snapshot.analysisBasis?.version !== 3)) {
+    throw new TypeSafeError('basis', '请先按新版常规交易时段政策重新扫描股票，再冻结前向验证；旧版记录保持不变。')
+  }
   const base = buildChallengerInput(archive, at)
+  // Preserve every v2 input/question byte. Only the new prospective protocol
+  // projects the same qualified numerical observations used by equity rules.
+  let sessionInput: Record<string, unknown> = {}
+  if (protocol !== 'market-forward-v2' && archive.input.asset !== 'BTC') {
+    const selection = selectAnalysisHourlyBars(archive.input.intradayBars, archive.input.asset, new Date(archive.input.asOf), {
+      abnormalMovePercent: archive.input.abnormalMovePercent, abnormalVolumeRatio: archive.input.abnormalVolumeRatio,
+    })
+    // Selection freezes observations at capture; request-time freshness must
+    // still reject those hours after a newer session opens or closes.
+    const fresh = isCurrentEquityHourlyEvidence(selection.pulse.latestAt, at)
+    const source = archive.input.sourceHealth.find(value => value.id === 'intraday-bars')?.provider
+      ?? archive.snapshot.chart.intradayMeta?.sourceId ?? archive.snapshot.chart.intradayMeta?.provider ?? null
+    const scope = source === 'alpaca'
+      ? 'IEX single-venue bars; volume is not consolidated US market volume.'
+      : 'Provider-reported bar volume; consolidated-market coverage is not verified.'
+    const dailySource = archive.input.sourceHealth.find(value => value.id === 'daily-bars')?.provider
+      ?? archive.snapshot.chart.dailyMeta.sourceId ?? archive.snapshot.chart.dailyMeta.provider ?? null
+    const dailyScope = dailySource === 'alpaca'
+      ? 'IEX single-venue bars; volume is not consolidated US market volume.'
+      : 'Provider-reported bar volume; consolidated-market coverage is not verified.'
+    sessionInput = {
+      barVolumeScope: { daily: dailyScope, hourly: scope },
+      hourly: fresh && selection.pulse.available ? { count: selection.continuousBars.length,
+        lastClosedAt: selection.pulse.latestAt, lastClose: selection.lastClose,
+        latestChangePercent: selection.pulse.latestChangePercent, fourHourChangePercent: selection.pulse.fourHourChangePercent,
+        volumeToPriorSameTimeMedian: selection.pulse.volumeRatio } : null,
+      hourlyInputPolicy: { id: 'equity-regular-session-v3', timeZone: 'America/New_York',
+        evidenceCapturedAt: archive.input.asOf, source, volumeScope: scope,
+        rawBarCount: archive.input.intradayBars.length, qualifiedBarCount: selection.bars.length,
+        continuousBarCount: selection.continuousBars.length, latestEligibleAt: selection.latestEligibleAt,
+        excluded: selection.excluded, fresh, note: selection.note },
+    }
+  }
   const questions = structuredClone(base.questions)
   for (const h of JEV_HORIZONS) {
     questions[h]!.criteria = {
@@ -17,7 +55,7 @@ export function buildForwardValidationInput(archive: MarketAnalysisArchive, at: 
       flat: 'The realised forward open-to-close return is within -0.25% and +0.25%, inclusive.',
       down: 'The realised forward open-to-close return is strictly below -0.25%.',
     }
-    questions[h]!.instructions += ' This is market-forward-v2. Assign probabilities directly to these mutually exclusive realised return outcomes at the fixed stated target, not to whether an outcome sounds more likely. Flat means ONLY a realised return in the narrow inclusive ±0.25% band at this exact horizon. Uncertainty, balanced up/down evidence, lack of a directional edge, and a broad trading range do not establish a flat outcome. Preserve a complete up/flat/down distribution; the independent Signal question permits abstention without changing that distribution. Use the supplied same-horizon historical frequencies as a reference; they are not calibrated future probabilities or a guarantee.'
+    questions[h]!.instructions += ` This is ${protocol}. Assign probabilities directly to these mutually exclusive realised return outcomes at the fixed stated target, not to whether an outcome sounds more likely. Flat means ONLY a realised return in the narrow inclusive ±0.25% band at this exact horizon. Uncertainty, balanced up/down evidence, lack of a directional edge, and a broad trading range do not establish a flat outcome. Preserve a complete up/flat/down distribution; the independent Signal question permits abstention without changing that distribution. Use the supplied same-horizon historical frequencies as a reference; they are not calibrated future probabilities or a guarantee.`
     questions[`${h}Evidence`]!.instructions += ' Adequate means data quality is sufficient, NOT that the observations predict the next return or establish an edge. Predictive uncertainty belongs in the separate Signal answer.'
     questions[`${h}Signal`] = {
       type: 'choice',
@@ -26,7 +64,7 @@ export function buildForwardValidationInput(archive: MarketAnalysisArchive, at: 
     }
   }
   return {
-    state: { ...base.state, forecastProtocol: FORWARD_PROTOCOL, decisionPolicy: JEV_DECISION_POLICY },
+    state: { ...base.state, ...sessionInput, forecastProtocol: protocol, decisionPolicy: JEV_DECISION_POLICY },
     questions, history: base.history,
   }
 }

@@ -1,6 +1,7 @@
 import Decimal from 'decimal.js'
 import { createHash } from 'node:crypto'
 import { assertFreshBars, closedBars } from './bar-policy.js'
+import { isCurrentEquityHourlyEvidence, selectAnalysisHourlyBars } from './equity-session.js'
 import type { MarketMonitorSnapshot, TrendHorizon } from './types.js'
 import type { EvidenceReference, IntelligenceClaim } from './intelligence-types.js'
 import type { MarketIntelligence } from './investment-types.js'
@@ -16,15 +17,18 @@ export function buildMarketIntelligence(snapshot: MarketMonitorSnapshot, at: Dat
   const verified = snapshot.analysisBasis?.closedBarsOnly === true
   const asset = snapshot.asset, equity = asset !== 'BTC'
   const daily = closedBars(snapshot.chart.daily, asset, '1d', captured).filter(validBar).sort((a, b) => a.date.localeCompare(b.date))
-  const hourly = closedBars(snapshot.chart.intraday, asset, '1h', captured).filter(validBar).sort((a, b) => a.date.localeCompare(b.date))
+  const hourlySelection = equity ? selectAnalysisHourlyBars(snapshot.chart.intraday, asset, captured) : null
+  const hourly = (hourlySelection ? hourlySelection.continuousBars : closedBars(snapshot.chart.intraday, asset, '1h', captured)).filter(validBar).sort((a, b) => a.date.localeCompare(b.date))
   const last = daily.at(-1), previous = daily.at(-2)
   const dailyUnique = new Set(daily.map(b => b.date.slice(0, 10))).size === daily.length
   const hourlyUnique = new Set(hourly.map(b => b.date)).size === hourly.length
   const dailyAt = verified && dailyUnique && last && snapshot.metrics.lastPrice === last.close && snapshot.analysisBasis?.dailyAt?.slice(0, 10) === last.date.slice(0, 10) ? last.date : null
-  const hourlyAt = verified && hourlyUnique && hourly.length && snapshot.analysisBasis?.hourlyAt === hourly.at(-1)!.date ? hourly.at(-1)!.date : null
-  const missingData: string[] = equity ? ['完整交易所假期与提前收盘日历：UNAVAILABLE', '宏观与行业独立风险指标：UNAVAILABLE'] : ['ETF 净流量：UNAVAILABLE', '订单簿与清算热图：UNAVAILABLE', '宏观风险指标：UNAVAILABLE']
+  const hourlyAt = verified && (!equity || snapshot.analysisBasis?.version === 3 && hourlySelection?.pulse.available) && hourlyUnique && hourly.length && snapshot.analysisBasis?.hourlyAt === hourly.at(-1)!.date ? hourly.at(-1)!.date : null
+  const missingData: string[] = equity ? ['临时停市与 2026–2028 之外交易所日历：UNAVAILABLE', '宏观与行业独立风险指标：UNAVAILABLE'] : ['ETF 净流量：UNAVAILABLE', '订单簿与清算热图：UNAVAILABLE', '宏观风险指标：UNAVAILABLE']
   if (daily.length !== closedBars(snapshot.chart.daily, asset, '1d', captured).length || !dailyUnique) missingData.push('日线存在无效或重复数据')
-  if (hourly.length !== closedBars(snapshot.chart.intraday, asset, '1h', captured).length || !hourlyUnique) missingData.push('小时线存在无效或重复数据')
+  if ((!equity && hourly.length !== closedBars(snapshot.chart.intraday, asset, '1h', captured).length) || !hourlyUnique) missingData.push('小时线存在无效或重复数据')
+  if (equity && snapshot.analysisBasis?.version !== 3) missingData.push('旧股票小时线尚未通过常规交易时段与稀疏量能筛选；等待新版扫描')
+  if (equity && hourlySelection && !hourlySelection.pulse.available) missingData.push('常规交易时段小时线缺少连续且量能可用的样本；不能把稀疏栏当作方向证据')
   if (!dailyAt) missingData.push('日线已收盘分析依据不可验证')
   if (!hourlyAt) missingData.push('小时已收盘分析依据不可验证')
   if (!snapshot.trend) missingData.push('多周期结构判读缺失')
@@ -36,7 +40,8 @@ export function buildMarketIntelligence(snapshot: MarketMonitorSnapshot, at: Dat
       : at.getTime() - time > (sourceId === 'intraday-bars' ? 3 * 3_600_000 : sourceId === 'btc-derivatives' ? 30 * 60_000 : 2 * DAY) ? 'outdated' : 'available'
     if (equity && value !== null && Number.isFinite(time) && time <= captured.getTime() && s && s.status !== 'unavailable') {
       if (sourceId === 'daily-bars' || sourceId === 'intraday-bars') {
-        try { assertFreshBars(sourceId === 'daily-bars' ? daily : hourly, asset, sourceId === 'daily-bars' ? '1d' : '1h', at); quality = 'available' } catch { quality = 'outdated' }
+        if (sourceId === 'intraday-bars') quality = isCurrentEquityHourlyEvidence(dataAsOf, at) ? 'available' : 'outdated'
+        else { try { assertFreshBars(daily, asset, '1d', at); quality = 'available' } catch { quality = 'outdated' } }
       } else quality = at.getTime() - time > DAY ? 'outdated' : 'available'
     }
     const id = `market:${snapshot.id}:${metric}`
@@ -118,6 +123,6 @@ export function buildMarketIntelligence(snapshot: MarketMonitorSnapshot, at: Dat
     wyckoffHypothesis: snapshot.wyckoff ? { phase: snapshot.wyckoff.phaseCandidate, confirmed: false, supportingEvidence: snapshot.wyckoff.supportingEvidence, opposingEvidence: snapshot.wyckoff.opposingEvidence, confirmation: snapshot.wyckoff.confirmation, invalidation: snapshot.wyckoff.invalidation } : null,
     bullishEvidence, bearishEvidence, evidence, dataSources: snapshot.sourceHealth.map(s => ({ name: s.provider, status: s.status, dataAsOf: s.asOf, retrievedAt: snapshot.capturedAt })),
     dataQuality: dailyEvidence.quality !== 'available' ? 'unavailable' : missingData.length || evidence.some(e => e.quality !== 'available') ? 'partial' : 'complete', missingData,
-    limitations: equity ? ['这是既有股票规则与已收盘 OHLCV 的结构化投影；1/5/20 个交易时段的前瞻评估与定性结构期限分开记录。', '股票日线使用纽约交易日期与 16:15 保守收盘门槛；周末及单日假期沿用现有四自然日容差，并非完整交易所日历。', 'SEC 仅含申报元数据，新闻仅含标题；未知财报日历与缺失正文不能被解释为没有事件风险。', '威科夫、Jev 与研究工作区结论是推断，不增加独立市场证据；已收盘价不是实时行情。'] : ['这是既有规则与真实 OHLCV 的结构化投影，不改变原有 1/7/30 日预测及历史评估定义。', '支撑阻力为已收盘观察窗口的真实高低值，不代表保证有效的交易价位。', 'OHLCV 成交量保留来源原生单位；未获元数据验证时不自动换算或标记为 BTC/USD。量比为最新成交量除以前 20 根日线均量。', '威科夫阶段始终是待验证研究假设；已收盘日线价格不是实时现货报价。'] }
+    limitations: equity ? ['这是既有股票规则与已收盘 OHLCV 的结构化投影；1/5/20 个交易时段的前瞻评估与定性结构期限分开记录。', '股票日线沿用纽约交易日期与 16:15 保守收盘门槛；小时线采用 2026–2028 官方计划常规时段、完整小时桶与同期量能筛选，只保留连续可用样本；不覆盖临时停市。', 'SEC 仅含申报元数据，新闻仅含标题；未知财报日历与缺失正文不能被解释为没有事件风险。', '威科夫、Jev 与研究工作区结论是推断，不增加独立市场证据；已收盘价不是实时行情。'] : ['这是既有规则与真实 OHLCV 的结构化投影，不改变原有 1/7/30 日预测及历史评估定义。', '支撑阻力为已收盘观察窗口的真实高低值，不代表保证有效的交易价位。', 'OHLCV 成交量保留来源原生单位；未获元数据验证时不自动换算或标记为 BTC/USD。量比为最新成交量除以前 20 根日线均量。', '威科夫阶段始终是待验证研究假设；已收盘日线价格不是实时现货报价。'] }
 }
 export const marketIntelligenceHash = (market: MarketIntelligence) => createHash('sha256').update(JSON.stringify({ ...market, analysisTime: '' })).digest('hex')
