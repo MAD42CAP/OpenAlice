@@ -79,12 +79,21 @@ export class FMPCalendarEarningsFetcher extends Fetcher {
     }
 
     const allData: Record<string, unknown>[] = []
-    const results = await Promise.all(
-      urls.map((url) => amakeRequest<Record<string, unknown>[]>(url, { responseCallback }).catch(() => [])),
+    const results = await Promise.allSettled(
+      urls.map((url) => amakeRequest<Record<string, unknown>[]>(url, { responseCallback })),
     )
-
-    for (const batch of results) {
-      if (Array.isArray(batch)) allData.push(...batch)
+    const failed = results.filter(result => result.status === 'rejected')
+    if (failed.length) {
+      // Request errors may embed a keyed URL or a response body. Preserve safe
+      // status diagnostics, never those messages, and never call a partial
+      // calendar complete: its missing interval may contain the next event.
+      const statuses = failed.flatMap(result => result.status === 'rejected'
+        ? String(result.reason instanceof Error ? result.reason.message : '').match(/\b(?:401|403|429|5\d\d)\b/g) ?? [] : [])
+      throw new Error(`Earnings calendar unavailable: ${failed.length}/${results.length} intervals failed${statuses.length ? ` (HTTP ${[...new Set(statuses)].join(', ')})` : ''}`)
+    }
+    for (const result of results) {
+      if (result.status !== 'fulfilled' || !Array.isArray(result.value)) throw new Error('Earnings calendar returned an invalid response')
+      allData.push(...result.value)
     }
 
     return allData

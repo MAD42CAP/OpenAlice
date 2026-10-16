@@ -2,6 +2,18 @@ import { describe, expect, it, vi } from 'vitest'
 import { createDefaultMarketContextProviderRegistry, MarketContextProviderRegistry } from './context.js'
 import type { EquityClientLike } from '../market-data/client/types.js'
 import type { ReferenceDataService } from '../market-data/reference/types.js'
+import type { OfficialEarningsResult } from './official-earnings.js'
+import { currentOfficialEarnings } from './earnings-evidence.js'
+import { judgmentSnapshot } from './judgment.fixture.js'
+
+
+function officialEvent(asset: 'TSLA' | 'MSTR', at: Date, overrides: Partial<OfficialEarningsResult> = {}): OfficialEarningsResult {
+  return { asset, status: 'unannounced', date: null, timing: 'unknown', webcastAt: null,
+    sourceUrl: asset === 'TSLA' ? 'https://ir.tesla.com/press-release/tesla-quarterly-results-date' : 'https://www.strategy.com/press/financial-results-date',
+    title: 'Official financial events', publishedAt: null, retrievedAt: at.toISOString(), contentHash: 'a'.repeat(64),
+    verification: 'live-official', detail: 'Verified official calendar with no upcoming earnings announcement.', ...overrides }
+}
+const noAnnouncement = async (asset: 'TSLA' | 'MSTR', at: Date) => officialEvent(asset, at)
 
 describe('market context provider registry', () => {
   it('allows multiple independent providers for one asset', () => {
@@ -83,6 +95,7 @@ it('retains a partial Deribit result and the exact failed side without substitut
 
 it('keeps partial equity failures explicit and separates failed news from a successful empty calendar', async () => {
   const registry = createDefaultMarketContextProviderRegistry({
+    officialEarningsReader: noAnnouncement,
     equityClient: {
       getKeyMetrics: async () => [{ market_cap: 100 }],
       getEstimateConsensus: async () => { throw new Error('HTTP 403 token=fixture-secret') },
@@ -104,6 +117,7 @@ it('keeps partial equity failures explicit and separates failed news from a succ
 
 it('keeps a successful empty news response empty', async () => {
   const registry = createDefaultMarketContextProviderRegistry({
+    officialEarningsReader: noAnnouncement,
     equityClient: { getKeyMetrics: async () => [], getEstimateConsensus: async () => [], getShareStatistics: async () => [] } as unknown as EquityClientLike,
     reference: { calendar: async () => ({ earnings: [] }) } as unknown as ReferenceDataService,
     newsProvider: { getNewsV2: async () => [] } as never,
@@ -116,6 +130,7 @@ it('keeps a successful empty news response empty', async () => {
 
 it('selects the earliest valid upcoming earnings date, ignoring stale dates and other symbols', async () => {
   const registry = createDefaultMarketContextProviderRegistry({
+    officialEarningsReader: noAnnouncement,
     equityClient: { getKeyMetrics: async () => [], getEstimateConsensus: async () => [], getShareStatistics: async () => [] } as unknown as EquityClientLike,
     reference: { calendar: async () => ({ earnings: [
       { symbol: 'TSLA', report_date: '2026-09-01' }, { symbol: 'TSLA', report_date: 'unknown' }, { symbol: 'TSLA', report_date: '2027-02-30' },
@@ -124,6 +139,103 @@ it('selects the earliest valid upcoming earnings date, ignoring stale dates and 
     newsProvider: { getNewsV2: async () => [] } as never,
   })
   const result = await registry.forAsset('TSLA').find(p => p.manifest.id === 'openalice-equity-v1')!.load({ asset: 'TSLA', at: new Date('2026-10-07T12:00:00Z') })
-  expect(result.context.nextEarningsAt).toBe('2026-10-20')
-  expect(result.health[1]).toMatchObject({ status: 'ok', coverage: { earnings: 'available', news: 'empty' } })
+  expect(result.context.nextEarningsAt).toBeNull()
+  expect(result.context.earningsEvent).toMatchObject({ status: 'unannounced', referenceDate: '2026-10-20' })
+  expect(result.health[1]).toMatchObject({ status: 'ok', coverage: { earnings: 'unknown', news: 'empty' } })
+})
+
+
+async function earningsContext(options: {
+  official?: (asset: 'TSLA' | 'MSTR', at: Date) => Promise<OfficialEarningsResult>
+  calendar?: Record<string, unknown>
+  news?: () => Promise<unknown[]>
+  asset?: 'TSLA' | 'MSTR'
+  at?: Date
+} = {}) {
+  const at = options.at ?? new Date('2026-10-07T12:00:00Z'), asset = options.asset ?? 'TSLA'
+  const registry = createDefaultMarketContextProviderRegistry({
+    equityClient: { getKeyMetrics: async () => [{ market_cap: 1000 }], getEstimateConsensus: async () => [], getShareStatistics: async () => [] } as unknown as EquityClientLike,
+    reference: { calendar: async () => options.calendar ?? { earnings: [], meta: { provider: 'fmp', asOf: at.toISOString() } } } as unknown as ReferenceDataService,
+    newsProvider: { getNewsV2: options.news ?? (async () => []) } as never,
+    officialEarningsReader: options.official ?? noAnnouncement,
+  })
+  return registry.forAsset(asset).find(provider => provider.manifest.id === 'openalice-equity-v1')!.load({ asset, at })
+}
+
+describe('independent official earnings context', () => {
+  it('prefers a current official announcement over a differing provider estimate and retains precise provenance', async () => {
+    const result = await earningsContext({
+      official: async (asset, at) => officialEvent(asset, at, { status: 'confirmed', date: '2026-10-21', timing: 'after-close', webcastAt: '2026-10-21T21:30:00Z', publishedAt: '2026-10-01T12:00:00Z' }),
+      calendar: { earnings: [{ symbol: 'TSLA', report_date: '2026-10-20' }], meta: { provider: 'fmp', asOf: '2026-10-07T12:00:00Z' } },
+    })
+    expect(result.context.nextEarningsAt).toBe('2026-10-21')
+    expect(result.context.earningsEvent).toMatchObject({ status: 'confirmed', date: '2026-10-21', referenceDate: '2026-10-20', referenceSource: 'fmp', timing: 'after-close', webcastAt: '2026-10-21T21:30:00Z', verification: 'live-official' })
+    expect(result.health.find(source => source.id === 'tsla-earnings')).toMatchObject({ status: 'ok', provider: 'Tesla Investor Relations', asOf: '2026-10-07T12:00:00.000Z', failedFields: [] })
+    expect(result.health[1]?.detail).toContain('official announcement takes precedence')
+    const snapshot = { ...judgmentSnapshot(), asset: 'TSLA' as const, capturedAt: '2026-10-07T12:00:00Z', context: result.context, sourceHealth: result.health }
+    expect(currentOfficialEarnings(snapshot, new Date(snapshot.capturedAt))?.date).toBe('2026-10-21')
+  })
+
+  it('keeps a generic date explicitly estimated after an official failure and never enables confirmation', async () => {
+    const result = await earningsContext({
+      official: async () => { throw new Error('HTTP 403 token=syntheticSecretShouldNeverPersist') },
+      calendar: { earnings: [{ symbol: 'TSLA', report_date: '2026-10-20' }], meta: { provider: 'fmp', asOf: '2026-10-07T12:00:00Z' } },
+    })
+    expect(result.context.nextEarningsAt).toBeNull()
+    expect(result.context.earningsEvent).toMatchObject({ status: 'estimated', date: '2026-10-20', verification: null, sourceUrl: null })
+    expect(result.health[1]).toMatchObject({ status: 'ok', coverage: { earnings: 'unknown', news: 'empty' } })
+    expect(result.health.find(source => source.id === 'tsla-earnings')).toMatchObject({ status: 'degraded', asOf: null, failedFields: ['nextEarningsAt', 'earningsEvent'] })
+    expect(JSON.stringify(result)).not.toContain('syntheticSecretShouldNeverPersist')
+  })
+
+  it('keeps a successfully empty generic calendar unknown while an official request fails independently', async () => {
+    const result = await earningsContext({ official: async () => { throw new Error('HTTP 403') } })
+    expect(result.health[1]).toMatchObject({ status: 'ok', coverage: { earnings: 'unknown', news: 'empty' } })
+    expect(result.health.find(source => source.id === 'tsla-earnings')).toMatchObject({ status: 'unavailable' })
+    expect(result.context.earningsEvent?.status).toBe('unavailable')
+  })
+
+  it.each(['partial-error', 'stale-cache', 'old-time', 'future-time'] as const)('rejects an exposed %s reference calendar instead of using its rows', async failure => {
+    const calendar = { earnings: [{ symbol: 'TSLA', report_date: '2026-10-20' }], errors: failure === 'partial-error' ? { earnings: 'HTTP 429 token=syntheticReferenceSecret' } : {}, meta: { provider: 'fmp', asOf: failure === 'old-time' ? '2026-10-01T00:00:00Z' : failure === 'future-time' ? '2026-10-08T00:00:00Z' : '2026-10-07T12:00:00Z', stale: failure === 'stale-cache' } }
+    const result = await earningsContext({ calendar, official: async () => { throw new Error('HTTP 403') } })
+    expect(result.context.nextEarningsAt).toBeNull()
+    expect(result.context.earningsEvent).toMatchObject({ status: 'unavailable', referenceDate: null })
+    expect(result.health[1]?.coverage?.earnings).toBe('unavailable')
+    expect(JSON.stringify(result)).not.toContain('syntheticReferenceSecret')
+  })
+
+  it('does not let failed news invalidate an independently verified official date or renew its cached acquisition time', async () => {
+    const result = await earningsContext({
+      official: async (asset, at) => officialEvent(asset, at, { status: 'confirmed', date: '2026-10-21', publishedAt: '2026-10-01', retrievedAt: '2026-10-07T09:00:00Z', verification: 'research-reviewed' }),
+      news: async () => { throw new Error('HTTP 503') },
+    })
+    expect(result.context.nextEarningsAt).toBe('2026-10-21')
+    expect(result.health[1]).toMatchObject({ status: 'degraded', failedFields: ['recentNews'], coverage: { earnings: 'available', news: 'unavailable' } })
+    expect(result.health.find(source => source.id === 'tsla-earnings')).toMatchObject({ status: 'ok', asOf: '2026-10-07T09:00:00Z', failedFields: [] })
+    expect(result.context.earningsEvent?.retrievedAt).toBe('2026-10-07T09:00:00Z')
+    const snapshot = { ...judgmentSnapshot(), asset: 'TSLA' as const, capturedAt: '2026-10-07T12:00:00Z', context: result.context, sourceHealth: result.health }
+    expect(currentOfficialEarnings(snapshot, new Date(snapshot.capturedAt))?.date).toBe('2026-10-21')
+  })
+
+  it('does not replace conflicting official announcements with a generic estimate', async () => {
+    const result = await earningsContext({
+      official: async (asset, at) => officialEvent(asset, at, { status: 'conflict', detail: 'Two current official announcements disagree.' }),
+      calendar: { earnings: [{ symbol: 'TSLA', report_date: '2026-10-20' }], meta: { provider: 'fmp', asOf: '2026-10-07T12:00:00Z' } },
+    })
+    expect(result.context.nextEarningsAt).toBeNull()
+    expect(result.context.earningsEvent).toMatchObject({ status: 'conflict', date: null, referenceDate: '2026-10-20' })
+    expect(result.health.find(source => source.id === 'tsla-earnings')).toMatchObject({ status: 'degraded', failedFields: [] })
+  })
+
+  it.each(['future-acquisition', 'old-acquisition', 'future-publication', 'past-date', 'wrong-asset'] as const)('rejects %s official provenance', async failure => {
+    const result = await earningsContext({ official: async (asset, at) => officialEvent(asset, at, {
+      status: 'confirmed', date: failure === 'past-date' ? '2026-10-06' : '2026-10-21',
+      retrievedAt: failure === 'future-acquisition' ? '2026-10-08T00:00:00Z' : failure === 'old-acquisition' ? '2026-10-01T00:00:00Z' : at.toISOString(),
+      publishedAt: failure === 'future-publication' ? '2026-10-08T00:00:00Z' : null,
+      asset: failure === 'wrong-asset' ? 'MSTR' : asset,
+    }) })
+    expect(result.context.nextEarningsAt).toBeNull()
+    expect(result.context.earningsEvent?.status).toBe('unavailable')
+    expect(result.health.find(source => source.id === 'tsla-earnings')?.status).toBe('unavailable')
+  })
 })

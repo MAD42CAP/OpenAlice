@@ -5,6 +5,28 @@ import type { JevReport } from './typesafe-types.js'
 
 const at = new Date('2026-09-20T12:00:00Z')
 describe('session-aware v3 judgment', () => {
+  it('uses new official event provenance independently of news, without changing legacy builders', () => {
+    const s = judgmentSnapshot(); s.asset = 'MSTR'; s.analysisInput = { hash: 'fixture', strategyVersion: 3 }; s.analysisBasis!.version = 3
+    s.chart.intraday = s.chart.intraday.map((b, i) => ({ ...b, date: `2026-09-18T${18 + i}:00:00Z` }))
+    s.analysisBasis!.hourlyAt = s.metrics.intraday.latestAt = '2026-09-18T19:00:00Z'
+    s.context.nextEarningsAt = '2026-10-29'
+    s.context.earningsEvent = { asset: 'MSTR', status: 'confirmed', date: '2026-10-29', timing: 'after-close', webcastAt: null,
+      sourceUrl: 'https://www.strategy.com/press/synthetic-earnings', title: 'Synthetic announcement', publishedAt: '2026-09-18',
+      retrievedAt: s.capturedAt, contentHash: 'b'.repeat(64), verification: 'live-official', detail: 'Synthetic source' }
+    s.sourceHealth.push({ id: 'mstr-earnings', label: 'Earnings', provider: 'Strategy IR', status: 'ok', asOf: s.capturedAt,
+      coverage: { earnings: 'available', news: 'not-configured' }, detail: 'Synthetic' },
+    { id: 'mstr-calendar-news', label: 'News', provider: 'News', status: 'unavailable', asOf: null, detail: 'Synthetic unavailable news' })
+    const legacy = buildGuardedMarketJudgment(s, at), result = buildSessionGuardedMarketJudgment(s, at)
+    expect(legacy.context.earningsAt).toBeNull()
+    expect(result.context.earningsAt).toBe('2026-10-29')
+    expect(result.horizons.short.risks).not.toContain('calendar-unknown')
+    expect(result.horizons.short.decision).toBe('directional')
+    expect(buildGuardedMarketJudgment(s, at)).toEqual(legacy)
+    s.context.earningsEvent.date = s.context.nextEarningsAt = '2026-09-23'
+    expect(buildSessionGuardedMarketJudgment(s, at).horizons.short).toMatchObject({ decision: 'abstain', reasons: expect.arrayContaining(['earnings-near']) })
+    s.sourceHealth.find(source => source.id === 'mstr-earnings')!.retained = { asOf: s.capturedAt, expiresAt: s.capturedAt, fields: ['earningsEvent'] }
+    expect(buildSessionGuardedMarketJudgment(s, at).horizons.short.reasons).toContain('calendar-unknown')
+  })
   it('retains the historical v2 result while withholding unverified stock hourly policy', () => {
     const s = judgmentSnapshot(); s.asset = 'MSTR'
     const old = buildGuardedMarketJudgment(s, at)

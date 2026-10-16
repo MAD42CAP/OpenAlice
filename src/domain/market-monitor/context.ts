@@ -1,4 +1,5 @@
 import { reviewSessionDate } from './review.js'
+import { createOfficialEarningsReader, type OfficialEarningsResult } from './official-earnings.js'
 import { createSecEdgarContext } from './sec-edgar.js'
 import { contextReadFailure, createContextReader } from './context-read.js'
 import { safeMarketDataError } from '../market-data/bars/safe-error.js'
@@ -8,6 +9,7 @@ import type { INewsProvider } from '../news/types.js'
 import {
   MARKET_MONITOR_ASSET_CONFIG,
   type MarketContext,
+  type MarketEarningsEvent,
   type MarketContextProviderManifest,
   type MarketMonitorAsset,
   type SourceHealth,
@@ -31,6 +33,7 @@ export interface MarketContextProviderDeps {
   newsProvider?: INewsProvider
   fetcher?: MarketMonitorFetch
   secContactEmail?: () => Promise<string | null>
+  officialEarningsReader?: (asset: 'TSLA' | 'MSTR', at: Date) => Promise<OfficialEarningsResult>
 }
 
 export class MarketContextProviderRegistry {
@@ -160,25 +163,53 @@ async function equityContext(
   asset: 'TSLA' | 'MSTR',
   at: Date,
   read: ReturnType<typeof createContextReader>,
+  officialEarnings: NonNullable<MarketContextProviderDeps['officialEarningsReader']>,
 ): Promise<MarketContextProviderResult> {
   const symbol = MARKET_MONITOR_ASSET_CONFIG[asset].symbol
   const sourceId = asset.toLowerCase()
-  const [metrics, estimates, shares, calendar, news] = await Promise.allSettled([
+  const [metrics, estimates, shares, calendar, news, official] = await Promise.allSettled([
     read(`${asset}:metrics`, () => deps.equityClient.getKeyMetrics({ symbol })),
     read(`${asset}:estimates`, () => deps.equityClient.getEstimateConsensus({ symbol })),
     read(`${asset}:shares`, () => deps.equityClient.getShareStatistics({ symbol })),
     read('equity:calendar', () => deps.reference.calendar({ days: 90 })),
     deps.newsProvider ? read('equity:news', () => deps.newsProvider!.getNewsV2({ endTime: at, lookback: '7d', limit: 100 })) : Promise.resolve([]),
+    read(`${asset}:official-earnings`, () => officialEarnings(asset, at)),
   ])
   const metric = metrics.status === 'fulfilled' ? metrics.value[0] : undefined
   const estimate = estimates.status === 'fulfilled' ? estimates.value[0] : undefined
   const share = shares.status === 'fulfilled' ? shares.value[0] : undefined
   const today = reviewSessionDate(asset, at.toISOString())
-  const earningsDates = calendar.status === 'fulfilled' ? calendar.value.earnings
+  const referenceTime = calendar.status === 'fulfilled' ? Date.parse(calendar.value.meta?.asOf ?? '') : NaN
+  const referenceFresh = !Number.isFinite(referenceTime) || referenceTime <= at.getTime() && at.getTime() - referenceTime <= 86_400_000
+  const referenceOk = calendar.status === 'fulfilled' && !calendar.value.errors?.earnings && !calendar.value.meta?.stale && referenceFresh && Array.isArray(calendar.value.earnings)
+  const earningsDates = referenceOk && calendar.status === 'fulfilled' ? calendar.value.earnings
     .filter(row => String((row as { symbol?: unknown }).symbol ?? '').toUpperCase() === symbol)
     .map(row => stringFrom(row, ['report_date', 'date']))
     .filter((date): date is string => Boolean(date && /^\d{4}-\d{2}-\d{2}(?:$|[T ])/.test(date) && Number.isFinite(Date.parse(date)) && new Date(`${date.slice(0, 10)}T00:00:00Z`).toISOString().slice(0, 10) === date.slice(0, 10) && date.slice(0, 10) >= today))
-    .sort() : []
+    .map(date => date.slice(0, 10)).sort() : []
+  const referenceDate = earningsDates[0] ?? null
+  const referenceSource = calendar.status === 'fulfilled' ? calendar.value.meta?.provider ?? 'OpenAlice reference calendar' : null
+  const officialResult = official.status === 'fulfilled' ? official.value : null
+  const officialTime = Date.parse(officialResult?.retrievedAt ?? '')
+  const officialDate = officialResult?.date
+  const validOfficialDate = officialDate && /^\d{4}-\d{2}-\d{2}$/.test(officialDate) && Number.isFinite(Date.parse(officialDate))
+    && new Date(`${officialDate}T00:00:00Z`).toISOString().slice(0, 10) === officialDate && officialDate >= today
+  const publicationTime = officialResult?.publishedAt === null ? null : Date.parse(officialResult?.publishedAt ?? '')
+  const officialCurrent = officialResult?.asset === asset && Number.isFinite(officialTime) && officialTime <= at.getTime() && at.getTime() - officialTime <= 86_400_000
+    && (publicationTime === null || Number.isFinite(publicationTime) && publicationTime <= officialTime)
+    && (officialResult.status !== 'confirmed' || Boolean(validOfficialDate))
+  const officialFailure = official.status === 'rejected' ? contextReadFailure(official.reason) : 'official response is not current or verifiable'
+  const earningsEvent: MarketEarningsEvent = officialCurrent && officialResult ? { ...officialResult, referenceDate, referenceSource } : {
+    asset, status: referenceDate ? 'estimated' : 'unavailable', date: referenceDate, timing: 'unknown', webcastAt: null,
+    sourceUrl: null, title: null, publishedAt: null, retrievedAt: referenceOk && Number.isFinite(referenceTime) ? calendar.status === 'fulfilled' ? calendar.value.meta.asOf : at.toISOString() : at.toISOString(),
+    contentHash: null, verification: null, detail: `Official earnings unavailable: ${officialFailure}. A reference estimate is not an official announcement.`, referenceDate, referenceSource,
+  }
+  const confirmedEarnings = earningsEvent.status === 'confirmed'
+  const officialLoaded = officialCurrent && earningsEvent.status !== 'conflict'
+  const referenceDetail = calendar.status === 'rejected' ? `Reference calendar: ${contextReadFailure(calendar.reason)}`
+    : calendar.value.errors?.earnings ? `Reference earnings: ${contextReadFailure(new Error(calendar.value.errors.earnings))}`
+      : calendar.value.meta?.stale || !referenceFresh ? 'Reference earnings are stale; not used as current evidence'
+        : referenceDate ? `Reference estimate ${referenceDate}${confirmedEarnings && referenceDate !== earningsEvent.date ? '; official announcement takes precedence' : ''}` : 'No matching reference estimate'
   const newsRows = news.status === 'fulfilled' ? news.value.filter((item) => {
     const text = `${item.title}\n${item.content}`.toLowerCase()
     return EQUITY_NEWS_ALIASES[asset].some((alias) => text.includes(alias.toLowerCase()))
@@ -189,11 +220,12 @@ async function equityContext(
     forwardPe: numberFrom(metric, ['forward_pe', 'pe_forward']),
     analystTargetMean: numberFrom(estimate, ['target_consensus', 'target_mean', 'target_price']),
     shortPercentFloat: numberFrom(share, ['short_percent_of_float']),
-    nextEarningsAt: earningsDates[0] ?? null,
+    nextEarningsAt: confirmedEarnings ? earningsEvent.date : null,
+    earningsEvent,
     ...(news.status === 'fulfilled' ? { recentNews: newsRows.map((item) => ({ title: item.title, time: item.time.toISOString(), source: item.metadata.source ?? null })) } : {}),
   }
   const coreOk = [context.marketCap, context.trailingPe, context.forwardPe, context.analystTargetMean, context.shortPercentFloat].some((value) => value != null)
-  const calendarOk = calendar.status === 'fulfilled'
+  const calendarOk = officialLoaded || referenceOk
   const newsOk = Boolean(deps.newsProvider && news.status === 'fulfilled')
   const coreRequests = [metrics, estimates, shares]
   const coreFailures = coreRequests.some(result => result.status === 'rejected')
@@ -208,15 +240,24 @@ async function equityContext(
     { id: `${sourceId}-reference`, label: `${asset} fundamentals and positioning`, status: coreOk ? coreFailures ? 'degraded' : 'ok' : 'unavailable', provider: 'OpenAlice equity providers', asOf: coreOk ? at.toISOString() : null, failedFields,
       detail: [describe('metrics', metrics, !metric), describe('estimates', estimates, !estimate), describe('share statistics', shares, !share)].join('; ') },
     { id: `${sourceId}-calendar-news`, label: `${asset} calendar and news`, status: calendarOk && newsOk ? 'ok' : calendarOk || newsOk ? 'degraded' : 'unavailable', provider: 'OpenAlice reference/news', asOf: calendarOk || newsOk ? at.toISOString() : null,
-      coverage: { earnings: calendarOk ? context.nextEarningsAt ? 'available' : 'unknown' : 'unavailable', news: !deps.newsProvider ? 'not-configured' : !newsOk ? 'unavailable' : newsRows.length ? 'matched' : 'empty' },
-      failedFields: [...(!calendarOk ? ['nextEarningsAt'] as const : []), ...(deps.newsProvider && !newsOk ? ['recentNews'] as const : [])],
-      detail: `${calendarOk ? context.nextEarningsAt ? 'Earnings date available' : 'No earnings date' : describe('earnings calendar', calendar, false)}; ${newsOk ? `${newsRows.length} recent matching stories` : deps.newsProvider ? describe('news', news, false) : 'news: collector not configured'}.` },
+      coverage: { earnings: confirmedEarnings ? 'available' : calendarOk || officialCurrent ? 'unknown' : 'unavailable', news: !deps.newsProvider ? 'not-configured' : !newsOk ? 'unavailable' : newsRows.length ? 'matched' : 'empty' },
+      // Earnings have their own source/cache owner. News failures cannot
+      // invalidate or refresh an independently confirmed official event.
+      failedFields: [...(deps.newsProvider && !newsOk ? ['recentNews'] as const : [])],
+      detail: `${confirmedEarnings ? 'Earnings date available from official announcement' : 'No confirmed official earnings date'}; ${newsOk ? `${newsRows.length} recent matching stories` : deps.newsProvider ? describe('news', news, false) : 'news: collector not configured'}. ${referenceDetail}.` },
+    { id: `${sourceId}-earnings`, label: `${asset} official earnings announcement`,
+      status: officialLoaded ? 'ok' : earningsEvent.status === 'conflict' || earningsEvent.status === 'estimated' ? 'degraded' : 'unavailable',
+      provider: asset === 'TSLA' ? 'Tesla Investor Relations' : 'Strategy Investor Relations',
+      asOf: officialCurrent ? earningsEvent.retrievedAt : null,
+      failedFields: officialCurrent ? [] : ['nextEarningsAt', 'earningsEvent'],
+      detail: `${officialCurrent ? earningsEvent.detail : `Official earnings: ${officialFailure}`}. ${referenceDetail}.` },
   ] }
 }
 
 export function createDefaultMarketContextProviderRegistry(deps: MarketContextProviderDeps): MarketContextProviderRegistry {
   const fetcher = deps.fetcher ?? fetch
   const read = createContextReader()
+  const officialEarnings = deps.officialEarningsReader ?? createOfficialEarningsReader({ fetcher })
   const secEdgarContext = createSecEdgarContext({ fetcher, contactEmail: deps.secContactEmail })
   return new MarketContextProviderRegistry([
     {
@@ -227,7 +268,7 @@ export function createDefaultMarketContextProviderRegistry(deps: MarketContextPr
       manifest: { id: 'openalice-equity-v1', label: 'Equity reference', assets: ['TSLA', 'MSTR'], description: 'Configured OpenAlice fundamentals, estimates, calendar and news providers.' },
       load: ({ asset, at }) => {
         if (asset !== 'TSLA' && asset !== 'MSTR') throw new Error(`Unsupported equity context asset: ${asset}`)
-        return equityContext(deps, asset, at, read)
+        return equityContext(deps, asset, at, read, officialEarnings)
       },
     },
     {

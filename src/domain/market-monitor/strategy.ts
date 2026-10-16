@@ -111,7 +111,15 @@ export const evidenceChainV1Strategy: MarketMonitorStrategy = {
     return analyzeEvidence({ ...input, intradayBars: selection.bars }, selection.pulse)
   },
   fingerprint(input) {
-    return createHash('sha256').update(JSON.stringify({ strategyVersion: 3, evidence: semanticFingerprint(input) })).digest('hex')
+    const event = input.context.earningsEvent
+    // No added key on old archives: their exact v3 identity stays reproducible.
+    // A genuine new verification (cached reads preserve this time) is evidence;
+    // polling text and error detail are not a new analysis observation.
+    const earnings = event ? { asset: event.asset, status: event.status, date: event.date, timing: event.timing,
+      webcastAt: event.webcastAt, sourceUrl: event.sourceUrl, publishedAt: event.publishedAt,
+      retrievedAt: event.status === 'confirmed' ? event.retrievedAt : null,
+      contentHash: event.contentHash, verification: event.verification, referenceDate: event.referenceDate ?? null } : undefined
+    return createHash('sha256').update(JSON.stringify({ strategyVersion: 3, evidence: semanticFingerprint(input), ...(earnings ? { earnings } : {}) })).digest('hex')
   },
 }
 

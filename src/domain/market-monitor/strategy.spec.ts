@@ -85,4 +85,20 @@ describe('versioned equity input policy', () => {
     expect(current.trend.short.signals.filter(signal => signal.id.startsWith('short-hour') || signal.id === 'short-four-hour-momentum').every(signal => signal.value === null)).toBe(true)
     expect(current.evidence.find(item => item.id === 'intraday')?.tone).toBe('neutral')
   })
+
+  it('archives changed official event semantics and genuine reverification while ignoring polling text', () => {
+    const analyzed = evidenceChainV1Strategy.analyze(fixedInput())
+    const base = { ...analyzed, asset: 'MSTR' as const, context: {} as import('./types.js').MarketContext, sourceHealth: [] }
+    const old = evidenceChainV1Strategy.fingerprint(base)
+    base.context.earningsEvent = { asset: 'MSTR', status: 'confirmed', date: '2026-10-29', timing: 'after-close', webcastAt: null,
+      sourceUrl: 'https://www.strategy.com/press/synthetic-earnings', title: 'Synthetic', publishedAt: '2026-10-08', retrievedAt: '2026-10-15T20:00:00Z',
+      contentHash: 'b'.repeat(64), verification: 'live-official', detail: 'Initial fetch' }
+    const first = evidenceChainV1Strategy.fingerprint(base); expect(first).not.toBe(old)
+    base.context.earningsEvent.detail = 'Same cached result, polled later'
+    expect(evidenceChainV1Strategy.fingerprint(base)).toBe(first)
+    base.context.earningsEvent.timing = 'before-open'
+    expect(evidenceChainV1Strategy.fingerprint(base)).not.toBe(first)
+    base.context.earningsEvent.timing = 'after-close'; base.context.earningsEvent.retrievedAt = '2026-10-16T10:00:00Z'
+    expect(evidenceChainV1Strategy.fingerprint(base)).not.toBe(first)
+  })
 })

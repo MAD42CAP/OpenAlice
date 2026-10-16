@@ -7,6 +7,20 @@ import { i18n } from '../../i18n'
 beforeEach(async () => { await i18n.changeLanguage('zh') })
 afterEach(cleanup)
 
+it('shows one concise confirmed event line while keeping source and review limitations in closed details', () => {
+  const report = demoMarketJudgment('TSLA')
+  report.context.earningsEvent = { date: '2026-10-21', timing: 'after-close', sourceUrl: 'https://ir.tesla.com/press-release/synthetic-earnings', verifiedAt: report.generatedAt, verification: 'research-reviewed' }
+  report.context.earningsAt = '2026-10-21'
+  report.horizons.medium.reasons = ['earnings-near']; report.horizons.medium.risks = ['earnings-near']
+  render(<MarketJudgmentView report={report} loading={false} error={false} refresh={vi.fn()} />)
+  expect(screen.getByText('财报 2026-10-21 · 美股盘后 · 官方已确认')).toBeTruthy()
+  expect(screen.getAllByText('该期限附近有财报事件，请留意计划公布日期。')).toHaveLength(1)
+  expect(screen.queryByRole('link', { name: '官方公告' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '查看综合依据与各方意见' }))
+  expect(screen.getByRole('link', { name: '官方公告' }).getAttribute('href')).toBe(report.context.earningsEvent.sourceUrl)
+  expect(screen.getByText(/自动刷新受限/)).toBeTruthy()
+})
+
 it('defaults to the weekly headline, switches horizons and keeps independent model opinion behind disclosure', () => {
   const report = demoMarketJudgment('BTC')
   report.horizons.medium.direction = 'unclear'; report.horizons.medium.reasons = ['structure-conflict']

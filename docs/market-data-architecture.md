@@ -341,3 +341,13 @@ real CLI AAPL bars; real GUI streamed card, history reopen, interval tab dedup,
 390px layout; real Yahoo equity/crypto/currency/commodity reads and inspected
 PNG. Connector ordering/failure tests passed; no new live Telegram delivery
 or real trading write was performed in this acceptance.
+
+
+FMP earnings-calendar interval failures propagate as a safe failure, including
+HTTP status where available, rather than a successful empty list. A partial
+window fails as incomplete because its missing interval may contain the next
+event. API-keyed URLs and provider error bodies are not included in the error.
+The market monitor uses independently verified issuer announcements for TSLA
+and MSTR confirmation; generic calendar dates remain estimates. See
+[[docs/market-evidence-monitor.md]] for the source and local reviewed-evidence
+contract.

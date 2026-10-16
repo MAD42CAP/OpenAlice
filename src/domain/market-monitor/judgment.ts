@@ -1,6 +1,7 @@
 import { assertFreshBars, closedBars } from './bar-policy.js'
 import { reviewSessionDate } from './review.js'
 import { isCurrentEquityHourlyEvidence, upcomingEquitySessionEnd } from './equity-session.js'
+import { currentOfficialEarnings } from './earnings-evidence.js'
 import type { JevReport } from './typesafe-types.js'
 import type { MarketMonitorReceipt, MarketMonitorSnapshot, TrendDirection, TrendHorizon } from './types.js'
 
@@ -25,7 +26,7 @@ export interface MarketJudgmentReport {
     decision?: 'directional' | 'conditional' | 'abstain'
   }>
   structure: { phase: string; direction: 'bullish' | 'bearish' | 'unclear'; confirmed: boolean; lower: number | null; upper: number | null; confirmation: string[]; invalidation: string[] }
-  context: { currentFields: string[]; referenceFields: string[]; newsCount: number; filingsCount: number; earningsAt: string | null }
+  context: { currentFields: string[]; referenceFields: string[]; newsCount: number; filingsCount: number; earningsAt: string | null; earningsEvent?: { date: string; timing: 'after-close' | 'before-open' | 'unknown'; sourceUrl: string; verifiedAt: string; verification: 'live-official' | 'research-reviewed' } }
   jev: { status: 'current' | 'different-basis' | 'stale' | 'missing' | 'unavailable'; issuedAt: string | null; directions: Record<TrendHorizon, 'up' | 'flat' | 'down' | 'insufficient'> | null; policy?: 'jev-base-rate-v2' | 'legacy' }
 }
 
@@ -36,14 +37,34 @@ export function buildSessionGuardedMarketJudgment(snapshot: MarketMonitorSnapsho
   report.protocol = 'evidence-summary-v3'
   report.validation = { status: 'experimental', policy: 'evidence-summary-v3' }
   if (snapshot.asset !== 'BTC') {
+    const event = currentOfficialEarnings(snapshot, at)
+    if (snapshot.context.earningsEvent) {
+      report.context.earningsAt = event?.date ?? null
+      if (event?.date && event.sourceUrl && event.verification) report.context.earningsEvent = {
+        date: event.date, timing: event.timing, sourceUrl: event.sourceUrl, verifiedAt: event.retrievedAt, verification: event.verification,
+      }
+      const today = reviewSessionDate(snapshot.asset, at.toISOString())
+      for (const h of ['short', 'medium', 'long'] as const) {
+        const view = report.horizons[h]
+        view.risks = view.risks.filter(r => r !== 'calendar-unknown' && r !== 'earnings-near')
+        const end = upcomingEquitySessionEnd(today, h === 'short' ? 5 : view.sessions)
+        if (!event || !end) view.risks.push('calendar-unknown')
+        else if (event.date! <= end) view.risks.push('earnings-near')
+        if ((view.direction === 'bullish' || view.direction === 'bearish') && !view.risks.includes('latest-scan-failed')) {
+          view.decision = view.agreement !== 'aligned' || !report.structure.confirmed
+            || view.risks.some(r => r === 'calendar-unknown' || r === 'earnings-near') ? 'conditional' : 'directional'
+        }
+      }
+    }
     const short = report.horizons.short
     const policyVerified = snapshot.analysisBasis?.version === 3 && (snapshot.analysisInput?.strategyVersion ?? 0) >= 3
     const calendar = snapshot.sourceHealth.find(source => source.id.endsWith('-calendar-news'))
     const today = reviewSessionDate(snapshot.asset, at.toISOString())
     const end = upcomingEquitySessionEnd(today)
     const earnings = report.context.earningsAt
-    const calendarVerified = calendar?.coverage?.earnings === 'available' && !calendar.failedFields?.includes('nextEarningsAt') && !calendar.retained?.fields.includes('nextEarningsAt') && earnings && end
-    const eventRisk = !calendarVerified ? 'calendar-unknown' : earnings.slice(0, 10) <= end ? 'earnings-near' : null
+    const calendarVerified = snapshot.context.earningsEvent ? Boolean(event && end)
+      : calendar?.coverage?.earnings === 'available' && !calendar.failedFields?.includes('nextEarningsAt') && !calendar.retained?.fields.includes('nextEarningsAt') && earnings && end
+    const eventRisk = !calendarVerified || !earnings || !end ? 'calendar-unknown' : earnings.slice(0, 10) <= end ? 'earnings-near' : null
     const risk = !policyVerified ? 'hourly-policy-unverified' : !isCurrentEquityHourlyEvidence(report.basis.hourlyAt, at) ? 'hourly-missing' : eventRisk
     if (risk) {
       short.direction = 'unclear'

@@ -34,6 +34,8 @@ import { createNewsRoutes } from './routes/news.js'
 import { createMarketRoutes } from './routes/market.js'
 import { createMarketMonitorRoutes } from './routes/market-monitor.js'
 import { createMarketMonitorService } from '../domain/market-monitor/service.js'
+import { createOfficialEarningsReader } from '../domain/market-monitor/official-earnings.js'
+import { createReviewedEarningsStore } from '../domain/market-monitor/reviewed-earnings-store.js'
 import { createMarketMonitorStore } from '../domain/market-monitor/store.js'
 import { createThesisService } from '../domain/market-monitor/thesis-service.js'
 import { createMarketThesisRoutes } from './routes/market-thesis.js'
@@ -306,6 +308,7 @@ export class WebPlugin implements Plugin {
       barService: ctx.barService,
       equityClient: ctx.equityClient,
       reference: ctx.reference,
+      officialEarningsReader: createOfficialEarningsReader({ reviewed: createReviewedEarningsStore().read }),
       ...(ctx.newsProvider ? { newsProvider: ctx.newsProvider } : {}),
     })
     const thesis = createThesisService({

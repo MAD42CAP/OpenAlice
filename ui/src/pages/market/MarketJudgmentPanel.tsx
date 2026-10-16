@@ -21,6 +21,7 @@ export function MarketJudgmentView({ report, loading, error, refresh }: { report
   const [horizon, setHorizon] = useState<'short' | 'medium' | 'long'>('medium')
   const [detailsOpen, setDetailsOpen] = useState(false)
   const current = report?.horizons[horizon]
+  const additionalRisks = current?.risks.filter(r => r !== current.reasons[0]) ?? []
   const condition = (ids: string[]) => ids.slice(0, 2).map(id => monitorWyckoffCondition(t, id)).join(' ')
   const direction = error ? 'insufficient' : current?.decision === 'abstain' ? 'unclear' : current?.direction
   const directionLabel = (item: MarketJudgmentReport['horizons']['short']) => error ? t('judgment.insufficient') : item.decision === 'abstain' ? t('forward.judgmentAbstain') : item.decision === 'conditional' && (item.direction === 'bullish' || item.direction === 'bearish') ? t(item.direction === 'bullish' ? 'forward.conditionalBullish' : 'forward.conditionalBearish') : t(`judgment.${item.direction}`)
@@ -42,7 +43,8 @@ export function MarketJudgmentView({ report, loading, error, refresh }: { report
           <span id={`${horizonDescription}-${h}`} className="font-semibold">{directionLabel(report.horizons[h])}</span>
         </Button>)}
       </div>
-      {current.risks.length > 0 && <p className="mt-2 text-xs leading-5 text-warning">{current.risks.slice(0, 2).map(r => t(`judgment.reason.${r}`)).join(' ')}</p>}
+      {additionalRisks.length > 0 && <p className="mt-2 text-xs leading-5 text-warning">{additionalRisks.slice(0, 2).map(r => t(`judgment.reason.${r}`)).join(' ')}</p>}
+      {!error && report.context.earningsEvent && <p className="mt-2 text-xs leading-5 text-muted-foreground">{t('judgment.verifiedEarnings', { date: report.context.earningsEvent.date, timing: t(`judgment.earningsTiming.${report.context.earningsEvent.timing}`) })}</p>}
       <p className="mt-2 text-xs text-muted-foreground">{t(report.validation ? 'forward.experimentalInvestment' : 'judgment.interpretation')}</p>
       <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen} className="mt-2 border-t border-border pt-1">
         <CollapsibleTrigger className="cursor-pointer py-1 text-xs font-medium">{t('judgment.explain')}</CollapsibleTrigger>
@@ -59,7 +61,8 @@ export function MarketJudgmentView({ report, loading, error, refresh }: { report
           <div><dt className="font-medium">{t('judgment.wyckoff')}</dt><dd className="mt-1 text-muted-foreground">{monitorWyckoffPhaseLabel(t, report.structure.phase as WyckoffPhaseCandidate)} · {t(report.structure.confirmed ? 'judgment.eventConfirmed' : 'judgment.eventPending')}</dd></div>
           <div><dt className="font-medium">Jev</dt><dd className="mt-1 text-muted-foreground">{report.jev.directions ? `${t(`typesafe.${report.jev.directions[horizon]}`)} · ` : ''}{t(`judgment.jev.${report.jev.status}`)} {t('judgment.jevRole')}</dd></div>
           <div><dt className="font-medium">{t('judgment.context')}</dt><dd className="mt-1 text-muted-foreground">{t('judgment.contextCount', { current: report.context.currentFields.length, retained: report.context.referenceFields.length, news: report.context.newsCount, filings: report.context.filingsCount })} {report.context.earningsAt && t('judgment.earnings', { date: report.context.earningsAt.slice(0, 10) })} {t('judgment.contextRole')}</dd></div>
-          {current.risks.length > 2 && <div><dt className="font-medium">{t('judgment.limitations')}</dt><dd className="mt-1 text-muted-foreground">{current.risks.slice(2).map(r => t(`judgment.reason.${r}`)).join(' ')}</dd></div>}
+          {!error && report.context.earningsEvent && <div><dt className="font-medium">{t('judgment.earningsSource')}</dt><dd className="mt-1 text-muted-foreground"><a className="underline underline-offset-2" href={report.context.earningsEvent.sourceUrl} target="_blank" rel="noreferrer">{t('judgment.officialAnnouncement')}</a> · {t('judgment.earningsVerifiedAt', { time: formatMonitorDate(report.context.earningsEvent.verifiedAt) })} {report.context.earningsEvent.verification === 'research-reviewed' && t('judgment.earningsReviewed')}</dd></div>}
+          {additionalRisks.length > 2 && <div><dt className="font-medium">{t('judgment.limitations')}</dt><dd className="mt-1 text-muted-foreground">{additionalRisks.slice(2).map(r => t(`judgment.reason.${r}`)).join(' ')}</dd></div>}
         </dl><p className="mt-4 text-xs leading-5 text-muted-foreground">{t('judgment.method')}</p><p className="mt-1 text-xs text-muted-foreground">{t('judgment.calculated', { time: formatMonitorDate(report.generatedAt) })}</p></>}</CollapsibleContent>
       </Collapsible>
     </>}

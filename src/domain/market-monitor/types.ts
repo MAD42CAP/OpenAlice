@@ -218,7 +218,27 @@ export interface MarketMonitorMetrics {
   intraday: IntradayPulse
 }
 
+/** A current official announcement is distinct from a provider estimate. */
+export interface MarketEarningsEvent {
+  asset: 'TSLA' | 'MSTR'
+  status: 'confirmed' | 'estimated' | 'unannounced' | 'unavailable' | 'conflict'
+  date: string | null
+  timing: 'after-close' | 'before-open' | 'unknown'
+  webcastAt: string | null
+  sourceUrl: string | null
+  title: string | null
+  publishedAt: string | null
+  retrievedAt: string
+  contentHash: string | null
+  verification: 'live-official' | 'research-reviewed' | null
+  detail: string
+  referenceDate?: string | null
+  referenceSource?: string | null
+}
+
 export interface MarketContext {
+  /** Absent in legacy archives; never synthesize provenance onto old dates. */
+  earningsEvent?: MarketEarningsEvent
   fundingRate?: number | null
   openInterest?: number | null
   annualizedBasisPercent?: number | null

@@ -1481,3 +1481,69 @@ owner edits are excluded from the staged tree. Delivery uses only the owned
 repository feature branch, with a checked expected-head lease. Existing
 schedulers keep collecting subsequent completed market windows; this is a
 prospective experiment, with no automatic weight promotion or regrading.
+
+## Verified equity earnings follow-up (2026-10-15)
+
+Owner request: verify TSLA/MSTR earnings, repair missing event input and repeat
+real readonly acceptance. Preserve all historical forecasts and three unrelated
+owner edits. Continue only on the owned feature branch.
+
+UI choice: one short verified earnings date/timing line in the existing combined
+assessment; source link and verification time remain inside its existing closed
+details. No new panel, settings flow or navigation. The line wraps on narrow
+screens, source is a standard keyboard-accessible link, and the shared disclosure
+continues to own interaction. Unknown/expired dates remain explicitly unknown;
+verified near-term earnings can still require abstention.
+
+- [x] Add strict keyless official announcement discovery/parsing and bounded
+  refresh; separate confirmed dates from generic calendar estimates.
+- [x] Preserve provenance from an independently reviewed official page when
+  automated access is restricted, using an append-only local public-event store.
+- [x] Keep source health, caches, current judgment and native evidence independent
+  of unrelated news/SEC failures; preserve exact legacy replay.
+- [x] Verify dates, real scans and native research, types, targeted/full tests,
+  browser/demo and immutable-record integrity; prepare owned-branch delivery.
+
+Initial investigation confirms official TSLA 2026-10-21 after-close and MSTR
+2026-10-29 after-close. Web and browser can read both official announcements.
+Actual Node fetch reaches Strategy press listing/article, while Tesla IR returns
+403. Never turn HTTP rejection into a claim that no event was announced.
+
+Real acceptance: TSLA source is a current independently reviewed official
+announcement (original verification 2026-10-16T05:49:46.929Z), while direct
+Tesla IR requests still receive HTTP 403. The reviewed evidence has a strict
+24-hour lifetime, never renewed on a failed refresh. MSTR is read directly
+from its official directory and announcement. No report dates are hardcoded
+into production code or silently inferred from a webcast time.
+
+Both real stock scans complete successfully. TSLA now reports a verified
+2026-10-21 after-close event and short-term `earnings-near` abstention, rather
+than unknown calendar risk. MSTR reports 2026-10-29 after close, removes only
+the unknown-calendar restriction and retains a conditional bullish price bias.
+Both new archives replay as verified. Both native equity-v2 publications
+complete, include the correct linked earnings observation, match the newly
+scanned snapshot and review the current three-contributor research context.
+Their qualitative short-term outlooks may still remain uncertain for other
+evidence reasons. Original daily Jev v4 publications remain immutable and
+valid; fixing an input never rewrites a prior prediction.
+
+The actual TSLA/MSTR browser views and demo contracts pass the date-line/source
+disclosure interaction. A 390px demo viewport has no horizontal overflow; the
+viewport is restored and the temporary demo tab/server are removed. The main
+explanation does not repeat the same event-risk sentence in its warning list.
+The production platform remains in detached readonly mode at the existing
+15-minute cadence with all three assets enabled and no current scan error.
+
+Final integrity review preserves 3,743 existing immutable public market/research
+records and all three unrelated owner-file byte fingerprints. Related staged
+source excludes those owner edits. A full regression is rerun on frozen source
+after the final UI risk-deduplication adjustment; final results follow below.
+
+Final frozen-source regression: 886 files, 7,951 passing tests, four existing
+skipped, zero failures (387.42 seconds). All 26 changed production/spec source
+fingerprints match the pre-run freeze. Root, UI and opentypebb typechecks exit
+0. The final UI owner closure passes 54 tests; the final panel-specific check
+passes all six. Reader 41 and reviewed-store 34 targeted cases also pass.
+No local event-state files or raw credentials are included in Git; only
+implementation, synthetic fixtures/tests and subsystem documentation ship.
+Owned origin and local base both equal b2b4eacf before the checked-head update.

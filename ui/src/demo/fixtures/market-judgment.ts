@@ -25,7 +25,12 @@ export function demoMarketJudgment(asset: MonitorAsset, version: 'v1' | 'v2' | '
     for (const horizon of Object.values(report.horizons)) horizon.decision = horizon.direction === 'bullish' || horizon.direction === 'bearish' ? 'conditional' : 'abstain'
   }
   if (version === 'v3' && asset !== 'BTC') {
-    report.horizons.short = { ...report.horizons.short, direction: 'unclear', decision: 'abstain', reasons: ['calendar-unknown'], risks: ['calendar-unknown'] }
+    // Synthetic event dates relative to the demo clock, not a live issuer calendar.
+    const date = new Date(Date.parse(snapshot.capturedAt) + (asset === 'TSLA' ? 4 : 21) * 86_400_000).toISOString().slice(0, 10)
+    report.context.earningsAt = date
+    report.context.earningsEvent = { date, timing: 'after-close', verifiedAt: snapshot.capturedAt, verification: asset === 'TSLA' ? 'research-reviewed' : 'live-official',
+      sourceUrl: asset === 'TSLA' ? 'https://ir.tesla.com/press-release/synthetic-demo-earnings' : 'https://www.strategy.com/press/synthetic-demo-earnings' }
+    report.horizons.short = { ...report.horizons.short, direction: 'unclear', decision: 'abstain', reasons: [asset === 'TSLA' ? 'earnings-near' : 'rules-mixed'], risks: asset === 'TSLA' ? ['earnings-near'] : [] }
   }
   return report
 }

@@ -19,6 +19,21 @@ function stock(asset: MarketMonitorAsset = 'TSLA'): MarketMonitorSnapshot {
 }
 
 describe('equity market intelligence projection', () => {
+  it('projects a separately verified announcement even when news fails, retaining true source times', () => {
+    const s = stock(); s.context.nextEarningsAt = '2026-10-21'
+    s.context.earningsEvent = { asset: 'TSLA', status: 'confirmed', date: '2026-10-21', timing: 'after-close', webcastAt: '2026-10-21T21:30:00Z',
+      sourceUrl: 'https://ir.tesla.com/press-release/synthetic-earnings', title: 'Synthetic announcement', publishedAt: '2026-09-18',
+      retrievedAt: '2026-09-20T11:30:00Z', contentHash: 'a'.repeat(64), verification: 'research-reviewed', detail: 'Synthetic reviewed source' }
+    s.sourceHealth.find(source => source.id.endsWith('-calendar-news'))!.status = 'unavailable'
+    s.sourceHealth.push({ id: 'tsla-earnings', label: 'Earnings', provider: 'Tesla IR', status: 'ok', asOf: s.context.earningsEvent.retrievedAt,
+      coverage: { earnings: 'available', news: 'not-configured' }, detail: 'Synthetic' })
+    const ref = buildMarketIntelligence(s, new Date(s.capturedAt)).evidence.find(e => e.metric === 'equity.next-earnings')!
+    expect(ref).toMatchObject({ value: '2026-10-21', quality: 'available', sourceUrl: s.context.earningsEvent.sourceUrl,
+      dataAsOf: '2026-09-20T11:30:00Z', retrievedAt: '2026-09-20T11:30:00Z', publishedAt: '2026-09-18' })
+    expect(ref.excerpt).toContain('not the earnings release time')
+    s.context.earningsEvent.status = 'estimated'
+    expect(buildMarketIntelligence(s, new Date(s.capturedAt)).evidence.find(e => e.metric === 'equity.next-earnings')?.value).toBeNull()
+  })
   it.each(['TSLA', 'MSTR'] as const)('projects only %s data and keeps weekend closed bars available', asset => {
     const market = buildMarketIntelligence(stock(asset), new Date('2026-09-20T12:05:00Z'))
     expect(market.asset).toBe(asset)

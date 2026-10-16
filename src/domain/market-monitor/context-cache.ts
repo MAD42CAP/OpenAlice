@@ -3,24 +3,30 @@ import type { MarketContext, SourceHealth } from './types.js'
 /** Latest successful source observations, independent of analysis de-duplication. */
 export type MarketContextCache = Array<{ id: string; provider: string; asOf: string; context: MarketContext }>
 
-function fields(id: string): Array<keyof MarketContext> {
+function fields(id: string, independentEarnings = false): Array<keyof MarketContext> {
   if (id === 'btc-derivatives') return ['fundingRate', 'openInterest', 'annualizedBasisPercent', 'optionOpenInterest', 'putCallOpenInterestRatio']
   if (id.endsWith('-reference')) return ['marketCap', 'trailingPe', 'forwardPe', 'analystTargetMean', 'shortPercentFloat']
   if (id.endsWith('-sec-filings')) return ['recentFilings']
-  if (id.endsWith('-calendar-news')) return ['nextEarningsAt', 'recentNews']
+  if (id.endsWith('-earnings')) return ['nextEarningsAt', 'earningsEvent']
+  if (id.endsWith('-calendar-news')) return independentEarnings ? ['recentNews'] : ['nextEarningsAt', 'recentNews']
   return []
 }
 
 export function retainContext(current: MarketContext, health: SourceHealth[], previous: MarketContextCache, at: Date) {
   const context = { ...current }
   const cache = new Map(previous.map(row => [row.id, row]))
+  const independentEarnings = health.some(source => source.id.endsWith('-earnings'))
   const sources = health.map(source => {
-    const keys = fields(source.id)
-    if (source.status === 'ok' && source.asOf && Number.isFinite(Date.parse(source.asOf))) {
+    const keys = fields(source.id, independentEarnings)
+    const replacedOfficialEvent = source.id.endsWith('-earnings') && ['unannounced', 'conflict'].includes(current.earningsEvent?.status ?? '') && !source.failedFields?.length
+    if ((source.status === 'ok' || replacedOfficialEvent) && source.asOf && Number.isFinite(Date.parse(source.asOf))) {
       cache.set(source.id, { id: source.id, provider: source.provider, asOf: source.asOf,
         context: Object.fromEntries(keys.map(key => [key, current[key]])) })
       return source
     }
+    // A live reference estimate is a separate observation. Do not replace it
+    // with an older official date when this refresh could not verify the issuer.
+    if (source.id.endsWith('-earnings') && current.earningsEvent?.status === 'estimated') return source
     const prior = cache.get(source.id)
     const age = at.getTime() - Date.parse(prior?.asOf ?? '')
     // A normal 15-minute cadence also includes request time and poll delay.
@@ -29,7 +35,8 @@ export function retainContext(current: MarketContext, health: SourceHealth[], pr
     if (!prior || prior.provider !== source.provider || !Number.isFinite(age) || age < 0 || age > ttl) return source
     const retained: Array<keyof MarketContext> = []
     for (const key of source.failedFields ?? keys) {
-      if (keys.includes(key) && context[key] == null && prior.context[key] != null) {
+      const unavailableEvent = key === 'earningsEvent' && context.earningsEvent?.status === 'unavailable'
+      if (keys.includes(key) && (context[key] == null || unavailableEvent) && prior.context[key] != null) {
         Object.assign(context, { [key]: prior.context[key] })
         retained.push(key)
       }

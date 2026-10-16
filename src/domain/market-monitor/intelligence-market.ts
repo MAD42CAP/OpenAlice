@@ -2,6 +2,7 @@ import Decimal from 'decimal.js'
 import { createHash } from 'node:crypto'
 import { assertFreshBars, closedBars } from './bar-policy.js'
 import { isCurrentEquityHourlyEvidence, selectAnalysisHourlyBars } from './equity-session.js'
+import { currentOfficialEarnings } from './earnings-evidence.js'
 import type { MarketMonitorSnapshot, TrendHorizon } from './types.js'
 import type { EvidenceReference, IntelligenceClaim } from './intelligence-types.js'
 import type { MarketIntelligence } from './investment-types.js'
@@ -78,9 +79,18 @@ export function buildMarketIntelligence(snapshot: MarketMonitorSnapshot, at: Dat
       add(metric, fieldValid(field, reference) && finite(value) ? value : null, unit, reference?.asOf ?? null, reference?.id ?? 'equity-reference')
     }
     const earnings = snapshot.context.nextEarningsAt
+    const officialEarnings = currentOfficialEarnings(snapshot, at)
+    const earningsSource = snapshot.context.earningsEvent ? snapshot.sourceHealth.find(s => s.id === `${asset.toLowerCase()}-earnings`) : calendar
     const earningsSession = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(at)
-    const earningsValid = fieldValid('nextEarningsAt', calendar) && calendar?.coverage?.earnings === 'available' && typeof earnings === 'string' && Number.isFinite(stamp(earnings)) && earnings.slice(0, 10) >= earningsSession
-    add('equity.next-earnings', earningsValid ? earnings : null, 'session-date', calendar?.asOf ?? null, calendar?.id ?? 'equity-calendar')
+    const earningsValid = snapshot.context.earningsEvent ? Boolean(officialEarnings)
+      : fieldValid('nextEarningsAt', calendar) && calendar?.coverage?.earnings === 'available' && typeof earnings === 'string' && Number.isFinite(stamp(earnings)) && earnings.slice(0, 10) >= earningsSession
+    const earningsId = add('equity.next-earnings', earningsValid ? earnings! : null, 'session-date', earningsSource?.asOf ?? null, earningsSource?.id ?? 'equity-calendar')
+    if (officialEarnings) {
+      const e = evidence.find(row => row.id === earningsId)!
+      e.sourceUrl = officialEarnings.sourceUrl; e.publishedAt = officialEarnings.publishedAt
+      e.retrievedAt = officialEarnings.retrievedAt
+      e.excerpt = `Officially announced earnings session; ${officialEarnings.timing}. ${officialEarnings.verification === 'research-reviewed' ? 'Official page independently reviewed; automated refresh may be restricted.' : 'Read directly from the official announcement.'} A webcast time is not the earnings release time.`
+    }
     if (!earningsValid) missingData.push('财报日历未验证；不得假设未来没有财报事件')
     if (fieldValid('recentNews', calendar)) for (const [i, item] of (snapshot.context.recentNews ?? []).slice(0, 12).entries()) {
       if (!item.title?.trim() || !Number.isFinite(stamp(item.time))) continue

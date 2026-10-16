@@ -1,4 +1,8 @@
 export const judgmentEn = {
+  verifiedEarnings: 'Earnings {{date}} · {{timing}} · officially confirmed',
+  earningsTiming: { 'after-close': 'after the US market close', 'before-open': 'before the US market open', unknown: 'release time not specified' },
+  earningsSource: 'Earnings source', officialAnnouncement: 'Official announcement', earningsVerifiedAt: 'verified {{time}}',
+  earningsReviewed: 'Official page independently reviewed; automated refresh is restricted.',
   title: 'Combined market assessment', horizon: 'Assessment horizon', days_one: '{{count}}-day view', sessions_one: '{{count}}-session view', days: '{{count}}-day view', sessions: '{{count}}-session view',
   daysCompact: '{{count}}d', sessionsCompact: '{{count}} sessions',
   interpretation: 'Closed-bar evidence; conditional direction, not a verified win probability.',
@@ -37,6 +41,10 @@ export const judgmentEn = {
   },
 }
 export const judgmentZh: typeof judgmentEn = {
+  verifiedEarnings: '财报 {{date}} · {{timing}} · 官方已确认',
+  earningsTiming: { 'after-close': '美股盘后', 'before-open': '美股盘前', unknown: '公布时段未说明' },
+  earningsSource: '财报来源', officialAnnouncement: '官方公告', earningsVerifiedAt: '核实于 {{time}}',
+  earningsReviewed: '官方页面已经独立核实；自动刷新受限。',
   title: '统一市场判断', horizon: '判断期限', days_one: '{{count}} 天视角', sessions_one: '{{count}} 个交易日视角', days: '{{count}} 天视角', sessions: '{{count}} 个交易日视角',
   daysCompact: '{{count}} 天', sessionsCompact: '{{count}} 交易日',
   interpretation: '依据已收盘行情；方向有成立条件，并非已验证的收益预测。',

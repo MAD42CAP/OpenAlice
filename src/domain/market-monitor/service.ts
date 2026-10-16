@@ -17,6 +17,7 @@ import { HEALTH_RECEIPT_LIMIT, summarizeMonitorHealth } from './health.js'
 import {
   createDefaultMarketContextProviderRegistry,
   type MarketContextProviderRegistry,
+  type MarketContextProviderDeps,
   type MarketMonitorFetch,
 } from './context.js'
 import { createMarketMonitorStore, type MarketMonitorStore } from './store.js'
@@ -55,6 +56,7 @@ export interface MarketMonitorServiceDeps {
   newsProvider?: INewsProvider
   store?: MarketMonitorStore
   fetcher?: MarketMonitorFetch
+  officialEarningsReader?: MarketContextProviderDeps['officialEarningsReader']
   secContactEmail?: () => Promise<string | null>
   strategyRegistry?: MarketMonitorStrategyRegistry
   contextProviderRegistry?: MarketContextProviderRegistry
@@ -187,6 +189,7 @@ export function createMarketMonitorService(deps: MarketMonitorServiceDeps): Mark
     reference: deps.reference,
     ...(deps.newsProvider ? { newsProvider: deps.newsProvider } : {}),
     ...(deps.fetcher ? { fetcher: deps.fetcher } : {}),
+    ...(deps.officialEarningsReader ? { officialEarningsReader: deps.officialEarningsReader } : {}),
     ...(deps.secContactEmail ? { secContactEmail: deps.secContactEmail } : {}),
   })
   const loadSettings = async (): Promise<MarketMonitorSettings> => {

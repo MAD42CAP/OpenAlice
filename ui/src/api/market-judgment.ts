@@ -24,7 +24,7 @@ export interface MarketJudgmentReport {
     risks: JudgmentReason[]
   }>
   structure: { phase: string; direction: 'bullish' | 'bearish' | 'unclear'; confirmed: boolean; lower: number | null; upper: number | null; confirmation: string[]; invalidation: string[] }
-  context: { currentFields: string[]; referenceFields: string[]; newsCount: number; filingsCount: number; earningsAt: string | null }
+  context: { currentFields: string[]; referenceFields: string[]; newsCount: number; filingsCount: number; earningsAt: string | null; earningsEvent?: { date: string; timing: 'after-close' | 'before-open' | 'unknown'; sourceUrl: string; verifiedAt: string; verification: 'live-official' | 'research-reviewed' } }
   jev: { policy?: 'jev-base-rate-v2' | 'legacy'; status: 'current' | 'different-basis' | 'stale' | 'missing' | 'unavailable'; issuedAt: string | null; directions: Record<TrendHorizon, 'up' | 'flat' | 'down' | 'insufficient'> | null }
 }
 

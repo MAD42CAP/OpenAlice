@@ -1466,3 +1466,53 @@ readable. News titles and SEC submission metadata do not provide independent
 fundamental-direction confirmation. The dashboard keeps the conclusion and
 one key condition visible; source, pairwise and calibration detail stays in
 existing initially closed disclosures.
+
+## Verified issuer earnings announcements
+
+New equity context records use `earningsEvent` with explicit confirmation and
+provenance. `official-earnings.ts` discovers Tesla IR quarterly releases and
+Strategy's press directory, then validates the issuer's actual announcement.
+It separates publication time, fiscal period end, earnings session and webcast
+time. The announcement establishes after/before close, not a guessed precise
+release timestamp. No dates are hardcoded into the reader or UI. Requests have
+a six-second deadline and two-MB body limit, allowlisted official HTTPS paths,
+no redirected credential requests, concurrent refresh deduplication and a
+five-hour cache whose original retrieval time does not change on cache hits.
+Conflicting/expired/malformed documents never confirm a date.
+
+When automated access is rejected, an operator/research task may record an
+actually reviewed official announcement through `reviewed-earnings-store.ts`.
+This is local public-event state under `market-monitor/official-earnings`,
+not an API credential or a date bundled into code. Records are append-only,
+strictly validated and hashed; the original source URL, publication date,
+verification time and content hash remain visible. Reviewed confirmation lasts
+no more than 24 hours and never after its event session. An HTTP failure does
+not renew that time. Latest damaged/conflicting records fail closed rather
+than reviving an older convenient record. There is no new HTTP write endpoint.
+If direct official access remains restricted after expiry, event risk returns
+to unknown until new trustworthy verification is available.
+
+A separate `*-earnings` source owns confirmation, independent of `*-calendar-news`
+and SEC. General provider dates are estimates; `errors.earnings`, stale data
+and failed requests cannot supply confirmation. Display retention on failures
+preserves source age and cannot release the short-term guard. The new v3
+judgment and native projection use the independent event source. Missing
+legacy event metadata follows the original history path; old forecasts are
+not rewritten or regraded. V3 fingerprints include new event semantics and
+genuine verification identity while preserving the exact old identity when
+`earningsEvent` is absent.
+
+The short-term guard uses the current plus next five scheduled trading sessions.
+A verified nearby event still withholds direction; verification of an event
+outside that window removes only the unknown-calendar restriction. It never
+creates a bullish/bearish vote. The dashboard adds one short date/timing line;
+official source and verification limitations remain in the existing closed
+details, and a risk already used as the main explanation is not repeated.
+
+2026-10-15 acceptance: TSLA officially schedules 2026-10-21 after close, per
+[Tesla's announcement](https://ir.tesla.com/press-release/tesla-third-quarter-2026-production-deliveries-and-deployments);
+MSTR schedules 2026-10-29 after close, per
+[Strategy's announcement](https://www.strategy.com/press/strategy-announces-earnings-release-date-and-live-video-webinar-for-third-quarter-2026-financial-results_10-08-2026).
+Actual Node reads reach Strategy; Tesla IR returns 403, so its current record
+uses independently reviewed official evidence with the original fixed time.
+Webcast times are recorded separately as 17:30/17:00 America/New_York.
