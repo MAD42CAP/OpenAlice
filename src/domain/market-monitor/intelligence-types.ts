@@ -1,7 +1,9 @@
+import type { MarketMonitorAsset } from './types.js'
+
 /** Shared attribution across market observations, published research and AI inference. */
 export interface EvidenceReference {
   id: string
-  asset: 'BTC'
+  asset: MarketMonitorAsset
   sourceName: string
   sourceUrl: string | null
   metric: string
@@ -32,3 +34,4 @@ export interface IntelligenceProvenance {
 }
 
 export const INTELLIGENCE_ISSUE_ID = 'mad42lab-investment-intelligence'
+export const intelligenceIssueId = (asset: MarketMonitorAsset) => asset === 'BTC' ? INTELLIGENCE_ISSUE_ID : `mad42lab-${asset.toLowerCase()}-investment-intelligence`

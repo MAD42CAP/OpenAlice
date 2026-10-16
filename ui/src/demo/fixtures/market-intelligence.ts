@@ -1,9 +1,11 @@
+import type { MonitorAsset } from '../../api/market-monitor'
 import type { MarketIntelligenceReport } from '../../api/market-intelligence'
 import { INVESTMENT_ANALYSIS_VERSION, RESEARCH_ANALYSIS_VERSION, RESEARCH_SECTION_KEYS, type EvidenceReference, type IntelligenceClaim, type InvestmentSnapshot, type ResearchSnapshot } from '../../api/market-intelligence-types'
 import { demoResearchLoop } from './research-loop'
 
 /** Entirely invented, visibly illustrative research. No Glassnode article text is included. */
-export function demoMarketIntelligence(): MarketIntelligenceReport {
+export function demoMarketIntelligence(asset: MonitorAsset = 'BTC'): MarketIntelligenceReport {
+  if (asset !== 'BTC') return demoEquityIntelligence(asset)
   const now = '2026-10-14T18:10:00Z'
   const retrievedAt = '2026-10-14T18:00:00Z'
   const evidence: EvidenceReference[] = [
@@ -38,5 +40,30 @@ export function demoMarketIntelligence(): MarketIntelligenceReport {
     research: { reports: [research, previous].map(row => ({ schemaVersion: 1, id: row.reportId, asset: 'BTC', sourceName: 'Glassnode', url: row.reportUrl, title: row.reportTitle, publishedAt: row.publicationTime, retrievedAt: row.analysisTime, reportPeriod: row.reportPeriod, contentHash: row.reportHash, paragraphCount: 2, preview: 'Illustrative original fixture, no third-party article text.', origin: 'manual' })), snapshots: [research, previous], latest: research, status: { state: 'current', lastCheckedAt: now, nextCheckAt: '2026-10-15T18:10:00Z', lastError: null, latestReportId: research.reportId, pendingReportIds: [] } },
     investment: { schemaVersion: 1, generatedAt: now, asOf: now, latest: investment, history: [investment, older], theses: [{ ...{ key: 'demo-cost', title: '演示中期成本假设', claim: claim('演示成本附近的承接仍待观察。'), horizon: 'medium' as const, observationDays: 28, supportConditions: [], invalidationConditions: [objective], resolutionConditions: [] }, id: 'demo-thesis-1', revision: 1, createdAt: now, expiresAt: '2026-11-11T18:10:00Z', investmentSnapshotId: investment.id, evidence, recordHash: 'illustrative-thesis', status: 'ACTIVE', latestEvaluation: null }], evaluations: [], quality: { total: 1, active: 1, resolved: 0, invalidated: 0, expired: 0, unresolved: 1, conditionDefined: 1, stateChanges: 0, meanDurationDays: null, directionalAccuracy: null, note: 'Illustrative checks are not directional forecast accuracy.' } },
     job: { state: 'success', message: 'Illustrative native task completed; no real AI call.', updatedAt: now, runId: 'demo-run' },
+  }
+}
+
+/** Stock fixtures have their own identities and no fabricated on-chain report. */
+function demoEquityIntelligence(asset: 'TSLA' | 'MSTR'): MarketIntelligenceReport {
+  const now = '2026-10-15T18:10:00Z', closed = '2026-10-14T20:00:00Z'
+  const prefix = `demo-${asset.toLowerCase()}`, price = asset === 'TSLA' ? 485 : 315
+  const feedback = demoResearchLoop('ready', asset)
+  const daily: EvidenceReference = { id: `${prefix}-close`, asset, sourceName: 'Illustrative completed equity session', sourceUrl: null, metric: 'daily-close', value: price, unit: 'USD', dataAsOf: closed, publishedAt: null, retrievedAt: now, quality: 'available', reportId: null, kind: 'observation' }
+  const claim = (text: string, ids = [daily.id]): IntelligenceClaim => ({ text, evidenceIds: ids, inference: true })
+  const summary = claim(`演示 ${asset}：保持条件性观察，公司事件及后续收盘确认仍待验证。`)
+  const draft: InvestmentSnapshot['rawDraft'] = {
+    summary, crossValidation: [{ claim: claim('演示：价格结构可用，公司事件证据仍不足。'), marketEvidenceIds: [daily.id], researchEvidenceIds: [], status: 'PARTIALLY_CONFIRMED', explanation: '演示研究仅作背景，不视为独立方向确认。' }],
+    outlooks: (['short', 'medium', 'long'] as const).map(horizon => ({ horizon, direction: 'uncertain', conclusion: claim(`演示 ${asset}：等待该周期的价格与事件证据。`), structure: claim('演示：区间仍需确认。'), supportingEvidence: [], opposingEvidence: [], risks: [claim('演示：财报时间尚未核验。', [])], confirmation: [claim('演示：等待后续收盘确认。')], invalidation: [claim('演示：突破未能维持。')], priceLevelLabels: [] })),
+    scenarios: (['bullish', 'neutral', 'bearish'] as const).map(kind => ({ kind, hypothesis: claim(`演示 ${kind} 条件情景。`), conditions: [claim('演示：关注后续已收盘交易日。')], confirmation: [claim('演示：需要价格结构确认。')], path: claim('演示：条件情景不附精确概率。'), invalidation: [claim('演示：预设结构未能维持。')], supportingEvidence: [], opposingEvidence: [], priceLevelLabels: [] })),
+    priceMap: [], theses: [], limitations: [claim('虚构示例，不能证明预测准确率。', [])],
+    feedbackReview: { reviewedIds: feedback.context.evidence.map(row => row.id), effect: 'caution', explanation: '演示：已审阅三项研究反馈，保留证据限制。' },
+  }
+  const investment: InvestmentSnapshot = { ...draft, schemaVersion: 1, id: `${prefix}-investment-2`, asset, analysisVersion: 'investment-intelligence-equity-v1', analysisTime: now, marketSnapshotId: `${prefix}-scan`, researchSnapshotId: null, inputHash: `${prefix}-input`, previousSnapshotId: null, provenance: { workspaceId: 'demo-chat', runId: `${prefix}-synthesis`, issueId: `${prefix}-intelligence`, agent: 'Illustrative' }, analysisModel: 'Illustrative model', evidence: [daily, ...feedback.context.evidence], rawDraft: draft, guardWarnings: [], changes: [], recordHash: `${prefix}-investment-hash`, researchFeedback: { protocol: feedback.protocol, contextHash: feedback.context.hash, ...draft.feedbackReview! } }
+  return {
+    asset, generatedAt: now, illustrative: true,
+    market: { schemaVersion: 1, id: `${prefix}-market`, asset, snapshotId: `${prefix}-scan`, analysisTime: now, retrievedAt: now, marketDataAsOf: closed, hourlyDataAsOf: null, price, volume: null, priceKind: 'completed-daily-close', daily: [], hourly: [], horizons: [], wyckoffHypothesis: null, bullishEvidence: [], bearishEvidence: [], evidence: [daily], dataSources: [], dataQuality: 'partial', missingData: ['Company-event timing unverified'], limitations: ['Illustrative only'] },
+    research: { reports: [], snapshots: [], latest: null, status: { state: 'never-checked', lastCheckedAt: null, nextCheckAt: null, lastError: null, latestReportId: null, pendingReportIds: [] } },
+    investment: { schemaVersion: 1, generatedAt: now, asOf: now, latest: investment, history: [investment], theses: [], evaluations: [], quality: { total: 0, active: 0, resolved: 0, invalidated: 0, expired: 0, unresolved: 0, conditionDefined: 0, stateChanges: 0, meanDurationDays: null, directionalAccuracy: null, note: 'Illustrative judgments are not measured forecast accuracy.' } },
+    job: { state: 'success', message: `Illustrative ${asset} native synthesis; no real AI call.`, updatedAt: now, runId: `${prefix}-synthesis` },
   }
 }

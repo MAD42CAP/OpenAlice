@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { MonitorAsset } from '../api/market-monitor'
 import { researchLoopApi, type ResearchLoopReport } from '../api/research-loop'
-import { RESEARCH_LOOP_PROTOCOL } from '../api/research-loop-types'
+import { researchLoopProtocol } from '../api/research-loop-types'
 
-const valid = (report: ResearchLoopReport) => report.asset === 'BTC' && report.protocol === RESEARCH_LOOP_PROTOCOL
+const valid = (report: ResearchLoopReport, asset: MonitorAsset) => report.asset === asset && report.protocol === researchLoopProtocol(asset) && (report.context.asset === undefined ? asset === 'BTC' : report.context.asset === asset) && report.context.protocol === report.protocol && report.context.evidence.every(row => row.asset === asset)
 const active = (report: ResearchLoopReport) => report.contributors.some(row => row.state === 'running')
 
 /** Merely viewing the monitor never starts a native research task. */
 export function useResearchLoop(asset: MonitorAsset, visible: boolean, revisionKey: string) {
-  const enabled = asset === 'BTC' && visible
+  const enabled = visible
   const key = `${asset}:${visible}:${revisionKey}`
   const [revision, setRevision] = useState(0)
   const [state, setState] = useState<{ key: string; report: ResearchLoopReport | null; loading: boolean; error: 'read' | 'run' | null }>({ key, report: null, loading: enabled, error: null })
@@ -27,8 +27,8 @@ export function useResearchLoop(asset: MonitorAsset, visible: boolean, revisionK
       const generation = ++readGeneration.current
       let interval = 30_000
       try {
-        const report = await researchLoopApi.read(controller.signal)
-        if (!valid(report)) throw new Error('Selection mismatch')
+        const report = await researchLoopApi.read(asset, controller.signal)
+        if (!valid(report, asset)) throw new Error('Selection mismatch')
         if (controller.signal.aborted) return
         if (generation === readGeneration.current) setState({ key, report, loading: false, error: null })
         if (active(report)) interval = 5_000
@@ -50,8 +50,8 @@ export function useResearchLoop(asset: MonitorAsset, visible: boolean, revisionK
     ++readGeneration.current
     setRunningKey(selected)
     try {
-      const report = await researchLoopApi.run(controller.signal)
-      if (!valid(report)) throw new Error('Selection mismatch')
+      const report = await researchLoopApi.run(asset, controller.signal)
+      if (!valid(report, asset)) throw new Error('Selection mismatch')
       if (!controller.signal.aborted && currentKey.current === selected) { setState({ key: selected, report, loading: false, error: null }); refresh() }
     } catch {
       if (!controller.signal.aborted && currentKey.current === selected) setState({ key: selected, report: null, loading: false, error: 'run' })

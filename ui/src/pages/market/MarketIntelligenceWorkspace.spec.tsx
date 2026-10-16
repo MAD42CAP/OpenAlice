@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import type { MonitorAsset } from '../../api/market-monitor'
 import { i18n } from '../../i18n'
 import { demoMarketIntelligence } from '../../demo/fixtures/market-intelligence'
 import { MarketIntelligenceWorkspace } from './MarketIntelligenceWorkspace'
@@ -8,7 +9,7 @@ import { formatMonitorDate } from './market-monitor-format'
 import { formatResearchDate, IntelligenceEvidence } from './MarketIntelligenceShared'
 const api = vi.hoisted(() => ({ read: vi.fn(), discover: vi.fn(), importReport: vi.fn(), run: vi.fn() }))
 vi.mock('../../api/market-intelligence', () => ({ marketIntelligenceApi: api }))
-beforeEach(async () => { await i18n.changeLanguage('en'); api.read.mockImplementation(async () => demoMarketIntelligence()); api.discover.mockResolvedValue({}); api.importReport.mockResolvedValue({}); api.run.mockResolvedValue({}) })
+beforeEach(async () => { await i18n.changeLanguage('en'); api.read.mockImplementation(async (asset: MonitorAsset) => demoMarketIntelligence(asset)); api.discover.mockResolvedValue({}); api.importReport.mockResolvedValue({}); api.run.mockResolvedValue({}) })
 afterEach(() => { cleanup(); vi.resetAllMocks() })
 function renderView() { return render(<MarketIntelligenceWorkspace asset="BTC" visible revisionKey="first"><label>My market draft<input aria-label="My market draft" defaultValue="" /></label></MarketIntelligenceWorkspace>) }
 async function select(name: string) { fireEvent.click(screen.getByRole('tab', { name })); await screen.findByRole('button', { name: 'Refresh archive' }) }
@@ -79,13 +80,37 @@ it('shows refresh failure above retained records and actual queued job status af
   expect(within(screen.getByRole('tabpanel', { name: 'AI synthesis' })).getByText(/Previously saved research remains below/)).toBeTruthy()
   const queued = demoMarketIntelligence(); queued.job.state = 'queued'; api.read.mockResolvedValue(queued)
   fireEvent.click(screen.getByRole('button', { name: 'Rebuild synthesis' }))
-  await waitFor(() => expect(api.run).toHaveBeenCalledWith(true))
+  await waitFor(() => expect(api.run).toHaveBeenCalledWith('BTC', true))
   expect(await within(screen.getByRole('tabpanel', { name: 'AI synthesis' })).findByText('AI job · Queued')).toBeTruthy()
   expect((screen.getByRole('button', { name: 'Rebuild synthesis' }) as HTMLButtonElement).disabled).toBe(true)
 })
-it('does not add research controls or make research requests for equities', async () => {
-  render(<MarketIntelligenceWorkspace asset="TSLA" visible revisionKey="stock"><p>Original equity content</p></MarketIntelligenceWorkspace>)
-  expect(screen.getByText('Original equity content')).toBeTruthy(); expect(screen.queryByRole('tab')).toBeNull(); expect(api.read).not.toHaveBeenCalled()
+it.each(['TSLA', 'MSTR'] as const)('keeps %s simple with two tabs, native synthesis, and no Glassnode import controls', async asset => {
+  render(<MarketIntelligenceWorkspace asset={asset} visible revisionKey="stock"><p>Original equity content</p></MarketIntelligenceWorkspace>)
+  expect(screen.getByText('Original equity content')).toBeTruthy()
+  expect(screen.getAllByRole('tab')).toHaveLength(2)
+  expect(screen.getByRole('tablist', { name: `${asset} research views` })).toBeTruthy()
+  expect(screen.queryByRole('tab', { name: 'On-chain research' })).toBeNull()
+  await select('AI synthesis')
+  expect(screen.getByText(`演示 ${asset}：保持条件性观察，公司事件及后续收盘确认仍待验证。`)).toBeTruthy()
+  expect(screen.queryByText(/Newer input records are available/)).toBeNull()
+  expect(screen.queryByText(/research through/)).toBeNull()
+  expect(screen.getByText('Short term · 1–5 trading sessions')).toBeTruthy()
+  expect(screen.queryByText('Short term · 1–5 days')).toBeNull()
+  expect(screen.getByText(`Market through ${formatMonitorDate('2026-10-14T20:00:00Z')}`)).toBeTruthy()
+  expect(screen.getByText('Revised synthesis under test · conditional evidence, not a verified forecast.')).toBeTruthy()
+  const run = screen.getByRole('button', { name: 'Rebuild synthesis' }) as HTMLButtonElement
+  expect(run.disabled).toBe(false); fireEvent.click(run)
+  await waitFor(() => expect(api.run).toHaveBeenCalledWith(asset, true))
+  expect(api.discover).not.toHaveBeenCalled(); expect(api.importReport).not.toHaveBeenCalled()
+})
+it('returns to the market tab and hides prior evidence immediately when the asset changes', async () => {
+  const view = render(<MarketIntelligenceWorkspace asset="BTC" visible revisionKey="first"><p>Market content</p></MarketIntelligenceWorkspace>)
+  await select('On-chain research')
+  view.rerender(<MarketIntelligenceWorkspace asset="TSLA" visible revisionKey="stock"><p>Tesla market</p></MarketIntelligenceWorkspace>)
+  expect(screen.getByRole('tab', { name: 'Market monitor' }).getAttribute('aria-selected')).toBe('true')
+  expect(screen.queryByText('演示：成本附近存在承接线索，需求是否持续仍需观察。')).toBeNull()
+  await select('AI synthesis')
+  expect(screen.getByText('演示 TSLA：保持条件性观察，公司事件及后续收盘确认仍待验证。')).toBeTruthy()
 })
 it('shows a source-linked previous report without presenting it as the latest research', async () => {
   renderView(); await select('On-chain research')

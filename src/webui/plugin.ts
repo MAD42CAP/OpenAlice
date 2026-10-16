@@ -39,6 +39,7 @@ import { createMarketThesisRoutes } from './routes/market-thesis.js'
 import { createMarketMonitorScheduler, type MarketMonitorScheduler } from '../domain/market-monitor/scheduler.js'
 import { createMarketMonitorToolFactories } from '../tool/market-monitor.js'
 import { createIntelligenceService } from '../domain/market-monitor/intelligence-service.js'
+import { createEquityIntelligenceCoordinator } from './equity-intelligence-coordinator.js'
 import { createMarketIntelligenceCoordinator } from './market-intelligence-coordinator.js'
 import { createMarketIntelligenceToolFactories } from '../tool/market-intelligence.js'
 import { createMarketIntelligenceRoutes } from './routes/market-intelligence.js'
@@ -299,7 +300,7 @@ export class WebPlugin implements Plugin {
     app.route('/api/market', createMarketRoutes(ctx))
     const marketMonitor = createMarketMonitorService({
       afterSnapshot: async snapshot => {
-        await Promise.allSettled([thesis.afterScan(snapshot), intelligence.afterScan(snapshot)])
+        await Promise.allSettled([thesis.afterScan(snapshot), intelligences[snapshot.asset].afterScan(snapshot)])
       },
       barService: ctx.barService,
       equityClient: ctx.equityClient,
@@ -311,28 +312,34 @@ export class WebPlugin implements Plugin {
       research: asset => createMarketMonitorStore().dashboardObservations(asset, 100),
     })
     app.route('/api/market-monitor/thesis', createMarketThesisRoutes(thesis))
-    let researchLoop: ResearchLoopService
-    const intelligence = createIntelligenceService({ monitor: marketMonitor, feedback: () => researchLoop.context() })
+    const researchLoops = {} as Record<'BTC' | 'TSLA' | 'MSTR', ResearchLoopService>
+    const intelligences = Object.fromEntries((['BTC', 'TSLA', 'MSTR'] as const).map(asset => [asset, createIntelligenceService({ asset, monitor: marketMonitor, feedback: () => researchLoops[asset].context() })])) as Record<'BTC' | 'TSLA' | 'MSTR', ReturnType<typeof createIntelligenceService>>
+    const intelligence = intelligences.BTC
     const typeSafe = createTypeSafeService({ monitor: marketMonitor })
     const forecastExperiment = createForecastExperiment({ baseline: typeSafe })
     const forwardValidation = createForecastValidation({ monitor: marketMonitor })
-    researchLoop = createResearchLoop({
-      source: async () => {
-        const strategy = (await marketMonitor.settings()).strategyId
-        const [snapshots, research, forward] = await Promise.all([
-          marketMonitor.snapshots('BTC', 1, strategy), intelligence.research.latest(), forwardValidation.report('BTC'),
-        ])
-        const snapshot = snapshots.at(-1)
-        if (!snapshot) throw new Error('市场资料缺失，请先扫描 BTC。')
-        return { market: buildMarketIntelligence(snapshot, new Date()), research, forward }
-      },
-      onPublished: async () => { await intelligence.run(false) },
-      synthesis: async () => {
-        const latest = (await intelligence.investment.report()).latest
-        return latest?.researchFeedback ? { contextHash: latest.researchFeedback.contextHash, snapshotId: latest.id, analysisTime: latest.analysisTime } : null
-      },
-    })
-    app.route('/api/market-monitor/research-loop', createResearchLoopRoutes(researchLoop))
+    for (const asset of ['BTC', 'TSLA', 'MSTR'] as const) {
+      const ownIntelligence = intelligences[asset]
+      researchLoops[asset] = createResearchLoop({
+        asset,
+        source: async () => {
+          const strategy = (await marketMonitor.settings()).strategyId
+          const [snapshots, research, forward] = await Promise.all([
+            marketMonitor.snapshots(asset, 1, strategy), asset === 'BTC' ? ownIntelligence.research.latest() : null, forwardValidation.report(asset),
+          ])
+          const snapshot = snapshots.at(-1)
+          if (!snapshot) throw new Error(`市场资料缺失，请先扫描 ${asset}。`)
+          return { market: buildMarketIntelligence(snapshot, new Date()), research, forward }
+        },
+        onPublished: async () => { await ownIntelligence.run(false) },
+        synthesis: async () => {
+          const latest = (await ownIntelligence.investment.report()).latest
+          return latest?.researchFeedback ? { contextHash: latest.researchFeedback.contextHash, snapshotId: latest.id, analysisTime: latest.analysisTime } : null
+        },
+      })
+    }
+    const researchLoop = researchLoops.BTC
+    app.route('/api/market-monitor/research-loop', createResearchLoopRoutes(researchLoop, { TSLA: researchLoops.TSLA, MSTR: researchLoops.MSTR }))
     app.route('/api/market-monitor/forecast-experiment', createForecastExperimentRoutes(forecastExperiment))
     app.route('/api/market-monitor/forecast-validation', createForecastValidationRoutes(forwardValidation))
     app.route('/api/market-monitor/judgment', createMarketJudgmentRoutes(marketMonitor, typeSafe, undefined, forwardValidation))
@@ -369,11 +376,15 @@ export class WebPlugin implements Plugin {
     for (const factory of createMarketMonitorToolFactories(marketMonitor)) ctx.workspaceToolCenter.register(factory)
     const intelligenceRunner = createMarketIntelligenceCoordinator(this.workspaceService)
     intelligence.setRunner(intelligenceRunner)
-    const researchLoopRunner = createMarketResearchLoopCoordinator(this.workspaceService)
-    researchLoop.setRunner(researchLoopRunner)
-    await researchLoopRunner.ensure().catch(() => { /* Each contributor exposes its own blocked status. */ })
-    for (const factory of createMarketIntelligenceToolFactories(intelligence, researchLoop)) ctx.workspaceToolCenter.register(factory)
-    app.route('/api/market-monitor/intelligence', createMarketIntelligenceRoutes(intelligence))
+    for (const asset of ['BTC', 'TSLA', 'MSTR'] as const) {
+      if (asset !== 'BTC') intelligences[asset].setRunner(createEquityIntelligenceCoordinator(this.workspaceService, asset))
+      const loopRunner = createMarketResearchLoopCoordinator(this.workspaceService, asset)
+      researchLoops[asset].setRunner(loopRunner)
+      await loopRunner.ensure().catch(() => { /* Each contributor exposes its own blocked status. */ })
+    }
+    const equityBindings = { TSLA: { service: intelligences.TSLA, loop: researchLoops.TSLA }, MSTR: { service: intelligences.MSTR, loop: researchLoops.MSTR } }
+    for (const factory of createMarketIntelligenceToolFactories(intelligence, researchLoop, equityBindings)) ctx.workspaceToolCenter.register(factory)
+    app.route('/api/market-monitor/intelligence', createMarketIntelligenceRoutes(intelligence, { TSLA: intelligences.TSLA, MSTR: intelligences.MSTR }))
     const marketNarrator = createMarketNarratorCoordinator(this.workspaceService)
     const narrationSettings = await marketMonitor.settings()
     const narrationStatus = await marketNarrator.reconcile(narrationSettings.codexNarrationEnabled)
@@ -482,7 +493,7 @@ export class WebPlugin implements Plugin {
 
     if (this.config.listen === false) {
       this.marketMonitorScheduler.start()
-      intelligence.startup()
+      for (const service of Object.values(intelligences)) service.startup()
       console.log('web plugin listening over Electron IPC')
       return
     }
@@ -494,7 +505,7 @@ export class WebPlugin implements Plugin {
     const hostname = (process.env['OPENALICE_BIND_HOST'] ?? '127.0.0.1').trim()
     this.server = serve({ fetch: app.fetch, port: this.config.port, hostname }, (info: { port: number }) => {
       this.marketMonitorScheduler?.start()
-      intelligence.startup()
+      for (const service of Object.values(intelligences)) service.startup()
       console.log(`web plugin listening on http://${hostname}:${info.port}`)
     })
 

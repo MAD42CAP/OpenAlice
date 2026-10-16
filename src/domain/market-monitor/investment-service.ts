@@ -1,21 +1,24 @@
+import { dataPath } from '../../core/paths.js'
+import type { MarketMonitorAsset } from './types.js'
 import { createHash } from 'node:crypto'
 import { createInvestmentStore } from './investment-store.js'
 import { evaluateInvestmentThesis, guardInvestmentDraft, intelligenceRecordHash, investmentDraftSchema, investmentInputHash } from './investment.js'
-import { INVESTMENT_ANALYSIS_VERSION, type InvestmentDraft, type InvestmentInput, type InvestmentReport, type InvestmentSnapshot, type InvestmentThesis, type InvestmentThesisDraft, type InvestmentThesisEvaluation } from './investment-types.js'
+import { investmentAnalysisVersion, type InvestmentDraft, type InvestmentInput, type InvestmentReport, type InvestmentSnapshot, type InvestmentThesis, type InvestmentThesisDraft, type InvestmentThesisEvaluation } from './investment-types.js'
 import type { IntelligenceProvenance } from './intelligence-types.js'
-import { RESEARCH_LOOP_PROTOCOL } from './research-loop-types.js'
+import { researchLoopProtocol } from './research-loop-types.js'
 
 const stamp = (s: string) => Date.parse(s)
 const before = (value: string | null, at: Date) => value !== null && Number.isFinite(stamp(value)) && stamp(value) <= at.getTime()
-export function createInvestmentService(options: { root?: string; now?: () => Date } = {}) {
-  const store = createInvestmentStore(options.root)
+export function createInvestmentService(options: { asset?: MarketMonitorAsset; root?: string; now?: () => Date } = {}) {
+  const asset = options.asset ?? 'BTC'
+  const store = createInvestmentStore(options.root ?? (asset === 'BTC' ? undefined : dataPath('market-monitor', 'investment-intelligence-v1', asset.toLowerCase())))
   const now = options.now ?? (() => new Date())
   // One process serializes publications and automatic objective checks. Atomic
   // immutable files also prevent partial records under competing processes.
   let queue: Promise<unknown> = Promise.resolve()
   const serialized = <T>(work: () => Promise<T>): Promise<T> => { const next = queue.catch(() => undefined).then(work); queue = next; return next }
   const revalidateInternal = async (market: InvestmentInput['market'], at: Date): Promise<InvestmentThesisEvaluation[]> => {
-    if (!before(market.retrievedAt, at) || market.asset !== 'BTC') throw new Error('观点跟踪不能使用未来市场资料。')
+    if (!before(market.retrievedAt, at) || market.asset !== asset) throw new Error('观点跟踪不能使用未来市场资料。')
     const [theses, saved] = await Promise.all([store.list('theses'), store.list('evaluations')])
     const results: InvestmentThesisEvaluation[] = []
     for (const thesis of theses.filter(t => before(t.createdAt, at))) {
@@ -34,7 +37,7 @@ export function createInvestmentService(options: { root?: string; now?: () => Da
     for (const draft of snapshot.theses) {
       // A stable key is an immutable initial hypothesis. A new AI prose run
       // cannot revise its predeclared conditions or revive a terminal idea.
-      const thesisId = `thesis-${createHash('sha256').update(draft.key).digest('hex')}`
+      const thesisId = `thesis-${createHash('sha256').update(asset === 'BTC' ? draft.key : `${asset}:${draft.key}`).digest('hex')}`
       if (await store.read('theses', thesisId)) continue
       const ids = new Set([...draft.claim.evidenceIds, ...[...draft.supportConditions, ...draft.invalidationConditions, ...draft.resolutionConditions].flatMap(c => c.thresholdEvidenceId ? [c.thresholdEvidenceId] : [])])
       const thesis: InvestmentThesis = { ...structuredClone(draft), id: thesisId, revision: 1, createdAt: snapshot.analysisTime, expiresAt: new Date(Date.parse(snapshot.analysisTime) + draft.observationDays * 86_400_000).toISOString(), investmentSnapshotId: snapshot.id, evidence: snapshot.evidence.filter(e => ids.has(e.id)), recordHash: '' }
@@ -47,6 +50,7 @@ export function createInvestmentService(options: { root?: string; now?: () => Da
       return serialized(async () => {
         const at = now()
         if (![provenance.workspaceId, provenance.runId, provenance.issueId, provenance.agent].every(s => typeof s === 'string' && s.trim().length > 0)) throw new Error('缺少原生工作区调用来源。')
+        if (input.market.asset !== asset) throw new Error('综合研判标的与归档空间不匹配。')
         const rawDraft = investmentDraftSchema.parse(value) as InvestmentDraft
         const { draft, warnings, evidence } = guardInvestmentDraft(input, rawDraft, at)
         const inputHash = investmentInputHash(input), id = `investment-${inputHash}`
@@ -93,9 +97,9 @@ export function createInvestmentService(options: { root?: string; now?: () => Da
               explanation: `${observedChanges.length ? observedChanges.join('；') : '引用指标值无可验证的新变化，属于 AI 解释调整。'} AI 解释：${outlook.conclusion.text}` })
           }
         }
-        const snapshot: InvestmentSnapshot = { ...draft, schemaVersion: 1, id, asset: 'BTC', analysisVersion: INVESTMENT_ANALYSIS_VERSION, analysisTime: at.toISOString(), marketSnapshotId: input.market.snapshotId, researchSnapshotId: input.research.id,
+        const snapshot: InvestmentSnapshot = { ...draft, schemaVersion: 1, id, asset, analysisVersion: investmentAnalysisVersion(asset), analysisTime: at.toISOString(), marketSnapshotId: input.market.snapshotId, researchSnapshotId: input.research?.id ?? null,
           inputHash, previousSnapshotId: previous?.id ?? null, provenance: structuredClone(provenance), analysisModel: provenance.model ?? null, evidence: structuredClone(evidence), rawDraft: structuredClone(rawDraft), guardWarnings: warnings, changes,
-          ...(input.researchFeedback && draft.feedbackReview ? { researchFeedback: { protocol: RESEARCH_LOOP_PROTOCOL, contextHash: input.researchFeedback.hash, ...structuredClone(draft.feedbackReview) } } : {}), recordHash: '' }
+          ...(input.researchFeedback && draft.feedbackReview ? { researchFeedback: { protocol: researchLoopProtocol(asset), contextHash: input.researchFeedback.hash, ...structuredClone(draft.feedbackReview) } } : {}), recordHash: '' }
         snapshot.recordHash = intelligenceRecordHash(snapshot)
         const published = await store.save('publications', snapshot)
         await initializeTheses(published.record)
@@ -110,7 +114,7 @@ export function createInvestmentService(options: { root?: string; now?: () => Da
       const [saved, ideas, checks] = await Promise.all([store.list('publications'), store.list('theses'), store.list('evaluations')])
       // An as-of query returns what was actually generated and acquired then.
       // Never rerun old claims using a report imported or analyzed afterward.
-      const history = saved.filter(p => before(p.analysisTime, at) && p.evidence.every(e => before(e.retrievedAt, at) && (e.publishedAt === null || before(e.publishedAt, at)))).sort((a, b) => b.analysisTime.localeCompare(a.analysisTime))
+      const history = saved.filter(p => p.asset === asset && before(p.analysisTime, at) && p.evidence.every(e => before(e.retrievedAt, at) && (e.publishedAt === null || before(e.publishedAt, at)))).sort((a, b) => b.analysisTime.localeCompare(a.analysisTime))
       const publicationIds = new Set(history.map(p => p.id))
       const evaluations = checks.filter(e => before(e.evaluatedAt, at) && e.evidence.every(r => before(r.retrievedAt, at))).sort((a, b) => b.evaluatedAt.localeCompare(a.evaluatedAt))
       const theses = ideas.filter(t => before(t.createdAt, at) && publicationIds.has(t.investmentSnapshotId)).map(t => { const latestEvaluation = evaluations.find(e => e.thesisId === t.id) ?? null; return { ...t, status: latestEvaluation?.status ?? 'ACTIVE' as const, latestEvaluation } })

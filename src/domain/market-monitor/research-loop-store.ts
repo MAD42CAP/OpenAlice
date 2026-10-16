@@ -2,14 +2,19 @@ import { link, mkdir, readFile, readdir, unlink, writeFile } from 'node:fs/promi
 import { randomUUID } from 'node:crypto'
 import { dataPath } from '../../core/paths.js'
 import { hashJevInput } from './typesafe-input.js'
-import { RESEARCH_LOOP_PROTOCOL, type ResearchFeedbackRecord, type ResearchLoopInput } from './research-loop-types.js'
+import { researchLoopProtocol, type ResearchFeedbackRecord, type ResearchLoopInput } from './research-loop-types.js'
+import type { MarketMonitorAsset } from './types.js'
 
 export const researchLoopInputHash = (row: ResearchLoopInput) => hashJevInput({ ...row, hash: '' })
 export const researchLoopRecordHash = (row: ResearchFeedbackRecord) => hashJevInput({ ...row, recordHash: '' })
 type Rows = { inputs: ResearchLoopInput; feedback: ResearchFeedbackRecord }
 
 /** An additive archive. A run's frozen input and its first result are immutable. */
-export function createResearchLoopStore(root = dataPath('market-monitor', 'research-loop-v1')) {
+export function createResearchLoopStore(directory?: string, asset: MarketMonitorAsset = 'BTC') {
+  const root = directory ?? (asset === 'BTC' ? dataPath('market-monitor', 'research-loop-v1') : dataPath('market-monitor', 'research-loop-v1', asset.toLowerCase()))
+  const matches = <K extends keyof Rows>(kind: K, row: Rows[K]) => row?.schemaVersion === 1 && row.protocol === researchLoopProtocol(asset)
+    && (kind === 'inputs' ? (row as ResearchLoopInput).market?.asset === asset : (row as ResearchFeedbackRecord).asset === asset)
+    && (kind === 'inputs' ? researchLoopInputHash(row as ResearchLoopInput) === (row as ResearchLoopInput).hash : researchLoopRecordHash(row as ResearchFeedbackRecord) === (row as ResearchFeedbackRecord).recordHash)
   const path = (kind: keyof Rows, id: string) => {
     if (!/^(loop-input|feedback)-[a-f0-9]{64}$/.test(id)) throw new Error('研究闭环档案标识无效。')
     return `${root}/${kind}/${id}.json`
@@ -17,9 +22,7 @@ export function createResearchLoopStore(root = dataPath('market-monitor', 'resea
   const read = async <K extends keyof Rows>(kind: K, id: string): Promise<Rows[K] | null> => {
     try {
       const row = JSON.parse(await readFile(path(kind, id), 'utf8')) as Rows[K]
-      if (!row || row.schemaVersion !== 1 || row.protocol !== RESEARCH_LOOP_PROTOCOL || row.id !== id
-        || (kind === 'inputs' ? researchLoopInputHash(row as ResearchLoopInput) !== (row as ResearchLoopInput).hash
-          : researchLoopRecordHash(row as ResearchFeedbackRecord) !== (row as ResearchFeedbackRecord).recordHash)) throw new Error('invalid')
+      if (!row || row.id !== id || !matches(kind, row)) throw new Error('invalid')
       return row
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null
@@ -27,6 +30,7 @@ export function createResearchLoopStore(root = dataPath('market-monitor', 'resea
     }
   }
   const save = async <K extends keyof Rows>(kind: K, row: Rows[K]): Promise<Rows[K]> => {
+    if (!matches(kind, row)) throw new Error('研究闭环档案的资产、协议或完整性不匹配。')
     const target = path(kind, row.id)
     await mkdir(`${root}/${kind}`, { recursive: true, mode: 0o700 })
     const temp = `${target}.${randomUUID()}.tmp`

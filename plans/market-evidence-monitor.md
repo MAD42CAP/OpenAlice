@@ -1211,3 +1211,94 @@ publication, thesis and evaluation files, including the forward-v2 candidate;
 the four owner-modified files remain byte-identical and excluded. Secret-marker
 and diff checks pass. Runtime research archives and credentials are not in Git;
 delivery stays on the owned feature branch without a PR or upstream write.
+
+## TSLA / MSTR research-loop extension (2026-10-15)
+
+The owner selected extending the established BTC loop to both equities. Reuse
+native Auto Prediction, Jev forward-v2 publications and Auto Quant, then freeze
+those contributions in each asset's qualitative synthesis. Bind every input,
+Issue, source, archive and receipt to its own asset. Keep BTC protocol, hashes
+and shipped archives unchanged. Equities use their own additive namespaces and
+version; never manufacture a Glassnode analysis or count AI feedback as an
+independent observation. Use completed exchange bars and expose stale/missing
+company-event evidence honestly. This is read-only research, with no automatic
+strategy-weight or trading changes.
+
+Selected interaction: retain the compact contributor/review strip for all three
+assets. BTC retains its existing research tab; equities expose Market and AI
+synthesis only. Details remain in a shared Collapsible, with accessible status
+and keyboard controls and wrapping mobile layout. This autonomous implementation
+choice follows the owner's request for a simple dashboard, not a new approval.
+
+- [x] Extend asset-bound projection, feedback, provenance and immutable storage.
+- [x] Wire native AP/AQ and qualitative synthesis per equity, scoped CLI and API.
+- [x] Extend simple UI, selection isolation and explicit per-asset demo.
+- [x] Verify focused/full tests, types, actual readonly scans and native exact
+  consumption receipts; preserve historical records and unrelated edits.
+- [x] Sync only MAD42CAP/OpenAlice feature/market-evidence-monitor.
+
+
+Equity verification in progress: both real scans succeeded using Alpaca daily
+and hourly bars and SEC EDGAR, with no trading/account access. Native AP and AQ
+have published TSLA cards; existing Jev v2 is projected as abstention rather
+than flat. A first synthesis correctly consumed only the four references
+available when frozen, leaving the later fifth reference pending. MSTR native
+research follows in the same selected desks. Stock schedules were staggered
+TSLA16:20/16:25/16:40 and MSTR16:40/16:45/17:00 New York to respect shared
+single-run desk occupancy. Only this turn's exact generated defaults were
+repaired in live Issues; customized cadence remains untouched.
+
+The first complete hermetic run passed 7,719 tests with four skipped, and only
+the four previously recorded Codex-adapter/PTY failures (879 files;877 passing).
+Root/UI typechecks pass. Browser/demo checks found two presentation labels to
+correct before the final full run: asset-specific tablist attribution and
+trading-session wording for equities' qualitative short window.
+
+Acceptance also observed an existing Workspace runtime-settings read/write
+race: native dispatch had succeeded, but detail enrichment transiently read
+partial JSON and returned500; authoritative task status prevented duplicate
+admission. This is outside the asset-loop change. Filing a sanitized follow-up
+in the owned GitHub repository was attempted; GitHub returned410 because Issues
+are disabled. No repository settings or credentials were changed.
+
+
+Final equity acceptance: both actual native cycles completed successfully.
+TSLA AP `run-SdULOAPm` published at03:29:31 UTC and AQ `run-FR9rEqGT` at03:30:37.
+Its real readonly rescan stored `fee728e6-0764-4095-b080-1672d6e84b62` at03:36:19,
+then automatically requested `run-LWvZxlf8`, which published at03:39:33 and
+completed normally. All five frozen research IDs were reviewed, with exact
+context hash `bc8f41df727565f08eeb8d6b8a069676bb8a7d898333ec56f4120d2dbc748398`.
+
+MSTR AP `run-PF1FAcbx` published at03:32:58 and AQ `run-gwLXT7f1` at03:35:01.
+The later AQ card requested native synthesis `run-xscmlwMF`; it published at
+03:40:06 and completed normally. Its five-ID receipt exactly matches
+`e602d3866dc5679829507a8b4e7b9f34c52d2624e89aed7e6a5608cec3063efa`.
+Repeat readonly scans correctly returned duplicate receipts for the unchanged
+completed-market snapshot `b80c4a07-6b1b-47ee-81e3-a26269962e38`, including
+03:38:46; they did not rewrite its historical capture time. All three
+contributors are ready for each equity; zero invalid records and no crossasset
+citations or BTC report IDs. Jev remains current-session abstention.
+
+Both assets' daily/hourly bars are Alpaca, through the Oct15 daily and20:00 UTC
+hourly basis. SEC was healthy on the initial scans and remains healthy for
+MSTR. A later TSLA SEC network/response refresh failed; the old metadata was
+explicitly retained as display-only, excluded from current stock projection
+and disclosed in native synthesis limitations. This did not block price
+scanning or falsely promote old filings into current confirmation.
+
+Final effective qualitative summaries: TSLA conditional bearish/uncertain/
+conditional bearish; MSTR uncertain/uncertain/conditional bearish. These use
+their declared qualitative windows, not the main fixed-return forward windows.
+The AP/AQ cards and three Jev references increase caution, not independent votes
+or measured accuracy. No future outcomes exist yet to prove improvement.
+
+After all source and label changes froze, the full suite again passed7,719
+with four skipped and only the same four preexisting Codex/PTY failures
+(879files;877passing;383.49seconds). Root and UI typechecks pass; final focused
+UI40 and domain/service/tool/router/coordinator regressions pass. Real desktop,
+390px actual/demo (client and scroll widths both390), stock tab switching,
+collapsed evidence, BTC's retained third tab and illustrative update behavior
+were verified. Actual TSLA/MSTR pages show3/3 available and reviewed. Temporary
+browser viewport and demo tab/server are cleaned up. The four owner-modified
+files and177preexisting immutable archives remain byte-identical and excluded;
+secret-material and diff checks pass. No PR, upstream write or trading action.

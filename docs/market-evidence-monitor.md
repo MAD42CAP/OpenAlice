@@ -1343,4 +1343,49 @@ The compact BTC strip shows available contributor count and distinguishes
 pending synthesis from an exact, nonempty context hash actually reviewed by
 the latest synthesis. Its disclosure contains one sentence per contributor,
 timestamps and Update research. The same API has clearly illustrative demo
-responses; TSLA/MSTR do not show the BTC research strip.
+responses. TSLA/MSTR now expose their own isolated feedback strip as described below.
+
+## Equity research feedback loops
+
+TSLA and MSTR reuse the same three native research contributors and concise
+feedback UI. Each asset has its own `mad42lab-<asset>-prediction-research`,
+`mad42lab-<asset>-quant-review` and `mad42lab-<asset>-investment-intelligence`
+Issues, with the existing explicitly selected AP/AQ desks and native Chat
+runtime. New default schedules use New York weekdays: TSLA AP/AQ/synthesis at
+16:20/16:25/16:40; MSTR at 16:40/16:45/17:00. This both waits for conservative
+completed daily bars and separates shared-desk admissions. Owner-customized
+cadence and terminal/runtime selections remain authoritative. Manual requests
+while a shared desk is occupied expose failure rather than inventing a queue;
+a failed stock synthesis can retry on a subsequent successful scan.
+
+Stock inputs and feedback use `equity-research-loop-v1`; frozen native input,
+feedback and investment archives live in asset subdirectories of the existing
+namespaces. `investment-intelligence-equity-v1` accepts no BTC/Glassnode report,
+and its `researchSnapshotId` is null. Existing BTC protocols, archive identities
+and v3 hash recipes remain unchanged. GET/POST intelligence and research-loop
+routes select with `?asset=BTC|TSLA|MSTR`, defaulting to BTC; stock report import
+and report publication are refused. CLI identity comes from the actual calling
+Issue, never a user-supplied asset or provenance argument.
+
+Stock projections include completed local-session bars plus verified available
+company context. SEC entries are disclosure metadata, news entries are titles,
+not parsed document conclusions. Unknown/expired earnings calendars remain
+unknown. MSTR holdings, financing and BTC sensitivity are not invented when
+missing. Existing bar freshness tolerates weekends and one holiday, but is not
+a full exchange-holiday/early-close calendar. Only genuine later completed
+sessions can evaluate a thesis; rescanning an already completed session does
+not validate a new thesis. Market capitalization cannot serve as a price level.
+
+The guard rejects cross-asset evidence and sensitive credential-like content.
+Same-family price evidence permits at most conditional support; Jev/AP/AQ
+remain unvalidated inference and cannot vote themselves into confirmation.
+Exact frozen feedback review and receipt rules are shared with BTC, including
+honest pending status for later contributions. Stock cache keys ignore routine
+retrieval/snapshot identity changes while detecting changed observations,
+source validity and research feedback. Fixed 1/5/20 trading-session forward
+validation remains separate from qualitative outlook windows.
+
+All assets retain one compact feedback strip with details closed. Equities
+have Market and AI synthesis tabs; the on-chain report tab remains BTC only.
+Selection-bound hooks reject late or cross-asset responses. Demonstration
+fixtures are explicitly illustrative and use isolated asset IDs and receipts.

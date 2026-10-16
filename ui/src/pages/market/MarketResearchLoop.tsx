@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import type { MonitorAsset } from '../../api/market-monitor'
-import type { ResearchLoopReport, ResearchSource } from '../../api/research-loop-types'
+import { researchLoopProtocol, type ResearchLoopReport, type ResearchSource } from '../../api/research-loop-types'
 import { useResearchLoop } from '../../hooks/useResearchLoop'
 import { Button } from '../../components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../components/ui/collapsible'
@@ -9,7 +9,6 @@ import { formatMonitorDate } from './market-monitor-format'
 const sources: ResearchSource[] = ['prediction', 'jev', 'quant']
 export function MarketResearchLoop(props: { asset: MonitorAsset; visible: boolean; revisionKey: string }) {
   const model = useResearchLoop(props.asset, props.visible, props.revisionKey)
-  if (props.asset !== 'BTC') return null
   return <MarketResearchLoopView {...model} />
 }
 export function MarketResearchLoopView({ report, loading, error, running, refresh, run }: {
@@ -17,7 +16,7 @@ export function MarketResearchLoopView({ report, loading, error, running, refres
   refresh: () => void; run: () => void
 }) {
   const { t } = useTranslation()
-  const usable = !error && !loading && report?.asset === 'BTC' && report.protocol === 'btc-research-loop-v1' ? report : null
+  const usable = !error && !loading && report && report.protocol === researchLoopProtocol(report.asset) ? report : null
   const count = sources.filter(source => usable?.contributors.some(row => row.source === source && row.state === 'ready')).length
   const consumed = Boolean(usable && usable.context.evidence.length > 0 && usable.context.hash && usable.synthesis?.contextHash === usable.context.hash)
   const busy = running || Boolean(usable?.contributors.some(row => row.state === 'running'))

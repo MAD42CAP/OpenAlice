@@ -2,9 +2,10 @@ import { createHash } from 'node:crypto'
 import Decimal from 'decimal.js'
 import { z } from 'zod'
 import type { EvidenceReference } from './intelligence-types.js'
-import { INVESTMENT_ANALYSIS_VERSION } from './investment-types.js'
+import { investmentAnalysisVersion } from './investment-types.js'
+import { assertFreshBars, closedBars } from './bar-policy.js'
 import type { InvestmentDirection, InvestmentDraft, InvestmentInput, InvestmentSnapshot, InvestmentThesis, InvestmentThesisEvaluation, InvestmentThesisStatus, ValidationStatus } from './investment-types.js'
-import { RESEARCH_LOOP_PROTOCOL } from './research-loop-types.js'
+import { researchLoopProtocol } from './research-loop-types.js'
 
 const claim = z.object({ text: z.string().min(1).max(2400), evidenceIds: z.array(z.string().min(1)).min(1).max(24), inference: z.boolean() }).strict()
 const horizon = z.enum(['short', 'medium', 'long'])
@@ -13,30 +14,37 @@ const condition = z.object({ metric: z.enum(['daily-close', 'daily-change-percen
 export const investmentDraftSchema = z.object({
   feedbackReview: z.object({ reviewedIds: z.array(z.string().min(1)).max(40), effect: z.enum(['context-only', 'caution', 'conflict']), explanation: z.string().min(1).max(900) }).strict().optional(),
   summary: claim,
-  crossValidation: z.array(z.object({ horizon: horizon.optional(), claim, marketEvidenceIds: z.array(z.string()).min(1).max(24), researchEvidenceIds: z.array(z.string()).min(1).max(24), status: z.enum(['CONFIRMED', 'PARTIALLY_CONFIRMED', 'CONFLICTING', 'UNVERIFIED', 'OUTDATED']), explanation: z.string().min(1).max(1800) }).strict()).min(1).max(16),
+  crossValidation: z.array(z.object({ horizon: horizon.optional(), claim, marketEvidenceIds: z.array(z.string()).min(1).max(24), researchEvidenceIds: z.array(z.string()).max(24), status: z.enum(['CONFIRMED', 'PARTIALLY_CONFIRMED', 'CONFLICTING', 'UNVERIFIED', 'OUTDATED']), explanation: z.string().min(1).max(1800) }).strict()).min(1).max(16),
   outlooks: z.array(z.object({ horizon, direction, conclusion: claim, structure: claim, supportingEvidence: z.array(claim).max(16), opposingEvidence: z.array(claim).max(16), risks: z.array(claim).min(1).max(16), confirmation: z.array(claim).min(1).max(16), invalidation: z.array(claim).min(1).max(16), priceLevelLabels: z.array(z.string()).max(24) }).strict()).length(3),
   scenarios: z.array(z.object({ kind: z.enum(['bullish', 'neutral', 'bearish']), hypothesis: claim, conditions: z.array(claim).min(1).max(16), confirmation: z.array(claim).min(1).max(16), path: claim, invalidation: z.array(claim).min(1).max(16), supportingEvidence: z.array(claim).max(16), opposingEvidence: z.array(claim).max(16), priceLevelLabels: z.array(z.string()).max(24) }).strict()).length(3),
   priceMap: z.array(z.object({ label: z.string().min(1).max(160), price: z.number().positive().finite(), unit: z.literal('USD'), role: z.enum(['support', 'resistance', 'cost-basis', 'reference']), evidenceIds: z.array(z.string()).min(1).max(24) }).strict()).max(24),
   theses: z.array(z.object({ key: z.string().regex(/^[a-z0-9][a-z0-9-]{0,63}$/), title: z.string().min(1).max(240), claim, horizon, observationDays: z.number().int().min(1).max(180), supportConditions: z.array(condition).min(1).max(12), invalidationConditions: z.array(condition).min(1).max(12), resolutionConditions: z.array(condition).max(12) }).strict()).min(1).max(12),
   limitations: z.array(claim).min(1).max(24),
-}).strict()
+}).strict().superRefine((draft, ctx) => {
+  if (/(?:-----BEGIN [^-]*PRIVATE KEY-----|Bearer\s+[A-Za-z0-9._~-]{12,}|eyJ[A-Za-z0-9_-]{12,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}|\b(?:sk|ts|typesafe)[-_][A-Za-z0-9_-]{20,}\b)/i.test(JSON.stringify(draft))) ctx.addIssue({ code: 'custom', message: '研究成果包含不可保存的敏感内容。' })
+})
 
 export const intelligenceRecordHash = <T extends { recordHash: string }>(row: T) => createHash('sha256').update(JSON.stringify({ ...row, recordHash: '' })).digest('hex')
-export const investmentInputHash = (input: InvestmentInput) => createHash('sha256').update(JSON.stringify({ analysisVersion: INVESTMENT_ANALYSIS_VERSION, marketSnapshotId: input.market.snapshotId, researchSnapshotId: input.research.id, researchHash: input.research.recordHash, feedbackHash: input.researchFeedback?.hash ?? null })).digest('hex')
+export const investmentInputHash = (input: InvestmentInput) => createHash('sha256').update(JSON.stringify({ ...(input.market.asset === 'BTC' ? {} : { asset: input.market.asset }), analysisVersion: investmentAnalysisVersion(input.market.asset), marketSnapshotId: input.market.snapshotId, researchSnapshotId: input.research?.id ?? null, researchHash: input.research?.recordHash ?? null, feedbackHash: input.researchFeedback?.hash ?? null })).digest('hex')
 const timestamp = (value: string | null) => value === null ? NaN : Date.parse(value)
 const timely = (e: EvidenceReference, at: Date) => Number.isFinite(timestamp(e.dataAsOf)) && Number.isFinite(timestamp(e.retrievedAt)) && timestamp(e.dataAsOf) <= at.getTime() && timestamp(e.retrievedAt) <= at.getTime() && timestamp(e.dataAsOf) <= timestamp(e.retrievedAt) && (e.publishedAt === null || Number.isFinite(timestamp(e.publishedAt)) && timestamp(e.publishedAt) <= at.getTime())
 export function evidenceAvailability(e: EvidenceReference, at: Date): 'available' | 'unverified' | 'outdated' {
   if (!timely(e, at) || e.quality === 'unavailable' || e.quality === 'unknown') return 'unverified'
-  const ttl = e.reportId ? 14 * 86_400_000 : e.metric === 'hourly-close' ? 3 * 3_600_000 : ['funding-8h', 'open-interest', 'annualized-basis', 'option-open-interest', 'put-call-ratio'].includes(e.metric) ? 30 * 60_000 : 2 * 86_400_000
+  if (e.asset !== 'BTC' && !e.reportId && !e.metric.startsWith('research-feedback.') && !e.metric.startsWith('equity.')) {
+    try { assertFreshBars([{ date: e.dataAsOf!, open: 1, high: 1, low: 1, close: 1, volume: 0 }], e.asset, ['hourly-close', 'rule.intraday'].includes(e.metric) ? '1h' : '1d', at) } catch { return 'outdated' }
+    return e.quality === 'outdated' ? 'outdated' : 'available'
+  }
+  const ttl = e.metric.startsWith('equity.') ? 86_400_000 : e.metric.startsWith('research-feedback.') ? 86_400_000 : e.reportId ? 14 * 86_400_000 : e.metric === 'hourly-close' ? 3 * 3_600_000 : ['funding-8h', 'open-interest', 'annualized-basis', 'option-open-interest', 'put-call-ratio'].includes(e.metric) ? 30 * 60_000 : 2 * 86_400_000
   return e.quality === 'outdated' || at.getTime() - timestamp(e.dataAsOf) > ttl ? 'outdated' : 'available'
 }
 /** Validate claims against supplied evidence; retain the AI proposal separately. */
 export function guardInvestmentDraft(input: InvestmentInput, value: unknown, at: Date): { draft: InvestmentDraft; warnings: string[]; evidence: EvidenceReference[] } {
   const raw = investmentDraftSchema.parse(value) as InvestmentDraft
   if (new Set(raw.outlooks.map(o => o.horizon)).size !== 3 || new Set(raw.scenarios.map(s => s.kind)).size !== 3 || new Set(raw.theses.map(t => t.key)).size !== raw.theses.length || new Set(raw.priceMap.map(p => p.label)).size !== raw.priceMap.length) throw new Error('期限、情景、价格标签或观点标识重复。')
-  if (!Number.isFinite(timestamp(input.market.retrievedAt)) || timestamp(input.market.retrievedAt) > at.getTime() || !Number.isFinite(timestamp(input.research.analysisTime)) || timestamp(input.research.analysisTime) > at.getTime()) throw new Error('不得使用尚未获取的市场或研究档案。')
+  if (!Number.isFinite(timestamp(input.market.retrievedAt)) || timestamp(input.market.retrievedAt) > at.getTime() || input.research && (!Number.isFinite(timestamp(input.research.analysisTime)) || timestamp(input.research.analysisTime) > at.getTime())) throw new Error('不得使用尚未获取的市场或研究档案。')
+  if (input.market.asset === 'BTC' && !input.research || input.research && input.research.asset !== input.market.asset) throw new Error('研究档案与市场标的不匹配。')
   const feedback = input.researchFeedback
-  if (feedback && (feedback.protocol !== RESEARCH_LOOP_PROTOCOL || !/^[a-f0-9]{64}$/.test(feedback.hash)
+  if (feedback && (feedback.protocol !== researchLoopProtocol(input.market.asset) || (feedback.asset ?? 'BTC') !== input.market.asset || !/^[a-f0-9]{64}$/.test(feedback.hash)
     || !Number.isFinite(timestamp(feedback.asOf)) || timestamp(feedback.asOf) > at.getTime()
     || feedback.evidence.some(e => e.kind !== 'inference' || e.reportId !== null || typeof e.value === 'number'
       || !e.metric.startsWith('research-feedback.') || !timely(e, at)))) throw new Error('研究回流上下文未通过来源或时序核验。')
@@ -44,7 +52,8 @@ export function guardInvestmentDraft(input: InvestmentInput, value: unknown, at:
     const ids = new Set(feedback.evidence.map(e => e.id)), reviewed = raw.feedbackReview?.reviewedIds ?? []
     if (!raw.feedbackReview || reviewed.length !== ids.size || new Set(reviewed).size !== reviewed.length || reviewed.some(id => !ids.has(id))) throw new Error('综合研判必须逐项审阅本次冻结的研究回流证据。')
   } else if (raw.feedbackReview?.reviewedIds.length) throw new Error('综合研判引用了本次输入之外的研究回流。')
-  const evidence = [...input.market.evidence, ...input.research.evidence, ...(feedback?.evidence ?? [])]
+  const evidence = [...input.market.evidence, ...(input.research?.evidence ?? []), ...(feedback?.evidence ?? [])]
+  if (evidence.some(e => e.asset !== input.market.asset)) throw new Error('证据不可跨标的混用。')
   if (new Set(evidence.map(e => e.id)).size !== evidence.length) throw new Error('证据标识重复。')
   const byId = new Map(evidence.map(e => [e.id, e]))
   const requireIds = (ids: string[]) => { if (!ids.length || ids.some(id => !byId.has(id))) throw new Error('重要断言引用了不存在的证据。') }
@@ -58,8 +67,8 @@ export function guardInvestmentDraft(input: InvestmentInput, value: unknown, at:
   visit(raw)
   const groundedPrice = (price: number, ids: string[]) => ids.some(id => {
     const e = byId.get(id)!
-    if (e.unit === 'USD' && typeof e.value === 'number' && new Decimal(e.value).eq(price) && e.kind === 'observation') return true
-    return input.research.keyPriceLevels.some(p => p.price === price && p.evidenceIds.includes(id) && p.evidenceIds.every(i => byId.has(i)))
+    if ((input.market.asset === 'BTC' || /^(?:daily-close|hourly-close|support\.(?:short|medium|long)|resistance\.(?:short|medium|long))$/.test(e.metric)) && e.unit === 'USD' && typeof e.value === 'number' && new Decimal(e.value).eq(price) && e.kind === 'observation') return true
+    return input.research?.keyPriceLevels.some(p => p.price === price && p.evidenceIds.includes(id) && p.evidenceIds.every(i => byId.has(i)))
   })
   for (const level of raw.priceMap) if (!groundedPrice(level.price, level.evidenceIds)) throw new Error('价格地图必须引用来源中的真实数值。')
   for (const outlook of raw.outlooks) if (outlook.priceLevelLabels.some(label => !raw.priceMap.some(p => p.label === label))) throw new Error('期限引用了不存在的价格标签。')
@@ -71,17 +80,17 @@ export function guardInvestmentDraft(input: InvestmentInput, value: unknown, at:
   }
   const warnings: string[] = []
   if (feedback?.evidence.length) warnings.push('Auto Prediction、Jev 与 Auto Quant 回流仅为待验证研究推断，不增加独立确认票数，不自动调整规则权重。')
-  if (input.research.dataAsOf && Number.isFinite(timestamp(input.research.dataAsOf)) && at.getTime() - timestamp(input.research.dataAsOf) > 14 * 86_400_000) warnings.push('报告整体数据时间较旧；各指标仍按各自明确的截止时间独立检查。')
+  if (input.research?.dataAsOf && Number.isFinite(timestamp(input.research.dataAsOf)) && at.getTime() - timestamp(input.research.dataAsOf) > 14 * 86_400_000) warnings.push('报告整体数据时间较旧；各指标仍按各自明确的截止时间独立检查。')
   if (!raw.summary.inference || raw.outlooks.some(o => !o.conclusion.inference || !o.structure.inference) || raw.scenarios.some(s => !s.hypothesis.inference || !s.path.inference)) throw new Error('综合结论与情景路径必须明确标记为 AI 推断。')
   const draft = structuredClone(raw)
-  const marketIds = new Set(input.market.evidence.map(e => e.id)), researchIds = new Set(input.research.evidence.map(e => e.id))
+  const marketIds = new Set(input.market.evidence.map(e => e.id)), researchIds = new Set((input.research?.evidence ?? []).map(e => e.id))
   const targetOf = (row: InvestmentDraft['crossValidation'][number]) => {
     const anchors = input.market.horizons.filter(h => row.marketEvidenceIds.some(id => h.evidenceIds.includes(id) && byId.get(id)?.metric === `trend.${h.horizon}`)).map(h => h.horizon)
     return row.horizon ? anchors.includes(row.horizon) ? row.horizon : null : anchors.length === 1 ? anchors[0]! : null
   }
   const researchBias = (ids: string[]) => ({
-    bullish: input.research.bullishEvidence.some(c => c.evidenceIds.some(id => ids.includes(id))),
-    bearish: input.research.bearishEvidence.some(c => c.evidenceIds.some(id => ids.includes(id))),
+    bullish: input.research?.bullishEvidence.some(c => c.evidenceIds.some(id => ids.includes(id))),
+    bearish: input.research?.bearishEvidence.some(c => c.evidenceIds.some(id => ids.includes(id))),
   })
   // Published reports expose source paragraphs, not trusted, horizon-bound
   // directional metric observations. Neither their brand, prose, numeric values
@@ -97,8 +106,8 @@ export function guardInvestmentDraft(input: InvestmentInput, value: unknown, at:
     const referencedIds = [...new Set([...row.marketEvidenceIds, ...row.researchEvidenceIds, ...row.claim.evidenceIds])]
     const refs = referencedIds.map(id => byId.get(id)!).filter(e => !/^trend\./.test(e.metric) || e.metric === `trend.${target}`)
     const availability = refs.map(e => evidenceAvailability(e, at))
-    if (!input.research.publicationTime || !Number.isFinite(timestamp(input.research.publicationTime)) || timestamp(input.research.publicationTime) > at.getTime()) availability.push('unverified')
-    if (input.research.dataAsOf !== null && (!Number.isFinite(timestamp(input.research.dataAsOf)) || timestamp(input.research.dataAsOf) > timestamp(input.research.publicationTime))) availability.push('unverified')
+    if (input.market.asset === 'BTC' && (!input.research?.publicationTime || !Number.isFinite(timestamp(input.research.publicationTime)) || timestamp(input.research.publicationTime) > at.getTime())) availability.push('unverified')
+    if (input.research && input.research.dataAsOf !== null && (!Number.isFinite(timestamp(input.research.dataAsOf)) || timestamp(input.research.dataAsOf) > timestamp(input.research.publicationTime))) availability.push('unverified')
     const market = refs.find(e => marketIds.has(e.id) && e.metric === `trend.${target}`)?.value
     const research = researchBias(referencedIds.filter(id => researchIds.has(id)))
     const conflicting = target !== null && (market === 'bullish' && research.bearish || market === 'bearish' && research.bullish || research.bullish && research.bearish)
@@ -107,8 +116,10 @@ export function guardInvestmentDraft(input: InvestmentInput, value: unknown, at:
     const observedRange = market === 'sideways' && anchor?.direction === 'sideways'
       && typeof lower === 'number' && Number.isFinite(lower) && typeof upper === 'number' && Number.isFinite(upper) && upper > lower
       && input.market.price !== null && input.market.price >= lower && input.market.price <= upper
-    const aligned = market === 'bullish' && research.bullish || market === 'bearish' && research.bearish || observedRange && !research.bullish && !research.bearish
+    const equityPriceSupport = input.market.asset !== 'BTC' && !input.research && (market === 'bullish' || market === 'bearish') && anchor?.direction === market
+    const aligned = equityPriceSupport || market === 'bullish' && research.bullish || market === 'bearish' && research.bearish || observedRange && !research.bullish && !research.bearish
     const independent = refs.some(e => researchIds.has(e.id) && independentFamily(e) !== null)
+    if (input.market.asset === 'BTC' && row.researchEvidenceIds.length === 0) availability.push('unverified')
     let status: ValidationStatus = !target || availability.includes('unverified') ? 'UNVERIFIED' : availability.includes('outdated') ? 'OUTDATED' : conflicting || row.status === 'CONFLICTING' ? 'CONFLICTING' : aligned ? independent && row.status === 'CONFIRMED' ? 'CONFIRMED' : 'PARTIALLY_CONFIRMED' : 'UNVERIFIED'
     // A model's explicit uncertainty is never upgraded by the server guard.
     if (['UNVERIFIED', 'OUTDATED'].includes(row.status) && ['CONFIRMED', 'PARTIALLY_CONFIRMED'].includes(status)) status = row.status
@@ -163,7 +174,10 @@ export function evaluateInvestmentThesis(thesis: InvestmentThesis, market: Inves
   const groups = [['support', thesis.supportConditions], ['invalidate', thesis.invalidationConditions], ['resolve', thesis.resolutionConditions]] as const
   const rows: InvestmentThesisEvaluation['rows'] = groups.flatMap(([kind, conditions]) => conditions.map(condition => {
     const e = market.evidence.find(e => e.metric === condition.metric) ?? null
-    const usable = e && e.kind === 'observation' && evidenceAvailability(e, at) === 'available' && Number.isFinite(timestamp(e.retrievedAt)) && timestamp(e.retrievedAt) >= timestamp(thesis.createdAt) && timestamp(e.retrievedAt) <= timestamp(thesis.expiresAt) && Date.parse(e.dataAsOf!.slice(0, 10)) + 86_400_000 > timestamp(thesis.createdAt)
+    const completedAfterRegistration = e && e.dataAsOf !== null && (market.asset === 'BTC'
+      ? Date.parse(e.dataAsOf!.slice(0, 10)) + 86_400_000 > timestamp(thesis.createdAt)
+      : e.dataAsOf !== null && closedBars([{ date: e.dataAsOf, open: 1, high: 1, low: 1, close: 1, volume: 0 }], market.asset, '1d', new Date(thesis.createdAt)).length === 0)
+    const usable = e && e.kind === 'observation' && evidenceAvailability(e, at) === 'available' && Number.isFinite(timestamp(e.retrievedAt)) && timestamp(e.retrievedAt) >= timestamp(thesis.createdAt) && timestamp(e.retrievedAt) <= timestamp(thesis.expiresAt) && completedAfterRegistration
     if (e) evidence.push(e)
     const value = usable && typeof e.value === 'number' && Number.isFinite(e.value) ? e.value : null
     if (value === null) return { kind, condition, value, result: 'unknown' as const, evidence: e }

@@ -1,10 +1,13 @@
-// Browser projection of the BTC research feedback contract.
+// Browser projection of per-asset research feedback.
+import type { MonitorAsset } from './market-monitor'
 import type { EvidenceReference, IntelligenceProvenance } from './market-intelligence-types'
 export const RESEARCH_LOOP_PROTOCOL = 'btc-research-loop-v1' as const
+export type ResearchLoopProtocol = typeof RESEARCH_LOOP_PROTOCOL | 'equity-research-loop-v1'
+export const researchLoopProtocol = (asset: MonitorAsset): ResearchLoopProtocol => asset === 'BTC' ? RESEARCH_LOOP_PROTOCOL : 'equity-research-loop-v1'
 export type ResearchRole = 'prediction' | 'quant'
 export type ResearchSource = ResearchRole | 'jev'
 export interface ResearchFeedbackRecord {
-  schemaVersion: 1; protocol: typeof RESEARCH_LOOP_PROTOCOL; id: string; asset: 'BTC'; role: ResearchRole
+  schemaVersion: 1; protocol: ResearchLoopProtocol; id: string; asset: MonitorAsset; role: ResearchRole
   inputId: string; inputHash: string; issuedAt: string; expiresAt: string
   basis: { snapshotId: string; marketDataAsOf: string | null; capturedAt: string }
   provenance: IntelligenceProvenance; validation: 'unvalidated'; evidence: EvidenceReference[]; recordHash: string
@@ -13,7 +16,7 @@ export interface ResearchFeedbackRecord {
   limitations: string[]; recommendations: string[]
 }
 export interface ResearchLoopContext {
-  protocol: typeof RESEARCH_LOOP_PROTOCOL; hash: string; asOf: string
+  protocol: ResearchLoopProtocol; asset?: MonitorAsset; hash: string; asOf: string
   records: ResearchFeedbackRecord[]
   jev: { publicationId: string; candidateHash: string; issuedAt: string; inputHash: string; snapshotId: string; decisions: Record<'short' | 'medium' | 'long', { choice: 'up' | 'flat' | 'down' | null; reasons: string[] }> } | null
   evidence: EvidenceReference[]
@@ -23,11 +26,11 @@ export interface ResearchContributor {
   updatedAt: string | null; summary: string; recordId: string | null; workspaceId: string | null; runId: string | null
 }
 export interface ResearchFeedbackReceipt {
-  protocol: typeof RESEARCH_LOOP_PROTOCOL; contextHash: string; reviewedIds: string[]
+  protocol: ResearchLoopProtocol; contextHash: string; reviewedIds: string[]
   effect: 'context-only' | 'caution' | 'conflict'; explanation: string
 }
 export interface ResearchLoopReport {
-  protocol: typeof RESEARCH_LOOP_PROTOCOL; asset: 'BTC'; generatedAt: string; contributors: ResearchContributor[]
+  protocol: ResearchLoopProtocol; asset: MonitorAsset; generatedAt: string; contributors: ResearchContributor[]
   context: ResearchLoopContext; history: ResearchFeedbackRecord[]; invalidRecords: number; illustrative?: boolean
   synthesis: { contextHash: string; snapshotId: string; analysisTime: string } | null
 }

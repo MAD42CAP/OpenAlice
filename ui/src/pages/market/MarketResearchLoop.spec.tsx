@@ -56,3 +56,10 @@ it('makes loading, errors, retry and busy states explicit in Chinese', async () 
   view.rerender(<MarketResearchLoopView {...defaults} running />)
   expect((screen.getByRole('button', { name: '正在更新…' }) as HTMLButtonElement).disabled).toBe(true)
 })
+
+it.each(['TSLA', 'MSTR'] as const)('keeps %s feedback compact and recognizes its own synthesis receipt', asset => {
+  render(<MarketResearchLoopView {...defaults} report={demoResearchLoop('ready', asset)} />)
+  expect(screen.getByText('3/3 available')).toBeTruthy()
+  expect(screen.getByText('Reviewed in synthesis')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: 'Update research' })).toBeNull()
+})

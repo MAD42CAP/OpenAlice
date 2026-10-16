@@ -1,13 +1,13 @@
 // Browser mirror of the three-layer research contracts. No source report text is exposed.
 import type { HistoricalBar } from './market'
-import type { TrendDirection } from './market-monitor'
+import type { MonitorAsset, TrendDirection } from './market-monitor'
 import type { ResearchFeedbackReceipt, ResearchLoopContext } from './research-loop-types'
 type OhlcvBar = HistoricalBar
 export type TrendHorizon = 'short' | 'medium' | 'long'
 /** Shared attribution across market observations, published research and AI inference. */
 export interface EvidenceReference {
   id: string
-  asset: 'BTC'
+  asset: MonitorAsset
   sourceName: string
   sourceUrl: string | null
   metric: string
@@ -46,7 +46,7 @@ export type ResearchSectionKey = typeof RESEARCH_SECTION_KEYS[number]
 export interface ResearchReport {
   schemaVersion: 1
   id: string
-  asset: 'BTC'
+  asset: MonitorAsset
   sourceName: 'Glassnode'
   url: string
   title: string
@@ -166,7 +166,7 @@ export const INVESTMENT_ANALYSIS_VERSION = 'investment-intelligence-v3' as const
 export type ValidationStatus = 'CONFIRMED' | 'PARTIALLY_CONFIRMED' | 'CONFLICTING' | 'UNVERIFIED' | 'OUTDATED'
 export type InvestmentDirection = 'bullish' | 'neutral' | 'bearish' | 'conditional-bullish' | 'conditional-bearish' | 'uncertain'
 export interface MarketIntelligence {
-  schemaVersion: 1; id: string; asset: 'BTC'; snapshotId: string; analysisTime: string; retrievedAt: string
+  schemaVersion: 1; id: string; asset: MonitorAsset; snapshotId: string; analysisTime: string; retrievedAt: string
   marketDataAsOf: string | null; hourlyDataAsOf: string | null; price: number | null; volume: number | null
   priceKind: 'completed-daily-close'; daily: OhlcvBar[]; hourly: OhlcvBar[]
   horizons: Array<{ horizon: TrendHorizon; observationWindow: string; direction: TrendDirection; structure: string; supportLevels: number[]; resistanceLevels: number[]; momentum: IntelligenceClaim; risks: string[]; confirmation: string[]; invalidation: string[]; evidenceIds: string[] }>
@@ -175,7 +175,7 @@ export interface MarketIntelligence {
   dataSources: Array<{ name: string; status: string; dataAsOf: string | null; retrievedAt: string }>
   dataQuality: 'complete' | 'partial' | 'unavailable'; missingData: string[]; limitations: string[]
 }
-export interface InvestmentInput { market: MarketIntelligence; research: ResearchSnapshot; researchFeedback?: ResearchLoopContext }
+export interface InvestmentInput { market: MarketIntelligence; research: ResearchSnapshot | null; researchFeedback?: ResearchLoopContext }
 export interface InvestmentCrossValidation {
   claim: IntelligenceClaim; marketEvidenceIds: string[]; researchEvidenceIds: string[]
   status: ValidationStatus; explanation: string; horizon?: TrendHorizon
@@ -202,8 +202,8 @@ export interface InvestmentDraft {
   feedbackReview?: Pick<ResearchFeedbackReceipt, 'reviewedIds' | 'effect' | 'explanation'>
 }
 export interface InvestmentSnapshot extends InvestmentDraft {
-  schemaVersion: 1; id: string; asset: 'BTC'; analysisVersion: 'investment-intelligence-v1' | 'investment-intelligence-v2' | typeof INVESTMENT_ANALYSIS_VERSION; analysisTime: string
-  marketSnapshotId: string; researchSnapshotId: string; inputHash: string; previousSnapshotId: string | null
+  schemaVersion: 1; id: string; asset: MonitorAsset; analysisVersion: 'investment-intelligence-v1' | 'investment-intelligence-v2' | typeof INVESTMENT_ANALYSIS_VERSION | 'investment-intelligence-equity-v1'; analysisTime: string
+  marketSnapshotId: string; researchSnapshotId: string | null; inputHash: string; previousSnapshotId: string | null
   provenance: IntelligenceProvenance; analysisModel: string | null; evidence: EvidenceReference[]
   rawDraft: InvestmentDraft; guardWarnings: string[]; changes: Array<{ horizon: TrendHorizon; previous: InvestmentDirection; current: InvestmentDirection; evidenceIds: string[]; explanation: string }>; recordHash: string
   researchFeedback?: ResearchFeedbackReceipt

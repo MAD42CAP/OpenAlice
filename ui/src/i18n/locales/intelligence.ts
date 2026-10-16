@@ -1,5 +1,5 @@
 export const intelligenceEn = {
-  layers: 'BTC research layers', market: 'Market monitor', research: 'On-chain research', investment: 'AI synthesis',
+  layers: '{{asset}} research views', market: 'Market monitor', research: 'On-chain research', investment: 'AI synthesis',
   loading: 'Reading research archive…', unavailable: 'Research refresh failed: {{error}}', retained: 'Previously saved research remains below for reference; it is not a freshly verified result.',
   retry: 'Retry', demo: 'Illustrative research · not a real report or market judgment',
   discover: 'Check for reports', reanalyze: 'Reanalyse research', run: 'Rebuild synthesis', refresh: 'Refresh archive',
@@ -10,6 +10,8 @@ export const intelligenceEn = {
   noInvestment: 'Insufficient evidence for synthesis', needInputs: 'A market snapshot and an analysed research report are required. Import research and run the native AI task when ready.',
   published: 'Published {{time}}', dataAsOf: 'Data through {{time}}', analysed: 'AI analysis {{time}}', retrieved: 'Retrieved {{time}}',
   unknown: 'Unknown', origin: 'Original source', current: 'Latest saved analysis', historical: 'Historical archive · not the current judgment',
+  equityNeedInputs: 'A current completed-session market snapshot is required. Run the native AI task when ready; company-event evidence is included only when available.',
+  equityInputTime: 'Market through {{market}}',
   inputTime: 'Market through {{market}} · research through {{research}}', quality: 'Evidence quality: {{quality}}',
   differentInputs: 'Newer input records are available. This saved synthesis used earlier evidence; rerun before treating it as an updated view.',
   qualities: { complete: 'Complete within the stated scope', partial: 'Partial / unknown coverage', unavailable: 'Unavailable', available: 'Available', unknown: 'Unknown', outdated: 'Outdated' },
@@ -21,6 +23,7 @@ export const intelligenceEn = {
   pending: 'Imported · awaiting AI analysis', importTitle: 'Import a report', importSummary: 'Public URL, or text you are allowed to use. Full source text stays out of this dashboard.',
   url: 'Report URL', title: 'Report title', text: 'Authorised report text', date: 'Publication date (optional)',
   importUrl: 'Import URL', manual: 'Provide authorised text', importText: 'Import text',
+  equityShortHorizon: 'Short term · 1–5 trading sessions',
   horizons: { short: 'Short term · 1–5 days', medium: 'Medium term · 1–4 weeks', long: 'Long term · 1–6 months' },
   directions: { bullish: 'Bullish', neutral: 'Neutral', bearish: 'Bearish', 'conditional-bullish': 'Conditionally bullish', 'conditional-bearish': 'Conditionally bearish', uncertain: 'Insufficient evidence' },
   conditional: 'Conditional research views, not calibrated probabilities or trade instructions. Horizons may disagree.',
@@ -43,7 +46,7 @@ export const intelligenceEn = {
 }
 
 export const intelligenceZh: typeof intelligenceEn = {
-  layers: 'BTC 三层投研', market: '市场监测', research: '链上研究', investment: 'AI 综合研判',
+  layers: '{{asset}} 投研视图', market: '市场监测', research: '链上研究', investment: 'AI 综合研判',
   loading: '正在读取研究档案…', unavailable: '研究刷新失败：{{error}}', retained: '下方保留的是既有研究记录，供参考；本次未能重新核验。',
   retry: '重试', demo: '研究演示数据 · 不是真实报告或市场判断',
   discover: '检查新周报', reanalyze: '重新分析研究', run: '重新综合研判', refresh: '刷新档案',
@@ -54,6 +57,8 @@ export const intelligenceZh: typeof intelligenceEn = {
   noInvestment: '综合研判证据不足', needInputs: '需要市场快照和已分析的研究报告。导入研究后，可运行本机 AI 任务。',
   published: '发布于 {{time}}', dataAsOf: '数据截至 {{time}}', analysed: 'AI 分析 {{time}}', retrieved: '获取于 {{time}}',
   unknown: '未知', origin: '查看原文', current: '最近保存的分析', historical: '历史归档 · 不是当前判断',
+  equityNeedInputs: '需要当前已收盘交易日的市场快照，准备好后可运行本机 AI 任务。公司事件证据仅在可用时纳入。',
+  equityInputTime: '市场截至 {{market}}',
   inputTime: '市场截至 {{market}} · 研究截至 {{research}}', quality: '证据质量：{{quality}}',
   differentInputs: '已有更新的输入记录。本条综合研判使用的是较早证据，需重新运行后才能作为更新后的观点。',
   qualities: { complete: '已声明范围内完整', partial: '部分覆盖或未知', unavailable: '不可用', available: '可用', unknown: '未知', outdated: '已过期' },
@@ -65,6 +70,7 @@ export const intelligenceZh: typeof intelligenceEn = {
   pending: '已导入 · 等待 AI 分析', importTitle: '导入研究报告', importSummary: '支持公开链接或你有权使用的正文。看板不展示或分发报告全文。',
   url: '报告链接', title: '报告标题', text: '有权使用的报告正文', date: '发布日期（选填）',
   importUrl: '导入链接', manual: '提供合法使用的正文', importText: '导入正文',
+  equityShortHorizon: '短期 · 1–5 个交易日',
   horizons: { short: '短期 · 1–5 天', medium: '中期 · 1–4 周', long: '长期 · 1–6 个月' },
   directions: { bullish: '偏多', neutral: '中性', bearish: '偏空', 'conditional-bullish': '有条件偏多', 'conditional-bearish': '有条件偏空', uncertain: '证据不足' },
   conditional: '这是条件性研究判断，不是已校准的概率或交易指令。三个周期允许不同方向。',

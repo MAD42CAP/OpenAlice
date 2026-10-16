@@ -7,19 +7,20 @@ import { demoMarketIntelligence } from '../demo/fixtures/market-intelligence'
 import { useMarketIntelligence } from './useMarketIntelligence'
 const api = vi.hoisted(() => ({ read: vi.fn(), discover: vi.fn(), importReport: vi.fn(), run: vi.fn() }))
 vi.mock('../api/market-intelligence', () => ({ marketIntelligenceApi: api }))
-beforeEach(() => { vi.useFakeTimers(); api.read.mockImplementation(async () => demoMarketIntelligence()); api.discover.mockResolvedValue({}); api.importReport.mockResolvedValue({}); api.run.mockResolvedValue({}) })
+beforeEach(() => { vi.useFakeTimers(); api.read.mockImplementation(async (asset: MonitorAsset) => demoMarketIntelligence(asset)); api.discover.mockResolvedValue({}); api.importReport.mockResolvedValue({}); api.run.mockResolvedValue({}) })
 afterEach(() => { cleanup(); vi.useRealTimers(); vi.resetAllMocks() })
 const flush = () => act(async () => { await vi.advanceTimersByTimeAsync(0) })
 
-it('only reads BTC and pauses hidden views without exposing another asset’s archives', async () => {
+it('reads each selected asset, pauses hidden views, and never exposes another asset’s archive', async () => {
   const hook = renderHook(({ asset, visible }) => useMarketIntelligence(asset, visible, 'first'), { initialProps: { asset: 'TSLA' as MonitorAsset, visible: true } })
-  await flush(); expect(api.read).not.toHaveBeenCalled(); expect(hook.result.current.report).toBeNull()
+  await flush(); expect(hook.result.current.report?.asset).toBe('TSLA')
+  expect(api.read).toHaveBeenLastCalledWith('TSLA', expect.any(AbortSignal))
   hook.rerender({ asset: 'BTC', visible: true }); await flush()
   expect(hook.result.current.report?.asset).toBe('BTC')
   hook.rerender({ asset: 'MSTR', visible: true }); await flush()
-  expect(hook.result.current.report).toBeNull()
-  hook.rerender({ asset: 'BTC', visible: false }); await act(async () => { await vi.advanceTimersByTimeAsync(60_000) })
-  expect(api.read).toHaveBeenCalledOnce()
+  expect(hook.result.current.report?.asset).toBe('MSTR')
+  hook.rerender({ asset: 'MSTR', visible: false }); await act(async () => { await vi.advanceTimersByTimeAsync(60_000) })
+  expect(api.read).toHaveBeenCalledTimes(3); expect(api.run).not.toHaveBeenCalled()
 })
 it('retains saved evidence on refresh failure and clears the error after a successful retry', async () => {
   const hook = renderHook(() => useMarketIntelligence('BTC', true, 'first')); await flush()
@@ -52,7 +53,7 @@ it('refreshes after accepted imports and synthesis, preserving actual queued job
   await act(async () => { await hook.result.current.perform('import', input) })
   expect(api.importReport).toHaveBeenCalledWith(input); expect(hook.result.current.report?.job.state).toBe('queued')
   await act(async () => { await hook.result.current.perform('run', undefined, true) })
-  expect(api.run).toHaveBeenCalledWith(true); expect(hook.result.current.feedback?.state).toBe('success')
+  expect(api.run).toHaveBeenCalledWith('BTC', true); expect(hook.result.current.feedback?.state).toBe('success')
   const calls = api.read.mock.calls.length
   await act(async () => { await vi.advanceTimersByTimeAsync(5_000) })
   expect(api.read).toHaveBeenCalledTimes(calls + 1)
@@ -62,8 +63,32 @@ it('ignores delayed reads after switching assets and rejects an unexpected repor
   api.read.mockImplementationOnce(() => new Promise(value => { resolve = value }))
   const hook = renderHook(({ asset }) => useMarketIntelligence(asset, true, 'first'), { initialProps: { asset: 'BTC' as MonitorAsset } })
   hook.rerender({ asset: 'TSLA' }); await act(async () => { resolve(demoMarketIntelligence()) })
-  expect(hook.result.current.report).toBeNull()
+  expect(hook.result.current.report?.asset).toBe('TSLA')
   api.read.mockResolvedValueOnce({ ...demoMarketIntelligence(), asset: 'MSTR' })
   hook.rerender({ asset: 'BTC' }); await flush()
+  expect(hook.result.current.report).toBeNull(); expect(hook.result.current.error).toBe('Unexpected research asset')
+})
+
+it.each(['TSLA', 'MSTR'] as const)('runs native %s synthesis and refuses BTC-only research actions', async asset => {
+  const hook = renderHook(() => useMarketIntelligence(asset, true, 'first')); await flush()
+  await act(async () => { expect(await hook.result.current.perform('discover')).toBe(false) })
+  expect(api.discover).not.toHaveBeenCalled()
+  await act(async () => { expect(await hook.result.current.perform('run', undefined, true)).toBe(true) })
+  expect(api.run).toHaveBeenCalledWith(asset, true)
+  expect(hook.result.current.report?.asset).toBe(asset)
+})
+it('ignores a completed action after switching to another asset', async () => {
+  let resolve!: () => void
+  api.run.mockImplementationOnce(() => new Promise<void>(done => { resolve = done }))
+  const hook = renderHook(({ asset }) => useMarketIntelligence(asset, true, 'first'), { initialProps: { asset: 'TSLA' as MonitorAsset } }); await flush()
+  let pending!: Promise<boolean>
+  act(() => { pending = hook.result.current.perform('run', undefined, true) })
+  hook.rerender({ asset: 'MSTR' }); await flush()
+  await act(async () => { resolve(); await pending })
+  expect(hook.result.current.report?.asset).toBe('MSTR'); expect(hook.result.current.feedback).toBeNull()
+})
+it('rejects nested cross-asset publications even when the top-level asset matches', async () => {
+  const report = demoMarketIntelligence('TSLA'); report.investment.latest!.asset = 'MSTR'; api.read.mockResolvedValueOnce(report)
+  const hook = renderHook(() => useMarketIntelligence('TSLA', true, 'first')); await flush()
   expect(hook.result.current.report).toBeNull(); expect(hook.result.current.error).toBe('Unexpected research asset')
 })

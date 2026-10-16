@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { buildMarketIntelligence } from './intelligence-market.js'
-import { guardInvestmentDraft, intelligenceRecordHash, investmentInputHash } from './investment.js'
+import { evaluateInvestmentThesis, evidenceAvailability, guardInvestmentDraft, intelligenceRecordHash, investmentInputHash } from './investment.js'
 import { createHash } from 'node:crypto'
 import { INVESTMENT_ANALYSIS_VERSION } from './investment-types.js'
 import { createInvestmentService } from './investment-service.js'
@@ -24,7 +24,7 @@ function snapshot(date = at, close = 120): MarketMonitorSnapshot {
   return { id: `snapshot-${date.toISOString().slice(0, 10)}`, asset: 'BTC', capturedAt: date.toISOString(), trigger: 'manual', strategyId: evidenceChainV1Strategy.manifest.id, fingerprint: 'fixture', ...analysis,
     analysisBasis: { version: 2, closedBarsOnly: true, dailyAt: daily.at(-1)!.date, hourlyAt: intraday.at(-1)!.date }, sourceHealth, context: {}, chart: { daily, intraday, dailyMeta: { symbol: 'BTC-USD', from: daily[0]!.date, to: daily.at(-1)!.date, bars: daily.length, provider: 'coinbase' }, intradayMeta: { symbol: 'BTC-USD', from: intraday[0]!.date, to: intraday.at(-1)!.date, bars: intraday.length, provider: 'coinbase' } } }
 }
-function input(): InvestmentInput {
+function input(): InvestmentInput & { research: ResearchSnapshot } {
   const market = buildMarketIntelligence(snapshot(), at)
   const researchId = 'report:cost-basis'
   const claim = { text: '报告认为供应压力缓解，仍须等待需求确认。', evidenceIds: [researchId], inference: false }
@@ -32,7 +32,7 @@ function input(): InvestmentInput {
     sections: Object.fromEntries(RESEARCH_SECTION_KEYS.map(k => [k, [claim]])) as ResearchSnapshot['sections'], metrics: [], keyPriceLevels: [{ label: '成本线', price: 100, unit: 'USD', role: 'cost-basis', dataAsOf: '2026-10-12T00:00:00Z', evidenceIds: [researchId] }], bullishEvidence: [claim], bearishEvidence: [], uncertainties: [claim], limitations: [claim], weeklyChanges: [], recordHash: 'research-hash', evidence: [{ id: researchId, asset: 'BTC', sourceName: 'Glassnode', sourceUrl: 'https://research.glassnode.com/fixture/', metric: 'source-paragraph', value: 'Cost basis $100', unit: null, dataAsOf: '2026-10-12T00:00:00Z', publishedAt: '2026-10-13T10:00:00Z', retrievedAt: '2026-10-13T11:00:00Z', quality: 'available', reportId: 'report-1', kind: 'observation' }] }
   return { market, research }
 }
-function draft(i: InvestmentInput): InvestmentDraft {
+function draft(i: InvestmentInput & { research: ResearchSnapshot }): InvestmentDraft {
   const dailyId = i.market.evidence.find(e => e.metric === 'daily-close')!.id
   const trendId = i.market.evidence.find(e => e.metric === 'trend.medium')!.id
   const reportId = i.research.evidence[0]!.id
@@ -44,6 +44,14 @@ function draft(i: InvestmentInput): InvestmentDraft {
 }
 
 describe('investment intelligence evidence guards', () => {
+  it('rejects credential-like native draft content without echoing it', () => {
+    const i = input(), d = draft(i), marker = 'Bearer syntheticSensitiveMarkerForValidationOnly'
+    d.summary.text = marker
+    try { guardInvestmentDraft(i, d, at); throw new Error('accepted sensitive content') } catch (error) {
+      expect(String(error)).toContain('敏感内容')
+      expect(String(error)).not.toContain(marker)
+    }
+  })
   it('requires exact frozen feedback review without promoting inference into an independent observation', () => {
     const i = input(), d = draft(i)
     const ref = { ...i.market.evidence[0]!, id: 'feedback:quant', metric: 'research-feedback.quant', value: '样本不足，继续前向验证', unit: null, kind: 'inference' as const, reportId: null, sourceName: 'Auto Quant', dataAsOf: at.toISOString(), publishedAt: at.toISOString(), retrievedAt: at.toISOString() }
@@ -103,7 +111,7 @@ describe('investment intelligence evidence guards', () => {
     expect(market.missingData.join(' ')).toContain('ETF')
     expect(market.wyckoffHypothesis?.confirmed).toBe(false)
     expect(market.horizons.map(h => h.direction)).toEqual(['short', 'medium', 'long'].map(h => s.trend![h as 'short'].direction))
-    expect(() => buildMarketIntelligence({ ...s, asset: 'TSLA' }, at)).toThrow('BTC')
+    expect(buildMarketIntelligence({ ...s, asset: 'TSLA' }, at).asset).toBe('TSLA')
     expect(() => buildMarketIntelligence(s, new Date('2026-10-13'))).toThrow('时间')
   })
   it('rejects invented prices, nonexistent evidence and duplicate horizons', () => {
@@ -328,7 +336,7 @@ describe('investment immutable history and objective theses', () => {
       const first = await service.publish(initial, draft(initial), provenance)
       const oldId = initial.research.evidence[0]!.id
       clock = new Date('2026-10-15T12:00:00Z')
-      const current = JSON.parse(JSON.stringify(initial).replaceAll(oldId, 'report:cost-basis-2')) as InvestmentInput
+      const current = JSON.parse(JSON.stringify(initial).replaceAll(oldId, 'report:cost-basis-2')) as InvestmentInput & { research: ResearchSnapshot }
       current.market = buildMarketIntelligence(snapshot(clock), clock)
       current.market.evidence.find(e => e.metric === 'trend.medium')!.value = 'bullish'
       current.research.id = 'research-2'; current.research.reportId = 'report-2'
@@ -344,7 +352,7 @@ describe('investment immutable history and objective theses', () => {
       expect(second.snapshot.guardWarnings.join(' ')).not.toContain('方向调整，但引用指标值没有')
       expect((await service.report()).history.find(s => s.id === first.snapshot.id)!.changes).toEqual([])
       clock = new Date('2026-10-16T12:00:00Z')
-      const newParagraph = JSON.parse(JSON.stringify(current).replaceAll('report:cost-basis-2', 'report:cost-basis-3')) as InvestmentInput
+      const newParagraph = JSON.parse(JSON.stringify(current).replaceAll('report:cost-basis-2', 'report:cost-basis-3')) as InvestmentInput & { research: ResearchSnapshot }
       newParagraph.research.id = 'research-3'; newParagraph.research.recordHash = 'research-hash-3'
       const revised = draft(newParagraph); revised.outlooks[1]!.direction = 'bearish'
       const third = await service.publish(newParagraph, revised, provenance)
@@ -388,5 +396,86 @@ describe('investment immutable history and objective theses', () => {
       await expect(store.save('publications', { ...first.snapshot, recordHash: 'bad' })).rejects.toThrow('hash')
       await expect(store.read('publications', '../x')).rejects.toThrow('identity')
     } finally { await rm(root, { recursive: true, force: true }) }
+  })
+})
+
+
+describe('equity investment isolation and conservative synthesis', () => {
+  const equity = (asset: 'TSLA' | 'MSTR') => {
+    const original = input(), d = draft(original)
+    const market = structuredClone(original.market)
+    market.asset = asset
+    market.evidence.forEach(e => { e.asset = asset })
+    const daily = market.evidence.find(e => e.metric === 'daily-close')!
+    const oldReportId = original.research.evidence[0]!.id
+    const remapped = JSON.parse(JSON.stringify(d).replaceAll(oldReportId, daily.id)) as InvestmentDraft
+    remapped.priceMap.forEach(p => { p.price = market.price!; p.role = 'reference' })
+    remapped.theses.forEach(t => [...t.supportConditions, ...t.invalidationConditions].forEach(c => { c.threshold = market.price! }))
+    remapped.crossValidation = market.horizons.map(h => {
+      const ref = market.evidence.find(e => e.metric === `trend.${h.horizon}`)!
+      ref.value = 'bullish'; h.direction = 'bullish'
+      return { horizon: h.horizon, claim: { ...remapped.summary, evidenceIds: [ref.id, daily.id] }, marketEvidenceIds: [ref.id, daily.id], researchEvidenceIds: [], status: 'CONFIRMED', explanation: 'Price evidence only, no independent confirmation.' }
+    })
+    remapped.outlooks.forEach(o => { o.direction = 'bullish' })
+    return { i: { market, research: null } as InvestmentInput, d: remapped }
+  }
+  it.each(['TSLA', 'MSTR'] as const)('allows %s price evidence without inventing a BTC report or independent confirmation', asset => {
+    const { i, d } = equity(asset), guarded = guardInvestmentDraft(i, d, at)
+    expect(guarded.draft.crossValidation.every(r => r.status === 'PARTIALLY_CONFIRMED')).toBe(true)
+    expect(guarded.draft.outlooks.every(o => o.direction === 'conditional-bullish')).toBe(true)
+    expect(guarded.evidence.every(e => e.asset === asset)).toBe(true)
+    i.research = input().research
+    expect(() => guardInvestmentDraft(i, d, at)).toThrow('不匹配')
+  })
+  it('rejects cross-asset evidence and feedback and keeps stock publication identities separate', async () => {
+    const a = equity('TSLA'), b = equity('MSTR')
+    expect(investmentInputHash(a.i)).not.toBe(investmentInputHash(b.i))
+    a.i.market.evidence[0]!.asset = 'MSTR'
+    expect(() => guardInvestmentDraft(a.i, a.d, at)).toThrow('跨标的')
+    a.i.market.evidence[0]!.asset = 'TSLA'
+    a.i.researchFeedback = { protocol: 'equity-research-loop-v1', asset: 'MSTR', hash: 'a'.repeat(64), asOf: at.toISOString(), records: [], jev: null, evidence: [] }
+    expect(() => guardInvestmentDraft(a.i, a.d, at)).toThrow('来源或时序')
+    delete a.i.researchFeedback
+    const root = await mkdtemp(join(tmpdir(), 'equity-investment-'))
+    try {
+      const service = createInvestmentService({ asset: 'TSLA', root, now: () => at })
+      const result = await service.publish(a.i, a.d, provenance)
+      expect(result.snapshot).toMatchObject({ asset: 'TSLA', analysisVersion: 'investment-intelligence-equity-v1', researchSnapshotId: null })
+      await expect(service.publish(b.i, b.d, provenance)).rejects.toThrow('不匹配')
+      await expect(service.revalidate(b.i.market)).rejects.toThrow()
+      expect((await service.report()).latest?.asset).toBe('TSLA')
+    } finally { await rm(root, { recursive: true, force: true }) }
+  })
+  it('cannot turn an equity market capitalization into a price threshold', () => {
+    const { i, d } = equity('TSLA')
+    i.market.evidence.push({ ...i.market.evidence[0]!, id: 'market-cap', metric: 'equity.market-cap', value: 100000000, unit: 'USD' })
+    d.priceMap[0] = { label: d.priceMap[0]!.label, price: 100000000, unit: 'USD', role: 'support', evidenceIds: ['market-cap'] }
+    expect(() => guardInvestmentDraft(i, d, at)).toThrow('真实数值')
+  })
+  it('requires a genuinely later completed equity session for thesis checks', async () => {
+    const { i, d } = equity('TSLA'), root = await mkdtemp(join(tmpdir(), 'equity-thesis-'))
+    try {
+      const service = createInvestmentService({ asset: 'TSLA', root, now: () => at })
+      await service.publish(i, d, provenance)
+      const thesis = (await service.report()).theses[0]!
+      thesis.createdAt = '2026-10-14T23:00:00Z'
+      thesis.expiresAt = '2026-10-21T23:00:00Z'
+      const market = structuredClone(i.market), daily = market.evidence.find(e => e.metric === 'daily-close')!
+      Object.assign(daily, { dataAsOf: '2026-10-14T00:00:00Z', retrievedAt: '2026-10-14T23:30:00Z', value: 121 })
+      const same = evaluateInvestmentThesis(thesis, market, null, new Date('2026-10-14T23:30:00Z'))
+      expect(same.rows.every(r => r.result === 'unknown')).toBe(true)
+      Object.assign(daily, { dataAsOf: '2026-10-15T00:00:00Z', retrievedAt: '2026-10-15T23:30:00Z' })
+      const next = evaluateInvestmentThesis(thesis, market, same, new Date('2026-10-15T23:30:00Z'))
+      expect(next.status).toBe('STRENGTHENING')
+      expect(next.rows.some(r => r.kind === 'support' && r.result === 'met')).toBe(true)
+    } finally { await rm(root, { recursive: true, force: true }) }
+  })
+  it('uses exchange-aware bar freshness on weekends while event context still expires after 24 hours', () => {
+    const { i } = equity('TSLA'), ref = i.market.evidence.find(e => e.metric === 'daily-close')!
+    const friday = '2026-10-16T00:00:00Z', sunday = new Date('2026-10-18T18:00:00Z')
+    Object.assign(ref, { dataAsOf: friday, retrievedAt: '2026-10-16T21:00:00Z', quality: 'available' })
+    expect(evidenceAvailability(ref, sunday)).toBe('available')
+    expect(evidenceAvailability({ ...ref, metric: 'equity.next-earnings' }, sunday)).toBe('outdated')
+    expect(evidenceAvailability(ref, new Date('2026-10-22T18:00:00Z'))).toBe('outdated')
   })
 })

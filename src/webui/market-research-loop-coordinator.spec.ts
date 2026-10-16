@@ -3,12 +3,12 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { readAutoPredictionPreferences, readAutoQuantPreferences } from '../core/preferences.js'
-import { RESEARCH_LOOP_ISSUES, type ResearchRole } from '../domain/market-monitor/research-loop-types.js'
+import { RESEARCH_LOOP_ISSUES, researchLoopIssueIds, type ResearchRole } from '../domain/market-monitor/research-loop-types.js'
 import { readWorkspaceIssues } from '../workspaces/issues/declaration.js'
 import { updateIssueFields } from '../workspaces/issues/mutate.js'
 import type { IssueDetail, IssueRunRecord } from '../workspaces/issues/board.js'
 import type { WorkspaceService } from '../workspaces/service.js'
-import { createMarketResearchLoopCoordinator, RESEARCH_LOOP_PROMPTS } from './market-research-loop-coordinator.js'
+import { createMarketResearchLoopCoordinator, RESEARCH_LOOP_PROMPTS, researchLoopPrompts } from './market-research-loop-coordinator.js'
 
 vi.mock('../core/preferences.js', () => ({
   readAutoPredictionPreferences: vi.fn(), readAutoQuantPreferences: vi.fn(),
@@ -29,22 +29,23 @@ async function fixture() {
     quant: { id: 'quant', tag: 'Quant', dir: join(dir, 'quant'), template: 'auto-quant-v2', createdAt: '2026-10-15T00:00:00Z' },
   }
   const runs: Partial<Record<ResearchRole, IssueRunRecord[]>> = {}
+  const assetRuns = new Map<string, IssueRunRecord[]>()
   const issueDetail = vi.fn(async (ws: string, id: string): Promise<IssueDetail | null> => {
     const workspace = workspaces[ws as ResearchRole]
     if (!workspace) return null
     const read = await readWorkspaceIssues(workspace.dir)
     const issue = read.ok && read.issues.find(row => row.id === id)
-    return issue ? { issue, runs: runs[ws as ResearchRole] ?? [], comments: [], inboxReports: [], provenance: [], activity: [] } : null
+    return issue ? { issue, runs: assetRuns.get(id) ?? runs[ws as ResearchRole] ?? [], comments: [], inboxReports: [], provenance: [], activity: [] } : null
   })
   const runIssueNow = vi.fn(async (ws: string, id: string) => {
-    runs[ws as ResearchRole] = [task(ws as ResearchRole)]
+    assetRuns.set(id, [task(ws as ResearchRole, { issueId: id })])
     return (await issueDetail(ws, id))!
   })
   const service = {
     registry: { get: (id: string) => workspaces[id as ResearchRole], list: () => Object.values(workspaces) },
     runIssueNow, issueDetail, resolveOrCreateChatWorkspace: vi.fn(), createWorkspace: vi.fn(),
   } as unknown as WorkspaceService
-  return { dir, service, workspaces, runs, issueDetail, runIssueNow }
+  return { dir, service, workspaces, runs, assetRuns, issueDetail, runIssueNow }
 }
 function task(role: ResearchRole, patch: Partial<IssueRunRecord> = {}): IssueRunRecord {
   return { taskId: `run-${role}`, resumeId: `resume-${role}`, wsId: role, issueId: RESEARCH_LOOP_ISSUES[role], agent: 'codex', prompt: RESEARCH_LOOP_PROMPTS[role], status: 'running', startedAt: Date.parse('2026-10-15T15:00:00Z'), resumable: true, ...patch }
@@ -161,5 +162,68 @@ describe('BTC native research Issue coordinator', () => {
     expect(RESEARCH_LOOP_PROMPTS.quant).toContain('重复和重叠窗口')
     expect(RESEARCH_LOOP_PROMPTS.quant).toContain('archive-audit')
     expect(RESEARCH_LOOP_PROMPTS.quant).toContain('不是 Core backtest')
+  })
+})
+
+
+describe('equity native research Issue coordination', () => {
+  it('keeps all six AP/AQ Issues isolated while retaining the BTC cadence and prompts', async () => {
+    const { service, workspaces } = await fixture()
+    for (const asset of ['BTC', 'TSLA', 'MSTR'] as const) {
+      const coordinator = createMarketResearchLoopCoordinator(service, asset)
+      await Promise.all([coordinator.ensure(), coordinator.ensure()])
+      await coordinator.ensure()
+    }
+    for (const role of ['prediction', 'quant'] as const) {
+      const read = await readWorkspaceIssues(workspaces[role].dir)
+      expect(read.ok && read.issues).toHaveLength(3)
+      for (const asset of ['BTC', 'TSLA', 'MSTR'] as const) {
+        const issue = read.ok && read.issues.find(row => row.id === researchLoopIssueIds(asset)[role])
+        expect(issue).toMatchObject({ id: researchLoopIssueIds(asset)[role], title: `${asset} ${role === 'prediction' ? '事件与反证研究' : '判断与验证复盘'}`, what: researchLoopPrompts(asset)[role], assignee: '@new-each-run', timeout: '15m', status: 'in_progress',
+          when: asset === 'BTC'
+            ? { kind: 'cron', cron: role === 'prediction' ? '0 8 * * *' : '5 8 * * *', timezone: 'America/Vancouver', catchUp: true }
+            : { kind: 'cron', cron: role === 'prediction' ? `${asset === 'TSLA' ? '20' : '40'} 16 * * 1-5` : `${asset === 'TSLA' ? '25' : '45'} 16 * * 1-5`, timezone: 'America/New_York', catchUp: true },
+        })
+        for (const field of ['agent', 'model', 'effort', 'credential', 'credentialSource']) expect(issue).not.toHaveProperty(field)
+      }
+    }
+    expect(researchLoopPrompts('BTC')).toBe(RESEARCH_LOOP_PROMPTS)
+    expect(service.resolveOrCreateChatWorkspace).not.toHaveBeenCalled()
+  })
+
+  it('does not let a closed or running stock Issue block or substitute the other stock', async () => {
+    const { service, workspaces, assetRuns, runIssueNow } = await fixture()
+    const tsla = createMarketResearchLoopCoordinator(service, 'TSLA'), mstr = createMarketResearchLoopCoordinator(service, 'MSTR')
+    await tsla.ensure(); await mstr.ensure()
+    await updateIssueFields(workspaces.prediction.dir, researchLoopIssueIds('TSLA').prediction, { status: 'canceled', what: 'old TSLA prompt', agent: 'claude', timeout: '45m' })
+    assetRuns.set(researchLoopIssueIds('TSLA').quant, [task('quant', { issueId: researchLoopIssueIds('TSLA').quant, taskId: 'active-tsla-quant' })])
+    expect((await tsla.run('prediction')).state).toBe('blocked')
+    expect((await tsla.run('quant')).runId).toBe('active-tsla-quant')
+    expect(runIssueNow).not.toHaveBeenCalled()
+    expect((await mstr.run('prediction')).state).toBe('running')
+    expect((await mstr.run('quant')).state).toBe('running')
+    expect(runIssueNow.mock.calls).toEqual([['prediction', researchLoopIssueIds('MSTR').prediction], ['quant', researchLoopIssueIds('MSTR').quant]])
+    const read = await readWorkspaceIssues(workspaces.prediction.dir)
+    expect(read.ok && read.issues.find(row => row.id === researchLoopIssueIds('TSLA').prediction)).toMatchObject({ what: researchLoopPrompts('TSLA').prediction, status: 'canceled', agent: 'claude', timeout: '45m' })
+  })
+
+  it.each(['TSLA', 'MSTR'] as const)('requires the explicit desk selection for %s instead of guessing a workspace', async asset => {
+    const { service, runIssueNow } = await fixture(), coordinator = createMarketResearchLoopCoordinator(service, asset)
+    vi.mocked(readAutoPredictionPreferences).mockResolvedValue({ defaultWorkspaceId: null })
+    vi.mocked(readAutoQuantPreferences).mockResolvedValue({ defaultWorkspaceId: null })
+    expect((await coordinator.run('prediction')).state).toBe('blocked')
+    expect((await coordinator.run('quant')).state).toBe('blocked')
+    expect(runIssueNow).not.toHaveBeenCalled()
+    expect(service.resolveOrCreateChatWorkspace).not.toHaveBeenCalled()
+  })
+
+  it.each(['TSLA', 'MSTR'] as const)('uses frozen %s evidence and trading-session windows without fabricated company data', asset => {
+    for (const [role, text] of Object.entries(researchLoopPrompts(asset))) {
+      for (const part of [`${asset} 研究闭环 equity-research-loop-v1`, `本任务角色是 ${role}`, `本次标的仅为 ${asset}`, 'alice intelligence input', 'alice intelligence publish-research --inputId <input.id> --feedback <JSON对象>', '未来 1、5、20 个交易日', 'observationWindow', 'SEC 元数据只证明披露事件和日期', '不访问账户或资产', '不读取、输出或记录凭据', '不能补造缺失资料']) expect(text).toContain(part)
+      expect(text).not.toContain('BTC 研究闭环 btc-research-loop-v1')
+      if (asset === 'MSTR') expect(text).toContain('不用 BTC 涨跌代替 MSTR')
+    }
+    expect(researchLoopPrompts(asset).quant).toContain('archive-audit')
+    expect(researchLoopPrompts(asset).quant).toContain('不能跨标的、跨收益期限排名')
   })
 })
