@@ -12,7 +12,7 @@ export const forwardEn = {
   effective: 'Guarded output, not a calibrated win probability.', raw: 'Raw Jev output · experimental, not a calibrated win probability',
   rawChoice: 'Raw model choice: {{choice}}', issued: 'Recorded {{time}}', days: '{{count}} days', sessions: '{{count}} sessions',
   reason: {
-    'evidence-insufficient': 'The model reports insufficient evidence.', 'signal-uncertain': 'Direction is uncertain; it is not relabeled as flat.',
+    'evidence-insufficient': 'The model reports insufficient evidence.', 'signal-uncertain': 'Jev’s separate signal answer remains uncertain; its raw choice is retained, but direction is withheld.',
     'history-insufficient': 'Too few historical windows to support this model choice.', 'flat-inflated': 'The flat estimate departs too far from observed frequency; direction is withheld.',
     'answer-invalid': 'The model answer could not be verified.',
   },
@@ -48,7 +48,7 @@ export const forwardZh: typeof forwardEn = {
   historicalRaw: '历史 Jev 原始输出 · 实验数据，不是已校准胜率',
   up: '看涨', down: '看跌', flat: '平盘（±0.25%）', effective: '经过预设检查的输出，尚非已校准胜率。', raw: 'Jev 原始输出 · 实验数据，不是已校准胜率',
   rawChoice: '模型原始选择：{{choice}}', issued: '记录于 {{time}}', days: '{{count}} 天', sessions: '{{count}} 个交易日',
-  reason: { 'evidence-insufficient': '模型认为证据不足。', 'signal-uncertain': '方向不确定，保持暂不判断，不再归作平盘。', 'history-insufficient': '历史窗口不足，暂不采用这项模型判断。', 'flat-inflated': '平盘估计偏离历史频率过大，暂不采用该判断。', 'answer-invalid': '模型答案未通过核验。' },
+  reason: { 'evidence-insufficient': '模型认为证据不足。', 'signal-uncertain': 'Jev模型的独立信号回答仍拿不准；保留原始选择，方向暂不采用。', 'history-insufficient': '历史窗口不足，暂不采用这项模型判断。', 'flat-inflated': '平盘估计偏离历史频率过大，暂不采用该判断。', 'answer-invalid': '模型答案未通过核验。' },
   accepted: '模型选择通过预设检查；预测价值仍待后续验证。',
   scoring: '只用冻结判断之后的行情评分；先保留每个结果窗口的首次判断，再分版本统计。模型缺失与主动暂不判断分开报告。',
   methods: { rules: '规则', jev: '新版 Jev', combined: '综合判断', frequency: '历史频率', alwaysUp: '始终看涨' },

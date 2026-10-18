@@ -97,3 +97,8 @@ it('rejects an attached native-forward report for another asset without retainin
   const hook = renderHook(() => useMarketIntelligence('TSLA', true, 'first')); await flush()
   expect(hook.result.current.report).toBeNull(); expect(hook.result.current.error).toBe('Unexpected research asset')
 })
+it('rejects an attached explanation for another asset without retaining it as current', async () => {
+  const report = demoMarketIntelligence('TSLA'); report.investment.explanation!.asset = 'MSTR'; api.read.mockResolvedValueOnce(report)
+  const hook = renderHook(() => useMarketIntelligence('TSLA', true, 'first')); await flush()
+  expect(hook.result.current.report).toBeNull(); expect(hook.result.current.error).toBe('Unexpected research asset')
+})

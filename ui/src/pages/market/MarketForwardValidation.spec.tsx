@@ -13,7 +13,7 @@ it('leads with guarded abstention and hides raw percentages and scoring until re
   render(<MarketForwardJevView report={report} loading={false} error={null} collecting={false} {...actions} />)
   expect(screen.getAllByText('暂不判断')).toHaveLength(2)
   expect(screen.getByText('平盘估计偏离历史频率过大，暂不采用该判断。')).toBeTruthy()
-  expect(screen.getByText('方向不确定，保持暂不判断，不再归作平盘。')).toBeTruthy()
+  expect(screen.getByText('Jev模型的独立信号回答仍拿不准；保留原始选择，方向暂不采用。')).toBeTruthy()
   expect(screen.queryByText(/\d+\.\d%/)).toBeNull()
   const raw = screen.getByRole('button', { name: 'Jev 原始输出 · 实验数据，不是已校准胜率' })
   expect(raw.getAttribute('aria-expanded')).toBe('false')

@@ -1,3 +1,4 @@
+import { marketExplanationHant } from './market-explanation'
 import { nativeForwardZh } from './native-forward'
 import { researchLoopZh } from './research-loop'
 import { forwardZh } from './forecast-validation'
@@ -19,10 +20,11 @@ import { zh } from './zh'
  * Content is UI chrome only — no geographic or other non-technical terms.
  */
 export const zhHant: Resources = {
+  marketExplanation: marketExplanationHant,
   researchLoop: researchLoopZh,
-  forward: forwardZh,
+  forward: { ...forwardZh, reason: { ...forwardZh.reason, 'signal-uncertain': 'Jev模型的獨立訊號回答仍拿不準；保留原始選擇，暫不採用方向。' } },
   nativeForward: nativeForwardZh,
-  intelligence: intelligenceZh,
+  intelligence: { ...intelligenceZh, directions: { bullish: '偏多', bearish: '偏空', neutral: '中性', 'conditional-bullish': '有條件偏多', 'conditional-bearish': '有條件偏空', uncertain: '暫不判斷' } },
   accuracy: accuracyZh,
   thesis: thesisZh,
   judgment: judgmentZh,

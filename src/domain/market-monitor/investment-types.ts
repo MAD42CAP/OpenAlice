@@ -70,9 +70,26 @@ export interface InvestmentThesisEvaluation {
   reason: string; rows: Array<{ kind: 'support' | 'invalidate' | 'resolve'; condition: InvestmentCondition; value: number | null; result: 'met' | 'not-met' | 'unknown'; evidence: EvidenceReference | null }>
   evidence: EvidenceReference[]; recordHash: string
 }
+/** Read-time explanation only. Never persisted into a forecast or used for scoring. */
+export type InvestmentExplanationReasonCode = 'data-unavailable' | 'data-outdated' | 'evidence-unverified'
+  | 'same-horizon-conflict' | 'independent-confirmation-missing' | 'model-uncertain'
+  | 'conditions-missing' | 'conditions-outdated' | 'conditions-unavailable' | 'earnings-calendar-unverified' | 'earnings-risk-window'
+  | 'hourly-evidence-unavailable' | 'cross-validation-missing' | 'range-unverified' | 'explanation-unavailable'
+export interface InvestmentExplanation {
+  protocol: 'investment-explanation-v1'; asset: MarketMonitorAsset; snapshotId: string; marketSnapshotId: string; analysisTime: string
+  inputStatus: 'verified' | 'unavailable' | 'invalid' | 'read-error'
+  outlooks: Array<{
+    horizon: TrendHorizon; direction: InvestmentDirection; rawDirection: InvestmentDirection | null
+    /** The original technical structure, not a new return forecast. */
+    marketDirection: TrendDirection | null
+    primaryReason: InvestmentExplanationReasonCode | null
+    reasons: Array<{ code: InvestmentExplanationReasonCode; evidenceIds: string[] }>
+  }>
+}
 export interface InvestmentReport {
   schemaVersion: 1; generatedAt: string; asOf: string | null; latest: InvestmentSnapshot | null; history: InvestmentSnapshot[]
   theses: Array<InvestmentThesis & { status: InvestmentThesisStatus; latestEvaluation: InvestmentThesisEvaluation | null }>; evaluations: InvestmentThesisEvaluation[]
   quality: { total: number; active: number; resolved: number; invalidated: number; expired: number; unresolved: number; conditionDefined: number; stateChanges: number; meanDurationDays: number | null; directionalAccuracy: null; note: string }
   nativeForward?: NativeForwardReport
+  explanation?: InvestmentExplanation | null
 }

@@ -1,3 +1,4 @@
+import { marketExplanationJa } from './market-explanation'
 import { nativeForwardEn } from './native-forward'
 import { researchLoopEn } from './research-loop'
 import { forwardEn } from './forecast-validation'
@@ -10,10 +11,11 @@ import { en, type Resources } from './en'
 
 /** 日本語. Typed as `Resources` → must match en's key structure exactly. */
 export const ja: Resources = {
+  marketExplanation: marketExplanationJa,
   researchLoop: researchLoopEn,
-  forward: forwardEn,
+  forward: { ...forwardEn, reason: { ...forwardEn.reason, 'signal-uncertain': 'Jev独自のシグナル回答が不確実なため、元の選択を記録したまま方向判断を保留しています。' } },
   nativeForward: nativeForwardEn,
-  intelligence: intelligenceEn,
+  intelligence: { ...intelligenceEn, directions: { bullish: '強気', bearish: '弱気', neutral: '中立', 'conditional-bullish': '条件付き強気', 'conditional-bearish': '条件付き弱気', uncertain: '判断を保留' } },
   accuracy: accuracyEn,
   thesis: thesisEn,
   judgment: judgmentEn,

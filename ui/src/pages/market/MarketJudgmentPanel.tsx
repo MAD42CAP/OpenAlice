@@ -5,10 +5,10 @@ import type { MarketJudgmentReport } from '../../api/market-judgment'
 import { useMarketJudgment } from '../../hooks/useMarketJudgment'
 import { Button } from '../../components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../components/ui/collapsible'
-import { cn } from '../../lib/utils'
 import { formatMonitorDate } from './market-monitor-format'
 import { monitorTrendDirectionLabel, monitorWyckoffCondition, monitorWyckoffPhaseLabel } from './market-monitor-presentation'
 import type { WyckoffPhaseCandidate } from '../../api/market-monitor'
+import { MarketStateSentence } from './MarketStateSentence'
 
 export function MarketJudgmentPanel(props: { asset: MonitorAsset; strategyId: string; visible: boolean; revisionKey: string }) {
   const model = useMarketJudgment(props.asset, props.strategyId, props.visible, props.revisionKey)
@@ -22,6 +22,7 @@ export function MarketJudgmentView({ report, loading, error, refresh }: { report
   const [detailsOpen, setDetailsOpen] = useState(false)
   const current = report?.horizons[horizon]
   const additionalRisks = current?.risks.filter(r => r !== current.reasons[0]) ?? []
+  const urgentReason = current?.reasons[0] && ['daily-missing', 'hourly-missing', 'calendar-unknown', 'earnings-near', 'latest-scan-failed', 'hourly-policy-unverified'].includes(current.reasons[0]) ? current.reasons[0] : null
   const condition = (ids: string[]) => ids.slice(0, 2).map(id => monitorWyckoffCondition(t, id)).join(' ')
   const direction = error ? 'insufficient' : current?.decision === 'abstain' ? 'unclear' : current?.direction
   const directionLabel = (item: MarketJudgmentReport['horizons']['short']) => error ? t('judgment.insufficient') : item.decision === 'abstain' ? t('forward.judgmentAbstain') : item.decision === 'conditional' && (item.direction === 'bullish' || item.direction === 'bearish') ? t(item.direction === 'bullish' ? 'forward.conditionalBullish' : 'forward.conditionalBearish') : t(`judgment.${item.direction}`)
@@ -34,8 +35,8 @@ export function MarketJudgmentView({ report, loading, error, refresh }: { report
     {!report && !error && <p role="status" className="mt-4 text-sm text-muted-foreground">{t(loading ? 'judgment.loading' : 'judgment.empty')}</p>}
     {report && current && <>
       <div aria-live="polite" className="mt-2">
-        <p className={cn('text-2xl font-semibold', direction === 'bullish' ? 'text-success' : direction === 'bearish' ? 'text-destructive' : 'text-foreground')}>{directionLabel(current)}</p>
-        <p className="mt-1 text-sm leading-5">{error ? t('judgment.stale') : t(`judgment.reason.${current.reasons[0] ?? 'rules-mixed'}`)}</p>
+        <MarketStateSentence report={report} horizon={horizon} error={error} />
+        {error ? <p className="mt-1 text-xs leading-5 text-warning">{t('judgment.stale')}</p> : urgentReason && <p className="mt-1 text-xs leading-5 text-warning">{t(`judgment.reason.${urgentReason}`)}</p>}
       </div>
       <div role="group" aria-label={t('judgment.horizon')} className="mt-2 grid grid-cols-3 gap-2">
         {(['short', 'medium', 'long'] as const).map(h => <Button key={h} variant={horizon === h ? 'secondary' : 'outline'} className="h-auto min-w-0 flex-col items-start gap-1 whitespace-normal py-2" aria-pressed={horizon === h} aria-describedby={`${horizonDescription}-${h}`} aria-label={t(report.asset === 'BTC' ? 'judgment.days' : 'judgment.sessions', { count: report.horizons[h].sessions })} onClick={() => setHorizon(h)}>
@@ -49,6 +50,8 @@ export function MarketJudgmentView({ report, loading, error, refresh }: { report
       <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen} className="mt-2 border-t border-border pt-1">
         <CollapsibleTrigger className="cursor-pointer py-1 text-xs font-medium">{t('judgment.explain')}</CollapsibleTrigger>
         <CollapsibleContent>{detailsOpen && <>
+          <p className="mt-2 text-xs text-muted-foreground">{t('marketExplanation.technicalOnly')}</p>
+          <p className="mt-1 text-sm leading-5">{error ? t('judgment.stale') : t(`judgment.reason.${current.reasons[0] ?? 'rules-mixed'}`)}</p>
           <p className="mt-3 text-xs text-muted-foreground">{t(`judgment.agreement.${error ? 'limited' : current.agreement}`)}</p>
           <div className="mt-4 grid gap-3 border-t border-border pt-4 sm:grid-cols-2">
             <div><h3 className="text-xs font-semibold">{t('judgment.confirm')}</h3><p className="mt-1 text-sm leading-6">{direction === 'insufficient' ? t('judgment.rescan') : condition(report.structure.confirmation) || t('judgment.noLevels')}</p></div>

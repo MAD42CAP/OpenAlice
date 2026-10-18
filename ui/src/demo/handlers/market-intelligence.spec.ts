@@ -32,3 +32,19 @@ it.each(['TSLA', 'MSTR'])('serves %s native synthesis without fabricating Glassn
 it('rejects unsupported assets instead of returning a BTC archive', async () => {
   expect((await fetch(`${window.location.origin}/api/market-monitor/intelligence?asset=ETH`)).status).toBe(400)
 })
+it('binds illustrative causes to their publications and preserves raw versus effective choices', async () => {
+  const causes = new Set<string>()
+  for (const asset of ['BTC', 'TSLA', 'MSTR']) {
+    const response = await fetch(`${window.location.origin}/api/market-monitor/intelligence?asset=${asset}`)
+    const report = await response.json(), snapshot = report.investment.latest, explanation = report.investment.explanation
+    expect(explanation).toMatchObject({ protocol: 'investment-explanation-v1', asset, snapshotId: snapshot.id, marketSnapshotId: snapshot.marketSnapshotId, analysisTime: snapshot.analysisTime, inputStatus: 'verified' })
+    for (const row of explanation.outlooks) {
+      expect(row.direction).toBe(snapshot.outlooks.find((value: { horizon: string }) => value.horizon === row.horizon).direction)
+      expect(row.rawDirection).toBe(snapshot.rawDraft.outlooks.find((value: { horizon: string }) => value.horizon === row.horizon).direction)
+      causes.add(row.primaryReason)
+    }
+    if (asset === 'BTC') expect(explanation.outlooks[1]).toMatchObject({ direction: 'uncertain', rawDirection: 'neutral', primaryReason: 'same-horizon-conflict' })
+    if (asset === 'MSTR') expect(explanation.outlooks[2]).toMatchObject({ direction: 'uncertain', rawDirection: 'uncertain', primaryReason: 'model-uncertain' })
+  }
+  expect([...causes]).toEqual(expect.arrayContaining(['data-unavailable', 'same-horizon-conflict', 'independent-confirmation-missing', 'model-uncertain']))
+})

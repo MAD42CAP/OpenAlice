@@ -6,6 +6,51 @@ No integration, merge or release is authorized.
 
 Related issues: none.
 
+## October 18 clear market state and reasons for withholding a prediction
+
+Status: implemented and verified in an isolated checkout from `6318bc47`; only the owned
+feature branch is a delivery target. Existing CLI/narrator edits remain owner
+changes. The first-short-outcome observation continues with its existing
+schedule, immutable predictions and fixed outcome contracts.
+
+The owner explicitly requested four distinct explanations: unavailable data,
+conflicting signals, missing independent confirmation and model uncertainty.
+Selected interaction: reuse the existing result-first surface and intelligence
+read. Give one concise, attributed market-state sentence and its main reason;
+keep detailed reasons and the original AI publication behind existing closed
+disclosures. No additional dashboard panel, poll or model request is introduced.
+Technical market observations are separate from AI forecast directions. A
+conditional direction remains conditional; current and historical snapshots,
+assets and analysis times must never be silently combined. On narrow layouts,
+allow the existing text to wrap without reducing font size or adding a table.
+
+The explanation is an additive read-time companion bound to the exact published
+snapshot. It must not mutate stored summaries, raw proposals, guard warnings,
+hashes, analysis versions, thresholds, native/forward inputs or score contracts.
+Prefer structured evidence and original analysis time; unknown provenance must
+stay unknown. Product coverage marked partial is not a failed candle request.
+More specific event-risk or missing-boundary reasons remain explicit rather
+than being mislabeled as a model decision or missing independent confirmation.
+
+- [x] Add a reliable, read-only per-horizon explanation with a main reason and
+  inspectable contributing factors, preserving original publication bytes.
+- [x] Render concise current market state and reason, replacing the generic
+  uncertain label; protect historical, wrong-asset, stale and missing data.
+- [x] Update all locales, illustrative cases and meaningful regression coverage.
+- [x] Complete owner/root/UI checks, real and demo browser acceptance and
+  immutable-record verification before syncing the held owned feature branch.
+
+2026-10-18 acceptance: the full frozen-source suite passes 893 files / 8,142
+tests, with four existing skips; root and UI typechecks pass. Demo browser
+acceptance covers all four causes, asset switching, historical selection and
+keyboard disclosure controls. The updated real API verifies exact original
+input/publication bindings for all three assets: BTC retains model uncertainty
+and contributing same-horizon conflicts, TSLA short retains its earnings risk,
+and MSTR long retains conditional bearishness with missing independent
+confirmation. All 4,081 original input/forecast/publication files retain their
+hashes. The original forward-observation automation remains active; the first
+native short outcomes are still pending, not an accuracy result.
+
 ## October 17 native forward validation and judgment follow-up
 
 Status: implemented from an isolated checkout at `0664af9a` and running on the

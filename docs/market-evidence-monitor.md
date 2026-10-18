@@ -1668,3 +1668,39 @@ invalid or unverified session coverage withholds the medium call rather than
 inventing a bearish vote. BTC analysis and the equity short/long rules retain
 their previous numerical behavior. The version and policy enter new semantic
 identity and forward cohorts; earlier records and their replay remain unchanged.
+
+## Market state and reasons for withholding a forecast
+
+The result-first judgment card distinguishes the current technical market state
+from a published native AI forecast. Its short sentence names the main reason
+for withholding direction; the original model wording and contributing factors
+remain in the existing closed analysis disclosure. A market-state observation
+is not a probability of future returns, and a conditional direction retains its
+confirmation and invalidation boundaries.
+
+`InvestmentReport.explanation` is an additive read-time companion. It binds to
+the exact investment publication, asset, original market snapshot and analysis
+time. Only verified frozen inputs may support an evidence diagnosis. Unavailable
+or invalid original inputs produce an explicit unknown explanation rather than
+an invented cause. Current evidence, product-wide partial coverage and the
+current clock must not retroactively change an old publication's reasons.
+
+Unavailable or outdated evidence, conflicting evidence, missing independent
+confirmation and an originally uncertain model answer have distinct codes.
+Nearby earnings, an unverified calendar, insufficient hourly samples and missing
+decision boundaries remain specific restrictions. Several factors can coexist.
+When the original model already withheld direction, a generic evidence guard
+is not described as having caused that original abstention. These explanations
+do not change forecast gates, numerical rules, stored summaries, raw answers,
+versions, historical hashes or forward scores. The ongoing BTC/TSLA/MSTR
+prospective observation continues on its original schedule and outcome windows.
+
+2026-10-18 acceptance: real reads verify frozen-input explanations for BTC,
+TSLA and MSTR. Healthy BTC candles are not described as missing data; TSLA's
+short earnings restriction remains explicit; MSTR's conditional bearish long
+view retains its independent-confirmation limitation. The real and demo routes
+retain closed evidence details, and older AI views keep their original time
+and cause alongside separately attributed current technical observations.
+The full suite passes 893 files / 8,142 tests (four existing skips), both
+typechecks pass, and 4,081 existing public input/forecast/publication files
+remain byte-identical. Prospective outcomes are still pending.

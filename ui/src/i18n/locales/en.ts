@@ -1,3 +1,4 @@
+import { marketExplanationEn } from './market-explanation'
 import { nativeForwardEn } from './native-forward'
 import { researchLoopEn } from './research-loop'
 import { forwardEn } from './forecast-validation'
@@ -21,6 +22,7 @@ import { typeSafeEn } from './typesafe'
  */
 
 export const en = {
+  marketExplanation: marketExplanationEn,
   researchLoop: researchLoopEn,
   forward: forwardEn,
   nativeForward: nativeForwardEn,

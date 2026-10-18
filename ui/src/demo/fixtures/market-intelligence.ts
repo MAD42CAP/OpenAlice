@@ -3,6 +3,7 @@ import type { MarketIntelligenceReport } from '../../api/market-intelligence'
 import { INVESTMENT_ANALYSIS_VERSION, RESEARCH_ANALYSIS_VERSION, RESEARCH_SECTION_KEYS, type EvidenceReference, type IntelligenceClaim, type InvestmentSnapshot, type ResearchSnapshot } from '../../api/market-intelligence-types'
 import { demoResearchLoop } from './research-loop'
 import { demoNativeForward } from './native-forward'
+import { demoInvestmentExplanation } from './investment-explanation'
 
 /** Entirely invented, visibly illustrative research. No Glassnode article text is included. */
 export function demoMarketIntelligence(asset: MonitorAsset = 'BTC'): MarketIntelligenceReport {
@@ -42,16 +43,20 @@ export function demoMarketIntelligence(asset: MonitorAsset = 'BTC'): MarketIntel
     outlook.confirmation = [claim(`未来新完成日线收盘${bearish ? '低于' : '高于'} $${confirmationRef.value}。`, [confirmationRef.id])]
     outlook.invalidation = [claim(`未来新完成日线收盘${bearish ? '高于' : '低于'} $${invalidationRef.value}。`, [invalidationRef.id])]
   }
-  investment.rawDraft = { summary: investment.summary, crossValidation: investment.crossValidation, outlooks: investment.outlooks, scenarios: investment.scenarios, priceMap: investment.priceMap, theses: [], limitations: investment.limitations }
+  investment.rawDraft = { summary: investment.summary, crossValidation: investment.crossValidation, outlooks: structuredClone(investment.outlooks), scenarios: investment.scenarios, priceMap: investment.priceMap, theses: [], limitations: investment.limitations }
+  // The illustrative conflict withholds the effective medium-term direction;
+  // the original neutral model answer remains separately inspectable.
+  investment.outlooks = investment.outlooks.map(row => row.horizon === 'medium' ? { ...row, direction: 'uncertain' } : row)
+  investment.changes = [{ horizon: 'medium', previous: 'neutral', current: 'uncertain', evidenceIds: ['demo-market-close', 'demo-report-cost'], explanation: '演示：同期限证据存在冲突，暂不采用原模型中性方向。' }]
   const feedback = demoResearchLoop()
   investment.researchFeedback = { protocol: feedback.protocol, contextHash: feedback.context.hash, reviewedIds: feedback.context.evidence.map(row => row.id), effect: 'caution', explanation: '演示：研究样本仍少，保留原有确认条件，不提升方向强度。' }
-  const older: InvestmentSnapshot = { ...investment, id: 'demo-investment-1', analysisVersion: 'investment-intelligence-v2', researchFeedback: undefined, analysisTime: '2026-10-14T18:05:00Z', marketSnapshotId: 'demo-earlier-scan', previousSnapshotId: null, summary: claim('演示前次综合观点：中性观察。'), changes: [] }
+  const older: InvestmentSnapshot = { ...investment, outlooks: structuredClone(investment.rawDraft.outlooks), id: 'demo-investment-1', analysisVersion: 'investment-intelligence-v2', researchFeedback: undefined, analysisTime: '2026-10-14T18:05:00Z', marketSnapshotId: 'demo-earlier-scan', previousSnapshotId: null, summary: claim('演示前次综合观点：中性观察。'), changes: [] }
   const objective = { metric: 'daily-close' as const, operator: 'lt' as const, threshold: 65000, thresholdEvidenceId: 'demo-report-cost', description: '演示成本下方的已收盘日线' }
   return {
     asset: 'BTC', generatedAt: now, illustrative: true,
     market: { schemaVersion: 1, id: 'demo-market-2', asset: 'BTC', snapshotId: 'demo-scan', analysisTime: now, retrievedAt: now, marketDataAsOf: '2026-10-14T00:00:00Z', hourlyDataAsOf: null, price: 68000, volume: null, priceKind: 'completed-daily-close', daily: [], hourly: [], horizons: [], wyckoffHypothesis: null, bullishEvidence: [], bearishEvidence: [], evidence: [evidence[0]], dataSources: [], dataQuality: 'partial', missingData: ['ETF flow unavailable'], limitations: ['Illustrative only'] },
     research: { reports: [research, previous].map(row => ({ schemaVersion: 1, id: row.reportId, asset: 'BTC', sourceName: 'Glassnode', url: row.reportUrl, title: row.reportTitle, publishedAt: row.publicationTime, retrievedAt: row.analysisTime, reportPeriod: row.reportPeriod, contentHash: row.reportHash, paragraphCount: 2, preview: 'Illustrative original fixture, no third-party article text.', origin: 'manual' })), snapshots: [research, previous], latest: research, status: { state: 'current', lastCheckedAt: now, nextCheckAt: '2026-10-15T18:10:00Z', lastError: null, latestReportId: research.reportId, pendingReportIds: [] } },
-    investment: { schemaVersion: 1, generatedAt: now, asOf: now, nativeForward: demoNativeForward(investment), latest: investment, history: [investment, older], theses: [{ ...{ key: 'demo-cost', title: '演示中期成本假设', claim: claim('演示成本附近的承接仍待观察。'), horizon: 'medium' as const, observationDays: 28, supportConditions: [], invalidationConditions: [objective], resolutionConditions: [] }, id: 'demo-thesis-1', revision: 1, createdAt: now, expiresAt: '2026-11-11T18:10:00Z', investmentSnapshotId: investment.id, evidence, recordHash: 'illustrative-thesis', status: 'ACTIVE', latestEvaluation: null }], evaluations: [], quality: { total: 1, active: 1, resolved: 0, invalidated: 0, expired: 0, unresolved: 1, conditionDefined: 1, stateChanges: 0, meanDurationDays: null, directionalAccuracy: null, note: 'Illustrative checks are not directional forecast accuracy.' } },
+    investment: { schemaVersion: 1, generatedAt: now, asOf: now, nativeForward: demoNativeForward(investment), explanation: demoInvestmentExplanation(investment), latest: investment, history: [investment, older], theses: [{ ...{ key: 'demo-cost', title: '演示中期成本假设', claim: claim('演示成本附近的承接仍待观察。'), horizon: 'medium' as const, observationDays: 28, supportConditions: [], invalidationConditions: [objective], resolutionConditions: [] }, id: 'demo-thesis-1', revision: 1, createdAt: now, expiresAt: '2026-11-11T18:10:00Z', investmentSnapshotId: investment.id, evidence, recordHash: 'illustrative-thesis', status: 'ACTIVE', latestEvaluation: null }], evaluations: [], quality: { total: 1, active: 1, resolved: 0, invalidated: 0, expired: 0, unresolved: 1, conditionDefined: 1, stateChanges: 0, meanDurationDays: null, directionalAccuracy: null, note: 'Illustrative checks are not directional forecast accuracy.' } },
     job: { state: 'success', message: 'Illustrative native task completed; no real AI call.', updatedAt: now, runId: 'demo-run' },
   }
 }
@@ -76,7 +81,7 @@ function demoEquityIntelligence(asset: 'TSLA' | 'MSTR'): MarketIntelligenceRepor
     asset, generatedAt: now, illustrative: true,
     market: { schemaVersion: 1, id: `${prefix}-market`, asset, snapshotId: `${prefix}-scan`, analysisTime: now, retrievedAt: now, marketDataAsOf: closed, hourlyDataAsOf: null, price, volume: null, priceKind: 'completed-daily-close', daily: [], hourly: [], horizons: [], wyckoffHypothesis: null, bullishEvidence: [], bearishEvidence: [], evidence: [daily], dataSources: [], dataQuality: 'partial', missingData: ['Company-event timing unverified'], limitations: ['Illustrative only'] },
     research: { reports: [], snapshots: [], latest: null, status: { state: 'never-checked', lastCheckedAt: null, nextCheckAt: null, lastError: null, latestReportId: null, pendingReportIds: [] } },
-    investment: { schemaVersion: 1, generatedAt: now, asOf: now, nativeForward: demoNativeForward(investment), latest: investment, history: [investment], theses: [], evaluations: [], quality: { total: 0, active: 0, resolved: 0, invalidated: 0, expired: 0, unresolved: 0, conditionDefined: 0, stateChanges: 0, meanDurationDays: null, directionalAccuracy: null, note: 'Illustrative judgments are not measured forecast accuracy.' } },
+    investment: { schemaVersion: 1, generatedAt: now, asOf: now, nativeForward: demoNativeForward(investment), explanation: demoInvestmentExplanation(investment), latest: investment, history: [investment], theses: [], evaluations: [], quality: { total: 0, active: 0, resolved: 0, invalidated: 0, expired: 0, unresolved: 0, conditionDefined: 0, stateChanges: 0, meanDurationDays: null, directionalAccuracy: null, note: 'Illustrative judgments are not measured forecast accuracy.' } },
     job: { state: 'success', message: `Illustrative ${asset} native synthesis; no real AI call.`, updatedAt: now, runId: `${prefix}-synthesis` },
   }
 }

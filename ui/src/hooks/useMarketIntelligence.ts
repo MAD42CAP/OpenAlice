@@ -4,7 +4,7 @@ import { marketIntelligenceApi, type MarketIntelligenceReport, type ResearchImpo
 
 export type IntelligenceAction = 'discover' | 'import' | 'run'
 export type IntelligenceFeedback = { action: IntelligenceAction; state: 'running' | 'success' | 'partial' | 'failed'; error?: string }
-const valid = (report: MarketIntelligenceReport, asset: MonitorAsset) => report.asset === asset && (!report.market || report.market.asset === asset) && report.investment.history.every(row => row.asset === asset) && (!report.investment.latest || report.investment.latest.asset === asset) && (!report.investment.nativeForward || report.investment.nativeForward.asset === asset)
+const valid = (report: MarketIntelligenceReport, asset: MonitorAsset) => report.asset === asset && (!report.market || report.market.asset === asset) && report.investment.history.every(row => row.asset === asset) && (!report.investment.latest || report.investment.latest.asset === asset) && (!report.investment.nativeForward || report.investment.nativeForward.asset === asset) && (!report.investment.explanation || report.investment.explanation.asset === asset)
 
 export function useMarketIntelligence(asset: MonitorAsset, visible: boolean, revisionKey: string) {
   const key = `${asset}:${visible}:${revisionKey}`
