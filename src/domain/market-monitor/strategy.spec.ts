@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { createHash } from 'node:crypto'
 import { analysisInputHash, replayAnalysis, type MarketAnalysisArchive } from './replay.js'
 import { createDailyMarketBrief } from './daily-brief.js'
-import { MarketMonitorStrategyRegistry, createMarketMonitorStrategyRegistry, evidenceChainV1Strategy, evidenceChainV2Strategy } from './strategy.js'
+import { MarketMonitorStrategyRegistry, createMarketMonitorStrategyRegistry, evidenceChainV1Strategy, evidenceChainV2Strategy, evidenceChainV3Strategy, evidenceChainV4Strategy } from './strategy.js'
+import { regularEquitySession } from './equity-session.js'
 
 describe('market monitor strategy registry', () => {
   it('rejects duplicate identities and protects manifest arrays from mutation', () => {
@@ -42,6 +43,8 @@ describe('versioned equity input policy', () => {
     // Recorded from the unmodified HEAD implementation, not a v3-derived label.
     expect(createHash('sha256').update(JSON.stringify(legacy)).digest('hex')).toBe('c09510e83e1c51f7dcf990f30ea3522d87df3fa83707212e36d5d014f8e5d58f')
     const current = evidenceChainV1Strategy.analyze(input)
+    // Frozen before adding the prospective v4 medium policy.
+    expect(createHash('sha256').update(JSON.stringify(current)).digest('hex')).toBe('9ff6603959642318e0cbd9b52e433a007215b51b442c65926270bd01a5e328dc')
     expect(current.metrics.intraday).toMatchObject({ latestAt: '2026-10-15T19:00:00Z', latestChangePercent: 0.95, fourHourChangePercent: 3.92, volumeRatio: 1 })
     expect(current.trend.short.signals.find(signal => signal.id === 'short-hour-momentum')).toMatchObject({ tone: 'positive', value: 0.95 })
     expect(current.evidence.find(item => item.id === 'intraday')?.tone).toBe('positive')
@@ -49,18 +52,22 @@ describe('versioned equity input policy', () => {
     expect(input).toEqual(saved)
   })
 
-  it('keeps BTC analysis numerically unchanged and exposes only v3 for active discovery', () => {
+  it('keeps BTC analysis numerically unchanged and exposes only v4 for active discovery', () => {
     const input = fixedInput('BTC')
     expect(evidenceChainV1Strategy.analyze(input)).toEqual(evidenceChainV2Strategy.analyze(input))
+    expect(evidenceChainV4Strategy.analyze(input)).toEqual(evidenceChainV3Strategy.analyze(input))
     const registry = createMarketMonitorStrategyRegistry()
-    expect(registry.list()).toMatchObject([{ id: 'evidence-chain-v1', version: 3 }])
+    expect(registry.list()).toMatchObject([{ id: 'evidence-chain-v1', version: 4 }])
     expect(registry.getVersion('evidence-chain-v1', 2)).toBe(evidenceChainV2Strategy)
+    expect(registry.getVersion('evidence-chain-v1', 3)).toBe(evidenceChainV3Strategy)
+    expect(registry.getVersion('evidence-chain-v1', 4)).toBe(evidenceChainV4Strategy)
     expect(registry.getVersion('evidence-chain-v1', 999)).toBeUndefined()
   })
 
-  it.each([2, 3])('replays immutable version %s inputs with their own implementation', version => {
-    const strategy = version === 2 ? evidenceChainV2Strategy : evidenceChainV1Strategy
+  it.each([2, 3, 4])('replays immutable version %s inputs with their own implementation', version => {
+    const strategy = version === 2 ? evidenceChainV2Strategy : version === 3 ? evidenceChainV3Strategy : evidenceChainV4Strategy
     const fixture = fixedInput()
+    if (version === 4) fixture.dailyBars = fixture.dailyBars.filter(bar => regularEquitySession(bar.date.slice(0, 10)).trading)
     const input = { ...fixture, asOf: fixture.asOf.toISOString(), strategyId: strategy.manifest.id, strategyVersion: version, context: {}, sourceHealth: [] }
     const analysis = strategy.analyze(fixture)
     const result = { ...analysis, dailyBrief: createDailyMarketBrief({ ...analysis, sourceHealth: [] }) }
@@ -74,6 +81,12 @@ describe('versioned equity input policy', () => {
     const before = JSON.stringify(archive)
     expect(replayAnalysis(archive, createMarketMonitorStrategyRegistry())).toMatchObject({ status: 'verified', differences: [] })
     expect(JSON.stringify(archive)).toBe(before)
+  })
+
+  it('separates the prospective v4 fingerprint from a v3 publication with identical background evidence', () => {
+    const input = fixedInput('BTC'), analysis = evidenceChainV3Strategy.analyze(input)
+    const fingerprintInput = { ...analysis, asset: input.asset, context: {}, sourceHealth: [] }
+    expect(evidenceChainV4Strategy.fingerprint(fingerprintInput)).not.toBe(evidenceChainV3Strategy.fingerprint(fingerprintInput))
   })
 
   it('does not turn a low-volume regular-session last print into negative hourly rule evidence', () => {

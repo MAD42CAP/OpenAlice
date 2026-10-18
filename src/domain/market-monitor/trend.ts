@@ -1,4 +1,6 @@
 import type { OhlcvBar } from '../market-data/bars/index.js'
+import { regularEquitySession } from './equity-session.js'
+import { closedBars } from './bar-policy.js'
 import type {
   EvidenceTone,
   MarketMonitorAsset,
@@ -9,6 +11,8 @@ import type {
   TrendHorizon,
   TrendSignal,
 } from './types.js'
+
+export const EQUITY_MEDIUM_POLICY = 'equity-medium-weakening-v1' as const
 
 const pct = (latest: number, prior: number): number | null =>
   Number.isFinite(latest) && Number.isFinite(prior) && prior !== 0
@@ -107,6 +111,77 @@ function mediumTerm(daily: OhlcvBar[], metrics: MarketMonitorMetrics, abnormalVo
   ])
 }
 
+/** This prospective veto never turns one bad day or unavailable prices into a
+ * bearish vote. A majority of the existing five-session window must be below
+ * its own 20-session average while the recent five-session mean also declines.
+ * Thirty sessions retain the full history required by the legacy 20-SMA slope.
+ * The legacy weighted score is preserved so the guard is separately auditable. */
+function guardEquityMedium(assessment: TrendAssessment, input: OhlcvBar[], asset: MarketMonitorAsset, at?: Date): TrendAssessment {
+  const daily = input.slice().sort((a, b) => a.date.localeCompare(b.date)).slice(-30)
+  const guard: NonNullable<TrendAssessment['guard']> = {
+    policy: EQUITY_MEDIUM_POLICY, status: 'clear', applied: false,
+    backgroundDirection: assessment.direction, observedSessions: daily.length,
+    belowAverageSessions: null, latestBelowAverage: null,
+    recentAverage: null, previousAverage: null, reasons: [],
+  }
+  if (daily.length < 30) guard.reasons.push('insufficient-daily-history')
+  const days = daily.map(bar => bar.date.slice(0, 10))
+  const validBars = daily.every(bar => [bar.open, bar.high, bar.low, bar.close].every(value => Number.isFinite(value) && value > 0)
+    && bar.high >= Math.max(bar.open, bar.close, bar.low) && bar.low <= Math.min(bar.open, bar.close, bar.high))
+  if (!validBars || new Set(days).size !== days.length) guard.reasons.push('invalid-daily-bars')
+  const sessions = days.map(regularEquitySession)
+  if (sessions.some(session => !session.known)) guard.reasons.push('calendar-unavailable')
+  else if (sessions.some(session => !session.trading)) guard.reasons.push('invalid-daily-bars')
+  else if (days.length) {
+    const observed = new Set(days)
+    for (let stamp = Date.parse(days[0]!); stamp <= Date.parse(days.at(-1)!); stamp += 86_400_000) {
+      const day = new Date(stamp).toISOString().slice(0, 10)
+      if (regularEquitySession(day).trading && !observed.has(day)) {
+        guard.reasons.push('missing-daily-sessions')
+        break
+      }
+    }
+  }
+  if (at && Number.isFinite(at.getTime())) {
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(at)
+    let expected: string | null = null
+    // Share the existing daily completion cutoff and finite exchange schedule;
+    // a recent, absent completed session is missing data, not a fresh trend.
+    for (let offset = 0; offset <= 15; offset++) {
+      const day = new Date(Date.parse(today) - offset * 86_400_000).toISOString().slice(0, 10)
+      const session = regularEquitySession(day)
+      if (!session.known) break
+      if (session.trading && closedBars([{ date: day, open: 1, high: 1, low: 1, close: 1, volume: 1 }], asset, '1d', at).length) {
+        expected = day
+        break
+      }
+    }
+    if (!expected) guard.reasons.push('calendar-unavailable')
+    else if (days.at(-1) !== expected) guard.reasons.push('missing-daily-sessions')
+  }
+  if (guard.reasons.length) {
+    guard.reasons = [...new Set(guard.reasons)]
+    guard.status = 'unavailable'; guard.applied = true
+    return { ...assessment, direction: 'insufficient', regime: 'unknown', confidence: 0, guard }
+  }
+  const below = Array.from({ length: 5 }, (_, offset) => daily.at(-1 - offset)!.close < smaAt(daily, 20, offset)!)
+  const recentAverage = smaAt(daily, 5)!, previousAverage = smaAt(daily, 5, 5)!
+  guard.belowAverageSessions = below.filter(Boolean).length
+  guard.latestBelowAverage = below[0]!
+  guard.recentAverage = rounded(recentAverage)
+  guard.previousAverage = rounded(previousAverage)
+  if (guard.belowAverageSessions >= 3 && guard.latestBelowAverage) guard.reasons.push('persistent-below-average')
+  if (recentAverage < previousAverage) guard.reasons.push('recent-average-declining')
+  if (guard.reasons.length === 2) {
+    guard.status = 'weakening'
+    if (assessment.direction === 'bullish') {
+      guard.applied = true
+      return { ...assessment, direction: 'transition', regime: 'transition', guard }
+    }
+  }
+  return { ...assessment, guard }
+}
+
 function longTerm(asset: MarketMonitorAsset, daily: OhlcvBar[]): TrendAssessment {
   const latest = daily.at(-1)
   const ma50 = smaAt(daily, 50)
@@ -140,10 +215,15 @@ export function analyzeMultiTimeframeTrend(input: {
   intradayBars: OhlcvBar[]
   metrics: MarketMonitorMetrics
   abnormalVolumeRatio: number
+  /** Omitted for exact historical v2/v3 analysis and all BTC observations. */
+  mediumPolicy?: typeof EQUITY_MEDIUM_POLICY
+  asOf?: Date
 }): MultiTimeframeTrend {
   const daily = sortedBars(input.dailyBars)
   const short = shortTerm(daily, input.metrics)
-  const medium = mediumTerm(daily, input.metrics, input.abnormalVolumeRatio)
+  const backgroundMedium = mediumTerm(daily, input.metrics, input.abnormalVolumeRatio)
+  const medium = input.asset !== 'BTC' && input.mediumPolicy === EQUITY_MEDIUM_POLICY
+    ? guardEquityMedium(backgroundMedium, input.dailyBars, input.asset, input.asOf) : backgroundMedium
   const long = longTerm(input.asset, daily)
   const directional = [short.direction, medium.direction, long.direction]
     .filter((direction) => direction === 'bullish' || direction === 'bearish')

@@ -5,8 +5,9 @@ import type { InvestmentCondition, TrendHorizon } from '../../api/market-intelli
 import { Button } from '../../components/ui/button'
 import { formatMonitorDate } from './market-monitor-format'
 import { IntelligenceClaims, IntelligenceClaimView, IntelligenceDisclosure, IntelligenceEvidence, IntelligenceSources, formatResearchDate } from './MarketIntelligenceShared'
+import { MarketNativeForwardValidation } from './MarketNativeForwardValidation'
 
-export function MarketInvestmentIntelligence({ report, busy, onRun }: { report: MarketIntelligenceReport | null; busy: boolean; onRun: () => void }) {
+export function MarketInvestmentIntelligence({ report, busy, onRun, loading = false, readError = false }: { report: MarketIntelligenceReport | null; busy: boolean; onRun: () => void; loading?: boolean; readError?: boolean }) {
   const { t } = useTranslation()
   const [selected, setSelected] = useState<string | null>(null)
   const latest = report?.investment.latest ?? null
@@ -23,6 +24,9 @@ export function MarketInvestmentIntelligence({ report, busy, onRun }: { report: 
       <p className="text-xs leading-5 text-muted-foreground">{t(!['investment-intelligence-v4', 'investment-intelligence-equity-v2'].includes(snapshot.analysisVersion) ? 'forward.legacyInvestment' : 'forward.experimentalInvestment')}</p>
       {snapshot.researchFeedback && <p className="text-xs leading-5 text-muted-foreground">{t('researchLoop.review', { effect: t(`researchLoop.effects.${snapshot.researchFeedback.effect}`) })} · {snapshot.researchFeedback.explanation}</p>}
       <IntelligenceClaimView claim={snapshot.summary} evidence={snapshot.evidence} showEvidence={false} />
+      {report && (!selected || selected === latest?.id)
+        ? <MarketNativeForwardValidation asset={report.asset} report={report.investment.nativeForward} loading={loading} error={readError} />
+        : <p className="text-xs text-muted-foreground">{t('nativeForward.historicalSelection')}</p>}
       <p className="text-[11px] leading-5 text-muted-foreground">{t('intelligence.analysed', { time: formatMonitorDate(snapshot.analysisTime) })} · {snapshot.analysisModel ?? snapshot.provenance.agent}</p>
       <p className="text-[11px] leading-5 text-muted-foreground">{t(report?.asset === 'BTC' ? 'intelligence.inputTime' : 'intelligence.equityInputTime', { market: marketAsOf ? formatMonitorDate(marketAsOf) : t('intelligence.unknown'), research: snapshot.evidence.filter(row => row.reportId && row.dataAsOf).map(row => row.dataAsOf).sort().at(-1) ? formatResearchDate(snapshot.evidence.filter(row => row.reportId && row.dataAsOf).map(row => row.dataAsOf!).sort().at(-1)!) : t('intelligence.unknown') })}</p>
       <div className="grid min-w-0 gap-2 sm:grid-cols-3">{(['short', 'medium', 'long'] as const).map(horizon => {

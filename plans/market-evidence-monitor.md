@@ -6,6 +6,78 @@ No integration, merge or release is authorized.
 
 Related issues: none.
 
+## October 17 native forward validation and judgment follow-up
+
+Status: implemented from an isolated checkout at `0664af9a` and running on the
+Mac after an orderly update. The production checkout's three existing
+CLI/narrator edits remain owner changes. Delivery is
+only to `MAD42CAP/OpenAlice:feature/market-evidence-monitor`.
+
+The owner authorized, in order, independent scoring of the final native AI
+synthesis, an audit of Jev's frequent abstention, and earlier recognition of
+persistent equity medium-term weakening. Historical publications, thresholds
+and their original protocols remain immutable. Later real sessions supply new
+outcomes; synthetic regression tests do not establish a prediction advantage.
+
+Selected interaction: retain the existing result-first page and shared closed
+disclosures. Add one short native-validation sentence next to existing review
+information, with details closed initially. Separate unconditional calls,
+conditional direction intents, abstentions and objective condition triggers.
+Do not turn neutral prose into a narrow flat-return prediction. Reads remain
+read-only, including refresh and historical queries.
+
+- [x] Freeze new native publications and their exact original public inputs in
+  an additive hash-verified forward namespace, with fixed 1/7/30 BTC and
+  1/5/20 equity session targets and explicit failure/orphan handling.
+- [x] Expose versioned, earliest-window native scoring and condition checks;
+  never backfill legacy publications or mix current and historical scores.
+- [x] Add Jev abstention-reason and raw/effective comparisons without changing
+  existing model prompts, decision gates or frozen v4 records.
+- [x] Register strategy 4's conservative equity medium-term weakening guard,
+  preserve exact v2/v3 replay and the established session-quality basis 3.
+- [x] Complete backend/UI integration, concise demo disclosures, meaningful
+  focused regressions, root/UI types and the complete hermetic suite.
+- [x] Freeze source, perform one orderly runtime update, validate real
+  BTC/TSLA/MSTR scans and native publications, verify historical hashes and
+  synchronize only the owned feature branch. New outcomes may remain pending.
+
+Initial diagnosis: current valid Jev answers have adequate data and history,
+but the independent Signal question selects uncertain. This is not a parse or
+credential failure and does not justify automatically loosening the guard.
+Native thesis condition states currently have no fixed-return win rate and
+must remain distinct from the new final-outlook experiment.
+
+Real acceptance on October 18 UTC (October 17 PDT): all three read-only scans
+succeeded with strategy 4 / session-quality basis 3. BTC used Coinbase; equities
+used Alpaca IEX with existing sparse-hour exclusions. All three new native
+publications committed to the independent protocol, with nine horizon outcomes
+pending (eight abstentions and one conditional bearish intent). No historical
+publication was registered retroactively. Strategy 2/3/4 input replay verified
+for each asset, and all 4,064 pre-existing immutable records retained their hashes.
+
+The equity guard now changes TSLA medium bullish background to transition
+(three of five closes below their own 20-session averages, falling five-session
+mean); MSTR already had a transition background and retains it despite five
+below-average closes. The prior seven valid Jev publications / 21 horizon
+answers all abstained due to uncertain signal; BTC short also flags one inflated
+flat estimate. Their data/history and answer format checks pass. Only one short
+raw BTC outcome has matured, and it missed; this does not justify loosening gates.
+The new strategy cohort starts without importing those earlier scores.
+
+A complete test run exposed an existing Issue handoff-test cleanup race. Its
+fixture now stubs native CLI project preparation, and waits for task completion,
+paused session and released ownership together; the busy-dispatch assertion and
+production lifecycle are unchanged. Normal-environment file tests pass twice,
+and the two handoff cases pass five independent repetitions.
+
+Final acceptance: the frozen release suite passes all 890 files, with 8,091
+passing tests, four intentionally skipped and no failures. Root `tsc --noEmit`
+and UI `tsc -b` pass. Focused final native/UI regressions pass 117 tests, with
+normal-environment handoff cleanup repetitions separately verified. Real and
+illustrative demo desktop pages retain a one-line validation result and closed
+details; asset changes do not reuse another asset's scores. No new forward
+accuracy or continuous 24-hour acceptance is claimed by this increment.
+
 ## October 14 concise dashboard and accuracy review
 
 The owner requested a substantially simpler result-first dashboard and another

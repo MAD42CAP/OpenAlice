@@ -3,6 +3,7 @@ import type { ResearchSnapshot } from './research-types.js'
 import type { MarketMonitorAsset, TrendDirection, TrendHorizon } from './types.js'
 import type { OhlcvBar } from '../market-data/bars/types.js'
 import type { ResearchFeedbackReceipt, ResearchLoopContext } from './research-loop-types.js'
+import type { NativeForwardBinding, NativeForwardReport } from './native-forward-types.js'
 
 export const INVESTMENT_ANALYSIS_VERSION = 'investment-intelligence-v4' as const
 export const EQUITY_INVESTMENT_ANALYSIS_VERSION = 'investment-intelligence-equity-v2' as const
@@ -57,6 +58,8 @@ export interface InvestmentSnapshot extends InvestmentDraft {
   provenance: IntelligenceProvenance; analysisModel: string | null; evidence: EvidenceReference[]
   rawDraft: InvestmentDraft; guardWarnings: string[]; changes: Array<{ horizon: TrendHorizon; previous: InvestmentDirection; current: InvestmentDirection; evidenceIds: string[]; explanation: string }>; recordHash: string
   researchFeedback?: ResearchFeedbackReceipt
+  /** Present only on publications created with the independent forward contract. */
+  forwardValidation?: NativeForwardBinding
 }
 export type InvestmentThesisStatus = 'ACTIVE' | 'STRENGTHENING' | 'WEAKENING' | 'CHALLENGED' | 'INVALIDATED' | 'RESOLVED' | 'EXPIRED'
 export interface InvestmentThesis extends InvestmentThesisDraft {
@@ -71,4 +74,5 @@ export interface InvestmentReport {
   schemaVersion: 1; generatedAt: string; asOf: string | null; latest: InvestmentSnapshot | null; history: InvestmentSnapshot[]
   theses: Array<InvestmentThesis & { status: InvestmentThesisStatus; latestEvaluation: InvestmentThesisEvaluation | null }>; evaluations: InvestmentThesisEvaluation[]
   quality: { total: number; active: number; resolved: number; invalidated: number; expired: number; unresolved: number; conditionDefined: number; stateChanges: number; meanDurationDays: number | null; directionalAccuracy: null; note: string }
+  nativeForward?: NativeForwardReport
 }

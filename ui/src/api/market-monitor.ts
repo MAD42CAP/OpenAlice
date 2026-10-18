@@ -67,6 +67,12 @@ export interface TrendAssessment {
   score: number
   confidence: number
   signals: Array<{ id: string; tone: 'positive' | 'negative' | 'neutral'; weight: number; value?: number | null }>
+  guard?: {
+    policy: 'equity-medium-weakening-v1'; status: 'clear' | 'weakening' | 'unavailable'; applied: boolean
+    backgroundDirection: TrendDirection; observedSessions: number; belowAverageSessions: number | null
+    latestBelowAverage: boolean | null; recentAverage: number | null; previousAverage: number | null
+    reasons: Array<'persistent-below-average' | 'recent-average-declining' | 'insufficient-daily-history' | 'invalid-daily-bars' | 'missing-daily-sessions' | 'calendar-unavailable'>
+  }
 }
 
 export interface MultiTimeframeTrend {

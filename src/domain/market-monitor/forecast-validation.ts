@@ -14,6 +14,7 @@ import { reviewOutcomes, reviewSessionDate } from './review.js'
 import { firstPerOutcomeWindow } from './review-cohort.js'
 import { returnChoice } from './forecast-history.js'
 import { analyzeForwardValidation, forwardCohort } from './forecast-validation-analytics.js'
+import { projectJevDiagnostics } from './forecast-validation-diagnostics.js'
 import { createMarketMonitorStrategyRegistry } from './strategy.js'
 import type { ReturnChoice } from './forecast-experiment-types.js'
 import type { MarketMonitorAsset } from './types.js'
@@ -242,6 +243,7 @@ export function createForecastValidation(deps: {
             const brier = (probabilities: Record<ReturnChoice, number> | null) => actual && probabilities ? (['up', 'flat', 'down'] as const).reduce((sum, key) => sum + (probabilities[key] - (key === actual ? 1 : 0)) ** 2, 0) : null
             const jevProbabilities = validForwardAnswer(answer, ['up', 'flat', 'down']) ? answer.probabilities as Record<ReturnChoice, number> : null
             return { horizon: h, outcome, actual, choices,
+              jevDiagnostics: projectJevDiagnostics(candidate, h, actual),
               selectedProbabilities: { jev: choices.jev && jevProbabilities ? jevProbabilities[choices.jev] : null,
                 frequency: choices.frequency && frequency ? frequency[choices.frequency] : null },
               correct: Object.fromEntries(methods.map(method => [method, actual && choices[method] ? actual === choices[method] : null])) as Record<ForwardMethod, boolean | null>,

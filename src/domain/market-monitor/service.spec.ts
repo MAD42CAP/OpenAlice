@@ -500,7 +500,7 @@ it('does not resurrect old news when only SEC fails and the news result is succe
 })
 
 
-it('keeps original stock chart/archive hours while v3 analyzes qualified regular-session hours and preserves v2 replay', async () => {
+it('keeps original stock chart/archive hours while active v4 preserves the v3 session policy and v2 replay', async () => {
   const at = '2026-10-16T01:00:00Z', deps = dependencies(true, at), store = memoryStore()
   const daily = bars(90, 86400000, at)
   const intraday = ['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15'].flatMap(day => [14, 15, 16, 17, 18, 19].map((hour, i) => ({ date: `${day}T${hour}:00:00Z`, open: 150, high: 153, low: 149, close: 150 + i / 4, volume: 1000 })))
@@ -517,7 +517,7 @@ it('keeps original stock chart/archive hours while v3 analyzes qualified regular
   const service = createMarketMonitorService({ ...deps, store })
   const current = await service.scan('MSTR', 'manual')
   expect(current.receipt.outcome).toBe('stored')
-  expect(current.snapshot.analysisInput?.strategyVersion).toBe(3)
+  expect(current.snapshot.analysisInput?.strategyVersion).toBe(4)
   expect(current.snapshot.analysisBasis).toMatchObject({ version: 3, hourlyAt: '2026-10-15T19:00:00Z' })
   expect(current.snapshot.metrics.intraday).toMatchObject({ available: true, latestAt: '2026-10-15T19:00:00Z' })
   expect(current.snapshot.chart.intraday.at(-1)).toMatchObject({ date: '2026-10-15T20:00:00Z', close: 145.8, volume: 549 })
@@ -529,7 +529,7 @@ it('keeps original stock chart/archive hours while v3 analyzes qualified regular
   expect(JSON.stringify(await store.archive(old.snapshot.id))).toBe(originalArchive)
 })
 
-it('publishes a fresh verified basis when an existing v3 strategy observation still carries the transitional v2 basis', async () => {
+it('publishes a fresh verified basis when an active strategy observation still carries the transitional v2 basis', async () => {
   const store = memoryStore(), service = createMarketMonitorService({ ...dependencies(), store })
   const first = await service.scan('MSTR', 'manual')
   const saved = store.data.snapshots.find(snapshot => snapshot.id === first.snapshot.id)!
@@ -539,7 +539,7 @@ it('publishes a fresh verified basis when an existing v3 strategy observation st
   saved.analysisBasis!.version = 2
   archive.snapshot.analysisBasis!.version = 2
   const originalArchive = JSON.stringify(archive)
-  expect(saved.analysisInput?.strategyVersion).toBe(3)
+  expect(saved.analysisInput?.strategyVersion).toBe(4)
   const current = await service.scan('MSTR', 'manual')
   expect(current.snapshot.fingerprint).toBe(first.snapshot.fingerprint)
   expect(current.receipt.outcome).toBe('stored')

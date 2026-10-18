@@ -5,10 +5,12 @@ import type { MonitorAsset } from '../../api/market-monitor'
 import { i18n } from '../../i18n'
 import { demoMarketIntelligence } from '../../demo/fixtures/market-intelligence'
 import { MarketIntelligenceWorkspace } from './MarketIntelligenceWorkspace'
+import { MarketAccuracySummary } from './MarketAccuracySummary'
 import { formatMonitorDate } from './market-monitor-format'
 import { formatResearchDate, IntelligenceEvidence } from './MarketIntelligenceShared'
 const api = vi.hoisted(() => ({ read: vi.fn(), discover: vi.fn(), importReport: vi.fn(), run: vi.fn() }))
 vi.mock('../../api/market-intelligence', () => ({ marketIntelligenceApi: api }))
+vi.mock('../../hooks/useForecastValidation', () => ({ useForecastValidation: () => ({ report: null, loading: false, error: null, refresh: () => {} }) }))
 beforeEach(async () => { await i18n.changeLanguage('en'); api.read.mockImplementation(async (asset: MonitorAsset) => demoMarketIntelligence(asset)); api.discover.mockResolvedValue({}); api.importReport.mockResolvedValue({}); api.run.mockResolvedValue({}) })
 afterEach(() => { cleanup(); vi.resetAllMocks() })
 function renderView() { return render(<MarketIntelligenceWorkspace asset="BTC" visible revisionKey="first"><label>My market draft<input aria-label="My market draft" defaultValue="" /></label></MarketIntelligenceWorkspace>) }
@@ -70,9 +72,22 @@ it('marks a selected historical synthesis and returns to the latest saved result
   fireEvent.click(screen.getByRole('button', { name: 'Synthesis history' }))
   fireEvent.click(screen.getByRole('button', { name: formatMonitorDate('2026-10-14T18:05:00Z') }))
   expect(screen.getByText('Historical archive · not the current judgment')).toBeTruthy()
+  expect(screen.getByText('This is a historical synthesis. Current-version validation is shown only with the latest analysis.')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: 'Review synthesis validation' })).toBeNull()
   expect(screen.getAllByText('演示前次综合观点：中性观察。').length).toBeGreaterThan(0)
   fireEvent.click(screen.getByRole('button', { name: 'Latest saved analysis' }))
   expect(screen.queryByText('Historical archive · not the current judgment')).toBeNull()
+  expect(screen.getByRole('button', { name: 'Review synthesis validation' })).toBeTruthy()
+})
+it('shares the existing intelligence read with default-page validation and adds no synthesis request or poll', async () => {
+  render(<MarketIntelligenceWorkspace asset="TSLA" visible revisionKey="shared"><MarketAccuracySummary asset="TSLA" visible revisionKey="shared" /></MarketIntelligenceWorkspace>)
+  const market = screen.getByRole('tabpanel', { name: 'Market monitor' })
+  expect(await within(market).findByText(/AI synthesis · independent validation · Waiting/)).toBeTruthy()
+  expect(within(market).getByRole('button', { name: 'Review synthesis validation' }).getAttribute('aria-expanded')).toBe('false')
+  await select('AI synthesis')
+  fireEvent.click(screen.getByRole('tab', { name: 'Market monitor' }))
+  expect(api.read).toHaveBeenCalledTimes(1)
+  expect(api.run).not.toHaveBeenCalled()
 })
 it('shows refresh failure above retained records and actual queued job status after running', async () => {
   renderView(); await select('AI synthesis')

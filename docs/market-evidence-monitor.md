@@ -1572,3 +1572,99 @@ time. Simulated cache-expiry coverage exercises automatic refresh beyond 24
 hours; this is not a claim that a full new 24-hour live window has elapsed.
 Full frozen-source regression passes 888 files / 8,021 tests, with four existing
 skipped, and root/UI typechecks both pass.
+
+## Independent native forward evaluation and judgment diagnostics
+
+`native-forward.ts`, `native-forward-store.ts` and `native-forward-types.ts`
+own `native-investment-forward-v1`. Production explicitly supplies the existing
+market store to `createInvestmentService({ nativeForward: { market } })`;
+`InvestmentReport.nativeForward` is a separate report from the frozen
+`market-forward-v4` combined judgment and the stable-key thesis quality counts.
+It registers only genuinely new native publications. Reusing a previously
+published input returns that original publication without registering it under
+the new contract. Existing publications, forecasts and thesis states are never
+backfilled, rewritten or rescored as new predictions.
+
+New immutable files live under
+`data/market-monitor/native-investment-forward-v1/<ASSET>/`. Each binds the full
+original native input, its hash, the effective guarded publication, and the
+original market snapshot/input hash and strategy identity. Registration is
+published atomically before the source publication; the source must save exactly
+the registered snapshot hash. A separate immutable `commits/<publication-id>.json`
+receipt binds both hashes to the actual source-save completion time. A source
+file alone is insufficient proof of publication. Missing sources or commit
+receipts remain unscored orphans. A competing registration or an existing orphan rejects a retry
+instead of reusing an old publication time. Capture also rejects stale timing,
+a changed session or a crossed daily completion boundary, rechecking after each
+origin/archive/registration await. Source-save completion across that boundary
+cannot receive a valid commit receipt even if its source file now exists. Recovery requires new
+research input; it cannot turn an earlier unpublished artifact into a prediction.
+
+The experiment uses the first daily opening strictly after publication's session
+date and the final completed close over 1/7/30 BTC days or 1/5/20 equity sessions.
+Returns within inclusive ±0.25% are flat. Native `neutral` and `uncertain` both
+abstain; an interval narrative is not a flat-return forecast. Unconditional
+bullish/bearish calls and conditional bullish/bearish experimental direction
+intents have separate scored/correct counts. Confirmation/invalidation conditions
+observe only later completed daily closes within that same window, with their
+first trigger dates retained separately. A condition trigger neither changes the
+return label nor converts a conditional intent into an unconditional hit.
+
+Reporting selects the earliest publication per session across versions, then
+the earliest identical realised start/end window across versions, before
+filtering direction or grouping by native analysis version and strategy/version.
+Coverage, abstentions, pending/missing outcomes and suppressed windows remain
+visible. `current` is empty without a new contract and is withheld when the
+latest registration is damaged or orphaned; it never inherits an older cohort's
+results. Any visible invalid registration/source or orphan withholds all scores,
+so a later weekend publication cannot replace a failed earlier publication for
+the same next-session window. Both origin and outcome archives require recomputed
+`analysisInputHash(archive.input)` plus matching snapshot identity, asset,
+strategy/version and capture time. Outcome prices come from hash-covered
+`archive.input.dailyBars`, filtered at the archive's original acquisition time;
+mutable chart fields cannot supply labels. `asOf` rejects a future query and
+requires the real source commit time to be no later than the query. Origin and
+outcome snapshots also require the exact stored scan receipt, matching snapshot
+and strategy identity and `requestedAt == archive.input.asOf`. The receipt's
+actual `completedAt` must precede native publication or the outcome query,
+respectively; scan-request time alone does not prove data was acquired then.
+Bounded
+listing/observation limits and row truncation are disclosed; a corrupt or
+overfull registration listing withholds scores rather than losing the first
+call. The scan-receipt reader's actual 10,000-row ceiling is a disclosed truncation
+boundary and withholds scores. A new capture may still proceed when its exact
+completed origin receipt is present in the retained window.
+Reading the report does not scan, request a model, fetch prices or write
+state. Later already-acquired prices allow outcomes to mature on subsequent
+reads. This is prospective experimental evaluation, not a backtest or evidence
+that accuracy has improved; overlapping windows remain dependent.
+Registration-list or market-history I/O failure returns `readError: true`, an
+empty current score and a fixed safe error category/message. This supplementary
+failure preserves the existing investment report and thesis states; the UI must
+show unavailable rather than treating it as an empty, unregistered experiment.
+
+`forecast-validation-diagnostics.ts` adds the read-only
+`jev-abstention-audit-v1` projection to existing forward reports. Saved raw
+direction/distribution validity, evidence adequacy, signal support and effective
+abstention reasons remain separate. Published reason counts may overlap. Mature
+raw answers, including guarded abstentions, have their own coverage and accuracy;
+raw-versus-rules/frequency comparisons use common windows, and reason-specific
+Brier comparisons use the same frozen frequency distributions. Global window
+selection precedes reason filtering. Invalid or missing raw answers cannot earn
+a raw hit, and a correct raw answer never credits an effective abstention.
+The active protocol remains `market-forward-v4` with `jev-base-rate-v2` decision
+thresholds; diagnostics change no saved answers, thresholds or model weights.
+
+The active evidence strategy advances to version 4, retaining analysis basis 3
+for session-quality metadata and exact historical strategy 2/3 replay. Only
+equity medium-horizon assessment gains `equity-medium-weakening-v1`. It requires
+30 valid, complete scheduled daily sessions, tests the latest five closes
+against their own trailing 20-session averages, and compares the latest
+five-session average with the preceding five-session average. When at least
+three closes and the latest close are below their averages, and the recent
+average declines, an otherwise bullish medium assessment becomes transition.
+The previous score/direction and guard evidence remain inspectable. Missing,
+invalid or unverified session coverage withholds the medium call rather than
+inventing a bearish vote. BTC analysis and the equity short/long rules retain
+their previous numerical behavior. The version and policy enter new semantic
+identity and forward cohorts; earlier records and their replay remain unchanged.

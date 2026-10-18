@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import type { OhlcvBar } from '../market-data/bars/index.js'
 import { analyzeEvidence, semanticFingerprint } from './analysis.js'
 import { selectAnalysisHourlyBars } from './equity-session.js'
+import { EQUITY_MEDIUM_POLICY } from './trend.js'
 import {
   DEFAULT_MARKET_MONITOR_STRATEGY_ID,
   type EvidenceItem,
@@ -123,6 +124,25 @@ export const evidenceChainV1Strategy: MarketMonitorStrategy = {
   },
 }
 
+/** Keep the historical v3 export stable for frozen fixtures and exact replay. */
+export const evidenceChainV3Strategy = evidenceChainV1Strategy
+
+export const evidenceChainV4Strategy: MarketMonitorStrategy = {
+  manifest: {
+    ...evidenceChainV3Strategy.manifest, version: 4,
+    description: 'Regular-session equity evidence with a persistent daily weakening veto; unchanged crypto evidence.',
+  },
+  analyze(input) {
+    if (input.asset === 'BTC') return evidenceChainV3Strategy.analyze(input)
+    const selection = selectAnalysisHourlyBars(input.intradayBars, input.asset, input.asOf ?? new Date(), input)
+    return analyzeEvidence({ ...input, intradayBars: selection.bars }, selection.pulse, EQUITY_MEDIUM_POLICY)
+  },
+  fingerprint(input) {
+    return createHash('sha256').update(JSON.stringify({ strategyVersion: 4, mediumPolicy: input.asset === 'BTC' ? null : EQUITY_MEDIUM_POLICY,
+      evidence: evidenceChainV3Strategy.fingerprint(input), ...(input.trend.medium.guard ? { mediumGuard: input.trend.medium.guard } : {}) })).digest('hex')
+  },
+}
+
 export function createMarketMonitorStrategyRegistry(additional: MarketMonitorStrategy[] = []): MarketMonitorStrategyRegistry {
-  return new MarketMonitorStrategyRegistry([evidenceChainV1Strategy, ...additional], [evidenceChainV2Strategy])
+  return new MarketMonitorStrategyRegistry([evidenceChainV4Strategy, ...additional], [evidenceChainV2Strategy, evidenceChainV3Strategy])
 }

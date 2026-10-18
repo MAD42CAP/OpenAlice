@@ -6,13 +6,18 @@ import { evaluateInvestmentThesis, guardInvestmentDraft, intelligenceRecordHash,
 import { investmentAnalysisVersion, type InvestmentDraft, type InvestmentInput, type InvestmentReport, type InvestmentSnapshot, type InvestmentThesis, type InvestmentThesisDraft, type InvestmentThesisEvaluation } from './investment-types.js'
 import type { IntelligenceProvenance } from './intelligence-types.js'
 import { researchLoopProtocol } from './research-loop-types.js'
+import { createNativeForward } from './native-forward.js'
+import type { MarketMonitorStore } from './store.js'
 
 const stamp = (s: string) => Date.parse(s)
 const before = (value: string | null, at: Date) => value !== null && Number.isFinite(stamp(value)) && stamp(value) <= at.getTime()
-export function createInvestmentService(options: { asset?: MarketMonitorAsset; root?: string; now?: () => Date } = {}) {
+export function createInvestmentService(options: { asset?: MarketMonitorAsset; root?: string; now?: () => Date;
+  nativeForward?: { market: Pick<MarketMonitorStore, 'archive' | 'snapshots' | 'receipts'>; root?: string }
+} = {}) {
   const asset = options.asset ?? 'BTC'
   const store = createInvestmentStore(options.root ?? (asset === 'BTC' ? undefined : dataPath('market-monitor', 'investment-intelligence-v1', asset.toLowerCase())))
   const now = options.now ?? (() => new Date())
+  const nativeForward = options.nativeForward ? createNativeForward({ ...options.nativeForward, now, publication: id => store.read('publications', id) }) : null
   // One process serializes publications and automatic objective checks. Atomic
   // immutable files also prevent partial records under competing processes.
   let queue: Promise<unknown> = Promise.resolve()
@@ -101,7 +106,13 @@ export function createInvestmentService(options: { asset?: MarketMonitorAsset; r
           inputHash, previousSnapshotId: previous?.id ?? null, provenance: structuredClone(provenance), analysisModel: provenance.model ?? null, evidence: structuredClone(evidence), rawDraft: structuredClone(rawDraft), guardWarnings: warnings, changes,
           ...(input.researchFeedback && draft.feedbackReview ? { researchFeedback: { protocol: researchLoopProtocol(asset), contextHash: input.researchFeedback.hash, ...structuredClone(draft.feedbackReview) } } : {}), recordHash: '' }
         snapshot.recordHash = intelligenceRecordHash(snapshot)
-        const published = await store.save('publications', snapshot)
+        // Capture first, then commit exactly the same guarded snapshot. A failed
+        // source commit remains an explicitly unscored orphan, never a backfill.
+        const captured = nativeForward ? await nativeForward.capture(input, snapshot) : snapshot
+        nativeForward?.assertPublicationTiming(captured)
+        const published = await store.save('publications', captured)
+        if (nativeForward && published.record.recordHash !== captured.recordHash) throw new Error('独立前瞻与真实综合研判发布不一致，未将竞争记录计为命中。')
+        if (nativeForward) await nativeForward.commit(published.record)
         await initializeTheses(published.record)
         await revalidateInternal(input.market, at)
         return { stored: published.stored, snapshot: published.record }
@@ -123,7 +134,8 @@ export function createInvestmentService(options: { asset?: MarketMonitorAsset; r
       const durations = completed.map(t => (stamp(t.status === 'EXPIRED' ? t.expiresAt : t.latestEvaluation!.evaluatedAt) - stamp(t.createdAt)) / 86_400_000)
       const limit = Math.max(1, Math.min(200, options.limit ?? 50))
       return { schemaVersion: 1, generatedAt: generated.toISOString(), asOf: options.asOf ?? null, latest: history[0] ?? null, history: history.slice(0, limit), theses, evaluations: evaluations.filter(e => theses.some(t => t.id === e.thesisId)).slice(0, 500),
-        quality: { total: theses.length, active: theses.filter(t => t.status === 'ACTIVE').length, resolved, invalidated, expired, unresolved: theses.length - resolved - invalidated - expired, conditionDefined: theses.filter(t => t.supportConditions.length > 0 && t.invalidationConditions.length > 0).length, stateChanges: evaluations.filter(e => e.status !== e.previousStatus && theses.some(t => t.id === e.thesisId)).length, meanDurationDays: durations.length ? durations.reduce((a, b) => a + b, 0) / durations.length : null, directionalAccuracy: null, note: '这是预声明客观条件的研究质量追踪；CONFIRMED 只表示证据支持，不是方向命中率。定性短中长期观点未定义收益阈值，不计算预测准确率。' } }
+        quality: { total: theses.length, active: theses.filter(t => t.status === 'ACTIVE').length, resolved, invalidated, expired, unresolved: theses.length - resolved - invalidated - expired, conditionDefined: theses.filter(t => t.supportConditions.length > 0 && t.invalidationConditions.length > 0).length, stateChanges: evaluations.filter(e => e.status !== e.previousStatus && theses.some(t => t.id === e.thesisId)).length, meanDurationDays: durations.length ? durations.reduce((a, b) => a + b, 0) / durations.length : null, directionalAccuracy: null, note: '这是预声明客观条件的研究质量追踪；CONFIRMED 只表示证据支持，不是方向命中率。定性短中长期观点未定义收益阈值，不计算预测准确率。' },
+        ...(nativeForward ? { nativeForward: await nativeForward.report(asset, options) } : {}) }
     },
   }
 }

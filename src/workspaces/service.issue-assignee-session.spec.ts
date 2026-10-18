@@ -9,6 +9,7 @@ let wsDir: string
 let service: import('./service.js').WorkspaceService | undefined
 let createIssue: typeof import('./issues/mutate.js').createIssue
 let savedEnv: Record<string, string | undefined>
+let restoreCodexPreparation: (() => void) | undefined
 
 function restoreEnv(key: string, value: string | undefined): void {
   if (value === undefined) delete process.env[key]
@@ -40,6 +41,12 @@ beforeEach(async () => {
     toolBaseUrl: 'http://127.0.0.1:0/cli',
     scheduleScannerIntervalMs: 600_000,
   })
+  // Ownership tests use a synthetic child and must not update the developer's
+  // Codex trusted-project configuration during runtime preparation.
+  const codexLifecycle = service.adapters.get('codex')?.lifecycle
+  if (!codexLifecycle?.prepareWorkspace) throw new Error('Codex fixture has no preparation hook')
+  const preparation = vi.spyOn(codexLifecycle, 'prepareWorkspace').mockResolvedValue(undefined)
+  restoreCodexPreparation = () => preparation.mockRestore()
   await service.registry.add({
     id: 'ws-1',
     tag: 'ws-1',
@@ -51,6 +58,8 @@ beforeEach(async () => {
 afterEach(async () => {
   await service?.dispose('issue assignee activity test')
   service = undefined
+  restoreCodexPreparation?.()
+  restoreCodexPreparation = undefined
   restoreEnv('OPENALICE_HOME', savedEnv.OPENALICE_HOME)
   restoreEnv('AQ_LAUNCHER_ROOT', savedEnv.AQ_LAUNCHER_ROOT)
   restoreEnv('OPENALICE_GLOBAL_DIR', savedEnv.OPENALICE_GLOBAL_DIR)
@@ -158,9 +167,13 @@ it.each(['terminal', 'webpi'] as const)('hands %s ownership to an Issue turn and
       .rejects.toMatchObject({ code: 'busy' })
     release()
     const result = await pending
-    await vi.waitFor(() => expect(service!.headlessTasks.get(result.taskId)?.status).toBe('done'), { timeout: 10000 })
-    expect(service!.sessionRegistry.get(ws.id, session.id)?.state).toBe('paused')
-    expect(service!.isResumeActive(resumeId)).toBe(false)
+    // Task completion is published before the asynchronous Issue cleanup and
+    // final Session ownership release. Observe the whole settled handoff.
+    await vi.waitFor(() => {
+      expect(service!.headlessTasks.get(result.taskId)?.status).toBe('done')
+      expect(service!.sessionRegistry.get(ws.id, session.id)?.state).toBe('paused')
+      expect(service!.isResumeActive(resumeId)).toBe(false)
+    }, { timeout: 10000 })
   } finally { release(); terminal.mockRestore(); web.mockRestore(); command.mockRestore() }
 })
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { analyzeForwardValidation, forwardCohort } from './forecast-validation-analytics.js'
-import { FORWARD_PROTOCOL, JEV_DECISION_POLICY, type ForwardCohort, type ForwardMethod, type ForwardPublication, type ForwardRow } from './forecast-validation-types.js'
+import { FORWARD_PROTOCOL, JEV_DECISION_POLICY, type ForwardCohort, type ForwardMethod, type ForwardPublication, type ForwardRow, type JevDecisionReason } from './forecast-validation-types.js'
 import { JEV_HORIZONS } from './typesafe-types.js'
 
 const cohort = (strategyVersion: number): ForwardCohort => forwardCohort({ protocol: FORWARD_PROTOCOL,
@@ -19,6 +19,11 @@ function row(id: string, version = current, start = '2026-10-12', end = start): 
 }
 const short = (rows: ForwardRow[], version = current) => analyzeForwardValidation(rows, version).current.summaries[0]!
 const abstain = (value: ForwardRow, method: ForwardMethod) => value.outcomes.forEach(outcome => { outcome.choices[method] = null; outcome.correct[method] = null })
+const diagnose = (value: ForwardRow, reasons: JevDecisionReason[] = ['signal-uncertain']) => {
+  value.outcomes.forEach(outcome => { outcome.jevDiagnostics = { rawAnswerValid: true, rawChoice: 'up', rawCorrect: true, rawSelectedProbability: 0.8,
+    evidence: { valid: true, choice: 'adequate' }, signal: { valid: true, choice: reasons.includes('signal-uncertain') ? 'uncertain' : 'supported' }, reasons: [...reasons] } })
+  return value
+}
 
 describe('policy-separated incremental forward evidence', () => {
   it('compares each candidate with rules without demanding frequency or every other method', () => {
@@ -116,5 +121,68 @@ describe('policy-separated incremental forward evidence', () => {
     const unchanged = analyzeForwardValidation(rows, current)
     expect(unchanged.current.summaries[0]!.pairwise.jev.status).toBe('no-edge')
     expect(unchanged).toMatchObject({ automaticallyChangesWeights: false, overlappingWindowsAreIndependent: false })
+  })
+
+  it('scores a saved raw call separately while preserving effective signal abstention', () => {
+    const saved = diagnose(row('uncertain')); abstain(saved, 'jev')
+    const summary = short([saved])
+    expect(summary.methods.jev).toMatchObject({ scored: 0, correct: 0, abstained: 1 })
+    expect(summary.pairwise.jev.count).toBe(0)
+    expect(summary.jevDiagnostics).toMatchObject({ protocol: 'jev-abstention-audit-v1', reasonCountsOverlap: true,
+      published: { total: 1, candidateAvailable: 1, guardedAbstained: 1, reasonCounts: { 'signal-uncertain': 1 } },
+      matured: { uniqueWindows: 1, raw: { scored: 1, correct: 1, accuracy: 1 },
+        guardedAbstainedRaw: { scored: 1, correct: 1 }, rawVsRules: { count: 1, rawCorrect: 1, baselineCorrect: 0, status: 'insufficient' } } })
+    expect(summary.jevDiagnostics.byReason.find(value => value.reason === 'signal-uncertain')).toMatchObject({
+      published: 1, uniqueWindows: 1, raw: { scored: 1, correct: 1 }, probability: { count: 1, jevBrier: 0.06, frequencyBrier: 1.14 } })
+    expect(saved.outcomes[0]!.choices.jev).toBeNull()
+  })
+
+  it('reports overlapping reasons and pending/excluded diagnostics without scoring their outcomes', () => {
+    const saved = diagnose(row('saved'), ['signal-uncertain', 'flat-inflated'])
+    const pending = diagnose(row('pending', current, '2026-10-13')), invalid = diagnose(row('invalid', current, '2026-10-14'))
+    ;[saved, pending, invalid].forEach(value => abstain(value, 'jev'))
+    pending.outcomes.forEach(outcome => { outcome.outcome.status = 'pending' })
+    invalid.outcomes.forEach(outcome => { outcome.outcome.status = 'unverified' })
+    const audit = short([saved, pending, invalid]).jevDiagnostics
+    expect(audit.reasonCountsOverlap).toBe(true)
+    expect(audit.published.reasonCounts).toMatchObject({ 'signal-uncertain': 3, 'flat-inflated': 1 })
+    expect(audit.matured.raw).toMatchObject({ scored: 1, correct: 1 })
+    expect(audit.byReason.find(value => value.reason === 'signal-uncertain')).toMatchObject({ published: 3, pending: 1, excluded: 1, uniqueWindows: 1 })
+    expect(audit.byReason.find(value => value.reason === 'flat-inflated')).toMatchObject({ published: 1, uniqueWindows: 1 })
+  })
+
+  it('selects the global original window before filtering either the cohort or abstention reason', () => {
+    const first = diagnose(row('first', old), ['history-insufficient']); abstain(first, 'jev')
+    const later = diagnose(row('later')); abstain(later, 'jev'); later.issuedAt = '2026-10-11T11:00:00Z'
+    const result = analyzeForwardValidation([later, first], current)
+    expect(result.current.summaries[0]!.jevDiagnostics).toMatchObject({ published: { reasonCounts: { 'signal-uncertain': 1 } }, matured: { uniqueWindows: 0, raw: { scored: 0 } } })
+    expect(result.current.summaries[0]!.jevDiagnostics.byReason.find(value => value.reason === 'signal-uncertain')!.uniqueWindows).toBe(0)
+    expect(result.cohorts.find(value => value.cohort.key === old.key)!.summaries[0]!.jevDiagnostics.matured.raw.scored).toBe(1)
+    first.cohort = current
+    const sameVersion = short([later, first]).jevDiagnostics
+    expect(sameVersion.matured.uniqueWindows).toBe(1)
+    expect(sameVersion.byReason.find(value => value.reason === 'signal-uncertain')!.uniqueWindows).toBe(0)
+    expect(sameVersion.byReason.find(value => value.reason === 'history-insufficient')!.uniqueWindows).toBe(1)
+  })
+
+  it('does not invent raw calls from missing, invalid or legacy diagnostics', () => {
+    const missing = row('missing'), invalid = diagnose(row('invalid', current, '2026-10-13'), ['answer-invalid'])
+    const legacy = row('legacy', current, '2026-10-14'), valid = diagnose(row('valid', current, '2026-10-15'))
+    missing.candidateAvailable = false
+    ;[missing, invalid, legacy, valid].forEach(value => abstain(value, 'jev'))
+    invalid.outcomes.forEach(outcome => { Object.assign(outcome.jevDiagnostics!, { rawAnswerValid: false, rawChoice: null, rawCorrect: null, rawSelectedProbability: null }) })
+    const audit = short([missing, invalid, legacy, valid]).jevDiagnostics
+    expect(audit.published).toMatchObject({ total: 4, candidateAvailable: 3, unavailable: 1, diagnosticsUnavailable: 1, invalidRawAnswers: 1 })
+    expect(audit.matured.raw).toEqual({ scored: 1, correct: 1, unavailable: 3, coverage: 0.25, accuracy: 1 })
+    expect(audit.matured.rawVsRules.count).toBe(1)
+  })
+
+  it('gives raw/rules and raw/frequency their own common-window denominators', () => {
+    const rules = diagnose(row('rules')), frequency = diagnose(row('frequency', current, '2026-10-13'))
+    abstain(rules, 'frequency'); abstain(frequency, 'rules')
+    const audit = short([rules, frequency]).jevDiagnostics
+    expect(audit.matured.raw.scored).toBe(2)
+    expect(audit.matured.rawVsRules).toMatchObject({ baseline: 'rules', count: 1, rawCorrect: 1, baselineCorrect: 0 })
+    expect(audit.matured.rawVsFrequency).toMatchObject({ baseline: 'frequency', count: 1, rawCorrect: 1, baselineCorrect: 0 })
   })
 })

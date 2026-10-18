@@ -111,6 +111,20 @@ export interface TrendAssessment {
   score: number
   confidence: number
   signals: TrendSignal[]
+  /** Prospective equity guard. The weighted score remains background evidence;
+   * direction is the effective, guarded assessment rather than that score's sign. */
+  guard?: {
+    policy: 'equity-medium-weakening-v1'
+    status: 'clear' | 'weakening' | 'unavailable'
+    applied: boolean
+    backgroundDirection: TrendDirection
+    observedSessions: number
+    belowAverageSessions: number | null
+    latestBelowAverage: boolean | null
+    recentAverage: number | null
+    previousAverage: number | null
+    reasons: Array<'persistent-below-average' | 'recent-average-declining' | 'insufficient-daily-history' | 'invalid-daily-bars' | 'missing-daily-sessions' | 'calendar-unavailable'>
+  }
 }
 
 export interface MultiTimeframeTrend {

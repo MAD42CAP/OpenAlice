@@ -460,6 +460,7 @@ function DailyBriefPanel({ snapshot, narratorStatus }: { snapshot: MonitorSnapsh
         <dt className="text-[11px] text-muted-foreground">{monitorHorizonLabel(t, assessment.horizon)}</dt>
         <dd className={cn('mt-1 text-base font-semibold', assessment.direction === 'bullish' ? 'text-success' : assessment.direction === 'bearish' ? 'text-destructive' : '')}>{monitorTrendDirectionLabel(t, assessment.direction)}</dd>
         <div className="mt-1 text-[11px] text-muted-foreground">{monitorTrendRegimeLabel(t, assessment.regime)} · {t('marketMonitor.trend.score', { score: assessment.score })} · {assessment.confidence}/100</div>
+        {assessment.guard?.applied && <p className="mt-1 text-[11px] leading-5 text-warning">{t(assessment.guard.status === 'weakening' ? 'forward.trendWeakening' : 'forward.trendGuardUnavailable', { direction: monitorTrendDirectionLabel(t, assessment.guard.backgroundDirection) })}</p>}
       </div>)}
     </dl>
     <div className="grid gap-x-6 lg:grid-cols-3">

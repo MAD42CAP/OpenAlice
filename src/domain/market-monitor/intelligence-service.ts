@@ -13,6 +13,7 @@ import type { ResearchDraft, ResearchReport, ResearchSnapshot, ResearchSource } 
 import type { MarketMonitorService } from './service.js'
 import type { MarketMonitorAsset, MarketMonitorSnapshot } from './types.js'
 import type { ResearchLoopContext } from './research-loop-types.js'
+import type { MarketMonitorStore } from './store.js'
 
 export interface IntelligenceJob {
   state: 'idle' | 'queued' | 'running' | 'success' | 'partial' | 'failed' | 'blocked'
@@ -38,10 +39,12 @@ export function createIntelligenceService(options: {
   asset?: MarketMonitorAsset
   monitor: Pick<MarketMonitorService, 'settings' | 'snapshots'>; research?: ResearchService
   investment?: ReturnType<typeof createInvestmentService>; root?: string; now?: () => Date
+  nativeForward?: { market: MarketMonitorStore; root?: string }
   feedback?: () => Promise<ResearchLoopContext>
 }) {
   const asset = options.asset ?? 'BTC'
-  const research = options.research ?? createResearchService(), investment = options.investment ?? createInvestmentService({ asset })
+  const research = options.research ?? createResearchService(), investment = options.investment ?? createInvestmentService({ asset,
+    ...(options.nativeForward ? { nativeForward: options.nativeForward } : {}), ...(options.now ? { now: options.now } : {}) })
   const reportsForAsset = () => asset === 'BTC' ? research.reports() : Promise.resolve([])
   const discoverForAsset = async () => { if (asset === 'BTC') await research.discover() }
   const root = options.root ?? dataPath('market-monitor', 'intelligence-v1', ...(asset === 'BTC' ? [] : [asset.toLowerCase()])), now = options.now ?? (() => new Date())

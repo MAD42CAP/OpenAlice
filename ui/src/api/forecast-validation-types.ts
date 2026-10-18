@@ -18,7 +18,8 @@ export const JEV_DECISION_POLICY = {
   validation: 'experimental',
 } as const
 export type ForwardMethod = 'rules' | 'jev' | 'combined' | 'frequency' | 'alwaysUp'
-export type JevDecisionReason = 'evidence-insufficient' | 'signal-uncertain' | 'history-insufficient' | 'flat-inflated' | 'answer-invalid'
+export const JEV_DECISION_REASONS = ['evidence-insufficient', 'signal-uncertain', 'history-insufficient', 'flat-inflated', 'answer-invalid'] as const
+export type JevDecisionReason = typeof JEV_DECISION_REASONS[number]
 export interface GuardedJevDecision {
   rawChoice: string; choice: ReturnChoice | null; reasons: JevDecisionReason[]
 }
@@ -33,6 +34,14 @@ export interface ForwardCandidate {
   schemaVersion: 1; protocol: ForwardProtocol; publicationId: string; requestedAt: string; issuedAt: string; inputHash: string
   raw: JevResult; decisions: Record<JevHorizon, GuardedJevDecision>; recordHash: string
 }
+/** Read-only inspection of the original model answers, never a replacement for
+ * the effective guarded decision or a new historical forecast. */
+export interface ForwardJevOutcomeDiagnostics {
+  rawAnswerValid: boolean; rawChoice: ReturnChoice | null; rawCorrect: boolean | null; rawSelectedProbability: number | null
+  evidence: { valid: boolean; choice: 'adequate' | 'insufficient' | null }
+  signal: { valid: boolean; choice: 'supported' | 'uncertain' | null }
+  reasons: JevDecisionReason[]
+}
 export interface ForwardRow {
   id: string; issuedAt: string; snapshotId: string; candidateAvailable: boolean; providerChanged: boolean
   /** Read-time provenance; old rows without this field remain readable. */
@@ -40,7 +49,8 @@ export interface ForwardRow {
   outcomes: Array<{ horizon: JevHorizon; outcome: ReviewOutcome; actual: ReturnChoice | null
     choices: Record<ForwardMethod, ReturnChoice | null>; correct: Record<ForwardMethod, boolean | null>
     brier: { jev: number | null; frequency: number | null }
-    selectedProbabilities?: { jev: number | null; frequency: number | null } }>
+    selectedProbabilities?: { jev: number | null; frequency: number | null }
+    jevDiagnostics?: ForwardJevOutcomeDiagnostics }>
 }
 export interface ForwardSummary {
   horizon: JevHorizon; total: number; complete: number; pending: number; excluded: number; uniqueWindows: number; duplicateWindows: number
@@ -67,6 +77,26 @@ export interface ForwardPairwiseComparison {
   disagreements: number; candidateOnlyCorrect: number; rulesOnlyCorrect: number
   nonOverlappingWindows: number; status: ForwardComparisonStatus
 }
+export interface ForwardRawJevScore {
+  scored: number; correct: number; unavailable: number; coverage: number | null; accuracy: number | null
+}
+export interface ForwardRawJevComparison {
+  baseline: 'rules' | 'frequency'; count: number; rawCorrect: number; baselineCorrect: number; accuracyDifference: number | null
+  disagreements: number; rawOnlyCorrect: number; baselineOnlyCorrect: number
+  nonOverlappingWindows: number; status: ForwardComparisonStatus
+}
+export interface ForwardJevDiagnosticsSummary {
+  protocol: 'jev-abstention-audit-v1'
+  /** Flags can overlap: one publication may have multiple abstention reasons. */
+  reasonCountsOverlap: true
+  published: { total: number; candidateAvailable: number; unavailable: number; diagnosticsUnavailable: number
+    invalidRawAnswers: number; guardedAbstained: number; reasonCounts: Record<JevDecisionReason, number> }
+  matured: { uniqueWindows: number; raw: ForwardRawJevScore; guardedAbstainedRaw: ForwardRawJevScore
+    rawVsRules: ForwardRawJevComparison; rawVsFrequency: ForwardRawJevComparison }
+  byReason: Array<{ reason: JevDecisionReason; published: number; pending: number; excluded: number; uniqueWindows: number
+    raw: ForwardRawJevScore
+    probability: { count: number; jevBrier: number | null; frequencyBrier: number | null; difference: number | null } }>
+}
 export interface ForwardCohortSummary {
   horizon: JevHorizon; total: number; pending: number; excluded: number
   uniqueWindows: number; globallySuppressedWindows: number; nonOverlappingWindows: number
@@ -74,6 +104,7 @@ export interface ForwardCohortSummary {
   pairwise: { jev: ForwardPairwiseComparison; combined: ForwardPairwiseComparison }
   probability: { count: number; nonOverlappingWindows: number; jevBrier: number | null; frequencyBrier: number | null; difference: number | null }
   calibration: Record<'jev' | 'frequency', { count: number; accuracy: number | null; meanSelectedProbability: number | null; probabilityGap: number | null }>
+  jevDiagnostics: ForwardJevDiagnosticsSummary
 }
 export interface ForwardCohortValidation {
   cohort: ForwardCohort; publications: number; summaries: ForwardCohortSummary[]

@@ -1,6 +1,6 @@
 import { firstPerOutcomeWindow } from './review-cohort.js'
 import { JEV_HORIZONS } from './typesafe-types.js'
-import type { ForwardCohort, ForwardCohortSummary, ForwardCohortValidation, ForwardMethod, ForwardPairwiseComparison, ForwardPublication, ForwardRow, ForwardValidationAnalytics } from './forecast-validation-types.js'
+import { JEV_DECISION_REASONS, type ForwardCohort, type ForwardCohortSummary, type ForwardCohortValidation, type ForwardJevDiagnosticsSummary, type ForwardMethod, type ForwardPairwiseComparison, type ForwardPublication, type ForwardRawJevComparison, type ForwardRawJevScore, type ForwardRow, type ForwardValidationAnalytics } from './forecast-validation-types.js'
 
 const methods: ForwardMethod[] = ['rules', 'jev', 'combined', 'frequency', 'alwaysUp']
 /** A reporting gate only: exceeding it does not establish independence,
@@ -45,6 +45,56 @@ function pairwise(unique: Window[], pending: number, candidate: 'jev' | 'combine
     nonOverlappingWindows, status }
 }
 
+const scoredRaw = (row: Window) => row.jevDiagnostics?.rawAnswerValid === true
+  && row.jevDiagnostics.rawChoice !== null && row.jevDiagnostics.rawCorrect !== null
+
+function rawScore(windows: Window[]): ForwardRawJevScore {
+  const scored = windows.filter(scoredRaw), count = scored.length
+  const correct = scored.filter(row => row.jevDiagnostics!.rawCorrect === true).length
+  return { scored: count, correct, unavailable: windows.length - count,
+    coverage: windows.length ? count / windows.length : null, accuracy: count ? correct / count : null }
+}
+
+function rawPairwise(unique: Window[], pending: number, baseline: 'rules' | 'frequency'): ForwardRawJevComparison {
+  const paired = unique.filter(row => scoredRaw(row) && row.correct[baseline] !== null)
+  const count = paired.length, rawCorrect = paired.filter(row => row.jevDiagnostics!.rawCorrect === true).length
+  const baselineCorrect = paired.filter(row => row.correct[baseline] === true).length, nonOverlappingWindows = nonOverlapping(paired)
+  const status = !count && pending ? 'pending'
+    : count < reportingGate.commonWindows || nonOverlappingWindows < reportingGate.nonOverlappingWindows ? 'insufficient'
+      : rawCorrect <= baselineCorrect ? 'no-edge' : 'unproven'
+  return { baseline, count, rawCorrect, baselineCorrect, accuracyDifference: count ? (rawCorrect - baselineCorrect) / count : null,
+    disagreements: paired.filter(row => row.jevDiagnostics!.rawChoice !== row.choices[baseline]).length,
+    rawOnlyCorrect: paired.filter(row => row.jevDiagnostics!.rawCorrect === true && row.correct[baseline] === false).length,
+    baselineOnlyCorrect: paired.filter(row => row.jevDiagnostics!.rawCorrect === false && row.correct[baseline] === true).length,
+    nonOverlappingWindows, status }
+}
+
+/** Diagnosis uses the already globally selected windows. Filtering each reason
+ * first would let a later rejected call replace the original call's outcome. */
+function jevDiagnostics(local: Window[], unique: Window[], pending: number): ForwardJevDiagnosticsSummary {
+  const hasReason = (row: Window, reason: typeof JEV_DECISION_REASONS[number]) => row.candidateAvailable && row.jevDiagnostics?.reasons.includes(reason) === true
+  return { protocol: 'jev-abstention-audit-v1', reasonCountsOverlap: true,
+    published: { total: local.length, candidateAvailable: local.filter(row => row.candidateAvailable).length,
+      unavailable: local.filter(row => !row.candidateAvailable).length,
+      diagnosticsUnavailable: local.filter(row => row.candidateAvailable && !row.jevDiagnostics).length,
+      invalidRawAnswers: local.filter(row => row.candidateAvailable && row.jevDiagnostics?.rawAnswerValid === false).length,
+      guardedAbstained: local.filter(row => row.candidateAvailable && row.choices.jev === null).length,
+      reasonCounts: Object.fromEntries(JEV_DECISION_REASONS.map(reason => [reason, local.filter(row => hasReason(row, reason)).length])) as ForwardJevDiagnosticsSummary['published']['reasonCounts'] },
+    matured: { uniqueWindows: unique.length, raw: rawScore(unique),
+      guardedAbstainedRaw: rawScore(unique.filter(row => row.candidateAvailable && row.choices.jev === null)),
+      rawVsRules: rawPairwise(unique, pending, 'rules'), rawVsFrequency: rawPairwise(unique, pending, 'frequency') },
+    byReason: JEV_DECISION_REASONS.map(reason => {
+      const published = local.filter(row => hasReason(row, reason)), windows = unique.filter(row => hasReason(row, reason))
+      const probability = windows.filter(row => row.jevDiagnostics?.rawAnswerValid && row.brier.jev !== null && row.brier.frequency !== null)
+      const jevBrier = mean(probability.map(row => row.brier.jev!)), frequencyBrier = mean(probability.map(row => row.brier.frequency!))
+      return { reason, published: published.length, pending: published.filter(row => row.outcome.status === 'pending').length,
+        excluded: published.filter(row => row.outcome.status === 'unverified' || row.outcome.status === 'missing-data').length,
+        uniqueWindows: windows.length, raw: rawScore(windows),
+        probability: { count: probability.length, jevBrier, frequencyBrier,
+          difference: jevBrier === null || frequencyBrier === null ? null : jevBrier - frequencyBrier } }
+    }) }
+}
+
 /** All-history deduplication precedes policy/cohort filtering. A later policy
  * must not replace the original forecast for the very same realised window. */
 export function analyzeForwardValidation(rows: ForwardRow[], currentCohort: ForwardCohort): ForwardValidationAnalytics {
@@ -78,7 +128,8 @@ export function analyzeForwardValidation(rows: ForwardRow[], currentCohort: Forw
         pairwise: { jev: pairwise(unique, local.length ? pending : 1, 'jev'), combined: pairwise(unique, local.length ? pending : 1, 'combined') },
         probability: { count: probability.length, nonOverlappingWindows: nonOverlapping(probability), jevBrier, frequencyBrier,
           difference: jevBrier === null || frequencyBrier === null ? null : jevBrier - frequencyBrier },
-        calibration: { jev: calibration('jev'), frequency: calibration('frequency') } }
+        calibration: { jev: calibration('jev'), frequency: calibration('frequency') },
+        jevDiagnostics: jevDiagnostics(local, unique, local.length ? pending : 1) }
     })
     return { cohort, publications: rows.filter(row => row.cohort?.key === cohort.key).length, summaries }
   })

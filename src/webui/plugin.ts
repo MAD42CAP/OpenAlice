@@ -316,7 +316,8 @@ export class WebPlugin implements Plugin {
     })
     app.route('/api/market-monitor/thesis', createMarketThesisRoutes(thesis))
     const researchLoops = {} as Record<'BTC' | 'TSLA' | 'MSTR', ResearchLoopService>
-    const intelligences = Object.fromEntries((['BTC', 'TSLA', 'MSTR'] as const).map(asset => [asset, createIntelligenceService({ asset, monitor: marketMonitor, feedback: () => researchLoops[asset].context() })])) as Record<'BTC' | 'TSLA' | 'MSTR', ReturnType<typeof createIntelligenceService>>
+    const intelligences = Object.fromEntries((['BTC', 'TSLA', 'MSTR'] as const).map(asset => [asset, createIntelligenceService({ asset, monitor: marketMonitor,
+      nativeForward: { market: createMarketMonitorStore() }, feedback: () => researchLoops[asset].context() })])) as Record<'BTC' | 'TSLA' | 'MSTR', ReturnType<typeof createIntelligenceService>>
     const intelligence = intelligences.BTC
     const typeSafe = createTypeSafeService({ monitor: marketMonitor })
     const forecastExperiment = createForecastExperiment({ baseline: typeSafe })

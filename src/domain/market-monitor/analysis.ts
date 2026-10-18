@@ -16,7 +16,7 @@ import type {
 } from './types.js'
 import { closedBars, completedWeekStart } from './bar-policy.js'
 import { createDailyMarketBrief } from './daily-brief.js'
-import { analyzeMultiTimeframeTrend } from './trend.js'
+import { analyzeMultiTimeframeTrend, type EQUITY_MEDIUM_POLICY } from './trend.js'
 import { analyzeWyckoffStructure } from './wyckoff.js'
 
 const pct = (latest: number, prior: number): number | null =>
@@ -118,9 +118,10 @@ export function analyzeEvidence(input: {
   intradayBars: OhlcvBar[]
   abnormalVolumeRatio: number
   abnormalMovePercent: number
-}, intradayOverride?: IntradayPulse): { metrics: MarketMonitorMetrics; evidence: EvidenceItem[]; hypothesis: MarketHypothesis; trend: MultiTimeframeTrend; wyckoff: WyckoffAssessment; dailyBrief: MarketDailyBrief } {
+}, intradayOverride?: IntradayPulse, mediumPolicy?: typeof EQUITY_MEDIUM_POLICY): { metrics: MarketMonitorMetrics; evidence: EvidenceItem[]; hypothesis: MarketHypothesis; trend: MultiTimeframeTrend; wyckoff: WyckoffAssessment; dailyBrief: MarketDailyBrief } {
   const asOf = input.asOf ?? new Date()
-  const daily = sortedBars(closedBars(input.dailyBars, input.asset ?? 'BTC', '1d', asOf))
+  const completedDaily = closedBars(input.dailyBars, input.asset ?? 'BTC', '1d', asOf)
+  const daily = sortedBars(completedDaily)
   const intraday = sortedBars(closedBars(input.intradayBars, input.asset ?? 'BTC', '1h', asOf))
   if (daily.length < 20) throw new Error('At least 20 daily bars are required for evidence analysis')
   const latest = daily.at(-1)!
@@ -204,8 +205,8 @@ export function analyzeEvidence(input: {
     weeklyChangePercent: rounded(weeklyChange), intraday: pulse,
   }
   const trend = analyzeMultiTimeframeTrend({
-    asset: input.asset ?? 'BTC', dailyBars: daily, intradayBars: intraday,
-    metrics, abnormalVolumeRatio: input.abnormalVolumeRatio,
+    asset: input.asset ?? 'BTC', dailyBars: mediumPolicy ? completedDaily : daily, intradayBars: intraday,
+    metrics, abnormalVolumeRatio: input.abnormalVolumeRatio, mediumPolicy, asOf,
   })
   const wyckoff = analyzeWyckoffStructure({
     dailyBars: daily, metrics, trend, abnormalVolumeRatio: input.abnormalVolumeRatio,

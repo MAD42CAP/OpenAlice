@@ -116,12 +116,17 @@ export function buildMarketIntelligence(snapshot: MarketMonitorSnapshot, at: Dat
   const windows = { short: 5, medium: 28, long: 180 }
   const horizons = (['short', 'medium', 'long'] as TrendHorizon[]).map(horizon => {
     const assessment = snapshot.trend?.[horizon]
+    const guardNote = assessment?.guard?.applied
+      ? assessment.guard.status === 'weakening'
+        ? '股票中期持续转弱：近期多数收盘低于各自20日均线且5日均价下行，原偏多背景降为过渡；尚未确认看空。'
+        : '股票中期日线完整性不足，暂不判断；缺失资料不作为看空证据。'
+      : null
     const bars = daily.slice(-windows[horizon])
     const support = dailyAt && bars.length ? Math.min(...bars.map(b => b.low)) : null
     const resistance = dailyAt && bars.length ? Math.max(...bars.map(b => b.high)) : null
     const evidenceIds = [add(`trend.${horizon}`, assessment?.direction ?? null, null, dailyAt, 'daily-bars', 'interpretation'), add(`support.${horizon}`, support, 'USD', dailyAt), add(`resistance.${horizon}`, resistance, 'USD', dailyAt)]
     return { horizon, observationWindow: horizon === 'short' ? equity ? '1–5 个交易时段（定性结构，非 1 日预测）' : '1–5 自然日' : horizon === 'medium' ? '1–4 周' : '1–6 个月', direction: assessment?.direction ?? 'insufficient', structure: assessment?.regime ?? 'unknown', supportLevels: support === null ? [] : [support], resistanceLevels: resistance === null ? [] : [resistance],
-      momentum: { text: `既有规则方向 ${assessment?.direction ?? 'insufficient'}；量价以已收盘指标为准。`, evidenceIds: [evidenceIds[0]!, `market:${snapshot.id}:volume-ratio`], inference: true }, risks: snapshot.dailyBrief?.risks ?? [], confirmation: snapshot.hypothesis.confirm, invalidation: snapshot.hypothesis.invalidate, evidenceIds }
+      momentum: { text: `既有规则方向 ${assessment?.direction ?? 'insufficient'}；量价以已收盘指标为准。${guardNote ?? ''}`, evidenceIds: [evidenceIds[0]!, `market:${snapshot.id}:volume-ratio`], inference: true }, risks: [...(snapshot.dailyBrief?.risks ?? []), ...(guardNote ? [guardNote] : [])], confirmation: snapshot.hypothesis.confirm, invalidation: snapshot.hypothesis.invalidate, evidenceIds }
   })
   const claims = (tone: 'positive' | 'negative'): IntelligenceClaim[] => snapshot.evidence.filter(e => e.tone === tone).map(e => {
     const id = add(`rule.${e.id}`, e.observation, null, e.timeframe === '1H' ? hourlyAt : dailyAt, e.timeframe === '1H' ? 'intraday-bars' : 'daily-bars', 'interpretation')

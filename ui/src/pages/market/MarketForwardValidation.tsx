@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import type { ForwardReport } from '../../api/forecast-validation'
 import { FORWARD_PROTOCOL } from '../../api/forecast-validation-types'
+import type { ForwardJevDiagnosticsSummary } from '../../api/forecast-validation-types'
 import { Button } from '../../components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../components/ui/collapsible'
 import { formatMonitorDate } from './market-monitor-format'
@@ -81,8 +82,31 @@ export function ForwardValidationDetails({ report }: { report: ForwardReport }) 
       {'pairwise' in row && (['jev', 'combined'] as const).map(method => <p key={method} className="text-muted-foreground">{t(row.pairwise[method].count ? 'forward.pairwise' : 'forward.pairwiseEmpty', { method: t(`forward.methods.${method}`), ...row.pairwise[method] })}</p>)}
       {'calibration' in row && row.calibration.jev.count > 0 && <p className="text-muted-foreground">{t('forward.calibrationLine', { method: 'Jev', count: row.calibration.jev.count, probability: `${(row.calibration.jev.meanSelectedProbability! * 100).toFixed(1)}%`, accuracy: `${(row.calibration.jev.accuracy! * 100).toFixed(1)}%` })}</p>}
       <p className="text-muted-foreground">{t('forward.probability', { count: row.probability.count, jev: brier(row.probability.jevBrier), frequency: brier(row.probability.frequencyBrier) })}</p>
+      {'jevDiagnostics' in row && row.jevDiagnostics && <JevDiagnosticsDetails audit={row.jevDiagnostics} />}
     </section>)}</div>
+    {report.validation?.cohorts.filter(cohort => cohort.publications > 0 && cohort.cohort.key !== current?.cohort.key).map(cohort => <section key={cohort.cohort.key} className="space-y-2 border-t border-border pt-2">
+      <h3 className="font-medium">{t('forward.auditHistorical', { version: cohort.cohort.strategyVersion, protocol: cohort.cohort.protocol })}</h3>
+      <div className="grid min-w-0 gap-3 sm:grid-cols-3">{cohort.summaries.map(row => <section key={row.horizon} className="min-w-0 space-y-1"><h4>{t(`typesafe.${row.horizon}`)}</h4>{row.jevDiagnostics && <JevDiagnosticsDetails audit={row.jevDiagnostics} />}</section>)}</div>
+    </section>)}
     <p className="text-muted-foreground">{t('forward.caution')}</p>
     {report.historyTruncated && <p className="text-warning">{t('forward.truncated')}</p>}
+  </div>
+}
+
+function JevDiagnosticsDetails({ audit }: { audit: ForwardJevDiagnosticsSummary }) {
+  const { t } = useTranslation()
+  return <div className="min-w-0 space-y-1 border-t border-border pt-2">
+    <h4 className="font-medium">{t('forward.diagnostics')}</h4>
+    <p className="text-muted-foreground">{t('forward.auditMeaning')}</p>
+    <p>{t('forward.auditPublished', { ...audit.published })}</p>
+    {(audit.published.invalidRawAnswers > 0 || audit.published.diagnosticsUnavailable > 0) && <p className="text-warning">{t('forward.auditInvalid', { ...audit.published })}</p>}
+    <p>{t(audit.matured.raw.scored ? 'forward.rawScore' : 'forward.rawNoScore', { ...audit.matured.raw })}</p>
+    <p>{t(audit.matured.guardedAbstainedRaw.scored ? 'forward.rejectedRaw' : 'forward.rejectedRawEmpty', { ...audit.matured.guardedAbstainedRaw })}</p>
+    {([audit.matured.rawVsRules, audit.matured.rawVsFrequency]).map(pair => <p key={pair.baseline} className="text-muted-foreground">{t(pair.count ? 'forward.rawPair' : 'forward.rawPairEmpty', { ...pair, baseline: t(`forward.methods.${pair.baseline}`) })}</p>)}
+    {audit.byReason.filter(row => row.published > 0).map(row => <div key={row.reason} className="space-y-1 border-l border-border pl-2">
+      <p>{t(`forward.reason.${row.reason}`)}</p><p className="text-muted-foreground">{t('forward.reasonCounts', { ...row })}</p>
+      <p>{t(row.raw.scored ? 'forward.rawScore' : 'forward.rawNoScore', { ...row.raw })}</p>
+      {row.probability.count > 0 && <p className="text-muted-foreground">{t('forward.probability', { count: row.probability.count, jev: brier(row.probability.jevBrier), frequency: brier(row.probability.frequencyBrier) })}</p>}
+    </div>)}
   </div>
 }

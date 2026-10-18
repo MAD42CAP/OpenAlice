@@ -1,3 +1,4 @@
+import { nativeForwardEn } from './native-forward'
 import { researchLoopEn } from './research-loop'
 import { forwardEn } from './forecast-validation'
 import { intelligenceEn } from './intelligence'
@@ -11,6 +12,7 @@ import { en, type Resources } from './en'
 export const ja: Resources = {
   researchLoop: researchLoopEn,
   forward: forwardEn,
+  nativeForward: nativeForwardEn,
   intelligence: intelligenceEn,
   accuracy: accuracyEn,
   thesis: thesisEn,

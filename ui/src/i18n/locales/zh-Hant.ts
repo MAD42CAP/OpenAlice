@@ -1,3 +1,4 @@
+import { nativeForwardZh } from './native-forward'
 import { researchLoopZh } from './research-loop'
 import { forwardZh } from './forecast-validation'
 import { intelligenceZh } from './intelligence'
@@ -20,6 +21,7 @@ import { zh } from './zh'
 export const zhHant: Resources = {
   researchLoop: researchLoopZh,
   forward: forwardZh,
+  nativeForward: nativeForwardZh,
   intelligence: intelligenceZh,
   accuracy: accuracyZh,
   thesis: thesisZh,

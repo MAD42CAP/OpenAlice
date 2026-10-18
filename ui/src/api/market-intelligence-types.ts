@@ -2,6 +2,7 @@
 import type { HistoricalBar } from './market'
 import type { MonitorAsset, TrendDirection } from './market-monitor'
 import type { ResearchFeedbackReceipt, ResearchLoopContext } from './research-loop-types'
+import type { NativeForwardBinding, NativeForwardReport } from './native-forward-types'
 type OhlcvBar = HistoricalBar
 export type TrendHorizon = 'short' | 'medium' | 'long'
 /** Shared attribution across market observations, published research and AI inference. */
@@ -163,6 +164,7 @@ export interface ResearchDiscoveryResult {
 export interface ResearchImportResult { stored: boolean; report: ResearchReport }
 
 export const INVESTMENT_ANALYSIS_VERSION = 'investment-intelligence-v4' as const
+export type InvestmentAnalysisVersion = 'investment-intelligence-v1' | 'investment-intelligence-v2' | 'investment-intelligence-v3' | typeof INVESTMENT_ANALYSIS_VERSION | 'investment-intelligence-equity-v1' | 'investment-intelligence-equity-v2'
 export type ValidationStatus = 'CONFIRMED' | 'PARTIALLY_CONFIRMED' | 'CONFLICTING' | 'UNVERIFIED' | 'OUTDATED'
 export type InvestmentDirection = 'bullish' | 'neutral' | 'bearish' | 'conditional-bullish' | 'conditional-bearish' | 'uncertain'
 export interface MarketIntelligence {
@@ -203,11 +205,12 @@ export interface InvestmentDraft {
   feedbackReview?: Pick<ResearchFeedbackReceipt, 'reviewedIds' | 'effect' | 'explanation'>
 }
 export interface InvestmentSnapshot extends InvestmentDraft {
-  schemaVersion: 1; id: string; asset: MonitorAsset; analysisVersion: 'investment-intelligence-v1' | 'investment-intelligence-v2' | 'investment-intelligence-v3' | typeof INVESTMENT_ANALYSIS_VERSION | 'investment-intelligence-equity-v1' | 'investment-intelligence-equity-v2'; analysisTime: string
+  schemaVersion: 1; id: string; asset: MonitorAsset; analysisVersion: InvestmentAnalysisVersion; analysisTime: string
   marketSnapshotId: string; researchSnapshotId: string | null; inputHash: string; previousSnapshotId: string | null
   provenance: IntelligenceProvenance; analysisModel: string | null; evidence: EvidenceReference[]
   rawDraft: InvestmentDraft; guardWarnings: string[]; changes: Array<{ horizon: TrendHorizon; previous: InvestmentDirection; current: InvestmentDirection; evidenceIds: string[]; explanation: string }>; recordHash: string
   researchFeedback?: ResearchFeedbackReceipt
+  forwardValidation?: NativeForwardBinding
 }
 export type InvestmentThesisStatus = 'ACTIVE' | 'STRENGTHENING' | 'WEAKENING' | 'CHALLENGED' | 'INVALIDATED' | 'RESOLVED' | 'EXPIRED'
 export interface InvestmentThesis extends InvestmentThesisDraft {
@@ -222,4 +225,5 @@ export interface InvestmentReport {
   schemaVersion: 1; generatedAt: string; asOf: string | null; latest: InvestmentSnapshot | null; history: InvestmentSnapshot[]
   theses: Array<InvestmentThesis & { status: InvestmentThesisStatus; latestEvaluation: InvestmentThesisEvaluation | null }>; evaluations: InvestmentThesisEvaluation[]
   quality: { total: number; active: number; resolved: number; invalidated: number; expired: number; unresolved: number; conditionDefined: number; stateChanges: number; meanDurationDays: number | null; directionalAccuracy: null; note: string }
+  nativeForward?: NativeForwardReport
 }

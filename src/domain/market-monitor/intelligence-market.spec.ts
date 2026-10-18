@@ -19,6 +19,21 @@ function stock(asset: MarketMonitorAsset = 'TSLA'): MarketMonitorSnapshot {
 }
 
 describe('equity market intelligence projection', () => {
+  it('explains an effective medium-term weakening constraint without promoting it to a bearish or independent vote', () => {
+    const s = stock('MSTR')
+    s.trend!.medium.direction = 'transition'
+    s.trend!.medium.guard = { policy: 'equity-medium-weakening-v1', status: 'weakening', applied: true,
+      backgroundDirection: 'bullish', observedSessions: 30, belowAverageSessions: 4,
+      latestBelowAverage: true, recentAverage: 145, previousAverage: 151,
+      reasons: ['persistent-below-average', 'recent-average-declining'] }
+    const market = buildMarketIntelligence(s, new Date(s.capturedAt))
+    const medium = market.horizons.find(row => row.horizon === 'medium')!
+    expect(medium.direction).toBe('transition')
+    expect(medium.momentum.text).toContain('原偏多背景降为过渡；尚未确认看空')
+    expect(medium.risks.join(' ')).toContain('多数收盘低于各自20日均线')
+    expect(market.evidence.filter(row => row.metric === 'trend.medium')).toHaveLength(1)
+    expect(market.evidence.find(row => row.metric === 'trend.medium')?.value).toBe('transition')
+  })
   it('projects a separately verified announcement even when news fails, retaining true source times', () => {
     const s = stock(); s.context.nextEarningsAt = '2026-10-21'
     s.context.earningsEvent = { asset: 'TSLA', status: 'confirmed', date: '2026-10-21', timing: 'after-close', webcastAt: '2026-10-21T21:30:00Z',

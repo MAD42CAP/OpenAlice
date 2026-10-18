@@ -1,3 +1,4 @@
+import { nativeForwardEn } from './native-forward'
 import { researchLoopEn } from './research-loop'
 import { forwardEn } from './forecast-validation'
 import { intelligenceEn } from './intelligence'
@@ -22,6 +23,7 @@ import { typeSafeEn } from './typesafe'
 export const en = {
   researchLoop: researchLoopEn,
   forward: forwardEn,
+  nativeForward: nativeForwardEn,
   intelligence: intelligenceEn,
   accuracy: accuracyEn,
   thesis: thesisEn,

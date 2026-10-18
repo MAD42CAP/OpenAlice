@@ -102,7 +102,7 @@ it('keeps current strategy results separate from older aggregate successes and s
   expect(screen.getByText('本轮新版 · 2 个窗口已到期，是否带来额外提升仍在验证。')).toBeTruthy()
   expect(screen.queryByText(/同样 2 次判断/)).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '查看验证明细' }))
-  expect(screen.getByText('规则版本 3；不混入旧版成绩。')).toBeTruthy()
+  expect(screen.getByText('规则版本 4；不混入旧版成绩。')).toBeTruthy()
   expect(screen.getByText(/综合判断对照规则：同样 2 次判断，命中 1\/2 对 1\/2/)).toBeTruthy()
   expect(screen.queryByText(/40\/40/)).toBeNull()
 })
@@ -121,5 +121,20 @@ it('keeps actual previous-version scores visible even when its current strategy 
   Object.assign(report.summaries[0]!.methods.jev, { scored: 2, correct: 1 })
   render(<ForwardValidationDetails report={report} />)
   expect(screen.getByText('新版 Jev：命中 1/2 · 0 暂不判断')).toBeTruthy()
-  expect(screen.queryByText('规则版本 3；不混入旧版成绩。')).toBeNull()
+  expect(screen.queryByText('规则版本 4；不混入旧版成绩。')).toBeNull()
+})
+
+it('keeps cause-stratified raw comparisons closed and never counts effective abstention as a hit', () => {
+  const report = demoForecastValidation('BTC'), audit = report.validation!.current.summaries[0]!.jevDiagnostics
+  audit.matured.raw = { scored: 2, correct: 1, unavailable: 0, coverage: 1, accuracy: 0.5 }
+  audit.matured.guardedAbstainedRaw = { ...audit.matured.raw }
+  Object.assign(audit.matured.rawVsRules, { count: 2, rawCorrect: 1, baselineCorrect: 1 })
+  render(<MarketForwardValidationSummary report={report} loading={false} error={null} refresh={actions.refresh} />)
+  expect(screen.queryByText('Jev弃权原因回看')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '查看验证明细' }))
+  expect(screen.getAllByText(/原因可重叠，不能相加，也不能把弃权计为命中/)).toHaveLength(3)
+  expect(screen.getByText('原始选择：命中 1/2 · 0 不可用')).toBeTruthy()
+  expect(screen.getByText('防护后弃权的窗口内：原始选择命中 1/2')).toBeTruthy()
+  expect(screen.getByText('原始Jev对照规则：同样 2 个窗口，命中 1/2 对 1/2')).toBeTruthy()
+  expect(screen.getAllByText('新版 Jev：尚无可评分结果 · 0 暂不判断 · 0 未采集')).toHaveLength(3)
 })

@@ -9,6 +9,7 @@ import { cn } from '../../lib/utils'
 import { formatMonitorDate } from './market-monitor-format'
 import { MarketResearchIntelligence } from './MarketResearchIntelligence'
 import { MarketInvestmentIntelligence } from './MarketInvestmentIntelligence'
+import { MarketIntelligenceReadContext } from './MarketIntelligenceContext'
 
 export function MarketIntelligenceWorkspace({ asset, visible, revisionKey, children }: { asset: MonitorAsset; visible: boolean; revisionKey: string; children: ReactNode }) {
   const { t } = useTranslation()
@@ -18,7 +19,7 @@ export function MarketIntelligenceWorkspace({ asset, visible, revisionKey, child
   const tab = selection.asset === asset ? selection.tab : 'market'
   const tabs = asset === 'BTC' ? ['market', 'research', 'investment'] as const : ['market', 'investment'] as const
   const busy = state.feedback?.state === 'running' || state.report?.job.state === 'queued' || state.report?.job.state === 'running'
-  return <Tabs value={tab} onValueChange={value => setSelection({ asset, tab: String(value) })} className="mx-auto w-full max-w-[1080px] min-w-0 space-y-3">
+  return <MarketIntelligenceReadContext.Provider value={{ asset, report: state.report, loading: state.loading, error: state.error }}><Tabs value={tab} onValueChange={value => setSelection({ asset, tab: String(value) })} className="mx-auto w-full max-w-[1080px] min-w-0 space-y-3">
     <TabsList activateOnFocus aria-label={t('intelligence.layers', { asset })} className={cn("grid w-full", asset === 'BTC' ? 'grid-cols-3' : 'grid-cols-2')}>
       {tabs.map(value => <TabsTrigger key={value} value={value} className="min-w-0 whitespace-normal px-1 text-xs sm:px-3 sm:text-sm">{t(`intelligence.${value}`)}</TabsTrigger>)}
     </TabsList>
@@ -34,7 +35,7 @@ export function MarketIntelligenceWorkspace({ asset, visible, revisionKey, child
       </div>}
       {value === 'research'
         ? <MarketResearchIntelligence report={state.report} busy={!!busy} perform={state.perform} />
-        : <MarketInvestmentIntelligence key={asset} report={state.report} busy={!!busy} onRun={() => void state.perform('run', undefined, true)} />}
+        : <MarketInvestmentIntelligence key={asset} report={state.report} loading={state.loading} readError={!!state.error} busy={!!busy} onRun={() => void state.perform('run', undefined, true)} />}
     </TabsContent>)}
-  </Tabs>
+  </Tabs></MarketIntelligenceReadContext.Provider>
 }

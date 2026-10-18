@@ -9,6 +9,8 @@ import type { JevReport } from '../../api/typesafe'
 import { useMarketAccuracySummary } from '../../hooks/useMarketAccuracySummary'
 import { Button } from '../../components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../components/ui/collapsible'
+import { useMarketIntelligenceRead } from './MarketIntelligenceContext'
+import { MarketNativeForwardValidation } from './MarketNativeForwardValidation'
 
 const horizons = ['short', 'medium', 'long'] as const
 type Paired = ExperimentReport['summaries'][number]['paired']
@@ -21,9 +23,11 @@ export function MarketAccuracySummary(props: { asset: MonitorAsset; visible: boo
 }
 function MarketAccuracyCurrent(props: { asset: MonitorAsset; visible: boolean; revisionKey: string }) {
   const { t } = useTranslation()
+  const shared = useMarketIntelligenceRead()
+  const native = shared?.asset === props.asset ? shared : null
   const model = useForecastValidation(props.asset, props.visible, props.revisionKey)
   const [historyOpen, setHistoryOpen] = useState(false)
-  return <><MarketForwardValidationSummary {...model} /><Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
+  return <><MarketForwardValidationSummary {...model} /><MarketNativeForwardValidation asset={props.asset} report={native?.report?.investment.nativeForward} loading={native?.loading} error={!!native?.error} /><Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
     <CollapsibleTrigger className="cursor-pointer py-2 text-xs font-medium text-muted-foreground">{t('forward.history')}</CollapsibleTrigger>
     <CollapsibleContent>{historyOpen && <><p className="text-xs text-muted-foreground">{t('forward.legacy')}</p><MarketLegacyForwardValidation {...props} /><MarketLegacyAccuracy {...props} /></>}</CollapsibleContent>
   </Collapsible></>

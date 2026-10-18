@@ -130,6 +130,26 @@ it('switches between BTC, TSLA and MSTR without losing independent asset history
   expect(await screen.findByText('MSTR market state')).toBeTruthy()
 })
 
+it('keeps the effective equity trend separate from its weakening bullish background', async () => {
+  mocks.snapshots.mockImplementation(async (asset: 'BTC' | 'TSLA' | 'MSTR') => {
+    const snapshot = demoMonitorSnapshot(asset)
+    if (asset === 'TSLA' && snapshot.trend) {
+      snapshot.trend.medium.direction = 'transition'
+      snapshot.trend.medium.guard = { policy: 'equity-medium-weakening-v1', status: 'weakening', applied: true,
+        backgroundDirection: 'bullish', observedSessions: 5, belowAverageSessions: 5, latestBelowAverage: true,
+        recentAverage: 370, previousAverage: 380, reasons: ['persistent-below-average', 'recent-average-declining'] }
+    }
+    return { snapshots: [snapshot], count: 1 }
+  })
+  render(<MarketEvidenceMonitorPage />)
+  await screen.findByRole('region', { name: 'Combined market assessment' })
+  fireEvent.click(screen.getByRole('tab', { name: /TSLA/ }))
+  await screen.findByText('TSLA research feedback')
+  expect(screen.queryByText(/Recent completed sessions weakened/)).toBeNull()
+  await openSection('Platform rules & daily interpretation')
+  expect(screen.getByText(/Weighted background: Bullish. Recent completed sessions weakened; that direction is withheld/)).toBeTruthy()
+})
+
 it('keeps the rendered snapshot when a background refresh fails', async () => {
   render(<MarketEvidenceMonitorPage />)
   await screen.findByRole('region', { name: 'Combined market assessment' })

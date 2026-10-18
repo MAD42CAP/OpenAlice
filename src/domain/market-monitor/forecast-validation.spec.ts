@@ -58,6 +58,42 @@ async function fixture() {
 }
 
 describe('versioned forward validation', () => {
+  it('diagnoses saved signal abstention and raw outcomes without new model calls or changing either frozen file', async () => {
+    const f = await fixture()
+    f.evaluate.mockImplementationOnce(async (_key, _state, questions) => result(questions, {
+      shortSignal: answer('uncertain', { supported: 0.1, uncertain: 0.9 }),
+    }))
+    await f.service.collect('BTC')
+    const publicationPath = join(f.v2Root, 'BTC-2026-09-20.json'), candidatePath = join(f.v2Root, 'BTC-2026-09-20.candidate.json')
+    const publicationBytes = await readFile(publicationPath, 'utf8'), candidateBytes = await readFile(candidatePath, 'utf8')
+    const calls = { model: f.evaluate.mock.calls.length, config: f.config.mock.calls.length, scan: f.monitor.scan.mock.calls.length }
+    f.advance()
+    const report = await f.service.report('BTC'), outcome = report.rows[0]!.outcomes[0]!
+    expect(outcome.choices.jev).toBeNull()
+    expect(outcome.jevDiagnostics).toMatchObject({ rawAnswerValid: true, rawChoice: 'up', rawCorrect: true,
+      evidence: { valid: true, choice: 'adequate' }, signal: { valid: true, choice: 'uncertain' }, reasons: ['signal-uncertain'] })
+    const originalCohort = report.validation!.cohorts.find(value => value.cohort.key === report.rows[0]!.cohort!.key)!
+    expect(originalCohort.summaries[0]!.jevDiagnostics.matured.raw).toMatchObject({ scored: 1, correct: 1 })
+    expect(f.evaluate).toHaveBeenCalledTimes(calls.model)
+    expect(f.config).toHaveBeenCalledTimes(calls.config)
+    expect(f.monitor.scan).toHaveBeenCalledTimes(calls.scan)
+    expect(await readFile(publicationPath, 'utf8')).toBe(publicationBytes)
+    expect(await readFile(candidatePath, 'utf8')).toBe(candidateBytes)
+  })
+
+  it('does not credit an invalid raw answer even when its selected label matches the realised outcome', async () => {
+    const f = await fixture()
+    f.evaluate.mockImplementationOnce(async (_key, _state, questions) => result(questions, {
+      short: answer('up', { up: 0.1, flat: 0.1, down: 0.8 }),
+    }))
+    await f.service.collect('BTC'); f.advance()
+    const report = await f.service.report('BTC'), original = report.validation!.cohorts.find(value => value.cohort.key === report.rows[0]!.cohort!.key)!
+    expect(report.rows[0]!.outcomes[0]).toMatchObject({ actual: 'up', choices: { jev: null },
+      jevDiagnostics: { rawAnswerValid: false, rawChoice: null, rawCorrect: null, reasons: ['answer-invalid'] } })
+    expect(original.summaries[0]!.jevDiagnostics.matured.raw).toMatchObject({ scored: 0, correct: 0, unavailable: 1 })
+    expect(original.summaries[0]!.jevDiagnostics.published.invalidRawAnswers).toBe(1)
+  })
+
   it('freezes a separate publication before one model call and never overwrites either record or v1 files', async () => {
     const f = await fixture()
     await mkdir(join(f.root, 'forecast-experiment-v1'))
