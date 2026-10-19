@@ -6,6 +6,51 @@ No integration, merge or release is authorized.
 
 Related issues: none.
 
+## October 19 private laptop access and personal workspace entry
+
+The owner asked for a dedicated Tailscale investment address and a simple Home
+entry in the independently managed personal workspace. The existing private
+personal site remains unchanged in purpose; its origin is not the investment
+platform. Existing Serve ports must not be reassigned, and the underlying
+monitor stays on localhost with its current research jobs and frozen records.
+
+Selected interaction: one short Home card labelled 投研平台, BTC · TSLA · MSTR,
+opening the dedicated HTTPS `/research` in a new tab. Use the personal Home's
+existing responsive entry-card primitive, with normal keyboard anchor behavior
+and no modal, embedded frame or extra dashboard panel. Authentication reuses
+its exact owner check through an explicit empty decision endpoint; no private
+identity configuration, token or credential is copied into this repository.
+
+- [x] Add an independently testable loopback gateway with per-request owner
+  authorization, strict external Origin checks, isolated cookies and shared
+  HTTP/WebSocket enforcement; block internal CLI/MCP transport routes.
+- [x] Add the personal Home link and a minimal authenticated decision endpoint
+  in that separate local project, retaining private backups and isolated tests.
+- [x] Freeze code, complete root/UI types and hermetic gates, deploy the personal
+  static update and callback, then establish only the new private Serve entry.
+- [x] Verify the real owner HTTPS shell, assets and readonly market APIs, denied
+  unauthenticated access, existing personal/other routes, restart persistence,
+  immutable archives and protected owner edits; sync only the owned branch.
+
+Acceptance: the frozen full suite passes 894 files / 8,170 tests, with four
+existing skips. Focused gateway/auth/launcher tests pass 72 cases; the separate
+portal's six hermetic owner-callback cases and TypeScript check pass. Root and
+UI typechecks pass. Both current production UI builds succeed in isolated
+output directories; the investment backend's previous static bundle dated
+September 16 was replaced by the current build, retaining old hashed assets
+for existing tabs. No monitor or research-worker restart was required.
+
+Real private HTTPS verifies the new shell, current JS/CSS and three-asset
+monitor status with no scan errors; owner access is authenticated and missing
+or wrong identities, external Origin and internal CLI/MCP paths are rejected.
+The new gateway survives an explicit launch-agent restart. The browser visibly
+shows the Home card and opens the current investment page from it. Existing
+Serve mappings retain their exact settings. All 4,080 immutable observation
+baseline files and the three owner CLI/narrator modifications retain hashes.
+Private deployment addresses, external portal backups and screenshots remain
+in local acceptance state, not in this repository. No forecast, model gate,
+score, account, credential or trade behavior changed.
+
 ## October 18 BTC native synthesis failure recovery
 
 The first-short-outcome watch found a real native BTC run exiting with the

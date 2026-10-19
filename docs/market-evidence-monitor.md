@@ -1710,3 +1710,46 @@ and cause alongside separately attributed current technical observations.
 The full suite passes 893 files / 8,142 tests (four existing skips), both
 typechecks pass, and 4,081 existing public input/forecast/publication files
 remain byte-identical. Prospective outcomes are still pending.
+
+
+## Private cross-device investment entry
+
+A separately managed Tailscale Serve HTTPS origin may target
+`scripts/market-monitor-tailnet.mjs` on loopback. The gateway forwards to the
+existing built UI and backend on one origin, so API and Workspace WebSocket
+traffic share the same authentication boundary. It does not change the Mac
+monitor's localhost binding or restart its research workers.
+
+The gateway requires a dedicated `https://<host>.<tailnet>.ts.net:<port>` origin
+and delegates every HTTP and WebSocket request to the personal portal's explicit
+`GET /api/private-access-check` decision endpoint on loopback port 4319. That
+endpoint must apply its existing exact owner, Host and Origin rules and return
+an empty 204 only on success. A public HTML page is not an authorization check.
+Missing or duplicate identity headers, wrong owner/Host/Origin, callback timeout,
+redirect or error all fail closed. Tailscale Serve is the only intended source
+of trusted identity headers; never publish the loopback gateway directly or use
+Funnel for this private entry.
+
+After owner authorization, the gateway relays as a local Alice client. It
+strips personal-portal cookies, Authorization, forwarding and Tailscale identity
+headers before proxying, strips response cookies, and enforces external Origin
+checks before local Origin rewriting. Mutations and WebSocket upgrades require
+the exact dedicated Origin. Internal `/cli` and `/mcp` gateways and Alice token
+login/logout routes are not exposed through this entry. It creates no Alice
+session, reads no credential files, and logs no identity, headers or bodies.
+
+Start the loopback process using the existing Node runtime, for example:
+
+```sh
+node scripts/market-monitor-tailnet.mjs --origin=https://research.example.ts.net:8445 --port=4321
+```
+
+An owner-managed launch agent keeps that process alive; a separate background
+Tailscale Serve mapping forwards its private HTTPS port to loopback 4321. Keep
+all existing Serve mappings intact. The personal workspace's Home card opens
+`/research` on the dedicated origin in a new tab with `noopener noreferrer`.
+The card alone is not connectivity: verify the real HTTPS shell, bundled assets,
+read-only market API and owner authorization before reporting cross-device
+readiness. If Alice was explicitly configured to require sessions even on
+loopback, do not disable authentication to make this gateway pass; retain a
+failed readiness result and use the supported authenticated transport instead.
