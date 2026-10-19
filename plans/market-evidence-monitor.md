@@ -6,6 +6,38 @@ No integration, merge or release is authorized.
 
 Related issues: none.
 
+## October 18 BTC native synthesis failure recovery
+
+The first-short-outcome watch found a real native BTC run exiting with the
+provider error "Selected model is at capacity". The unchanged-material cache
+then suppressed natural retries for 24 hours despite healthy scheduled scans.
+This is an execution failure, separate from a model's valid abstention. No
+accuracy result or relaxed prediction gate follows from repairing dispatch.
+
+- [x] Reproduce the persistent same-input failure and add bounded hourly retry
+  coverage for failed/blocked/partial and unpublished BTC synthesis, restart,
+  coalescing, active tasks, successful caching and explicit force behavior.
+- [x] Reuse the existing native runner and persisted attempt time; preserve
+  model/runtime choices, frozen inputs and all prediction/score protocols.
+- [x] Complete focused orchestration/route regressions and owning typecheck,
+  orderly idle runtime update, real read-only acceptance and history integrity
+  checks; sync only the held owned feature branch.
+
+Acceptance: 46 focused market/orchestration/tool/route files pass all 769
+tests, and root `tsc --noEmit` passes. Regression tests first reproduced four
+same-material failure cases on the old code. The ordered idle restart restored
+BTC native dispatch as real task `run-D4-tuvEC` at 2026-10-19 01:29:26 UTC;
+this is explicitly startup recovery, not a natural scan success. It was still
+running at the first check, so no new successful publication or accuracy gain
+is claimed. All 4,080 original observation-baseline files and the three owner
+CLI/narrator edits retain their hashes. The bounded forward watch continues;
+all current short outcome windows remain pending.
+
+The page's existing compact task state remains sufficient; no UI change or
+new dashboard diagnostic panel is introduced. Failed attempts remain failed
+until a real later task publishes successfully. Startup attempts after a
+restart must be distinguished from natural scheduled-scan attempts.
+
 ## October 18 clear market state and reasons for withholding a prediction
 
 Status: implemented and verified in an isolated checkout from `6318bc47`; only the owned

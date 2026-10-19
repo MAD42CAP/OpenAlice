@@ -96,8 +96,15 @@ export function createIntelligenceService(options: {
     if (requestedKey === null) {
       try { const saved = JSON.parse(await readFile(join(root, 'request-state.json'), 'utf8')); requestedKey = saved.materialKey as string; requestedAt = Date.parse(saved.requestedAt) } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error }
     }
-    if (!force && requestedKey === key && now().getTime() - requestedAt < 86_400_000
-      && (asset === 'BTC' || !['failed', 'blocked'].includes((await job()).state))) return
+    if (!force && requestedKey === key) {
+      const elapsed = now().getTime() - requestedAt
+      const state = (await job()).state
+      const retryable = ['failed', 'blocked'].includes(state) || asset === 'BTC' && state === 'partial'
+      // A failed attempt is not a cached analysis. BTC retries on a later
+      // natural scan, at most hourly; persisted attempt time survives restarts.
+      const cooldown = retryable ? asset === 'BTC' ? 3_600_000 : 0 : 86_400_000
+      if (elapsed < cooldown) return
+    }
     if (!runner) { local = { state: 'blocked', message: '当前原生 AI 工作区尚未就绪。', updatedAt: now().toISOString(), runId: null }; return }
     const active = await runner.status()
     if (active.state === 'running' || active.state === 'queued') { local = active; return }

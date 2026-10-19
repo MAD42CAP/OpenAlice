@@ -1149,8 +1149,14 @@ daily 08:15 Vancouver schedule catches up while the application runs. Startup
 and successful BTC scans also check discovery; the persistent check interval
 is 24 hours. Native dispatch uses the existing scheduler, task status and
 15-minute watchdog. Tool validation returns bounded errors for one correction;
-there is no unbounded model retry. Source paragraphs are untrusted evidence,
-never instructions.
+there is no in-process model retry loop. A failed, blocked or unpublished/partial
+BTC synthesis with unchanged material is eligible again on a subsequent
+successful scan, no sooner than one hour after the last dispatch attempt. The existing persisted attempt
+time keeps this cooldown across restarts; unchanged successfully published
+work retains its 24-hour cache. Active/queued work is never duplicated, and
+explicit manual reanalysis retains its existing force option. Owner-selected
+runtime/model settings remain authoritative. Source paragraphs are untrusted
+evidence, never instructions.
 
 Only this authenticated Issue run may call the three scoped `alice intelligence`
 commands: `input`, `publish-research`, and `publish-synthesis`. Input archives
