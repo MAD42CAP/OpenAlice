@@ -21,8 +21,8 @@ vi.mock('../theme/store', () => ({
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, params?: { mode?: string }) => ({
-      'nav.applicationMenu': 'Your Alice: Open application menu',
-      'nav.yourAlice': 'Your Alice',
+      'nav.applicationMenu': 'MAD42Lab: Open application menu',
+      'nav.applicationName': 'MAD42Lab',
       'nav.appearanceMenu': `Appearance: ${params?.mode}`,
       'nav.item.settings': 'Settings',
       'nav.item.connectors': 'Connectors',
@@ -54,7 +54,7 @@ describe('ActivityBarUtilityMenu', () => {
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: 'Your Alice: Open application menu' }))
+    await user.click(screen.getByRole('button', { name: 'MAD42Lab: Open application menu' }))
     expect(screen.getByRole('menuitem', { name: 'Settings' })).toBeTruthy()
     expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Settings', 'Connectors', 'AppearanceAuto'])
     expect(screen.getByRole('menuitem', { name: 'Appearance: Auto' })).toBeTruthy()
@@ -62,7 +62,7 @@ describe('ActivityBarUtilityMenu', () => {
     await user.click(screen.getByRole('menuitem', { name: 'Settings' }))
     expect(onOpenSettings).toHaveBeenCalledOnce()
 
-    await user.click(screen.getByRole('button', { name: 'Your Alice: Open application menu' }))
+    await user.click(screen.getByRole('button', { name: 'MAD42Lab: Open application menu' }))
     screen.getByRole('menuitem', { name: 'Appearance: Auto' }).focus()
     await user.keyboard('{ArrowRight}')
     expect(screen.getByRole('menuitemradio', { name: 'Auto' }).getAttribute('aria-checked')).toBe('true')
@@ -78,10 +78,10 @@ describe('ActivityBarUtilityMenu', () => {
     render(<ActivityBarUtilityMenu compactRail={compactRail} denseRail={false}
       onOpenSettings={vi.fn()} onOpenConnectors={onOpenConnectors} connectorsActive connectorWarnings={1} />)
     expect(screen.getByRole('status', { name: '1 connector needs attention' })).toBeTruthy()
-    const trigger = screen.getByRole('button', { name: 'Your Alice: Open application menu' })
-    expect(trigger.querySelector('img')?.getAttribute('src')).toBe('/alice.ico')
-    expect(trigger.querySelector('img')?.parentElement?.classList.contains('rounded-full')).toBe(true)
-    expect(trigger.textContent).toBe(compactRail ? '' : 'Your Alice')
+    const trigger = screen.getByRole('button', { name: 'MAD42Lab: Open application menu' })
+    expect(trigger.querySelector('img')).toBeNull()
+    expect(trigger.querySelector('svg')).toBeTruthy()
+    expect(trigger.textContent).toBe(compactRail ? '' : 'MAD42Lab')
     expect(trigger.className).not.toContain('bg-sidebar-accent text-sidebar-accent-foreground')
     trigger.focus()
     await user.keyboard('{ArrowDown}')

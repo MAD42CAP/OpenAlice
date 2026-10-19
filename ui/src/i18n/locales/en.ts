@@ -261,8 +261,8 @@ export const en = {
     connectorNeedsAttention: '{{count}} connector needs attention',
     about: 'About {{label}}',
     primaryNavigation: 'Primary navigation',
-    yourAlice: 'Your Alice',
-    applicationMenu: 'Your Alice: Open application menu',
+    applicationName: 'MAD42Lab',
+    applicationMenu: 'MAD42Lab: Open application menu',
     appearanceMenu: 'Appearance: {{mode}}',
     collapseRail: 'Collapse activity bar',
     expandRail: 'Expand activity bar',
@@ -629,7 +629,7 @@ export const en = {
       usedForBoth: 'Used for Day & Night',
     },
     about: {
-      title: 'About OpenAlice',
+      title: 'About MAD42Lab',
       description: 'Installation, runtime, update status, and the AliceProject currently open here.',
       connection: {
         title: 'Backend connection',

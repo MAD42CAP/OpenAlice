@@ -204,9 +204,8 @@ export function AboutOpenAliceSection() {
         <div className="rounded-lg border border-border/70 bg-secondary/35 p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <img src="/alice.ico" alt="" className="h-11 w-11 shrink-0 object-contain" />
               <div className="min-w-0">
-                <p className="text-[14px] font-semibold text-foreground">OpenAlice</p>
+                <p className="text-[14px] font-semibold text-foreground">{t('nav.applicationName')}</p>
                 <p className="mt-0.5 font-mono text-[12px] leading-[18px] text-muted-foreground">v{currentVersion}</p>
               </div>
             </div>

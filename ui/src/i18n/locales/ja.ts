@@ -251,8 +251,8 @@ export const ja: Resources = {
     connectorNeedsAttention: '要確認のコネクター {{count}} 件',
     about: '{{label}}について',
     primaryNavigation: 'メインナビゲーション',
-    yourAlice: 'Your Alice',
-    applicationMenu: 'Your Alice：アプリメニューを開く',
+    applicationName: 'MAD42Lab',
+    applicationMenu: 'MAD42Lab：アプリメニューを開く',
     appearanceMenu: '外観：{{mode}}',
     collapseRail: 'アクティビティバーを折りたたむ',
     expandRail: 'アクティビティバーを展開',
@@ -619,7 +619,7 @@ export const ja: Resources = {
       usedForBoth: '昼と夜の両方に使用',
     },
     about: {
-      title: 'OpenAlice について',
+      title: 'MAD42Lab について',
       description: 'インストール、実行環境、更新状況、現在開いている AliceProject を確認します。',
       connection: {
         title: 'バックエンド接続',

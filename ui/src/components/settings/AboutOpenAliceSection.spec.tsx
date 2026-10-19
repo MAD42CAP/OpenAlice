@@ -83,6 +83,9 @@ describe('AboutOpenAliceSection', () => {
     render(<AboutOpenAliceSection />)
 
     expect(await screen.findByText('v0.82.0-beta')).toBeTruthy()
+    expect(screen.getByText('About MAD42Lab')).toBeTruthy()
+    expect(screen.getByText('MAD42Lab')).toBeTruthy()
+    expect(screen.queryByRole('img')).toBeNull()
     expect(screen.getByText('You’re up to date.')).toBeTruthy()
     expect(screen.getByText('Browser / server')).toBeTruthy()
     expect(await screen.findByText('Research AliceProject')).toBeTruthy()

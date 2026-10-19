@@ -6,6 +6,33 @@ No integration, merge or release is authorized.
 
 Related issues: none.
 
+
+## Personal navigation and investment branding (2026-10-19)
+
+The owner requested a left-navigation investment link in the separate personal
+portal, and MAD42Lab naming without the Alice avatar in the investment footer
+and About view. Selected interaction: reuse the portal sidebar anchor with a
+neutral chart icon and a safe new tab; retain the Home card. The investment
+footer retains its existing accessible dropdown and keyboard behavior, with a
+Settings icon in both compact and expanded layouts. About uses MAD42Lab in all
+four languages and omits the portrait. Runtime/update controls remain intact.
+No prediction, input, threshold, forward ledger or background task is changed.
+
+Implementation is isolated from the three existing owner edits. The personal
+portal source has a local backup and separate staged build; only the investment
+UI and its guide/plan belong in the owned feature branch. Delivery rebuilds both
+served static outputs without restarting research or monitoring processes.
+
+Acceptance: the UI owner suite passes 355 files / 2,136 tests, and the focused
+menu/About suite passes all 12 cases. UI typecheck, investment production build,
+personal portal typecheck and isolated production build pass. The real personal
+navigation opens research in a safe new tab; expanded/compact investment menus
+have accessible MAD42Lab labels and zero portrait images. The actual About view
+reads 关于 MAD42Lab. Both static outputs are deployed with recoverable backups,
+without process restarts. All 4,080 baseline immutable records and the three
+unrelated owner files retain their byte fingerprints.
+
+
 ## October 19 private laptop access and personal workspace entry
 
 The owner asked for a dedicated Tailscale investment address and a simple Home

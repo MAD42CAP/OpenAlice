@@ -250,8 +250,8 @@ export const zh: Resources = {
     connectorNeedsAttention: '{{count}} 个连接器需要处理',
     about: '关于{{label}}',
     primaryNavigation: '主导航',
-    yourAlice: 'Your Alice',
-    applicationMenu: 'Your Alice：打开应用菜单',
+    applicationName: 'MAD42Lab',
+    applicationMenu: 'MAD42Lab：打开应用菜单',
     appearanceMenu: '外观：{{mode}}',
     collapseRail: '折叠活动栏',
     expandRail: '展开活动栏',
@@ -617,7 +617,7 @@ export const zh: Resources = {
       usedForBoth: '同时用于日间与暗夜',
     },
     about: {
-      title: '关于 OpenAlice',
+      title: '关于 MAD42Lab',
       description: '查看当前安装、运行环境、更新状态，以及此处打开的 AliceProject。',
       connection: {
         title: '后端连接',

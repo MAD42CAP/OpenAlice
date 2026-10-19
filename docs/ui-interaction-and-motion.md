@@ -170,17 +170,17 @@ needed for the real task. Prefer a small rotating set over a wall of commands.
 
 ### Background execution surfaces
 
-The bottom Your Alice application menu uses the static Alice portrait and a
-text label when expanded, or only the portrait when compact. The brand header
-keeps the OpenAlice wordmark without a second portrait. Its trailing ellipsis
+The bottom MAD42Lab application menu uses a neutral Settings icon and a
+text label when expanded, or only the icon when compact. The brand header
+keeps the MAD42Lab wordmark without a portrait. Its trailing ellipsis
 appears on hover, keyboard focus, or while open; touch keeps it visible. The
 trigger highlights for interaction, not because a Settings or Connectors page
 is active. Settings remains an item inside this application menu.
 
-Connectors is accessed from the bottom Your Alice menu, alongside Settings and
+Connectors is accessed from the bottom MAD42Lab menu, alongside Settings and
 above Appearance, not from the primary activity list or its layout editor.
 The existing Connectors route and setup flows remain unchanged. Connector
-health warnings appear on the Your Alice trigger and the Connectors menu item.
+health warnings appear on the MAD42Lab trigger and the Connectors menu item.
 
 The Automation activity entry and its dedicated navigator are retired. Runs
 and API remain unchanged under Settings → Developer, at
@@ -459,8 +459,8 @@ The application body establishes a 14px type size with 20px leading. Explicit
 display, heading, control, caption, and data roles build from that stable
 reading baseline.
 
-The compact activity rail keeps its static Alice mark in the bottom application
-menu. Its expansion action
+The compact activity rail keeps its neutral Settings icon in the bottom
+application menu. Its expansion action
 lives in the content-side top bar, not in a brand-hover affordance. Small
 desktop windows still permit explicit expansion. The shell owns effective
 rail state so its toggle and the rendered rail always agree.

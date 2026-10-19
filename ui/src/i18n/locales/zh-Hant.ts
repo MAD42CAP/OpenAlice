@@ -260,8 +260,8 @@ export const zhHant: Resources = {
     connectorNeedsAttention: '{{count}} 個連接器需要處理',
     about: '關於{{label}}',
     primaryNavigation: '主要導覽',
-    yourAlice: 'Your Alice',
-    applicationMenu: 'Your Alice：開啟應用程式選單',
+    applicationName: 'MAD42Lab',
+    applicationMenu: 'MAD42Lab：開啟應用程式選單',
     appearanceMenu: '外觀：{{mode}}',
     collapseRail: '收合活動列',
     expandRail: '展開活動列',
@@ -627,7 +627,7 @@ export const zhHant: Resources = {
       usedForBoth: '同時用於日間與暗夜',
     },
     about: {
-      title: '關於 OpenAlice',
+      title: '關於 MAD42Lab',
       description: '查看目前安裝、執行環境、更新狀態，以及此處開啟的 AliceProject。',
       connection: {
         title: '後端連線',
