@@ -1,3 +1,4 @@
+import { demoMovementReport } from '../demo/fixtures/movement-alerts'
 // @vitest-environment jsdom
 import { demoMarketJudgment } from '../demo/fixtures/market-judgment'
 import { demoThesisReport } from '../demo/fixtures/market-thesis'
@@ -13,6 +14,7 @@ import { MarketEvidenceMonitorPage } from './MarketEvidenceMonitorPage'
 const mocks = vi.hoisted(() => ({
   review: vi.fn(), replay: vi.fn(), health: vi.fn(), status: vi.fn(), narratorStatus: vi.fn(), runNarratorNow: vi.fn(), reconcileNarrator: vi.fn(), settings: vi.fn(), strategies: vi.fn(), snapshots: vi.fn(), alerts: vi.fn(), evaluation: vi.fn(), scan: vi.fn(), saveSettings: vi.fn(),
 }))
+vi.mock('../api/market-movement-alerts', () => ({ marketMovementApi: { read: vi.fn(async (asset: 'BTC' | 'TSLA' | 'MSTR') => demoMovementReport(asset)) }, movementErrorCodes: [] }))
 vi.mock('../api/market-judgment', () => ({ marketJudgmentApi: { read: vi.fn(async (asset: 'BTC' | 'TSLA' | 'MSTR') => demoMarketJudgment(asset)) } }))
 vi.mock('../api/market-thesis', () => ({ marketThesisApi: { read: vi.fn(async (asset: 'BTC' | 'TSLA' | 'MSTR') => demoThesisReport(asset)) } }))
 vi.mock('../api/market-intelligence', () => ({ marketIntelligenceApi: { read: vi.fn(async () => demoMarketIntelligence()) } }))

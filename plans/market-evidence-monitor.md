@@ -7,6 +7,45 @@ No integration, merge or release is authorized.
 Related issues: none.
 
 
+
+## Percentage alerts and conditional movement risk (2026-10-19)
+
+Status: implemented, regression passed and live read-only / browser acceptance completed for the owner's explicit choice of both observed percentage alerts and forward-looking conditional risk hints. Guides: market evidence
+monitor, market data architecture and UI interaction/motion. Related issues:
+none; work stays in the owned feature branch without integration.
+
+Selected interaction: one concise alert row below the latest quote, with the
+existing disclosure primitive exposing thresholds, expiry and source details.
+A user-created plan freezes one attributed reference price and separate rise /
+fall percentages. Each leg triggers once, persists across restart and can be
+cancelled; no implicit rule is armed on page load. Existing background scans
+check active plans independently even when the analysis fingerprint is unchanged.
+The original forecast and research ledgers are not modified.
+
+Future risk is a conditional structural scenario using verified existing
+support/resistance levels and distances from an explicitly attributed reference.
+It is not a new probability estimate or a promise of future return. Quote
+crossing and a completed daily-close confirmation remain separate. Missing or
+outdated data is explicit. Browser delivery remains opt-in and requires the
+page open; background checks retain triggered records without adding external
+messaging or a new recurring agent/model task.
+
+- [x] Independent atomic one-shot plans, read-only quote validation and safe API.
+- [x] Conditional distance projection with source/time and crossing semantics.
+- [x] Compact localized UI, settings, recovery states and deterministic demo.
+- [x] Meaningful regression, root/UI types and full hermetic suite.
+- [x] Real read-only source / route / browser validation, preserve history and
+      owner changes, synchronize only MAD42CAP/OpenAlice held branch.
+
+Regression gate: all 901 hermetic test files passed, with 8,235 tests passed and four existing skips. Root and UI typechecks and the production UI build passed. Isolated runtime acceptance created, persisted, cancelled and recreated plans using real read-only BTC/TSLA/MSTR prices without arming production plans.
+
+Live acceptance: BTC uses a fresh Coinbase trade; closed US equities explicitly use attributed completed-close references when live trades are stale. All three new production reports return healthy and leave plans empty until explicit creation. The authenticated Tailscale research page displays both kinds, and 390px controls fit without overflow. Paused, unavailable and overdue checks are explicit before expansion; browser notifications remain opt-in. Existing development reload loaded the finalized backend without a manual scan; natural post-reload continuity is recorded separately. All 4,080 baseline immutable records and three unrelated owner files retain their fingerprints.
+
+Completion requires both alert types to be visible and attributable, restart
+safe trigger deduplication, actual runtime validation and no unsupported claim
+that prediction accuracy has improved.
+
+
 ## Personal navigation and investment branding (2026-10-19)
 
 The owner requested a left-navigation investment link in the separate personal

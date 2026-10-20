@@ -1,3 +1,4 @@
+import { movementZh } from './movement-alerts'
 import { marketExplanationZh } from './market-explanation'
 import { nativeForwardZh } from './native-forward'
 import { researchLoopZh } from './research-loop'
@@ -11,6 +12,7 @@ import type { Resources } from './en'
 
 /** 简体中文. Typed as `Resources` → must match en's key structure exactly. */
 export const zh: Resources = {
+  movement: movementZh,
   marketExplanation: marketExplanationZh,
   researchLoop: researchLoopZh,
   forward: forwardZh,

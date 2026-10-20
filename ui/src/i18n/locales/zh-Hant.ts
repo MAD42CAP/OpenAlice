@@ -1,3 +1,4 @@
+import { movementHant } from './movement-alerts'
 import { marketExplanationHant } from './market-explanation'
 import { nativeForwardZh } from './native-forward'
 import { researchLoopZh } from './research-loop'
@@ -20,6 +21,7 @@ import { zh } from './zh'
  * Content is UI chrome only — no geographic or other non-technical terms.
  */
 export const zhHant: Resources = {
+  movement: movementHant,
   marketExplanation: marketExplanationHant,
   researchLoop: researchLoopZh,
   forward: { ...forwardZh, reason: { ...forwardZh.reason, 'signal-uncertain': 'Jev模型的獨立訊號回答仍拿不準；保留原始選擇，暫不採用方向。' } },

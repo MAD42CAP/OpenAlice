@@ -24,6 +24,7 @@ import { useMarketMonitorHealth } from '../hooks/useMarketMonitorHealth'
 import { MonitorReview } from '../components/market/MonitorReview'
 import { MarketResearchDashboard } from './market/MarketResearchDashboard'
 import { MarketLatestPrice } from './market/MarketLatestPrice'
+import { MarketMovementAlerts } from './market/MarketMovementAlerts'
 import { MarketAccuracySummary } from './market/MarketAccuracySummary'
 import { MarketResearchLoop } from './market/MarketResearchLoop'
 import { MarketTypeSafePanel } from './market/MarketTypeSafePanel'
@@ -349,6 +350,7 @@ export function MarketEvidenceMonitorPage({ visible = true }: { visible?: boolea
         {loading && !snapshot ? <MonitorSkeleton /> : error && !snapshot ? <div><EmptyState title={t('marketMonitor.unavailable')} description={error} /><div className="-mt-9 flex justify-center pb-10"><Button onClick={() => void scan(asset, 'manual')}>{t('marketMonitor.retryScan')}</Button></div></div> : snapshot ? (
           <div key={selection} className="mx-auto flex w-full max-w-[1080px] min-w-0 flex-col gap-3 pb-5">
             <MarketLatestPrice asset={asset} visible={visible} onViewResearch={() => setOpen('charts', true)} />
+            <MarketMovementAlerts asset={asset} visible={visible} revisionKey={revisionKey} notifications={settings.notifications} monitoringEnabled={settings.backgroundEnabled && settings.enabledAssets.includes(asset)} intervalMinutes={settings.intervalMinutes} />
             <MarketJudgmentPanel asset={asset} strategyId={settings.strategyId} visible={visible} revisionKey={revisionKey} />
             <MarketResearchLoop asset={asset} visible={visible} revisionKey={revisionKey} />
             <MarketAccuracySummary asset={asset} visible={visible} revisionKey={revisionKey} />

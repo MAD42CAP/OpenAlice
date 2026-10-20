@@ -1,3 +1,4 @@
+import { movementAlertHandlers } from './movement-alerts'
 import { demoMarketJudgment } from '../fixtures/market-judgment'
 import { demoMonitorReview } from '../fixtures/market-review'
 import { demoMarketDashboard } from '../fixtures/market-dashboard'
@@ -11,6 +12,7 @@ const snapshots: Record<MonitorAsset, ReturnType<typeof demoMonitorSnapshot>[]> 
 const alerts: MonitorAlert[] = []
 
 export const marketMonitorHandlers = [
+  ...movementAlertHandlers,
   http.get('/api/market-monitor/judgment', ({ request }) => {
     const asset = new URL(request.url).searchParams.get('asset') as MonitorAsset
     if (!ASSETS.includes(asset)) return HttpResponse.json({ error: 'Invalid asset' }, { status: 400 })

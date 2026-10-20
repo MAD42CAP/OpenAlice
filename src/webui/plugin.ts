@@ -15,7 +15,7 @@ import { rm } from 'node:fs/promises'
 import { uiBundlePath } from '@/core/paths.js'
 import type { Plugin, EngineContext } from '../core/types.js'
 import { SessionStore } from '../core/session.js'
-import { readWebSubchannels } from '../core/config.js'
+import { readWebSubchannels, readMarketDataConfig } from '../core/config.js'
 import { createMediaRoutes } from './routes/media.js'
 import { createChannelsRoutes, type SSEClient } from './routes/channels.js'
 import { createConfigRoutes, createMarketDataRoutes } from './routes/config.js'
@@ -33,6 +33,10 @@ import { createOfficeRoutes } from './routes/office.js'
 import { createNewsRoutes } from './routes/news.js'
 import { createMarketRoutes } from './routes/market.js'
 import { createMarketMonitorRoutes } from './routes/market-monitor.js'
+import { createMarketMovementAlertsRoutes } from './routes/market-movement-alerts.js'
+import { createMovementAlertService } from '../domain/market-monitor/movement-alerts.js'
+import { buildMovementRisk } from '../domain/market-monitor/movement-risk.js'
+import { createMarketQuoteService } from '../domain/market-data/quotes.js'
 import { createMarketMonitorService } from '../domain/market-monitor/service.js'
 import { createReviewedEarningsStore } from '../domain/market-monitor/reviewed-earnings-store.js'
 import { createMarketMonitorStore } from '../domain/market-monitor/store.js'
@@ -300,8 +304,15 @@ export class WebPlugin implements Plugin {
     app.route('/api/agent-status', createAgentStatusRoutes(ctx))
     app.route('/api/news', createNewsRoutes(ctx))
     app.route('/api/market', createMarketRoutes(ctx))
+    const marketQuotes = createMarketQuoteService({ alpacaCredentials: async () => {
+      const config = await readMarketDataConfig()
+      return { keyId: config.providerKeys.alpacaKeyId, secretKey: config.providerKeys.alpacaSecretKey }
+    } })
     const marketMonitor = createMarketMonitorService({
       afterSnapshot: async snapshot => {
+        // Quote checks keep their own persisted status; do not delay frozen
+        // forecast/model publication while a supplementary provider responds.
+        void movementAlerts.check(snapshot.asset).catch(() => { /* Exposed by the independent alert report. */ })
         await Promise.allSettled([thesis.afterScan(snapshot), intelligences[snapshot.asset].afterScan(snapshot)])
       },
       barService: ctx.barService,
@@ -310,6 +321,14 @@ export class WebPlugin implements Plugin {
       reviewedEarnings: createReviewedEarningsStore().read,
       ...(ctx.newsProvider ? { newsProvider: ctx.newsProvider } : {}),
     })
+    const movementSnapshot = async (asset: 'BTC' | 'TSLA' | 'MSTR') =>
+      (await marketMonitor.snapshots(asset, 1, (await marketMonitor.settings()).strategyId)).at(-1) ?? null
+    const movementAlerts = createMovementAlertService({
+      quotes: marketQuotes,
+      snapshot: movementSnapshot,
+      risk: async (asset, anchor) => buildMovementRisk(await movementSnapshot(asset), anchor, new Date()),
+    })
+    app.route('/api/market-monitor/movement-alerts', createMarketMovementAlertsRoutes(movementAlerts))
     const thesis = createThesisService({
       snapshot: async asset => (await marketMonitor.snapshots(asset, 1, (await marketMonitor.settings()).strategyId)).at(-1) ?? null,
       research: asset => createMarketMonitorStore().dashboardObservations(asset, 100),
@@ -397,7 +416,7 @@ export class WebPlugin implements Plugin {
     if (narrationStatus.state === 'failed' || narrationStatus.state === 'blocked') {
       console.warn(`[market monitor] Codex daily narration: ${narrationStatus.message}`)
     }
-    app.route('/api/market-monitor', createMarketMonitorRoutes(ctx, marketMonitor, this.marketMonitorScheduler, marketNarrator))
+    app.route('/api/market-monitor', createMarketMonitorRoutes(ctx, marketMonitor, this.marketMonitorScheduler, marketNarrator, marketQuotes))
     app.route('/api/workspaces', createWorkspaceRoutes(this.workspaceService))
     app.route('/api/harness-surfaces', createHarnessSurfaceRoutes(this.workspaceService.harnessSurfaces, {
       getGatewayPort: () => this.surfaceGatewayPort,

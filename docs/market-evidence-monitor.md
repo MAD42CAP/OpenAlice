@@ -338,6 +338,44 @@ Recorded alerts survive closing the page; native/background push delivery is
 intentionally outside this increment. No trading or agent-execution endpoint
 is used by the scheduler.
 
+## Percentage alerts and conditional movement risk
+
+`/api/market-monitor/movement-alerts` is independent from evidence-state alerts,
+Jev gates and native forward scoring. A user explicitly creates one active plan
+per asset, with optional rise/fall percentages and an expiry. The reference
+price, provider, feed, trade/close time and acquisition time are frozen at
+creation. Each direction triggers once; cancellation and expiry retain history.
+No rule is silently armed when the page loads. New state starts under
+`market-monitor/movement-alerts-v1`; existing settings/archives are not migrated
+or rewritten. Atomic per-asset replacement saves trigger and state together.
+
+Every successful background scan, including a semantically duplicate analysis,
+starts an independent quote check for active plans. This uses public market
+data only, with no account read, model invocation or trading write. Supplementary
+quote latency does not delay the existing forward-publication path. Stale,
+unavailable, future, old or out-of-order trades do not trigger an alert. Expired
+plans cannot fire on a late response. Source failures and feed changes remain
+explicit. A new plan can use a valid last completed daily close if a current
+trade is unavailable, and labels that basis clearly; observations still require
+a genuine subsequent usable trade. Checks follow the existing monitor cadence,
+usually 15 minutes, and are not a tick subscription. A move that crosses and
+reverses between checks can be missed. Disabled assets/background monitoring
+are shown as paused rather than promising coverage. An active plan whose latest check is unavailable, or older than two configured intervals (minimum five minutes), is marked unverified in the collapsed row. This is display freshness only, not a renewal of the saved plan.
+
+Future-risk hints are conditional structural scenarios, built from the
+platform's existing completed-bar support/resistance evidence. They display
+signed distances from an attributed current/delayed trade or completed close,
+the boundary and next deeper/higher observation level, timeframe and source.
+They do not predict an exact return, supply a calibrated probability, or count
+as a new AI directional call. A farther level identifies its original horizon and is a structural reference, not a price target. Rolling boundaries do not track subsequent daily-close confirmation against a frozen level, so that confirmation remains unevaluated. A quote crossing is not a completed-close confirmation. Missing/expired evidence stays unavailable; an
+already-crossed boundary is not converted to positive remaining distance.
+
+The dashboard adds one concise disclosure row below the quote, with thresholds,
+expiry, trigger records and conditional details inside. Recorded alerts survive
+page closure; optional browser notifications require an open page and the
+existing explicit permission. No email, phone or external push delivery is
+configured by this feature, and previously frozen predictions stay unchanged.
+
 ## Trend, Wyckoff and daily briefs
 
 Each new scan evaluates three independent horizons:
